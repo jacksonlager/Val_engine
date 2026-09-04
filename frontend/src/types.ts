@@ -6,6 +6,15 @@ export type Severity = "BLOCK" | "REVIEW" | "MONITOR";
 export type Disposition = "BLOCK" | "REVIEW" | "MONITOR" | "CLEAR";
 export const DISPOSITIONS: Disposition[] = ["BLOCK", "REVIEW", "MONITOR", "CLEAR"];
 
+/** What each disposition asks of the reader. One wording, used by the queue tiles and the
+    disposition filter, so the four words mean the same thing everywhere in the tool. */
+export const DISPOSITION_HINT: Record<Disposition, string> = {
+  BLOCK: "Decision required before booking",
+  REVIEW: "Check required to confirm the mark",
+  MONITOR: "Watch item; may escalate next quarter",
+  CLEAR: "Nothing outstanding; book as proposed",
+};
+
 // engine/inputs.py Status enum — values as they appear in the workbook.
 export type Status = "Active" | "Acquired" | "Shut Down" | string;
 
@@ -29,14 +38,29 @@ export interface MarkStep {
   evidence: EventRef | null;
 }
 
+/** One way a reviewer could resolve a flag, with the mark it would book ($M). Accepting it
+    records an E-01 override addressed to the flag's rule id; the proposal itself never moves. */
+export interface Suggestion {
+  key: string;
+  label: string; // one sentence, imperative
+  reasons: string[]; // exactly two short lines
+  booked: number;
+}
+
 export interface Flag {
   rule_id: string;
   family: string;
   severity: Severity;
-  /** Why the engine cannot decide this alone. Two or three plain sentences. */
+  /** Why the engine cannot decide this alone, in full. Shown on demand, not on the card. */
   message: string;
   /** The imperative: exactly what the reviewer must decide or check. Always "" on MONITOR. */
   action: string;
+  /** Two or three scannable lines, `**bold**` on the words that carry the decision.
+      Always present on BLOCK and REVIEW, always empty on MONITOR (the engine enforces both).
+      Empty from a server or export that predates them — the card falls back to `message`. */
+  points: string[];
+  /** One to three priced resolutions; empty on MONITOR and on a server that predates them. */
+  suggestions: Suggestion[];
   evidence: Record<string, unknown>;
 }
 
@@ -60,6 +84,8 @@ export interface OverrideRecord {
   created_at: string; // ISO date
   rule_ids_addressed: string[];
   source_proposal: string | null;
+  /** "<rule_id>/<suggestion key>" when the decision was an accepted engine suggestion. */
+  source_suggestion?: string | null;
 }
 
 export interface OpenItem {
@@ -213,6 +239,9 @@ export interface OverrideRequest {
   booked: number;
   approver: string;
   reason: string;
+  /** Which flags this decision resolves. Omitted = every flag on the position. */
+  rule_ids_addressed?: string[];
+  source_suggestion?: string;
 }
 
 // ---------------------------------------------------------------- publish gate (api/publish.py)
@@ -356,6 +385,45 @@ export interface MarkHistory {
   companies: Record<string, MarkHistoryPoint[]>; // ascending by quarter
 }
 
+// ---------------------------------------------------------------- vendor signals (api/signals.py)
+
+export interface SignalMetricRow {
+  key: string;
+  label: string;
+  vendor: number | string | null;
+  workbook: number | string | null;
+  delta_pct: number | null;
+  material: boolean; // vendor/workbook gap beyond 10% — shown, never acted on
+}
+
+export interface CompanySignals {
+  metrics: {
+    reporting_period: string | null;
+    source_document: string | null;
+    confidence: string | null;
+    rows: SignalMetricRow[];
+    extra: Record<string, unknown>;
+  } | null;
+  news: {
+    published_at: string | null;
+    source_type: string | null;
+    source: string | null;
+    sentiment: number | null;
+    relevance: number | null;
+    title: string | null;
+    snippet: string | null;
+    topics: string[];
+  }[];
+}
+
+export interface Signals {
+  as_of: string;
+  since: string;
+  providers: Record<"metrics" | "news", { name: string; live: boolean; source: string; protocol: string }>;
+  note: string;
+  companies: Record<string, CompanySignals>;
+}
+
 declare global {
   interface Window {
     __HC_RUN__?: ValuationRun;
@@ -363,5 +431,6 @@ declare global {
     __HC_SOURCES__?: Sources;
     __HC_MARKET__?: MarketReport;
     __HC_HISTORY__?: MarkHistory;
+    __HC_SIGNALS__?: Signals;
   }
 }

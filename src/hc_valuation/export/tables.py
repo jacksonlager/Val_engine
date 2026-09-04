@@ -76,26 +76,41 @@ def marks_table(run: ValuationRun) -> Table:
 
 def exceptions_table(run: ValuationRun) -> Table:
     t = Table(name="Exceptions",
-              headers=["Company", "Disposition", "Rule", "Family", "Severity", "Message"],
-              kinds=[TEXT, TEXT, TEXT, TEXT, TEXT, TEXT])
+              headers=["Company", "Disposition", "Rule", "Family", "Severity", "Action", "Summary", "Suggestions", "Message"],
+              kinds=[TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT])
     for c in run.companies:
         for f in c.flags:
-            t.rows.append([c.company, c.disposition.value, f.rule_id, f.family, f.severity.value, f.message])
+            # `Summary` is what the review tool shows on the card: the same two or three lines,
+            # with the `**` emphasis markers stripped for a spreadsheet cell.
+            summary = " ".join(f"· {p.replace('**', '')}" for p in f.points)
+            suggestions = "; ".join(f"{sg.label} → ${sg.booked:.2f}M" for sg in f.suggestions)
+            t.rows.append([c.company, c.disposition.value, f.rule_id, f.family, f.severity.value,
+                           f.action, summary, suggestions, f.message])
     return t
 
 
-def audit_table(run: ValuationRun) -> Table:
+def audit_table(run: ValuationRun, sources: dict[str, Any] | None = None) -> Table:
+    """One row per rule step. With `sources` (api.sources.build_sources) every input that came
+    from a cell is cited as `'Sheet'!C7` in `Input Cells`, and the position's own Portfolio row
+    is a column — so the workpaper reads Marks → Audit Trail → the cell, without name-matching."""
+    refs = None
+    if sources:
+        from ..api.sources import input_cell_refs
+        refs = input_cell_refs
     t = Table(name="Audit Trail",
-              headers=["Company", "Seq", "Rule", "Version", "Prior ($M)", "New ($M)", "Rationale",
-                       "Evidence Sheet", "Evidence Row", "Event Type", "Event Date", "Inputs (JSON)"],
-              kinds=[TEXT, INT, TEXT, TEXT, MUSD, MUSD, TEXT, TEXT, INT, TEXT, DATE, TEXT])
+              headers=["Company", "Portfolio Row", "Seq", "Rule", "Version", "Prior ($M)", "New ($M)", "Rationale",
+                       "Evidence Sheet", "Evidence Row", "Event Type", "Event Date", "Inputs (JSON)", "Input Cells"],
+              kinds=[TEXT, INT, INT, TEXT, TEXT, MUSD, MUSD, TEXT, TEXT, INT, TEXT, DATE, TEXT, TEXT])
     for c in run.companies:
+        prow = ((sources or {}).get("companies", {}).get(c.company) or {}).get("portfolio_row")
         for s in c.steps:
             ev = s.evidence
+            cells = refs(sources, c.company, s.inputs, ev.row_index if ev else None) if refs else {}
             t.rows.append([
-                c.company, s.sequence, s.rule_id, s.rule_version, s.prior_value, s.new_value, s.rationale,
+                c.company, prow, s.sequence, s.rule_id, s.rule_version, s.prior_value, s.new_value, s.rationale,
                 ev.sheet if ev else None, ev.row_index if ev else None, ev.event_type if ev else None,
                 ev.date.isoformat() if ev else None, compact_json(s.inputs),
+                "; ".join(f"{k}={v}" for k, v in cells.items()) or None,
             ])
     return t
 
@@ -182,12 +197,28 @@ def summary_rows(run: ValuationRun) -> list[tuple[str, Any, str]]:
         rows.append((f"Disposition {k}", v, INT))
     rows.append(("", None, TEXT))
     for k, v in run.sensitivity.items():
-        rows.append((f"Sensitivity {k}", v, MUSD))
+        rows.append((_sensitivity_label(k), v, MUSD))
     return rows
 
 
-def all_tables(run: ValuationRun) -> list[Table]:
+def _sensitivity_label(key: str) -> str:
+    """`nav_if_multiples_-20pct` -> "Sensitivity: NAV if software multiples move −20%"; anything
+    the pattern does not fit is shown as the key, never dropped."""
+    import re
+    m = re.match(r"^nav_if_multiples_([+-]?\d+)pct$", key)
+    if m:
+        sign = m.group(1)
+        pretty = sign.replace("-", "−") if sign.startswith("-") else f"+{sign.lstrip('+')}"
+        return f"Sensitivity: NAV if software multiples move {pretty}%"
+    if key in ("exposed_nav", "nav_exposed", "multiple_exposed_nav"):
+        return "Sensitivity: NAV exposed to the multiple shock (Level 3, ARR ≥ floor)"
+    if key in ("base_nav", "nav_base"):
+        return "Sensitivity: base NAV"
+    return f"Sensitivity {key}"
+
+
+def all_tables(run: ValuationRun, sources: dict[str, Any] | None = None) -> list[Table]:
     return [
-        marks_table(run), exceptions_table(run), audit_table(run), rollup_table(run),
+        marks_table(run), exceptions_table(run), audit_table(run, sources), rollup_table(run),
         open_items_table(run), validation_table(run), alternatives_table(run),
     ]

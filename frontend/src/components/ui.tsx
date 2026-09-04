@@ -1,9 +1,32 @@
 import { useEffect, useState, type ReactNode } from "react";
-import type { Disposition, Flag, Severity } from "../types";
+import type { CompanyResult, Disposition, Flag, Severity } from "../types";
 import { musd, signClass, signed } from "../lib/format";
 
 export function DispChip({ d, className = "" }: { d: Disposition | Severity; className?: string }) {
   return <span className={`chip disp-${d} ${className}`}>{d}</span>;
+}
+
+export const ESCALATION_HINT = "Two or more REVIEW findings from different families compound to BLOCK";
+
+/**
+ * A BLOCK with no BLOCK-severity flag got there by escalation: policy
+ * `exceptions.escalation.review_rules_to_block` (default 2) compounds REVIEW findings from
+ * distinct families. Returns that family count, or 0 when the disposition is not escalated.
+ */
+export function escalatedReviewFamilies(c: Pick<CompanyResult, "disposition" | "flags">): number {
+  if (c.disposition !== "BLOCK") return 0;
+  if (c.flags.some((f) => f.severity === "BLOCK")) return 0;
+  return new Set(c.flags.filter((f) => f.severity === "REVIEW").map((f) => f.family)).size;
+}
+
+/** "escalated · 2 review items" — sits beside the BLOCK chip so the reader knows no single rule blocked. */
+export function EscalatedChip({ n, className = "" }: { n: number; className?: string }) {
+  if (n <= 0) return null;
+  return (
+    <span className={`chip no-dot escalated disp-BLOCK hint ${className}`} title={ESCALATION_HINT}>
+      escalated · {n} review item{n === 1 ? "" : "s"}
+    </span>
+  );
 }
 
 /** Rule-id chip: severity color, mono rule id, action + message as native tooltip. */

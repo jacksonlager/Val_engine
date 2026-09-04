@@ -1,10 +1,12 @@
-import { Fragment, useState } from "react";
-import type { CompanyResult, MarkStep } from "../types";
-import { altLabel, isoDate, KIND_LABEL, musd, shortSha, signed, signClass } from "../lib/format";
+import { Fragment, useState, type ReactNode } from "react";
+import { DISPOSITION_HINT, type CompanyResult, type MarkStep } from "../types";
+import { altLabel, isoDate, KIND_LABEL, musd, pct, shortSha, signed, signClass } from "../lib/format";
 import { postOverride } from "../lib/api";
 import { eventRowRef, inputRef, portfolioRowRef, useSources } from "../lib/sources";
+import { FlagDetailModal, FlagPoints, SuggestionCards } from "./Flags";
 import { MarkHistoryCard } from "./MarkHistoryChart";
-import { CopyRef, DispChip, Field, KV, Label, MarkTriple, Modal, WriteButton } from "./ui";
+import { VendorSignalsCard } from "./VendorSignals";
+import { CopyRef, DispChip, Field, KV, Label, Modal, WriteButton } from "./ui";
 
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 });
 
@@ -86,8 +88,7 @@ function SourceCard({ c }: { c: CompanyResult }) {
   const posRef = portfolioRowRef(sources, c.company);
   const events = sources.companies?.[c.company]?.events ?? [];
   return (
-    <div className="card p-3">
-      <Label>Source</Label>
+    <div>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[12px] font-medium">{wb.name}</span>
         <CopyRef text={wb.path} label="copy path" mono={false} title={wb.path} />
@@ -187,148 +188,254 @@ export function OverrideModal({
   );
 }
 
+/** A compact fact, label over value, for the Position card. */
+function Fact({ k, v, mono = false }: { k: string; v: ReactNode; mono?: boolean }) {
+  return (
+    <div className="fact">
+      <div className="fact-k">{k}</div>
+      <div className={`fact-v ${mono ? "mono" : "num"}`}>{v}</div>
+    </div>
+  );
+}
+
+/** Prior → proposed → booked, the change, and what the disposition asks of the reader.
+    Shown in the Companies view; the queue card already carries these in its header. */
+function DecisionStrip({ c }: { c: CompanyResult }) {
+  const d = c.proposed_mark - c.prior_mark;
+  const overridden = Math.abs(c.booked_mark - c.proposed_mark) > 1e-6;
+  return (
+    <div className={`dstrip disp-${c.disposition}`}>
+      <dl className="qmarks">
+        <div>
+          <dt>Prior</dt>
+          <dd className="text-ink2">{musd(c.prior_mark)}</dd>
+        </div>
+        <span className="qarrow" aria-hidden>→</span>
+        <div>
+          <dt>Proposed</dt>
+          <dd>{musd(c.proposed_mark)}</dd>
+        </div>
+        <span className="qarrow" aria-hidden>→</span>
+        <div>
+          <dt>Booked</dt>
+          <dd className={overridden ? "overridden" : ""}>{musd(c.booked_mark)}</dd>
+        </div>
+        <div className="qdelta">
+          <dt>Change</dt>
+          <dd className={signClass(d)}>
+            {signed(d)} <span className="font-normal">({pct(c.prior_mark ? d / c.prior_mark : null, 1, true)})</span>
+          </dd>
+        </div>
+        <span className="qunit">$M</span>
+      </dl>
+      <div className="dstrip-disp">
+        <DispChip d={c.disposition} />
+        <span className="text-[12px] text-ink2">{DISPOSITION_HINT[c.disposition]}</span>
+      </div>
+    </div>
+  );
+}
+
 export function CompanyDetail({
   c,
   writeDisabled,
   onChanged,
+  showMarks = true,
+  showFlags = true,
 }: {
   c: CompanyResult;
   writeDisabled: string | null;
   onChanged: () => void;
+  /** false inside the queue card, whose header already shows the marks */
+  showMarks?: boolean;
+  /** false inside the queue card, which already lists every flag with its suggestions;
+      the chain and the committee decision still render */
+  showFlags?: boolean;
 }) {
   const [override, setOverride] = useState(false);
+  const [flagDetail, setFlagDetail] = useState<number | null>(null);
   const canOverride = c.disposition === "BLOCK" || c.disposition === "REVIEW";
+  const actions = c.flags.filter((f) => f.severity !== "MONITOR");
+  const notes = c.flags.filter((f) => f.severity === "MONITOR");
+  const alts = Object.entries(c.alternative_marks);
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-6 p-4 whitespace-normal">
-      <section>
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold">Audit chain</h3>
-          <span className="text-[11px] text-muted">
-            proposed = last step · {c.steps.length} step{c.steps.length === 1 ? "" : "s"}
-          </span>
-        </div>
-        <ol className="mt-2">
-          {c.steps.map((s, i) => (
-            <StepRow key={s.sequence} s={s} last={i === c.steps.length - 1} company={c.company} />
-          ))}
-        </ol>
-
-        <h3 className="font-semibold mt-3 mb-2">Flags</h3>
-        {c.flags.length === 0 ? (
-          <p className="text-muted">No exception flags.</p>
-        ) : (
-          <ul className="space-y-2">
-            {c.flags.map((f, i) => (
-              <li key={i} className={`disp-${f.severity} stripe card p-2 pl-3`}>
-                <div className="flex items-center gap-2">
-                  <DispChip d={f.severity} />
-                  <span className="mono font-medium">{f.rule_id}</span>
-                  <span className="text-[11px] text-muted">{f.family}</span>
-                </div>
-                {f.action && <p className="mt-1 text-[13px] font-semibold leading-snug">{f.action}</p>}
-                <p className="mt-1 text-ink2 leading-snug">{f.message}</p>
-                {typeof f.evidence.price_source_note === "string" && (
-                  <p className="mt-1 text-[11.5px] text-muted italic leading-snug">{f.evidence.price_source_note}</p>
-                )}
-                {Object.keys(f.evidence).length > 0 && (
-                  <details className="mt-1">
-                    <summary className="text-[11px] text-accent">evidence</summary>
-                    <pre className="json mt-1">{JSON.stringify(f.evidence, null, 2)}</pre>
-                  </details>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <aside className="space-y-4">
-        <MarkHistoryCard company={c.company} />
-        <SourceCard c={c} />
-
-        <div className="card p-3">
-          <Label>Mark</Label>
-          <MarkTriple prior={c.prior_mark} proposed={c.proposed_mark} booked={c.booked_mark} />
-          <div className="mt-2 text-[12px]">
-            <KV k="Equity mark" v={musd(c.equity_mark)} />
-            <KV k="Note at cost" v={musd(c.note_at_cost)} />
-            <KV k="Latest post-money" v={musd(c.latest_post_money)} />
-            <KV k="Staleness anchor" v={isoDate(c.staleness_anchor)} mono />
-            <KV k="FV level" v={c.fv_level === null ? "—" : `Level ${c.fv_level}`} />
-            <KV k="Status" v={`${c.status_before} → ${c.status_after}`} />
-            <KV k="MOIC" v={c.moic_after === null ? "—" : `${musd(c.moic_after)}×`} />
+    <div className="p-3 whitespace-normal">
+      {showMarks && <DecisionStrip c={c} />}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-x-5 gap-y-4 mt-3">
+        {/* ------------------------------------------------ what moved and why, then the decision */}
+        <section className="min-w-0">
+          <div className="flex items-baseline justify-between mb-1.5">
+            <h3 className="font-semibold">What moved and why</h3>
+            <span className="text-[11px] text-muted">
+              proposed = last step · {c.steps.length} step{c.steps.length === 1 ? "" : "s"}
+            </span>
           </div>
-        </div>
+          <ol className="mt-1">
+            {c.steps.map((s, i) => (
+              <StepRow key={s.sequence} s={s} last={i === c.steps.length - 1} company={c.company} />
+            ))}
+          </ol>
 
-        <div className="card p-3">
-          <Label>Alternative marks</Label>
-          {Object.keys(c.alternative_marks).length === 0 ? (
-            <p className="text-muted text-[12px]">None recorded for this position.</p>
+          <div className="flex items-baseline justify-between mt-3 mb-1.5">
+            <h3 className="font-semibold">{showFlags ? "Flags and decision" : "Decision"}</h3>
+            {showFlags && c.flags.length > 0 && (
+              <span className="text-[11px] text-muted">
+                {actions.length} to act on · {notes.length} noted
+              </span>
+            )}
+          </div>
+          {!showFlags ? null : c.flags.length === 0 ? (
+            <p className="text-muted text-[12px]">No exception flags — nothing for a reviewer to decide.</p>
           ) : (
-            <div className="text-[12px]">
-              {Object.entries(c.alternative_marks).map(([k, v]) => (
-                <KV
-                  key={k}
-                  k={altLabel(k)}
-                  v={
-                    <>
-                      {musd(v)}{" "}
-                      <span className={`text-[11px] ${signClass(v - c.proposed_mark)}`}>({signed(v - c.proposed_mark)})</span>
-                    </>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="card p-3">
-          <Label>Open items</Label>
-          {c.open_items.length === 0 ? (
-            <p className="text-muted text-[12px]">None.</p>
-          ) : (
-            <ul className="text-[12px] space-y-1">
-              {c.open_items.map((o, i) => (
-                <li key={i}>
-                  <span className="font-medium">{KIND_LABEL[o.kind] ?? o.kind}</span>
-                  <span className="text-muted"> · opened {isoDate(o.opened)}</span>
-                  {o.expected_resolution && <span className="text-muted"> · expected {isoDate(o.expected_resolution)}</span>}
-                  {o.escalated && <span className="chip disp-REVIEW ml-1">escalated</span>}
-                  <div className="text-ink2">{o.detail}</div>
+            <ul className="space-y-1.5">
+              {c.flags.map((f, i) => (
+                <li key={i} className={`disp-${f.severity} stripe card p-2 pl-3`}>
+                  <div className="flex items-center gap-2">
+                    <DispChip d={f.severity} />
+                    <span className="mono font-medium">{f.rule_id}</span>
+                    <span className="text-[11px] text-muted">{f.family}</span>
+                    {(f.points.length > 0 || f.action) && (
+                      <button
+                        className="btn btn-ghost ml-auto text-[11px]"
+                        onClick={() => setFlagDetail(i)}
+                        aria-haspopup="dialog"
+                        title={`Read ${f.rule_id} in full, with the inputs behind it`}
+                      >
+                        Details
+                      </button>
+                    )}
+                  </div>
+                  {f.action && <p className="mt-0.5 text-[13px] font-semibold leading-snug">{f.action}</p>}
+                  <FlagPoints f={f} className="mt-0.5" />
+                  {typeof f.evidence.price_source_note === "string" && (
+                    <p className="mt-0.5 text-[11.5px] text-muted italic leading-snug">{f.evidence.price_source_note}</p>
+                  )}
+                  {f.suggestions.length > 0 && (
+                    <div className="mt-1.5">
+                      <div className="eyebrow-sm">Suggested resolutions</div>
+                      <SuggestionCards c={c} f={f} writeDisabled={writeDisabled} onChanged={onChanged} />
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
           )}
-        </div>
 
-        <div className="card p-3">
-          <div className="flex items-center justify-between">
-            <Label>Override (E-01)</Label>
+          {/* the recorded decision, or the door to a custom one */}
+          <div className="card p-2.5 mt-2 flex flex-wrap items-start gap-x-4 gap-y-1.5">
+            <div className="min-w-0 flex-1 text-[12px]">
+              <Label>Committee decision (E-01)</Label>
+              {c.override ? (
+                <>
+                  <div>
+                    <span className="num font-semibold">{musd(c.override.booked)}</span>
+                    <span className="text-muted"> booked against </span>
+                    <span className="num">{musd(c.override.proposed)}</span>
+                    <span className="text-muted"> proposed · {c.override.approver} · </span>
+                    <span className="mono">{isoDate(c.override.created_at)}</span>
+                    {c.override.rule_ids_addressed.length > 0 && (
+                      <span className="text-muted">
+                        {" "}· addresses <span className="mono">{c.override.rule_ids_addressed.join(", ")}</span>
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-ink2 mt-0.5 leading-snug">{c.override.reason}</p>
+                </>
+              ) : (
+                <p className="text-muted">
+                  {canOverride
+                    ? "None recorded; booked = proposed. Accept a suggestion above, or record a custom figure."
+                    : "Not needed: only BLOCK and REVIEW positions take a decision."}
+                </p>
+              )}
+            </div>
             {canOverride && (
               <WriteButton disabledReason={writeDisabled} className="btn" onClick={() => setOverride(true)}>
-                Override
+                {c.override ? "Change" : "Custom override"}
               </WriteButton>
             )}
           </div>
-          {c.override ? (
-            <div className="text-[12px]">
-              <KV k="Booked" v={musd(c.override.booked)} />
-              <KV k="Proposed" v={musd(c.override.proposed)} />
-              <KV k="Approver" v={c.override.approver} />
-              <KV k="Recorded" v={isoDate(c.override.created_at)} mono />
-              {c.override.rule_ids_addressed.length > 0 && (
-                <KV k="Addresses" v={<span className="mono">{c.override.rule_ids_addressed.join(", ")}</span>} />
+        </section>
+
+        {/* ------------------------------------------------ the position, in support */}
+        <aside className="min-w-0 space-y-3">
+          <MarkHistoryCard company={c.company} />
+
+          <div className="card p-3">
+            <Label>Position</Label>
+            <div className="facts">
+              <Fact k="Equity mark" v={musd(c.equity_mark)} />
+              {/* facts that carry no information stay out of the grid */}
+              {Math.abs(c.note_at_cost) > 1e-6 && <Fact k="Note at cost" v={musd(c.note_at_cost)} />}
+              <Fact k="Latest post-money" v={musd(c.latest_post_money)} />
+              <Fact
+                k="Ownership"
+                v={Math.abs(c.ownership_after - c.ownership_before) > 1e-6 ? `${pct(c.ownership_before)} → ${pct(c.ownership_after)}` : pct(c.ownership_after)}
+              />
+              <Fact k="Invested" v={musd(c.invested_after)} />
+              {(Math.abs(c.realized_quarter) > 1e-6 || Math.abs(c.realized_cumulative) > 1e-6) && (
+                <Fact k="Realized (qtr / cum.)" v={`${musd(c.realized_quarter)} / ${musd(c.realized_cumulative)}`} />
               )}
-              {c.override.source_proposal && <KV k="From proposal" v={<span className="mono">{c.override.source_proposal}</span>} />}
-              <p className="mt-1 text-ink2">{c.override.reason}</p>
+              <Fact k="MOIC" v={c.moic_after === null ? "—" : `${musd(c.moic_after)}×`} />
+              <Fact k="FV level" v={c.fv_level === null ? "—" : `Level ${c.fv_level}`} />
+              <Fact k="Status" v={c.status_before === c.status_after ? c.status_after : `${c.status_before} → ${c.status_after}`} />
+              <Fact k="Staleness anchor" v={isoDate(c.staleness_anchor)} mono />
             </div>
-          ) : (
-            <p className="text-muted text-[12px]">
-              {canOverride ? "No override recorded; booked = proposed." : "Not applicable: only BLOCK and REVIEW positions take an override."}
-            </p>
-          )}
-        </div>
-      </aside>
+
+            {alts.length > 0 && (
+              <>
+                <Label>Alternative marks</Label>
+                <div className="text-[12px] -mt-0.5 mb-2">
+                  {alts.map(([k, v]) => (
+                    <KV
+                      key={k}
+                      k={altLabel(k)}
+                      v={
+                        <>
+                          {musd(v)}{" "}
+                          <span className={`text-[11px] ${signClass(v - c.proposed_mark)}`}>({signed(v - c.proposed_mark)})</span>
+                        </>
+                      }
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {c.open_items.length > 0 && (
+              <>
+                <Label>Open items</Label>
+                <ul className="text-[12px] space-y-1">
+                  {c.open_items.map((o, i) => (
+                    <li key={i}>
+                      <span className="font-medium">{KIND_LABEL[o.kind] ?? o.kind}</span>
+                      <span className="text-muted"> · opened {isoDate(o.opened)}</span>
+                      {o.expected_resolution && <span className="text-muted"> · expected {isoDate(o.expected_resolution)}</span>}
+                      {o.escalated && <span className="chip disp-REVIEW ml-1">escalated</span>}
+                      <div className="text-ink2 leading-snug">{o.detail}</div>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+
+          <VendorSignalsCard company={c.company} />
+
+          <details className="card p-3">
+            <summary className="text-[11px] uppercase tracking-wider text-muted cursor-pointer select-none">
+              Source cells (for the workpaper)
+            </summary>
+            <div className="mt-2">
+              <SourceCard c={c} />
+            </div>
+          </details>
+        </aside>
+      </div>
+
+      {flagDetail !== null && c.flags[flagDetail] && (
+        <FlagDetailModal f={c.flags[flagDetail]} company={c.company} onClose={() => setFlagDetail(null)} />
+      )}
 
       {override && (
         <OverrideModal

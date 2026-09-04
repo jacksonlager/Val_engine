@@ -1,6 +1,33 @@
-import type { Decision, ExecView } from "../types";
+import type { Decision, ExecView, Suggestion } from "../types";
 import { Section, Chip, Delta, DeltaPct, Empty } from "../components/ui";
 import { humanAltMark, money, num, plural } from "../lib/format";
+
+/** `**bold**` in an engine point marks the words that carry the decision. */
+function renderBold(text: string): React.ReactNode {
+  const parts = text.split(/\*\*(.+?)\*\*/g);
+  return parts.map((part, i) => (i % 2 === 1 ? <strong key={i} className="font-semibold text-ink">{part}</strong> : part));
+}
+
+/** The engine's suggested resolutions for one flag: label — the mark it would book. Read-only here;
+    a reviewer accepts one in the back-office tool. */
+function Suggestions({ items }: { items: Suggestion[] }) {
+  return (
+    <div className="mt-1 rounded-[4px] px-3 py-2" style={{ background: "var(--raised)" }}>
+      <div className="eyebrow mb-1" style={{ fontSize: 10 }}>Suggested resolutions</div>
+      <ul className="flex flex-col gap-1">
+        {items.map((sg) => (
+          <li key={sg.key} className="flex items-baseline justify-between gap-3 text-[12.5px] leading-snug">
+            <span className="text-ink2" title={sg.reasons.join(" ")}>
+              {sg.label}
+              {sg.reasons.length > 0 && <span className="block text-[11px] text-muted">{sg.reasons.join(" · ")}</span>}
+            </span>
+            <span className="num text-ink font-medium whitespace-nowrap">{money(sg.booked, 2)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function DecisionCard({ d, index }: { d: Decision; index: number }) {
   const alts = Object.entries(d.alternative_marks ?? {});
@@ -33,8 +60,17 @@ function DecisionCard({ d, index }: { d: Decision; index: number }) {
           {d.actions.map((a, i) => (
             <li key={i} className="flex flex-col gap-1">
               <div className="text-[15px] leading-snug font-medium text-ink">{a.action}</div>
-              <div className="text-[12.5px] leading-snug text-ink2">{a.message}</div>
+              {a.points && a.points.length > 0 ? (
+                <ul className="text-[12.5px] leading-snug text-ink2 list-disc pl-4 space-y-0.5">
+                  {a.points.map((p, k) => (
+                    <li key={k}>{renderBold(p)}</li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-[12.5px] leading-snug text-ink2">{a.message}</div>
+              )}
               <div className="num text-[10.5px] text-muted uppercase tracking-[0.06em]">{a.rule_id} · {a.severity}</div>
+              {a.suggestions && a.suggestions.length > 0 && <Suggestions items={a.suggestions} />}
             </li>
           ))}
         </ol>

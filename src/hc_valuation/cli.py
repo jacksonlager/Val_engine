@@ -174,8 +174,13 @@ def export(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Polic
 
     r = execute(_paths(input_path, policy), provider=provider)
     out.mkdir(parents=True, exist_ok=True)
-    xlsx = write_workbook(r.run, out / f"valuation_{_slug(r.run.manifest.quarter_label)}.xlsx")
-    csvs = write_csvs(r.run, out)
+    try:
+        from .api.sources import build_sources
+        sources = build_sources(r)          # so the Audit Trail cites the cell behind every input
+    except Exception:
+        sources = None
+    xlsx = write_workbook(r.run, out / f"valuation_{_slug(r.run.manifest.quarter_label)}.xlsx", sources)
+    csvs = write_csvs(r.run, out, sources)
     typer.echo(_headline(r.run))
     for p in [xlsx, *csvs]:
         typer.echo(f"wrote {p}")
@@ -203,10 +208,15 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
     except Exception:
         sources = None                 # optional everywhere: the report just shows no cell refs
     history = build_history(run, paths.root)   # the per-company archive, inlined as window.__HC_HISTORY__
+    try:
+        from .api.signals import build_signals
+        signals = build_signals(r)             # vendor context (Foresight / AlphaSense stubs), window.__HC_SIGNALS__
+    except Exception:
+        signals = None                         # optional: a missing fixture just means no vendor card
     written = [
-        write_static_report(run, out / "report.html", STATIC_DIR, sources, r.market_report, history),
-        write_workbook(run, out / f"valuation_{q}.xlsx"),
-        *write_csvs(run, out),
+        write_static_report(run, out / "report.html", STATIC_DIR, sources, r.market_report, history, signals),
+        write_workbook(run, out / f"valuation_{q}.xlsx", sources),
+        *write_csvs(run, out, sources),
         write_history_csv(history, out / "mark_history.csv"),
         write_next_quarter_workbook(run, paths.workbook, out / f"portfolio_{_slug(next_quarter_label(r.config.quarter.label))}.xlsx", r.config),
         out / "open_items_carry.yaml",
@@ -345,16 +355,22 @@ def _open_when_up(url: str, health: str, timeout: float = 30.0) -> None:
 def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
         port: int = typer.Option(8765, "--port"), host: str = typer.Option("127.0.0.1", "--host"),
         no_browser: bool = typer.Option(False, "--no-browser", help="Do not open a browser tab"),
+        watch: bool = typer.Option(False, "--watch", help="Recompute when the workbook, policy or a ledger changes; "
+                                                          "the open dashboard reloads itself"),
         provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt) -> None:
-    """Compute the run, serve the dashboard and API, open a browser."""
+    """Compute the run, serve the dashboard and API, open a browser. With --watch, a new
+    workbook dropped in place (or an edited policy / ledger) re-runs and refreshes the page."""
     import uvicorn
 
-    from .api.app import STATIC_DIR, create_app
+    from .api.app import STATIC_DIR, create_app, watch_inputs
 
     application = create_app(_paths(input_path, policy), provider=provider, refresh_market=refresh_market)
     typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")
+    if watch:
+        watch_inputs(application, log=lambda m: typer.echo(f"watch: {m}"))
+        typer.echo("watch: recomputing whenever the workbook, policy, overrides or proposals change")
     if not (STATIC_DIR / "index.html").is_file():
         typer.echo("note: no dashboard bundle in api/static; '/' serves the plain report page")
     if not no_browser:

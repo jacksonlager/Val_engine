@@ -12,9 +12,12 @@ import {
 import type { CompanyResult, Disposition, ValuationRun } from "../types";
 import { deltaPct, months, mult, musd, pct, signed, signClass } from "../lib/format";
 import { CompanyDetail } from "../components/CompanyDetail";
-import { DispChip, FlagChip } from "../components/ui";
+import { DispChip, EscalatedChip, escalatedReviewFamilies, FlagChip } from "../components/ui";
 
 const col = createColumnHelper<CompanyResult>();
+
+/** r: right-aligned numeric; hide: a CSS class that drops the column below a viewport width. */
+type ColMeta = { r?: boolean; hide?: string };
 
 function Num({ v, d = 2 }: { v: number | null; d?: number }) {
   return <span className="num">{musd(v, d)}</span>;
@@ -113,8 +116,9 @@ export function CompaniesView({
         ),
       }),
       col.accessor("fund", { header: "Fund" }),
-      col.accessor("sector", { header: "Sector" }),
-      col.accessor("stage", { header: "Stage" }),
+      // Sector and Stage are in the card subtitle and the audit chain; they give way first on a narrower screen
+      col.accessor("sector", { header: "Sector", meta: { hide: "hide-lt-1300" } }),
+      col.accessor("stage", { header: "Stage", meta: { hide: "hide-lt-1500" } }),
       col.accessor("status_after", {
         header: "Status",
         cell: (i) => (
@@ -146,7 +150,7 @@ export function CompaniesView({
         cell: (i) => <span className={`num ${signClass(i.getValue())}`}>{pct(i.getValue(), 1, true)}</span>,
       }),
       col.accessor("ownership_after", {
-        header: "Ownership",
+        header: "Own.",
         meta: { r: true },
         cell: (i) => {
           const b = i.row.original.ownership_before;
@@ -165,7 +169,7 @@ export function CompaniesView({
           );
         },
       }),
-      col.accessor("invested_after", { header: "Invested", meta: { r: true }, cell: (i) => <Num v={i.getValue()} /> }),
+      col.accessor("invested_after", { header: "Inv.", meta: { r: true }, cell: (i) => <Num v={i.getValue()} /> }),
       col.accessor("realized_quarter", {
         header: "Real. Q",
         meta: { r: true },
@@ -185,7 +189,7 @@ export function CompaniesView({
         cell: (i) => <span className="num">{months(i.getValue())}</span>,
       }),
       col.accessor("implied_multiple", {
-        header: "Implied ×",
+        header: "Impl. ×",
         meta: { r: true },
         sortUndefined: "last",
         cell: (i) => <span className="num">{mult(i.getValue())}</span>,
@@ -193,7 +197,15 @@ export function CompaniesView({
       col.accessor("disposition", {
         header: "Disposition",
         sortingFn: (a, b) => DISP_ORDER[a.original.disposition] - DISP_ORDER[b.original.disposition],
-        cell: (i) => <DispChip d={i.getValue()} />,
+        cell: (i) => {
+          const n = escalatedReviewFamilies(i.row.original);
+          return (
+            <span className="inline-flex items-center gap-1">
+              <DispChip d={i.getValue()} />
+              <EscalatedChip n={n} />
+            </span>
+          );
+        },
       }),
       col.accessor((r) => r.flags.length, {
         id: "flags",
@@ -260,18 +272,19 @@ export function CompaniesView({
         </span>
       </div>
 
-      <div className="card overflow-x-auto" ref={scroller}>
-        <table className="dtable text-[12px]">
+      <div className="card dtable-wrap" ref={scroller}>
+        <table className="dtable compact text-[12px]">
           <thead>
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((h) => {
-                  const r = (h.column.columnDef.meta as { r?: boolean } | undefined)?.r;
+                  const meta = h.column.columnDef.meta as ColMeta | undefined;
+                  const r = meta?.r;
                   const sorted = h.column.getIsSorted();
                   return (
                     <th
                       key={h.id}
-                      className={`sortable ${r ? "r" : ""} ${h.index === 0 ? "sticky-col" : ""}`}
+                      className={`sortable ${r ? "r" : ""} ${h.index === 0 ? "sticky-col" : ""} ${meta?.hide ?? ""}`}
                       onClick={h.column.getToggleSortingHandler()}
                       aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none"}
                     >
@@ -296,9 +309,10 @@ export function CompaniesView({
                     aria-expanded={isOpen}
                   >
                     {row.getVisibleCells().map((cell, k) => {
-                      const r = (cell.column.columnDef.meta as { r?: boolean } | undefined)?.r;
+                      const meta = cell.column.columnDef.meta as ColMeta | undefined;
+                      const r = meta?.r;
                       return (
-                        <td key={cell.id} className={`${r ? "r" : ""} ${k === 0 ? "stripe sticky-col" : ""}`}>
+                        <td key={cell.id} className={`${r ? "r" : ""} ${k === 0 ? "stripe sticky-col" : ""} ${meta?.hide ?? ""}`}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       );

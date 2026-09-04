@@ -74,13 +74,14 @@ def _write_summary(wb: Workbook, run: ValuationRun) -> None:
     ws.column_dimensions["B"].width = 70
 
 
-def write_workbook(run: ValuationRun, path: str | Path) -> Path:
-    """Write the review workbook and return its path."""
+def write_workbook(run: ValuationRun, path: str | Path, sources: dict | None = None) -> Path:
+    """Write the review workbook and return its path. `sources` (api.sources.build_sources)
+    lets the Audit Trail cite the input cell behind every step."""
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     wb = Workbook()
     _write_summary(wb, run)
-    for table in all_tables(run):
+    for table in all_tables(run, sources):
         _write_table(wb, table)
     wb.save(out)
     return out

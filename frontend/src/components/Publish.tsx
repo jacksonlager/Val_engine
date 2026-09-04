@@ -5,22 +5,13 @@
 import { useEffect, useState } from "react";
 import type { PublishRecord, ValuationRun } from "../types";
 import { fetchPublished, publishRun, type Mode } from "../lib/api";
-import { isoDate } from "../lib/format";
+import { relativeTime } from "../lib/format";
 import { Field, Modal, useAsync, WriteButton } from "./ui";
 
 const EXEC_STATIC_REASON = "Available when served";
 
-/** "just now", "12m ago", "3h ago", "2d ago", then the date. */
-function ago(iso: string): string {
-  const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return isoDate(iso);
-  const s = Math.max(0, (Date.now() - t) / 1000);
-  if (s < 60) return "just now";
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  if (s < 7 * 86400) return `${Math.floor(s / 86400)}d ago`;
-  return isoDate(iso);
-}
+/** "just now" … "6d ago" within the last week; otherwise (older, or dated in the future) the date itself. */
+const ago = relativeTime;
 
 export function PublishControls({
   run,

@@ -1,5 +1,5 @@
 import type { ExecView } from "../types";
-import { dateTime, longDate, plural } from "../lib/format";
+import { longDate, plural } from "../lib/format";
 
 export const NAV = [
   ["headline", "Headline"],
@@ -11,7 +11,22 @@ export const NAV = [
   ["risk", "Risk watch"],
   ["sensitivity", "Sensitivity"],
   ["activity", "Activity"],
+  ["marks", "All marks"],
 ] as const;
+
+/** The one provenance line: measurement date, the run and when it was generated, the release.
+    Used by the masthead and the footer so the report never shows two competing dates. */
+export function Provenance({ view, className = "" }: { view: ExecView; className?: string }) {
+  const m = view.meta;
+  return (
+    <div className={`text-[12px] text-muted ${className}`}>
+      As of <span className="text-ink2">{longDate(m.measurement_date)}</span> (measurement date)
+      {" · "}run <span className="num text-ink2">{m.run_id}</span> generated <span className="text-ink2">{longDate(m.generated_at)}</span>
+      {" · "}published <span className="text-ink2">{longDate(m.published_at)}</span>
+      {m.published_by ? <> by <span className="text-ink2">{m.published_by}</span></> : null}
+    </div>
+  );
+}
 
 function StatusBadge({ view, compact = false }: { view: ExecView; compact?: boolean }) {
   const proposed = view.meta.status === "proposed";
@@ -64,6 +79,7 @@ export function TopBar({ view }: { view: ExecView }) {
 
 export function Masthead({ view }: { view: ExecView }) {
   const m = view.meta;
+  const proposed = m.status !== "final";
   return (
     <div id="top" className="pt-12 pb-10">
       <div className="eyebrow mb-3">{m.firm} · Investment committee pre-read</div>
@@ -73,17 +89,14 @@ export function Masthead({ view }: { view: ExecView }) {
             {m.quarter} valuation
           </h1>
           <div className="mt-3 text-[15px] text-ink2">
-            Marks proposed as at <span className="text-ink font-medium">{longDate(m.measurement_date)}</span>, moved from the{" "}
-            {longDate(m.prior_close)} close. Booked marks shown, after any committee override.
+            {proposed ? "Proposed" : "Final"} marks as at <span className="text-ink font-medium">{longDate(m.measurement_date)}</span>, moved from the{" "}
+            {longDate(m.prior_close)} close, shown after any committee override.
           </div>
         </div>
         <div className="flex flex-col items-start gap-2 text-[12px] text-muted">
           <StatusBadge view={view} />
-          <div>
-            Published {dateTime(m.published_at)}
-            {m.published_by ? ` by ${m.published_by}` : ""}
-            {m.note ? <span> · “{m.note}”</span> : null}
-          </div>
+          <Provenance view={view} />
+          {m.note ? <div>“{m.note}”</div> : null}
         </div>
       </div>
     </div>

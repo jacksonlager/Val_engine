@@ -272,3 +272,11 @@ def rule_ids(result) -> list[str]:
 
 def flag_ids(result) -> set[str]:
     return {f.rule_id for f in result.flags}
+
+
+def next_quarter_cfg(cfg):
+    """`cfg` rolled to the following quarter (label, window, measurement date) — what
+    `hc-valuation next-policy` writes, as an object. X-922 refuses a book run under the wrong
+    quarter's policy, so tests that read a next-quarter workbook must use this."""
+    from hc_valuation.config import QuarterCfg, next_quarter_window
+    return cfg.model_copy(update={"quarter": QuarterCfg(**next_quarter_window(cfg.quarter))})

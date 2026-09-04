@@ -52,7 +52,7 @@ AS_OF = date(2026, 9, 30)
 CIKS = {"AAA": 1000001, "BBB": 1000002, "CCC": 1000003}
 LIVE_LABEL = "live:edgar+yahoo"          # the default price source
 LIVE_STOOQ = "live:edgar+stooq"
-BASELINE = {"BLOCK": 7, "REVIEW": 15, "MONITOR": 44, "CLEAR": 34}
+BASELINE = {"BLOCK": 7, "REVIEW": 20, "MONITOR": 39, "CLEAR": 34}
 
 CONSTITUENT_KEYS = {"ticker", "name", "cik", "status", "price", "price_month", "shares_m", "market_cap_musd",
                     "net_cash_musd", "ttm_revenue_musd", "revenue_through", "ev_to_revenue", "error"}

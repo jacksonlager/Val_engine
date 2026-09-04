@@ -8,6 +8,7 @@ export function Bridge({ view }: { view: ExecView }) {
   const m = view.meta;
   const rows = view.bridge;
   const engine = rows.filter((b) => b.key !== "overrides").reduce((s, b) => s + b.delta, 0);
+  const markLabel = m.status === "final" ? "Booked" : "Proposed";
 
   return (
     <Section
@@ -28,11 +29,11 @@ export function Bridge({ view }: { view: ExecView }) {
             booked={h.booked_nav}
             bridge={rows}
             priorLabel={`Prior ${shortDate(m.prior_close)}`}
-            bookedLabel={`Booked ${shortDate(m.measurement_date)}`}
+            bookedLabel={`${markLabel} ${shortDate(m.measurement_date)}`}
           />
           <div className="text-[11.5px] text-muted mt-2 px-1 shrink-0">
             $M. The vertical scale starts near the floor of the bridge rather than at zero so each step is legible; the
-            two grey bars are totals. Hover a bar for the positions behind it.
+            two grey bars are totals; blue bars are cash realized, not value lost. Hover a bar for the positions behind it.
           </div>
         </div>
         <div className="col-span-4 max-[1180px]:col-span-12 frame">

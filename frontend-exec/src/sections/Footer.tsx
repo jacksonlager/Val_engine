@@ -1,5 +1,5 @@
 import type { ExecView } from "../types";
-import { dateTime } from "../lib/format";
+import { Provenance } from "./Masthead";
 
 export function Footer({ view }: { view: ExecView }) {
   const m = view.meta;
@@ -9,10 +9,10 @@ export function Footer({ view }: { view: ExecView }) {
     ["Policy", m.policy_version],
     ["Engine", m.engine_version],
     ["Market data", m.market_data_source],
-    ["Generated", dateTime(m.generated_at)],
   ];
   return (
     <footer className="border-t border-hair pt-6 pb-14 text-[12px] text-muted">
+      <Provenance view={view} className="mb-2" />
       <div className="flex flex-wrap gap-x-6 gap-y-1.5">
         {items.map(([k, v]) => (
           <span key={k}>

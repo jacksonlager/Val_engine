@@ -9,8 +9,9 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 .DS_Store
-data/proposals/*.json
-data/precedent.yaml
-data/overrides.yaml
-data/open_items_carry.yaml
+# Decision records are the audit trail and are versioned on purpose: data/overrides.yaml,
+# data/precedent.yaml, data/proposals/*.json and data/published/ stay in git so a booked
+# number always travels with the decision behind it. Only the superseded publish copies and
+# the emitted next-quarter sidecar are local.
 data/published/history/
+data/open_items_carry.yaml

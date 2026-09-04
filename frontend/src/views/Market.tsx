@@ -68,16 +68,23 @@ function HeaderStrip({ rep }: { rep: MarketReport }) {
         <Meta k="answered">{rep.source}</Meta>
         <span className="border-l border-line h-4" aria-hidden />
         <Meta k="as-of">{rep.as_of}</Meta>
-        <Meta k="fetched">{rep.fetched_at ? isoDateTime(rep.fetched_at) : "no fetch — fixture"}</Meta>
-        <Meta k="cache">
-          {rep.cache ? (
-            <>
-              {rep.cache.dir} <span className={rep.cache.hit ? "text-[var(--clear-text)]" : "text-[var(--review-text)]"}>{rep.cache.hit ? "hit" : "miss"}</span>
-            </>
-          ) : (
-            "—"
-          )}
-        </Meta>
+        {rep.reached_live ? (
+          <>
+            <Meta k="fetched">{rep.fetched_at ? isoDateTime(rep.fetched_at) : "—"}</Meta>
+            <Meta k="cache">
+              {rep.cache ? (
+                <>
+                  {rep.cache.dir} <span className={rep.cache.hit ? "text-[var(--clear-text)]" : "text-[var(--review-text)]"}>{rep.cache.hit ? "hit" : "miss"}</span>
+                </>
+              ) : (
+                "—"
+              )}
+            </Meta>
+          </>
+        ) : (
+          /* the fixture answered: nothing was fetched and nothing was cached, said in words rather than dashes */
+          <Meta k="status">Fixture · not fetched · no cache</Meta>
+        )}
         <Meta k="baskets">{rep.baskets_file}</Meta>
       </div>
       <p className="text-[11px] text-muted mt-2">
@@ -494,6 +501,14 @@ export function MarketView({ mode }: { mode: Mode }) {
               <SectionTitle right={<>{okCount(sector).sampled ? "sample basket · not priced" : `${okCount(sector).ok}/${okCount(sector).total} priced`}</>}>
                 Constituents · {sector.sector}
               </SectionTitle>
+              {(okCount(sector).sampled || !rep.reached_live) && (
+                <p className="text-[12px] text-ink2 mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="chip disp-NONE">FIXTURE</span>
+                  <span>
+                    Sample basket — not priced (fixture data). Run with <span className="mono">--provider live</span> to price constituents.
+                  </span>
+                </p>
+              )}
               <ConstituentsTable sector={sector} />
               <p className="text-[11px] text-muted mt-2">
                 EV = price × shares − net cash; EV/Revenue = EV / trailing-twelve-month revenue (SEC XBRL frames).

@@ -81,3 +81,27 @@ def build_sources(result: PipelineResult) -> dict[str, Any]:
         "input_columns": {k: {"sheet": s, "column": c} for k, (s, c) in INPUT_COLUMNS.items()},
         "companies": companies,
     }
+
+
+def input_cell_refs(sources: dict[str, Any], company: str, inputs: dict[str, Any],
+                    event_row: int | None) -> dict[str, str]:
+    """`{input name: "'Q3 2026 Activity'!E18"}` for every input that has a cell — the same
+    resolution the review tool does, so the exported Audit Trail cites the same cells."""
+    def token(sheet: str) -> str:
+        import re
+        return sheet if re.match(r"^[A-Za-z_][A-Za-z0-9_.]*$", sheet) else "'" + sheet.replace("'", "''") + "'"
+
+    out: dict[str, str] = {}
+    sheets, cols = sources["sheets"], sources["columns"]
+    prow = (sources["companies"].get(company) or {}).get("portfolio_row")
+    for name in inputs:
+        where = INPUT_COLUMNS.get(name)
+        if where is None:
+            continue
+        tab, header = where
+        letter = cols[tab].get(header)
+        row = event_row if tab == "activity" else prow
+        if letter is None or row is None:
+            continue
+        out[name] = f"{token(sheets[tab])}!{letter}{row}"
+    return out

@@ -61,6 +61,7 @@ def load_overrides(path: Path) -> OverrideLedger:
             created_at=r["created_at"] if isinstance(r["created_at"], date) else date.fromisoformat(str(r["created_at"])),
             rule_ids_addressed=tuple(r.get("rule_ids_addressed", []) or []),
             source_proposal=r.get("source_proposal"),
+            source_suggestion=r.get("source_suggestion"),
         ))
     return OverrideLedger(records=tuple(recs))
 

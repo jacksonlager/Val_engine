@@ -8,6 +8,7 @@ from pathlib import Path
 
 import openpyxl
 import pytest
+from conftest import next_quarter_cfg
 import yaml
 
 from hc_valuation.export import (
@@ -63,15 +64,23 @@ def test_workbook_is_deterministic(result, tmp_path: Path):
 
 
 def test_csvs(result, tmp_path: Path):
-    files = write_csvs(result.run, tmp_path)
-    assert {f.name for f in files} == {"marks.csv", "exceptions.csv", "audit_trail.csv", "open_items.csv"}
+    from hc_valuation.api.sources import build_sources
+    files = write_csvs(result.run, tmp_path, build_sources(result))
+    assert {f.name for f in files} == {"marks.csv", "exceptions.csv", "audit_trail.csv", "open_items.csv", "alternatives.csv"}
     with (tmp_path / "marks.csv").open(newline="") as fh:
         rows = list(csv.DictReader(fh))
     assert len(rows) == 100
     dray = next(r for r in rows if r["Company"] == "Drayvenn")
     assert dray["FV Level"] == "1" and dray["Disposition"] == "BLOCK"
     with (tmp_path / "audit_trail.csv").open(newline="") as fh:
-        assert sum(1 for _ in csv.DictReader(fh)) == sum(len(c.steps) for c in result.run.companies)
+        audit = list(csv.DictReader(fh))
+    assert len(audit) == sum(len(c.steps) for c in result.run.companies)
+    # the workpaper chain: every step names its Portfolio row, and every input read from a cell cites it
+    tarn = next(r for r in audit if r["Company"] == "Tarnwick Aerospace" and r["Rule"] == "M-012")
+    assert tarn["Portfolio Row"] == "21"
+    assert "post_money='Q3 2026 Activity'!E14" in tarn["Input Cells"] and "prior_post_money=Portfolio!H21" in tarn["Input Cells"]
+    carry = next(r for r in audit if r["Company"] == "Beltrix" and r["Rule"] == "M-000")
+    assert carry["Portfolio Row"] and "prior_mark=Portfolio!" in carry["Input Cells"]
 
 
 # ------------------------------------------------------------------ E-02 snapshot gate
@@ -88,14 +97,18 @@ def test_snapshot_reingests_with_zero_blocking_issues(result, tmp_path: Path):
     """The phase-09 gate: the emitted workbook is a valid input for the next quarter."""
     run, cfg = result.run, result.config
     out = write_next_quarter_workbook(run, result.paths.workbook, tmp_path / "next.xlsx", cfg)
-    snapshot, feed = read_workbook(out, cfg)
+    # The emitted book is next quarter's input, so it is read under next quarter's policy — the
+    # object `hc-valuation next-policy` writes. Under this quarter's policy X-922 refuses it.
+    assert any(i.rule_id == "X-922" and i.blocking for i in validate(*read_workbook(out, cfg), cfg))
+    ncfg = next_quarter_cfg(cfg)
+    snapshot, feed = read_workbook(out, ncfg)
     # Without the sidecar the deliberate departures (note at cost, pending deal) BLOCK on X-904 —
     # that is correct: an unexplained mark that is not ownership × last round must not slide through.
-    unexplained = [i for i in validate(snapshot, feed, cfg) if i.blocking]
+    unexplained = [i for i in validate(snapshot, feed, ncfg) if i.blocking]
     assert {i.company for i in unexplained} == {"Gryphonel", "Duskfern"}
     # With the sidecar the pipeline emitted beside the workbook, the same rows are non-blocking REVIEWs.
     from hc_valuation.pipeline import load_mark_basis
-    issues = validate(snapshot, feed, cfg, explained_departures=load_mark_basis(tmp_path / "open_items_carry.yaml"))
+    issues = validate(snapshot, feed, ncfg, explained_departures=load_mark_basis(tmp_path / "open_items_carry.yaml"))
     assert len(snapshot.positions) == 100
     assert [i for i in issues if i.blocking] == []
     assert {i.company for i in issues if i.rule_id == "X-904"} == {"Gryphonel", "Duskfern"}

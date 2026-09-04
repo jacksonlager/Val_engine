@@ -30,7 +30,7 @@ hc-valuation = "hc_valuation.cli:app"
 where = ["src"]
 
 [tool.setuptools.package-data]
-hc_valuation = ["api/static/**/*"]
+hc_valuation = ["api/static/**/*", "api/static_exec/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

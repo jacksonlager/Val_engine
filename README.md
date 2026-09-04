@@ -30,6 +30,15 @@ opens the review dashboard in your browser (`--no-browser` to skip that, `--port
 it). The dashboard bundle is committed under `src/hc_valuation/api/static/`, so no Node is
 required; if it is absent the same URL serves a plain report page instead.
 
+`hc-valuation run --watch` keeps the run current: the server polls the workbook, the policy
+folder, the override and precedent ledgers, the carried open items and the proposals for
+changes and recomputes on any of them, and the open dashboard reloads itself when the run
+changes — drop a new workbook in place and the page you have open shows the new run.
+
+> **If `hc-valuation` is not on your PATH** (macOS Python installers often do not add the
+> scripts directory), `python3 -m hc_valuation <command>` is the same program:
+> `python3 -m hc_valuation run`, `python3 -m hc_valuation build --out dist/`, and so on.
+
 No server wanted? Build the deliverables into a folder and open the report:
 
 ```bash
@@ -38,15 +47,23 @@ open dist/report.html                                  # single self-contained f
 ```
 
 `build` writes `report.html`, `valuation_Q3_2026.xlsx` (Summary, Marks, Exceptions, Audit
-Trail, Fund Rollup, Open Items, Validation, Alternatives), the same tables as CSV,
-`mark_history.csv` (the per-company quarter-over-quarter archive), `run.json` (the full run),
-`manifest.json`, and the next-quarter input workbook `portfolio_Q4_2026.xlsx` with its
-`open_items_carry.yaml` sidecar.
+Trail, Fund Rollup, Open Items, Validation, Alternatives), the same tables as CSV
+(`marks`, `exceptions`, `audit_trail`, `open_items`, `alternatives`), `mark_history.csv`
+(the per-company quarter-over-quarter archive), `run.json` (the full run), `manifest.json`,
+and the next-quarter input workbook `portfolio_Q4_2026.xlsx` with its `open_items_carry.yaml`
+sidecar. The Audit Trail carries a `Portfolio Row` and an `Input Cells` column
+(`post_money='Q3 2026 Activity'!E14; prior_post_money=Portfolio!H21`), so any number in
+Marks traces to the workbook cell it was read from.
 
-Other commands: `validate` (ingest + integrity checks only; exit 1 if anything blocks),
-`export` (workbook + CSVs only), `rules` (the rule catalogue), `history` (the mark archive
-per company, `--company` for one), `next-policy` (the next quarter's rules file), `version`. Every command
-accepts `--input <workbook>` and `--policy <rules file>`; `hc-valuation --help` lists the rest.
+The full command list is `run | build | validate | export | rules | publish | market |
+history | next-policy | version`: `validate` (ingest + integrity checks only; exit 1 if
+anything blocks), `export` (workbook + CSVs only), `rules` (the rule catalogue), `publish`
+(freeze the run for the executive dashboard under a named approver), `market` (the sector
+comps feed report), `history` (the mark archive per company, `--company` for one),
+`next-policy` (the next quarter's rules file), `version`. Every command accepts
+`--input <workbook>` and `--policy <rules file>`; `hc-valuation --help` lists the rest. The
+activity tab's quarter must match the policy's quarter or the run blocks (X-922) —
+`next-policy` writes the matching file.
 
 ## What you are looking at
 
@@ -56,7 +73,11 @@ source to confirm, a down round whose headline post-money is only an upper bound
 announced deal whose close probability needs ratifying, an event type the engine does not
 recognise. `REVIEW` is a single judgment call; two independent REVIEW families on one
 company escalate to BLOCK. `MONITOR` is information; `CLEAR` had no activity and no
-signal. Exception rules only ever add flags: no flag has changed a mark, and none can.
+signal. On the Q3 book that is 7 BLOCK / 20 REVIEW / 39 MONITOR / 34 CLEAR. Exception
+rules only ever add flags: no flag has changed a mark, and none can. Every BLOCK and
+REVIEW flag carries an imperative action, two or three scannable points, and one to three
+priced suggestions (ratify, hold the prior mark, the full deal value, cost, an alternative
+mark); accepting a suggestion records an ordinary override under a named approver.
 
 **The audit chain.** A mark is not a value, it is a list of steps. Each `MarkStep` records
 the rule that fired, its version, every input it read, the prior and new value, a
@@ -68,7 +89,16 @@ with no activity carry an explicit `M-000` step rather than silence.
 `data/overrides.yaml` (or `POST /api/overrides` from the dashboard) with a reason and an
 approver. The engine keeps `proposed_mark` untouched, sets `booked_mark`, appends an
 `E-01` step naming the approver, and flags the override for re-confirmation if the
-proposal it was recorded against has since moved.
+proposal it was recorded against has since moved. The decision records — `data/overrides.yaml`,
+`data/precedent.yaml`, `data/proposals/*.json` and `data/published/` — are versioned in git on
+purpose, so a booked number always travels with the decision behind it; only the superseded
+publish copies (`data/published/history/`) and the emitted `open_items_carry.yaml` stay local.
+
+**Vendor signals.** A company's detail panel also shows a "Vendor signals" card
+(`GET /api/signals`): the Foresight-shaped operating metrics beside the workbook's own, with
+any gap above 10% highlighted, and the quarter's AlphaSense-shaped news with sentiment. Both
+are fixtures in this tree, and neither ever touches a mark, a flag or a disposition — the
+card exists so a restatement or a headline is seen by the reviewer, not booked by the engine.
 
 **Proposals.** An unrecognised event type blocks the position (`M-999`). The optional
 adjudication layer then drafts a *treatment proposal* — an analogue rule, a formula in a
@@ -119,13 +149,19 @@ src/hc_valuation/
   api/publish.py             the publish gate: freezes a run into data/published/ under a named approver
   api/history.py             the mark archive: booked marks per company per quarter, assembled from the
                              publish ledger, data/mark_history.yaml (backfill) and the current run
+  api/signals.py             the vendor-signals card: Foresight-shaped metrics beside the workbook's,
+                             AlphaSense-shaped news — context for the reviewer, never an input to a number
   api/exec_view.py           the executive view-model (bridge, movers, funds, decisions, risk watch)
-  cli.py                     hc-valuation run | build | publish | validate | export | rules | market | history | next-policy | version
+  cli.py                     hc-valuation run | build | validate | export | rules | publish | market | history | next-policy | version
+  __main__.py                python3 -m hc_valuation ... == hc-valuation ...
 frontend/                    React + Vite source for the review tool (builds into api/static)
 frontend-exec/               React + Vite source for the executive dashboard (builds into api/static_exec)
-tests/                       golden file, determinism, rules, ingest, edge cases, export, api, cli, gauntlet
+tests/                       golden file, determinism, rules, ingest, normalize, edge cases, connectors, market
+                             feed, adjudication, export, api, cli, publish, history, flag points, suggestions, gauntlet
 training/                    SPEC.md (the hardening contract), scenario corpus, workbook generator, gauntlet
 docs/valuation-policy.md     the marking policy the rules implement
+docs/architecture.md         the run as a diagram: feeds, triggers, the review and publish gates, what is stubbed
+docs/market-feed.md          the live comps feed contract
 ```
 
 ## The policy
@@ -141,8 +177,8 @@ quarter's file can `inherits: 2026Q3` and override only what moved; rules carry 
 ## Tests
 
 ```bash
-pip install -e ".[dev]"
-pytest                              # 695 tests
+pip install -e ".[dev]"             # adds pytest and httpx to the install above
+pytest                              # 740+ tests (743 at the time of writing), ~25 s, no network
 python training/run_gauntlet.py     # 44 dirty-workbook scenarios, 1,785 checks -> training/report.md
 ```
 
@@ -150,6 +186,19 @@ The golden test pins all 100 companies; the determinism test checks two runs ser
 identically; `test_coverage` asserts every event type in the workbook's Field Definitions
 has a registered handler; the export test re-ingests the emitted next-quarter workbook and
 requires zero blocking issues.
+
+### Rebuilding the front ends
+
+Not needed to run: both built bundles are committed. Only if you change the React source:
+
+```bash
+cd frontend && npm install && npm run build         # -> src/hc_valuation/api/static
+cd frontend-exec && npm install && npm run build    # -> src/hc_valuation/api/static_exec
+```
+
+Node 20 or newer (Vite 5, TypeScript 5.9). `npm run build` type-checks first and fails on a
+type error. Python serves whatever is in those two directories; restart `hc-valuation run`
+after a rebuild.
 
 `training/` is the hardening corpus: a generator that writes deliberately dirty workbooks
 (typos, synonyms, `$28.2M` in a number cell, headers on row 4, euro figures, 150%
@@ -223,10 +272,11 @@ fills the same slot honestly:
   `defaults.price_source` in the baskets file. Stooq is retained as the alternative, but it
   currently answers non-browser clients with a JavaScript browser-verification page (with
   HTTP 404), which the feed reports as such and does not attempt to bypass.
-- **The cache.** Trimmed extracts land in `data/market_cache/<measurement date>/`; with a
-  complete cache a run makes no network call and is deterministic offline, so the
-  directory is committed after a real run. `--refresh-market` (or `market --refresh`)
-  refetches; a partial cache fetches only what is missing.
+- **The cache.** Trimmed extracts land in `data/market_cache/<measurement date>/` (the
+  directory exists only once a live run has been made); with a complete cache a run makes
+  no network call and is deterministic offline, so commit the directory after a real run
+  and a reviewer gets live-shaped data without a network. `--refresh-market` (or
+  `market --refresh`) refetches; a partial cache fetches only what is missing.
 - **`hc-valuation market [--provider live|stub] [--price-source yahoo|stooq] [--refresh] [--json]`**
   prints one line per sector (multiple, source, month, constituents ok/total) and the
   errors — a source-wide outage is one line, not one per ticker; `--json` dumps the
@@ -240,10 +290,11 @@ fills the same slot honestly:
   real contact e-mail: set `HC_SEC_CONTACT=you@yourfirm.com` before a live run (the default
   `valuation@example.com` is a placeholder SEC may block).
 - **Replacing it with PitchBook.** A vendor connector is one class implementing
-  `CompsProvider` and one branch in `assemble_market_data`; `--provider pitchbook` is
-  reserved and reports "not configured" until `PITCHBOOK_API_KEY` and
-  `connectors/pitchbook.py` exist. The engine, the policy, the golden test and the review
-  tool do not change.
+  `CompsProvider` and one `register_comps_provider("pitchbook", factory)` call in
+  `connectors/__init__.py` — providers are a registry keyed by name, not an `if` chain.
+  `--provider pitchbook` is registered and reports "not configured" until
+  `PITCHBOOK_API_KEY` and `connectors/pitchbook.py` exist. The engine, the policy, the
+  golden test and the review tool do not change.
 
 ## Boundaries
 
@@ -261,12 +312,20 @@ fills the same slot honestly:
   holdbacks are not in the workbook. Rules that would need them (down rounds, closed
   exits with proceeds that do not tie) block or flag rather than guess.
 
-## AI tooling
+## AI tooling, reuse and open-source
 
-The rule set and the thresholds were drafted against this dataset with Claude, and the
+The rule set, the thresholds, the flag wording, the two front ends, the tests and the
+gauntlet corpus, and the docs were drafted with Claude in agentic coding sessions, and the
 build is agent-assisted: the phases in the build plan were implemented by coding agents
 with a human gate at each phase (golden numbers, determinism, edge cases) before the next
 began. Thresholds were tuned by running the exception screens over all 100 companies and
 reading the resulting queue — the first cut flagged 58 of 96 active companies, which is
-how it was caught and fixed. Nothing a model produces enters a booked mark: proposals are
-rules for a human to promote, and the deterministic engine computes every value.
+how it was caught and fixed. Nothing a model produces enters a booked mark: the one place
+a model sits inside the product is the optional E-09 adjudicator, whose drafts are rules
+for a human to promote, and the deterministic engine computes every value.
+`docs/architecture.md` §12 has the specifics.
+
+No prior code was reused. Open-source components: FastAPI, uvicorn, Typer, pydantic,
+openpyxl, PyYAML, httpx (live feed) and the optional `anthropic` SDK (E-09) on the Python
+side; React, Vite, TypeScript, Tailwind CSS, TanStack Table and Recharts in the front ends;
+pytest for the tests and Playwright for the screenshot scripts.

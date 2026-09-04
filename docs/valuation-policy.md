@@ -1,6 +1,6 @@
 # HC Valuation Engine — Marking Policy v0.1-draft
 
-Measurement date **2026-09-30** · prior close **2026-06-30** · 100 positions (96 active) · 18 Q3 events · prior NAV **$1,139.3M**
+Measurement date **2026-09-30** · prior close **2026-06-30** · 100 positions (96 active before, 93 after) · 18 Q3 events · prior NAV **$1,139.3M**
 
 > Rendered version: https://claude.ai/code/artifact/df056a40-d661-4734-a85b-738c5dd48707
 > Destination in repo: `docs/valuation-policy.md`
@@ -44,7 +44,16 @@ Base identity: `mark = FD ownership × post-money`.
 | **M-051** | Deal terminated | `mark = ownership × latest_post` (back to the last-round basis); drops `pending_acquisition`; anchor unchanged | X-114 REVIEW. An announcement and its termination in one quarter: the announcement is superseded. |
 | **M-061** | Note repaid | `realized += proceeds`; `note_at_cost = max(0, note_at_cost − principal)`, principal = `hc_investment` else `proceeds`; equity unchanged | X-115 REVIEW — if the note sat inside the prior mark rather than the note leg, the reviewer reduces the carrying basis. |
 | **M-999** | Unrecognised event | mark unchanged + **validation error + BLOCK** | Never falls through to carry. An unregistered event type halts that position. |
-| **M-080** | Stale-round comps calibration | `prior_mark × comp_mult(t) / comp_mult(round_date)`, bounded | **Off by default.** Writes a labelled alternative column, never overwrites. Also powers the ±20% sensitivity view. 40 candidates. |
+| **M-080** | Stale-round comps calibration | `equity_mark × comp_mult(t) / comp_mult(round_month)`, bounded ±35% | **Off by default.** Writes the `calibrated_to_comps` alternative only, never the proposal. 45 candidates on the Q3 book. Section 2b. |
+
+### Departures from the brief's base rule
+
+The brief's base rule — a priced round marks at ownership after × post-money, an exit goes to realized and the mark to zero, no activity carries — is exactly what M-010, M-020/M-021 and M-000 do, and it covers 14 of the 18 Q3 events. The engine departs from the literal rule in four places, each on purpose, each BLOCK- or REVIEW-gated so the committee sees the departure and can reverse it with one override, and each with the literal-rule number recorded as an alternative:
+
+- **M-050 announced acquisition, probability-weighted.** Literal rule: nothing has closed, so Gryphonel carries at $3.50M. Engine: $4.31M = ownership × $133M × 0.90. An announced, signed deal at a known price is better evidence of value than a round from years earlier; ASC 820 asks what a market participant would pay for the position today, and that is the deal price less the risk it fails. `at_full_deal_value` ($4.79M) and `hold_prior` ($3.50M) are the alternatives; X-101 blocks until the committee ratifies the probability.
+- **M-060 funded convertible note, at cost.** Literal rule: a note is not a priced round, so Duskfern carries at $6.10M. Engine: $6.60M — the equity leg unchanged and HC's $0.50M of new money carried at cost on a separate note leg, because cash HC just put in is an asset at cost until it converts, and a cap is a ceiling, not a price. X-107 REVIEW asks whether the bridge is a distress signal that should pull the equity leg down instead.
+- **M-040 IPO, at the measurement-date market cap.** Literal rule: a listing is a priced event at the offer price. Engine: the 9/30 close, because a listed position is Level 1 and the exchange price is the fair value, not the print. In this tree the quote is seeded to the print (the ticker is synthetic) so the two numbers coincide at $110.07M; X-101 blocks until the price source is confirmed.
+- **M-030 secondary sale, remainder at the last round.** Literal rule: the print is a transaction in the security, so Marrowick's remaining 70% marks at the secondary price. Engine: the remainder stays at the last-round basis ($8.77M) because a partial, negotiated secondary is a weaker price signal than a primary round; `at_secondary_price` ($8.29M) is the alternative and X-104 REVIEW flags the 5.5% spread. `secondary.remainder_basis: secondary_price` flips the default.
 
 ### Event precedence (multi-event quarters)
 
@@ -58,6 +67,28 @@ Base identity: `mark = FD ownership × post-money`.
 8. Carry forward (M-000, or M-041 for a listed position)
 
 Within a tier, later date wins. A note outstanding at a priced round or listing converts: the note leg folds into the equity mark.
+
+---
+
+## 2b. M-080 — stale-round comps calibration
+
+**What it computes.** After the roll, for every active Level 3 position with an ARR whose price anchor is at least `calibration.min_age_months` (24) old, and whose sector has a comp history covering both the measurement month and the round month:
+
+```
+factor      = comp_multiple(measurement month) / comp_multiple(round month)
+factor      = clamp(factor, 1 − bound_pct, 1 + bound_pct)          # bound_pct: 0.35
+calibrated  = equity_mark × factor
+```
+
+It writes `calibrated_to_comps` into `alternative_marks` and appends an M-080 step whose prior and new value are both the proposal. **It never writes the proposal.** The base mark stays at the last round; the calibrated figure is a labelled alternative a reviewer can choose, and choosing it is an E-01 override like any other. It has nothing to do with the ±20% multiple sensitivity in the Summary — that is `rollup.py`, a portfolio-level shock on multiple-exposed NAV, and it runs with or without M-080.
+
+**Worked example (Birchhollow, Cybersecurity, from a scratch run with `calibration.enabled: true` on the fixture).** Round anchor 2021-05, 64 months before 2026-09-30. Fixture Cybersecurity multiple 18.03× in the round month, 13.01× now. Factor 13.01 / 18.03 = 0.7216, inside the bound. Equity mark $43.30M × 0.7216 = **$31.24M** recorded as `calibrated_to_comps`; proposal unchanged at $43.30M. Halcyra (71 months, 15.54× → 13.01×, factor 0.837) calibrates to $2.26M against a $2.70M proposal. Pellagrin (Climate & Energy, 13.05× → 7.14×, raw factor 0.547) pins at the −35% floor: $13.93M × 0.65 = $9.05M.
+
+**Why ±35%.** A stale Level 3 mark moved purely by a public-comps ratio is an estimate of direction, not a valuation: the comps say what the sector re-rated by, not what this company did. The bound stops a sector that tripled from tripling a company that did not, and caps the alternative at roughly one round's worth of re-rating in either direction — enough to say "this mark is likely off by a third", which is what a reviewer needs, without producing a number the engine would have to defend on its own.
+
+**On the fixture, the bound sets the number.** The PitchBook-shaped fixture trends hard: with calibration on, **33 of the 45 candidates pin at +35% and two more at −35%**; only ten land between. So on the stub it is the bound, not the comps, that sets most alternatives — a property of the fixture, not the rule, and the reason the switch ships off. Under `--provider live` the baskets carry `months_of_history: 36`, so a round older than three years has no comp multiple for its month and cannot be calibrated at all; for those positions the M-080 step and the alternative are simply absent, and the "calibrate" suggestion below does not appear. A vendor history reaching back to 2019–2021 is what makes M-080 useful on this book, where the stale rounds are 48–71 months old.
+
+**How a reviewer uses it.** X-202 (round older than 48 months), X-106 (flat extension without price discovery) and X-405 (stale price that a live screen argues with) each carry a "Calibrate the mark to public comps" suggestion that books `calibrated_to_comps`. Accepting it is an E-01 override addressed to that rule, under a named approver, with `source_suggestion` on the ledger record. If the alternative was not produced (calibration off, sector history missing, round too old for the live history) the suggestion is dropped rather than shown with no number.
 
 ---
 
@@ -91,9 +122,23 @@ Severity ∈ {BLOCK, REVIEW, MONITOR}. **Escalation:** any BLOCK rule → BLOCK;
 | **X-201/202** | Stale round | MONITOR >24mo / REVIEW >48mo | M-011 extensions do not reset the clock |
 | **X-301/302** | ARR contraction | MONITOR <0% / REVIEW <−15% | |
 | **X-303/304** | Runway | MONITOR <12mo / REVIEW <6mo | Recomputed from cash/burn **and aged 1 month** — metrics are as of late August |
-| **X-401/402** | Mark vs performance | MONITOR | Implied post/ARR vs sector comp; fires **both directions** (over- and under-marked) |
+| **X-401/402** | Mark vs performance | MONITOR | Implied post / ARR outside the bounds; fires **both directions** (over- and under-marked). Shipped `mode: absolute` (30× / 3×); `relative_to_comps` (2.0× / 0.5× the sector comp) is the alternative and needs a comps feed |
 | **X-403** | ARR below screening floor | MONITOR | ARR < $0.5M — multiple is meaningless, own bucket |
-| **X-404** | MOIC outlier on stale round | MONITOR | MOIC > 5× |
+| **X-404** | MOIC outlier on stale round | MONITOR | MOIC > 5× on a round older than 24 months |
+| **X-405** | Mark no longer squares with performance | REVIEW | Price anchor older than 24 months **and** a live screen against it (X-401, X-402, X-404 or X-301), unless X-202 / X-302 already put the position in REVIEW. Each half alone is MONITOR; together a reviewer could change the number. `performance_gap.enabled` |
+
+#### Why these numbers
+
+Every threshold is a policy choice and lives in `rules/2026Q3.yaml`; these are the reasons behind the defaults, so the committee can defend or move them.
+
+- **X-104, 5% spread.** A secondary print within 5% of the last round is the same price with negotiation noise; beyond it the market is saying something about the round, and a reviewer should decide whether the remainder follows it.
+- **X-201 / X-202, 24 / 48 months.** Venture companies at these stages raise every 18–24 months, so 24 months is one funding cycle — a price that is merely due for refresh — and 48 months is two: the company has twice not repriced, and the round probably predates the business it now describes.
+- **X-301 / X-302, 0% / −15%.** Any contraction in a growth company is worth noticing; −15% is roughly one lost growth cohort and the point at which the last round's growth assumptions no longer hold, so the mark could move.
+- **X-303 / X-304, 12 / 6 months.** Twelve months of runway is one raise cycle — the company must be in market within the quarter; six months means it must close before the next measurement date or fail, which a reviewer may need to reflect in the mark.
+- **X-401 / X-402, 30× / 3×.** In absolute mode, 30× revenue is the 2021-peak ceiling — a multiple the public market has not paid at scale since — and 3× is a mature-SaaS floor below which a growth-stage mark is probably stale-low. Both are MONITOR because a multiple is a screen, not a valuation.
+- **X-404, 5× MOIC on a round older than 24 months.** A five-times unrealised gain resting on a price nobody has tested in over a funding cycle is where a write-up is most likely to be optimistic; it is context until something else disagrees with the mark.
+- **X-405.** The rationale is in the row above: staleness is not evidence of a move and a screen is not a valuation, so each stays MONITOR; both together are the case the policy exists for.
+- **`review_rules_to_block: 2`.** One judgment call is a reviewer's job; two independent ones on the same position mean the number should not be booked without the committee, because the reviewer would be deciding them jointly and nobody would see the pair.
 | **X-9xx** | Ingestion integrity | BLOCK | Unknown company (X-901), missing post-money / ownership / deal value (X-902), a number outside its domain (X-903: ownership outside 0–100%, a post-money or price ≤ 0, negative proceeds or investment), **prior-mark reconciliation** (X-904, ±$0.05M; a departure the prior quarter's sidecar explains is a non-blocking REVIEW), an event dated after the measurement date or more than `tolerances.late_event_grace_days` before the window (X-905 BLOCK; inside the grace period it is applied on REVIEW), a duplicated Portfolio row (X-906 on **every** copy — the engine cannot know which is the position), activity on a terminal company (X-907; a `Distribution` on an Acquired company and a `Distribution` / `Note Repaid` on a Shut Down company are allowed), unrecognised event type (X-909, routed to M-999), a `Latest Round` dated after the measurement date (X-921). Normalization records X-911…X-920 (training/SPEC.md §2). |
 | **X-900** | Row refused, position blocked | BLOCK | **A row that blocks blocks its position.** An activity row (or the position's own Portfolio row) carrying a blocking X-9xx issue is recorded in the audit chain as *not applied* and the prior mark is carried; the engine will not book a number from a cell it could not read. The one exception is an unrecognised or ambiguous event type, which still reaches M-999 so the adjudication proposal is raised. The flag names the row and the issue ids to fix. |
 | **X-911** | Header matched by normalization | MONITOR | Case, whitespace, a known alias (`Carrying Value` → `Prior Mark ($M)`) or a typo ≤ 2 edits. Message carries `original → canonical`. |
@@ -108,11 +153,11 @@ Severity ∈ {BLOCK, REVIEW, MONITOR}. **Escalation:** any BLOCK rule → BLOCK;
 
 ### Resulting queue (Q3 2026)
 
-**7 BLOCK · 15 REVIEW · 44 MONITOR · 34 CLEAR** *(engine output, policy 2026Q3-0.1; unchanged by the extended rule set — X-118 now also annotates the two insider-led recaps, Oakenvale and Tarnwick, which were already blocked)*
+**7 BLOCK · 20 REVIEW · 39 MONITOR · 34 CLEAR** *(engine output, policy 2026Q3-0.1; the extended rule set left the blocks unchanged — X-118 also annotates the two insider-led recaps, Oakenvale and Tarnwick, which were already blocked — and X-405 moved five positions from MONITOR to REVIEW: Arcfoundry, Pinwhistle, Yarrowbank, Foxtrellis, Mirthstone)*
 
 Blocked: Drayvenn (IPO), Gryphonel (announced), Oakenvale (recap), Tarnwick Aerospace (recap + ARR −16%), Duskfern (funded note + runway 4.1mo), Birchhollow (64mo stale + ARR −20%), **Pellagrin (flat extension + 59mo stale)**.
 
-> The hand count in the first draft of this policy was 6 / 15 / 41 / 34. The engine is stricter in two places, both correct: (1) it applies the staleness clock to companies *with* activity, so Pellagrin's same-terms extension — which by policy does not reset the clock — is a 59-month-stale round plus a treatment flag, two REVIEW families, hence BLOCK; and (2) the revenue-multiple screen uses the *new* post-money for repriced companies (Jettamar, Nimbrel), which is the basis the mark now rests on. Halcyra similarly moves to REVIEW because its 71-month-stale round is screened alongside the term-sheet disclosure.
+> The hand count in the first draft of this policy was 6 / 15 / 41 / 34, and the engine's count before X-405 was 7 / 15 / 44 / 34. The engine is stricter in two places, both correct: (1) it applies the staleness clock to companies *with* activity, so Pellagrin's same-terms extension — which by policy does not reset the clock — is a 59-month-stale round plus a treatment flag, two REVIEW families, hence BLOCK; and (2) the revenue-multiple screen uses the *new* post-money for repriced companies (Jettamar, Nimbrel), which is the basis the mark now rests on. Halcyra similarly moves to REVIEW because its 71-month-stale round is screened alongside the term-sheet disclosure.
 
 > Note: an earlier threshold set flagged 58 of 96. The fix was compound escalation plus the "could a reviewer change the number?" test, which moved X-103, unfunded notes and term sheets down to MONITOR.
 
@@ -137,8 +182,10 @@ exceptions:
   runway:     { monitor_below_mo: 12, review_below_mo: 6 }
   dilution:   { monitor_relative_drop: 0.20 }
   secondary:  { spread_tolerance_pct: 0.05 }
-  multiple:   { high_x_comp: 2.0, low_x_comp: 0.5, absolute_high: 30, min_arr: 0.5 }
+  multiple:   { mode: absolute, absolute_high: 30, absolute_low: 3,    # mode: absolute | relative_to_comps
+                high_x_comp: 2.0, low_x_comp: 0.5, min_arr: 0.5 }
   moic:       { monitor_above: 5.0 }
+  performance_gap: { enabled: true }                    # X-405
   escalation: { review_rules_to_block: 2 }
 
 tolerances:  { prior_mark_reconciliation_musd: 0.05 }
@@ -179,7 +226,7 @@ adjudication:                         # E-09 — assist, never a dependency
 | **E-01** | Override ledger | `booked = override.booked ?? proposed`. An override that names the BLOCK rule it addresses (`rule_ids_addressed`) resolves the block — the flag stays visible, the position stops waiting, and its disposition is never below MONITOR so the decision itself remains in the queue. The missing half of human review — without it the committee's decision evaporates and the same flag re-litigates every quarter. Record: company, quarter, proposed, booked, reason, approver, created_at, rule_ids_addressed. Never mutates `proposed_mark`. |
 | **E-02** | Next-quarter snapshot | Emits a Q4 Portfolio tab in the identical input schema. This quarter's output is next quarter's input; otherwise automation covers half the job. |
 | **E-03** | Run manifest + determinism | run_id, sha256(input), policy_version, engine_version, measurement_date, generated_at. Same input → byte-identical output. |
-| **E-04** | Fair value hierarchy | L1/L2/L3 per position, assigned by the marking rule. Q3: Drayvenn L1, 95 active L3. |
+| **E-04** | Fair value hierarchy | L1/L2/L3 per position, assigned by the marking rule. Q3: 93 active after the quarter — Drayvenn L1, 92 L3. |
 | **E-05** | Fund roll-up | TVPI / DPI / RVPI per Fund I–III, plus top-10 concentration. Q3 moves DPI materially ($32.5M returned). |
 | **E-06** | Golden-file test | Pins 18 event treatments, 4 queue counts, portfolio total. Prevents the quiet regression. |
 | **E-07** | Open items register | Carries unfinished business across quarter boundaries — outstanding notes, pending announced deals, disclosed term sheets, lock-up expiries — each aging, each escalating on its own if unresolved too long. Q3 opens: Duskfern note, Emberfold note, Gryphonel pending close, Halcyra term sheet, Drayvenn lock-up (expires 2027-03-19). |
@@ -248,4 +295,4 @@ This policy was written against one quarter. The honest risk is that it is *fitt
 1. **Gryphonel** — probability-weight at 0.90 *(default)*, full deal value, or hold at prior?
 2. **Drayvenn** — lock-up discount 0% *(default)* or a haircut for the 180-day restriction?
 3. **Marrowick** — remainder at last round *(default)* or at the secondary print 5.5% below?
-4. **M-080 calibration** — build against a live comps feed, or spec it and ship the base engine clean?
+4. **M-080 calibration** — built and off by default (section 2b); switch it on once a comps history reaching back to the stale rounds exists, or leave it as a reviewer's suggestion on the fixture?

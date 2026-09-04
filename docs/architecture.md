@@ -8,24 +8,26 @@ How the quarterly valuation run is built, where the human gate sits, and what is
 
 ```mermaid
 flowchart TB
+    TRIG["Triggers  (section 2)<br/>workbook lands · run --watch mtime poll · POST /api/rerun · any ledger write"]
+
     subgraph IN["Inputs"]
-        WB[("Workbook<br/>Portfolio tab + Q_ YYYY Activity tab<br/>(sheet found by regex, never by name)")]
+        WB[("Workbook<br/>Portfolio tab + Qn YYYY Activity tab<br/>sheet found by regex, never by name")]
         POL[("rules/2026Q3.yaml<br/>every threshold, policy_version")]
         LED[("data/overrides.yaml<br/>E-01 committee ledger")]
         CARRY[("data/open_items_carry.yaml<br/>prior quarter's E-07 items")]
     end
 
-    subgraph ING["Ingest and validate (impure)"]
+    subgraph ING["Ingest and validate  (impure)"]
         RD["ingest/reader.py<br/>xlsx → PortfolioSnapshot + ActivityFeed"]
-        VAL["ingest/validate.py<br/>X-9xx integrity checks"]
+        VAL["ingest/validate.py<br/>X-9xx integrity checks, X-922 quarter match"]
     end
 
-    subgraph MKT["Market data connectors (impure)"]
-        STUB["stubs<br/>data/mock_responses/*"]
-        LIVE["live<br/>EDGAR + Yahoo/Stooq, free, no key"]
+    subgraph MKT["Market data connectors  (impure)"]
+        QUO["quotes  MarketDataProvider.quote()<br/>fixture today; a Capital IQ or market-cap feed plugs in here"]
+        COMPS["comps  CompsProvider registry<br/>stub fixture · live EDGAR + Yahoo · pitchbook reserved"]
         ASM["connectors.assemble_market_data()<br/>→ MarketData value object + source label"]
-        STUB --> ASM
-        LIVE --> ASM
+        QUO --> ASM
+        COMPS --> ASM
     end
 
     subgraph ENG["engine/  — PURE: no file, network or clock access"]
@@ -42,30 +44,42 @@ flowchart TB
         OI --> EXC
     end
 
-    RUN[/"ValuationRun<br/>manifest · companies (audit chains) · rollups · validation · totals · open_items · sensitivity"/]
+    RUN[/"ValuationRun<br/>manifest · companies with audit chains · rollups · validation · totals · open_items · sensitivity"/]
 
-    subgraph ADJ["Adjudication  E-09 (outside the engine)"]
+    subgraph ADJ["Adjudication  E-09  (outside the engine)"]
         M999{{"M-999 halt?"}}
-        PROP["adjudication/proposer.py<br/>TreatmentProposal: analogue rule, restricted formula,<br/>missing facts, confidence (display only)"]
+        PROP["adjudication/proposer.py<br/>TreatmentProposal: analogue rule, restricted formula,<br/>missing facts, confidence shown only"]
         CACHE[("data/proposals/<br/>cached by event signature")]
         M999 -- yes --> PROP --> CACHE
     end
 
     subgraph REV["Review surface"]
-        API["api/app.py  FastAPI<br/>GET /api/run · /api/companies/{name} · /api/rules · /api/proposals · /api/history<br/>POST /api/overrides · /api/proposals/{id}/decision · /api/rerun"]
-        UI["frontend/ (React, built into api/static)<br/>Queue · Companies · Movement · Funds · Open items · Proposals"]
+        API["api/app.py  FastAPI<br/>GET /api/run · /api/companies · /api/rules · /api/market · /api/history · /api/signals · /api/proposals · /api/published · /api/exec<br/>POST /api/overrides · /api/proposals/id/decision · /api/rerun · /api/publish"]
+        HIST["api/history.py<br/>mark archive, read from the publish ledger"]
+        SIG["api/signals.py<br/>Foresight-shaped metrics cross-check<br/>AlphaSense-shaped news · context only, never a number"]
+        UI["frontend/  React, built into api/static<br/>Queue · Companies · Movement · Funds · Market · Open items · Proposals"]
         STATIC["export/static_report<br/>single file, window.__HC_RUN__, no server"]
+        HIST --> API
+        SIG --> API
         API --> UI
         STATIC --> UI
     end
 
-    GATE{{"HUMAN REVIEW GATE<br/>every BLOCK needs a named decision<br/>before anything is booked"}}
+    GATE{{"HUMAN REVIEW GATE<br/>every BLOCK needs a decision under a named approver<br/>before anything is booked or published"}}
 
     subgraph DEC["Committee decisions"]
-        OV["Override<br/>booked, approver, reason"]
+        OV["Override  E-01<br/>booked, approver, reason"]
+        SUG["Accept a suggestion<br/>E-01 override addressed to the rule, source_suggestion"]
         ACC["Accept once<br/>E-01 override citing the proposal"]
         PRM["Promote<br/>declarative rule, approver, effective_from"]
         REJ["Reject<br/>falls back to manual override"]
+    end
+
+    subgraph PUBG["Publish gate"]
+        PUB["POST /api/publish · hc-valuation publish<br/>api/publish.py, named approver"]
+        PUBLED[("data/published/2026Q3.json<br/>PROPOSED while blocks are open → FINAL")]
+        EXEC["frontend-exec/  served at /exec/<br/>executives read the snapshot, never the live run"]
+        PUB --> PUBLED --> EXEC
     end
 
     subgraph OUT["Outputs"]
@@ -75,11 +89,12 @@ flowchart TB
         CARRY2[("open_items_carry.yaml")]
     end
 
+    TRIG --> RD
     WB --> RD --> VAL
     POL --> RD
     POL --> ASM
     RD --> ASM
-    VAL -- "issues (X-9xx)" --> RUN
+    VAL -- "issues X-9xx" --> RUN
     ASM -- "MarketData" --> ENG
     RD -- "snapshot + feed" --> ENG
     LED --> OVR
@@ -92,12 +107,15 @@ flowchart TB
     RUN --> API
     RUN --> STATIC
     UI --> GATE
-    GATE --> OV & ACC & PRM & REJ
+    GATE --> OV & SUG & ACC & PRM & REJ
     OV --> LED2
+    SUG --> LED2
     ACC --> LED2
     PRM --> RULES2
     REJ --> OV
     LED2 -- "rerun" --> LED
+    GATE -- "decisions recorded" --> PUB
+    PUBLED --> HIST
     RULES2 -- "next quarter" --> POL
     RUN --> SNAP
     RUN --> CARRY2
@@ -105,22 +123,26 @@ flowchart TB
     CARRY2 --> CARRY
 ```
 
-Read it left to right as a quarter: the workbook lands, it is read and checked, market data is assembled into a value object, the pure engine turns snapshot + feed + market + ledger + policy into a `ValuationRun`, anything the engine could not recognise goes to the adjudicator for a draft, the review surface shows the queue, the committee decides, and the decisions become inputs to the next run (the ledger) or the next quarter (a promoted rule, the emitted Portfolio tab, the carried open items). Nothing is booked on the path from engine to output without passing the gate.
+Read it top to bottom as a quarter: a trigger fires (section 2), the workbook is read and checked, market data is assembled into a value object, the pure engine turns snapshot + feed + market + ledger + policy into a `ValuationRun`, anything the engine could not recognise goes to the adjudicator for a draft, and the review surface shows the queue. The human path is: **the engine proposes → the review queue → a decision under a named approver → publish → executives.** Decisions become inputs to the next run (the ledger) or the next quarter (a promoted rule, the emitted Portfolio tab, the carried open items). Publishing freezes the run into `data/published/<quarter>.json`, marked PROPOSED while any BLOCK is still open and FINAL once every block carries a decision; the executive dashboard at `/exec/` reads only that snapshot, and the mark-history archive (`api/history.py`) is assembled from the same ledger. Nothing is booked, and nothing reaches an executive, without passing the gate.
 
-Status of this checkout: every module in the diagram is present — `config.py`, `ingest/`, `engine/`, `pipeline.py`, `connectors/` (protocols, vendor-shaped stubs, one live EDGAR + Yahoo/Stooq feed with fall-back), `adjudication/` (schema, DSL check, proposer, promotion), `export/` (workbook, next-quarter snapshot, single-file static report), `api/app.py`, `cli.py`, the frontend and its built bundle in `api/static/`. Each work package landed behind its own tests (`tests/test_ingest.py`, `test_golden.py`, `test_determinism.py`, `test_rules.py`, `test_edge_cases.py`, `test_coverage.py`, `test_connectors.py`, `test_adjudication.py`, `test_export.py`, `test_api.py`, `test_cli.py`).
+Status of this checkout: every module in the diagram is present — `config.py`, `ingest/`, `engine/`, `pipeline.py`, `connectors/` (protocols, vendor-shaped stubs, the provider registry, one live EDGAR + Yahoo/Stooq feed with fall-back), `adjudication/` (schema, DSL check, proposer, promotion), `export/` (workbook, next-quarter snapshot, single-file static report), `api/` (`app.py`, `publish.py`, `history.py`, `signals.py`, `exec_view.py`), `cli.py`, the two frontends and their built bundles in `api/static/` and `api/static_exec/`. Each work package landed behind its own tests: `tests/test_ingest.py`, `test_normalize.py`, `test_golden.py`, `test_determinism.py`, `test_rules.py`, `test_rules_extended.py`, `test_edge_cases.py`, `test_coverage.py`, `test_connectors.py`, `test_market_feed.py`, `test_adjudication.py`, `test_export.py`, `test_api.py`, `test_cli.py`, `test_publish.py`, `test_history.py`, `test_flag_points.py`, `test_suggestions.py`, `test_gauntlet.py`.
 
 ---
 
 ## 2. What triggers a run
 
+Three things start a run today; a fourth is what production would add.
+
 | Trigger | Path | Notes |
 |---|---|---|
-| A new workbook landing | `pipeline.execute(RunPaths.default(workbook=...))` | The default path is `data/HC_Mock_Portfolio_Data.xlsx`; the activity sheet is located by the regex in `schema.activity_sheet_pattern` (`^Q[1-4] \d{4} Activity$`), so a Q4 tab loads with no code change. |
-| CLI | `hc-valuation run \| build \| validate \| export \| rules \| version` | `run` serves the dashboard on the API; `build` writes the static report and the export set; `validate` runs ingest + X-9xx and exits non-zero on a blocking issue; `export` writes the review workbook and CSVs; `rules` lists the registry. The console script is declared in `pyproject.toml`. |
-| Mark history | `GET /api/history`, `hc-valuation history`, `mark_history.csv` | `api/history.py` assembles each company's quarter-over-quarter booked marks from the publish ledger (`data/published/`), the optional backfill file (`data/mark_history.yaml`) and the current run (workbook `Prior Mark` + live booked mark), tagging every point with its source and noting disagreements; the review tool's detail panel charts it. |
-| API rerun | `POST /api/rerun` | Re-executes the pipeline against the current ledger and policy — this is how an override recorded through the UI becomes a new `booked_nav`. |
+| (a) A workbook landing | `pipeline.execute(RunPaths.default(workbook=...))`, run by `hc-valuation run` or `build` (`--input` to point elsewhere) | The default path is `data/HC_Mock_Portfolio_Data.xlsx`; the activity sheet is located by the regex in `schema.activity_sheet_pattern` (`^Q[1-4] \d{4} Activity$`), so a Q4 tab loads with no code change. The tab's quarter must match the policy's quarter or the run blocks (X-922, `ingest/validate.py`): a Q4 book run under the Q3 policy would push Q4 events through Q3's window and measurement date, which is a wrong run, not a data error. `hc-valuation next-policy` writes the matching policy file. |
+| (b) A watched input changing | `hc-valuation run --watch` | The server thread (`api/app.py::watch_inputs`) polls the mtimes of the workbook, the policy folder (`rules/*.yaml`, because of `inherits`), `data/overrides.yaml`, `data/precedent.yaml`, `data/open_items_carry.yaml` and `data/proposals/*.json` every two seconds and recomputes on a change; the market cache is deliberately not watched (a refetch is an explicit `--refresh-market`). The open dashboard polls `GET /api/health` and reloads itself when the run stamp (`run_id@generated_at`) moves. This is the "self-refreshing output" in its current form: drop a new workbook in place and the page you have open shows the new run. |
+| (c) A decision or rerun through the API | `POST /api/rerun`; every ledger write (`POST /api/overrides`, `POST /api/proposals/{id}/decision`, `POST /api/publish`) | Re-executes the pipeline against the current ledger and policy — this is how an override recorded through the UI becomes a new `booked_nav`. |
+| (d) Production: a schedule or an inbox | A T+N business-day job after quarter end, or a watched inbox / SharePoint folder, invoking the same `execute()` | **Not built.** Listed under production hardening in section 11. There is nothing engine-side to add: (a)–(c) already call the one entry point a scheduler would. |
 
-`pipeline.execute()` is the one impure orchestrator: load policy → read workbook → validate → assemble market data → load ledger and carried open items → `run_valuation(...)` → adjudicate M-999 halts if `adjudication.enabled`. It returns `PipelineResult(run, config, paths, market, proposals)`. The `generated_at` timestamp is passed *in* (the engine never reads the clock), and the run id is `sha256(input_sha256 | policy_version | engine_version)[:12]`, so the same workbook under the same policy always names the same run.
+The CLI is `hc-valuation run | build | validate | export | rules | publish | market | history | next-policy | version` (the console script is declared in `pyproject.toml`; `python3 -m hc_valuation ...` is the same thing for a machine where the script did not land on PATH). `run` serves both dashboards on the API; `build` writes the static report and the export set; `validate` runs ingest + X-9xx and exits non-zero on a blocking issue; `export` writes the review workbook and CSVs; `rules` lists the registry; `publish` freezes the run for executives under a named approver; `market` prints the comps feed report; `history` prints the mark archive (`api/history.py` assembles each company's quarter-over-quarter booked marks from the publish ledger `data/published/`, the optional backfill `data/mark_history.yaml` and the current run, tagging every point with its source and noting disagreements; the review tool's detail panel charts it); `next-policy` writes the next quarter's rules file.
+
+`pipeline.execute()` is the one impure orchestrator: load policy → read workbook → validate → assemble market data → load ledger and carried open items → `run_valuation(...)` → adjudicate M-999 halts if `adjudication.enabled`. It returns `PipelineResult(run, config, paths, market, proposals, market_report)`. The `generated_at` timestamp is passed *in* (the engine never reads the clock), and the run id is `sha256(input_sha256 | policy_version | engine_version)[:12]`, so the same workbook under the same policy always names the same run.
 
 ---
 
@@ -130,13 +152,13 @@ The engine consumes one `MarketData` value object (`engine/models.py`): `quotes`
 
 | Feed | Protocol supplies | Which rules read it | Status in this tree |
 |---|---|---|---|
-| PitchBook | Sector comp multiples now and by month (`comps`, `comp_history`) | X-401/402 in `relative_to_comps` mode; M-080 calibration; the sensitivity view's "multiple-exposed NAV" | Vendor-shaped fixture in `data/mock_responses/pitchbook/comps_software.json` |
-| S&P Capital IQ | Public index multiples as a cross-check on sector comps; listed-company market caps (`quotes`) for M-040 | M-040 (9/30 close), X-401/402 | Fixture in `data/mock_responses/sp_capiq/index_multiples.json`; the IPO quote is currently seeded to the IPO print by the stub and says so in `MarketQuote.source` |
-| Foresight | Company operating metrics as a time series (ARR, growth, burn, headcount, margin) | Would replace the workbook's single-point ARR/runway columns for X-3xx and enable the rules deliberately not written (margin trend, headcount change) | Fixture in `data/mock_responses/foresight/company_metrics.json`; not read by the engine — the workbook columns are the source today |
-| AlphaSense | News and filing signals per company | Would feed X-105-style screens with external text; never a number | Fixture in `data/mock_responses/alphasense/news_signals.json`; not read by the engine |
-| EDGAR + Yahoo/Stooq (live, free) | Sector EV/TTM-revenue multiples now and by month (`comps`, `comp_history`) computed from SEC XBRL fundamentals (revenue, shares, net cash) and daily closes from a pluggable price source — Yahoo Finance's chart API by default, Stooq as the alternative (`--price-source` / `HC_PRICE_SOURCE`) — for the public baskets in `rules/comps_baskets.yaml` | The same slots as PitchBook: X-401/402 in `relative_to_comps` mode, M-080 calibration | `connectors/edgar.py`, `prices.py`, `stooq.py`, `cache.py`, `live.py` (`PublicCompsProvider`); cached under `data/market_cache/<as_of>/` (`prices/` keyed by `meta.price_source`); per-constituent fall-back to the fixture below `min_constituents`; a browser-verification page from a source is reported, never bypassed; the report behind `GET /api/market` and `hc-valuation market` — see `docs/market-feed.md` |
+| PitchBook | Sector comp multiples now and by month (`comps`, `comp_history`) through `CompsProvider` | X-401/402 in `relative_to_comps` mode; M-080 calibration | Vendor-shaped fixture in `data/mock_responses/pitchbook/comps_software.json`, parsed by `StubCompsProvider`. Providers live in a registry (`connectors/__init__.py::register_comps_provider`, factories keyed by name — `stub`, `live`, `pitchbook`); there is no `elif` chain, so a third vendor is one registered factory. `pitchbook` is registered and reports "not configured" until `PITCHBOOK_API_KEY` and a client exist. |
+| S&P Capital IQ (or any market-cap source) | The measurement-date quote for a listed position (`quotes`) through `MarketDataProvider.quote()` | M-040 (the 9/30 close, Level 1), M-041 listed carry | The slot is `connectors/__init__.py::quotes_provider_for`, and today it returns the fixture, which seeds a newly listed name to its IPO print and says so in `MarketQuote.source` (`stub:seeded_to_ipo_print`). A real provider implements `quote()` and is returned from that function; nothing downstream changes. The `sp_capiq/index_multiples.json` fixture and `StubIndexProvider` exist but are never called — there is no index cross-check on sector comps in this tree. |
+| Foresight | Company operating metrics as a time series (ARR, growth, burn, headcount, margin) through `CompanyMetricsProvider` | **No rule.** `api/signals.py` → `GET /api/signals` → the review tool's "Vendor signals" card, which lines the vendor's numbers up beside the workbook's and highlights a gap above 10% (`MATERIAL_DRIFT`) so a restatement is seen, not booked | Fixture in `data/mock_responses/foresight/company_metrics.json`; consumed for display only. The engine reads ARR, growth, cash and burn from the workbook, the one source with a defined as-of date. A real feed would also let the rules deliberately not written (margin trend, headcount change) be written. |
+| AlphaSense | Dated news and filing signals per company with a sentiment, through `NewsSignalProvider` | **No rule.** Same card: the quarter's signals listed beside the position, dated, with sentiment | Fixture in `data/mock_responses/alphasense/news_signals.json`; consumed for display only. Neither vendor slot ever touches a mark, a flag or a disposition. |
+| EDGAR + Yahoo (live, free; Stooq as the alternative price source) | Sector EV/TTM-revenue multiples now and by month (`comps`, `comp_history`) computed from SEC XBRL fundamentals (revenue, shares, net cash) and daily closes from a pluggable price source — Yahoo Finance's chart API by default, Stooq selectable with `--price-source` / `HC_PRICE_SOURCE` but currently behind a browser-verification wall — for the public baskets in `rules/comps_baskets.yaml` | The same slots as PitchBook: X-401/402 in `relative_to_comps` mode, M-080 calibration | `connectors/edgar.py`, `prices.py`, `stooq.py`, `fetch.py`, `cache.py`, `live.py` (`PublicCompsProvider`); cached under `data/market_cache/<as_of>/` (`prices/` keyed by `meta.price_source`); per-constituent fall-back to the fixture below `min_constituents`; a browser-verification page from a source is reported, never bypassed; the report behind `GET /api/market` and `hc-valuation market` — see `docs/market-feed.md` |
 
-Provider selection is an explicit argument (`--provider`), else the `HC_MARKET_PROVIDER` environment variable, else `stub`. `live` (alias `stooq`) reads `data/market_cache/<measurement date>/` and makes no network call when the cache is complete (the manifest label is `live:edgar+<price source>`, e.g. `live:edgar+yahoo`); otherwise it fetches what is missing (`--refresh-market` refetches everything). Every failure is caught per constituent and listed in the report; a sector with fewer than `min_constituents` priced names keeps the fixture value, and if no sector reaches live the manifest label says `stub` rather than pretending — a live label never sits over fixture numbers. `pitchbook` is reserved for the vendor connector and reports "not configured" until keys exist. `assemble_market_data` returns the `MarketData`, the manifest label and the market report together (`MarketAssembly`); swapping stub → live changes no line in `engine/`.
+Provider selection is an explicit argument (`--provider`), else the `HC_MARKET_PROVIDER` environment variable, else `stub`. `live` (alias `stooq`) reads `data/market_cache/<measurement date>/` and makes no network call when the cache is complete (the manifest label is `live:edgar+<price source>`, e.g. `live:edgar+yahoo`); otherwise it fetches what is missing (`--refresh-market` refetches everything). Every failure is caught per constituent and listed in the report; a sector with fewer than `min_constituents` priced names keeps the fixture value, and if no sector reaches live the manifest label says `stub` rather than pretending — a live label never sits over fixture numbers. `assemble_market_data` returns the `MarketData`, the manifest label and the market report together (`MarketAssembly`); swapping stub → live changes no line in `engine/`.
 
 ---
 
@@ -163,6 +185,8 @@ Every company carries `steps: tuple[MarkStep, ...]`, and `CompanyResult` asserts
 
 The review table is that chain rendered. In the dashboard a blocked company expands to its full chain in two clicks: one on the BLOCK tile or the Queue card, one to open the chain; the Companies table does the same from any row.
 
+The exports carry the same chain so it can be followed off-line, back to the cell. The Audit Trail sheet and `audit_trail.csv` (`export/tables.py`) carry `Portfolio Row` (the position's own row in the Portfolio tab) and `Input Cells`, which cites where each input the rule read came from — `post_money='Q3 2026 Activity'!E14; prior_post_money=Portfolio!H21` — so Marks → Audit Trail → workbook cell is one lookup at each step. The Exceptions sheet carries `Action`, `Summary` (the flag's points), `Suggestions` and `Message`; `alternatives.csv` lists every alternative mark (`at_full_deal_value`, `hold_prior`, `at_secondary_price`, `calibrated_to_comps`, …) beside the proposal; the Summary sheet's sensitivity rows are labelled in words ("NAV exposed to the multiple shock (Level 3, ARR ≥ floor)") rather than by field name.
+
 ---
 
 ## 6. Three layers of rules
@@ -184,9 +208,15 @@ The review table is that chain rendered. In the dashboard a blocked company expa
 3. REVIEW flags from at least `escalation.review_rules_to_block` (2) *distinct families* → **BLOCK**. Two REVIEW flags from the same family do not compound.
 4. Otherwise one or more REVIEW → **REVIEW**; MONITOR only → **MONITOR**; nothing → **CLEAR**.
 
-The compound rule is what separates "stale round" (REVIEW on its own) from "stale round *and* ARR contracting 20%" (Birchhollow: two families, BLOCK). Flags themselves never change a number; a BLOCK means the run is not bookable until a decision is recorded against that company.
+The compound rule is what separates "stale round" (REVIEW on its own) from "stale round *and* ARR contracting 20%" (Birchhollow: two families, BLOCK). Flags themselves never change a number; a BLOCK means the run is not bookable until a decision is recorded against that company. When a BLOCK arises from two REVIEW families rather than one BLOCK rule, the review tool says so with a chip beside the disposition — "escalated · 2 review items" (`escalatedReviewFamilies` in `frontend/src/components/ui.tsx`) — so the reader knows no single rule blocked and can see which two did.
 
-Flag ids as implemented: X-101 non-mechanical treatment (BLOCK for IPO, announced acquisition, closed exit with no proceeds; REVIEW when exit proceeds differ from ownership × deal value), X-102 down round (BLOCK), X-103 non-participation dilution (MONITOR), X-104 secondary price spread (REVIEW), X-105 note-language screen (REVIEW), X-106 flat extension without price discovery (REVIEW), X-107 funded bridge note (REVIEW), X-108 unfunded bridge note (MONITOR), X-109 term sheet disclosure (MONITOR), X-201/202 staleness (MONITOR > 24 mo / REVIEW > 48 mo), X-301/302 ARR contraction (MONITOR < 0 / REVIEW < −15%), X-303/304 runway aged one month (MONITOR < 12 / REVIEW < 6), X-401/402 implied multiple high/low (MONITOR, both directions), X-403 ARR below the screening floor (MONITOR), X-404 MOIC > 5× on a stale round (MONITOR), E-01 override drift (REVIEW), E-07 open item past its ageing limit (REVIEW), M-999 unrecognised event (BLOCK). X-9xx are ingestion issues raised before the engine runs and carried in `ValuationRun.validation`.
+**X-405, "mark no longer squares with performance"** is the one REVIEW that is built *from* MONITORs. It fires when the price behind the mark is older than `staleness.monitor_months` (24) **and** a live screen argues with it — X-401 (multiple above the ceiling), X-402 (below the floor), X-404 (outsized MOIC on an old round) or X-301 (revenue shrinking) — unless X-202 or X-302 has already put the position in REVIEW on its own, so nothing is double-counted. The reasoning is the severity test: an old price is not a wrong price, and a screen is not a valuation, so each half alone is MONITOR; together they are exactly the case where a reviewer could change the number. It is switched by `exceptions.performance_gap.enabled` and suggests affirm / calibrate to comps (M-080) / mark to cost. On the Q3 book it adds five REVIEWs — Arcfoundry, Pinwhistle, Yarrowbank, Foxtrellis, Mirthstone — which is how the queue moved from 7 / 15 / 44 / 34 to **7 BLOCK / 20 REVIEW / 39 MONITOR / 34 CLEAR**.
+
+Every BLOCK and REVIEW flag carries `action` (the imperative), `points` (two or three scannable lines, `**bold**` on the words that carry the decision) and `message` (the full reasoning, shown in the review tool only on request). MONITOR carries neither an action nor points — it is context, not a gate — and `engine/state.py::Working.flag` enforces both halves of that; a rule promoted from YAML that writes no points falls back to its own first sentences. The exceptions export carries all three columns.
+
+Every BLOCK and REVIEW flag also carries one to three `suggestions` — the resolutions the rule can put a number on (ratify as proposed, hold the prior mark, the full deal value, the secondary price, cost as a floor, an alternative mark), each a one-sentence label, two reasons and the booked mark it produces. Rules write them with a *basis* (`Suggest` in `state.py`) and `Working.resolved_flags` fills the numbers in only once the roll is finished and the proposal is final; two suggestions that book the same figure collapse to one, and one naming an alternative mark that never materialised is dropped. Accepting a suggestion in the review tool is an ordinary E-01 override addressed to that rule id (`source_suggestion` on the ledger record), confirmed under a named approver, so it re-runs into the booked mark, the disposition, the totals, the exports and the archive like any committee decision — and the proposal is never rewritten.
+
+Flag ids as implemented: X-101 non-mechanical treatment (BLOCK for IPO, announced acquisition, closed exit with no proceeds; REVIEW when exit proceeds differ from ownership × deal value), X-102 down round (BLOCK), X-103 non-participation dilution (MONITOR), X-104 secondary price spread (REVIEW), X-105 note-language screen (REVIEW), X-106 flat extension without price discovery (REVIEW), X-107 funded bridge note (REVIEW), X-108 unfunded bridge note (MONITOR), X-109 term sheet disclosure (MONITOR), X-201/202 staleness (MONITOR > 24 mo / REVIEW > 48 mo), X-301/302 ARR contraction (MONITOR < 0 / REVIEW < −15%), X-303/304 runway aged one month (MONITOR < 12 / REVIEW < 6), X-401/402 implied multiple high/low (MONITOR, both directions; absolute 30× / 3× bounds under this policy), X-403 ARR below the screening floor (MONITOR), X-404 MOIC > 5× on a stale round (MONITOR), X-405 stale price that a live screen argues with (REVIEW, above), E-01 override drift (REVIEW), E-07 open item past its ageing limit (REVIEW), M-999 unrecognised event (BLOCK). X-9xx are ingestion issues raised before the engine runs and carried in `ValuationRun.validation`.
 
 ---
 
@@ -221,35 +251,52 @@ Flag ids as implemented: X-101 non-mechanical treatment (BLOCK for IPO, announce
 - **Secondary remainder at last round.** `secondary.remainder_basis: last_round`; the print 5.5% below is recorded as `at_secondary_price` and X-104 flags the spread.
 - **Reporting-lag ageing.** Operating metrics are as of late August; runway is aged by `metrics.reporting_lag_months: 1` before the X-303/304 thresholds apply.
 - **Absolute multiple thresholds.** `multiple.mode: absolute` (30× high, 3× low, $0.5M ARR floor) because the comps feed is a fixture; `relative_to_comps` is wired and switches on in config.
+- **The stub comp history trends hard.** With `calibration.enabled: true` on the PitchBook-shaped fixture, 33 of the 45 M-080 candidates pin at the +35% bound and two more at −35%, so on the fixture it is the bound, not the comps, that sets most calibrated alternatives. That is a property of the fixture, not the rule; see the M-080 section of the policy document for a worked example and the live-feed behaviour.
 
-Dispositions on this basis: 7 BLOCK / 15 REVIEW / 44 MONITOR / 34 CLEAR (Drayvenn, Gryphonel, Oakenvale, Tarnwick Aerospace, Duskfern, Birchhollow, Pellagrin). The policy document's earlier count of 6 predates X-106, which puts Pellagrin's flat extension and its 59-month staleness in two REVIEW families.
+Dispositions on this basis: **7 BLOCK / 20 REVIEW / 39 MONITOR / 34 CLEAR** (blocked: Drayvenn, Gryphonel, Oakenvale, Tarnwick Aerospace, Duskfern, Birchhollow, Pellagrin). The policy document's original hand count of 6 blocks predates X-106, which puts Pellagrin's flat extension and its 59-month staleness in two REVIEW families; the count of 15 REVIEW predates X-405 (section 7).
 
 ---
 
 ## 10. What was stubbed, and why
 
-| Stubbed | Why |
-|---|---|
-| Market caps and comps (all four vendor feeds) | No credentials in an evaluation exercise; the fixtures are vendor-shaped so a real client is a drop-in behind the same protocol. |
-| The IPO price at 9/30 | Synthetic ticker; seeded to the print and labelled as such rather than inventing a close. |
-| M-080 comps calibration | Off by default (`calibration.enabled: false`); it needs a comp history by month per sector that only a live feed can supply honestly. When on it writes `calibrated_to_comps` as an alternative only. |
-| The adjudicator's model | `adjudication.provider: stub` produces heuristic drafts from the rule catalogue so the E-09 path is exercised end to end without a model or a key; `claude` is the configured alternative. |
-| Foresight metrics and AlphaSense signals | Fixtures exist; the engine reads ARR, growth, cash and burn from the workbook because that is the only source with a defined as-of date this quarter. |
+| Slot | Stubbed or live | Why |
+|---|---|---|
+| Quotes (`MarketDataProvider.quote()`) | **Fixture.** Seeds a newly listed name to its IPO print and labels the quote `stub:seeded_to_ipo_print`. | The ticker is synthetic; no feed can price it. Seeding to the print and saying so is more honest than inventing a 9/30 close. X-101 asks the committee to confirm the price source. |
+| Comps (`CompsProvider`) | **Fixture by default; live on request.** `--provider live` (or `HC_MARKET_PROVIDER=live`) computes sector EV/TTM-revenue multiples from EDGAR + Yahoo for the public baskets, cached under `data/market_cache/`. | No vendor credentials in an evaluation exercise; the free feed proves the slot end to end and the fixture stays vendor-shaped so a real client is a drop-in. |
+| Foresight-shaped metrics | **Fixture, consumed for display.** `GET /api/signals` → the "Vendor signals" card. | The workbook is the only source with a defined as-of date this quarter, so the engine reads ARR, growth, cash and burn from it; the vendor numbers sit beside them as a cross-check. |
+| AlphaSense-shaped signals | **Fixture, consumed for display.** Same card: dated news with sentiment. | Text is context for a reviewer, never an input to a number. |
+| PitchBook | **Reserved, not configured.** The `pitchbook` factory is registered and reports "not configured" until `PITCHBOOK_API_KEY` and a client exist. | Credentials. |
+| M-080 comps calibration | **Built, off by default** (`calibration.enabled: false`). When on it writes `calibrated_to_comps` as an alternative only. | It needs a comp history by month per sector that only a live feed can supply honestly; on the fixture most candidates pin at the bound (section 9). |
+| Claude adjudication (E-09) | **Real SDK call behind `adjudication.provider: claude`** (`anthropic` extra, `ANTHROPIC_API_KEY`); **default `stub`**, which produces heuristic drafts from the rule catalogue. Falls back to the stub draft, and says so, if the key or the package is missing. | The E-09 path is exercised end to end without a model or a key. No Q3 event triggers it: every Q3 event type has a handler, so no proposal exists on the real book; the fixture pack and tests exercise it. |
 
 ---
 
 ## 11. What we would build next with real data access
 
-1. **A real 9/30 close for Drayvenn** through the S&P or Stooq quote path, removing the seeded print and the price-source line from the X-101 flag.
-2. **Comps-calibrated marks with M-080 on.** With a PitchBook history by sector and month, flip `calibration.enabled` and `multiple.mode: relative_to_comps`; the 40 stale-round candidates get a labelled alternative column, and X-401/402 use sector multiples instead of absolute bounds.
-3. **Foresight metrics time series**, which makes the rules deliberately not written possible: margin trend and headcount change need a prior period, and runway recomputed from a burn series rather than a single point.
+1. **A real 9/30 close for Drayvenn** through the quote slot (`quotes_provider_for` returning a Capital IQ or market-cap provider that implements `quote()`), removing the seeded print and the price-source line from the X-101 flag.
+2. **Comps-calibrated marks with M-080 on.** With a PitchBook history by sector and month, flip `calibration.enabled` and `multiple.mode: relative_to_comps`; the 45 stale-round candidates get a labelled alternative column that the comps, not the ±35% bound, actually set, and X-401/402 use sector multiples instead of absolute bounds.
+3. **Foresight metrics time series** promoted from the signals card into the engine, which makes the rules deliberately not written possible: margin trend and headcount change need a prior period, and runway recomputed from a burn series rather than a single point.
 4. **Waterfall and preference modelling for recaps.** M-012 treats a down round's headline as an upper bound and blocks; with the preference stack and pay-to-play terms in structured form the engine could compute the common-equivalent value instead of asking the committee for it.
 5. Beyond those: escrow and holdback as receivables on closed exits (the schema supports it; no Q3 event needed it), and a continuation-vehicle or structured-secondary rule once a real case defines it — added as a policy version bump, not a quiet mid-quarter change.
+
+**Production hardening — none of this is built.** The prototype is a single process on one reviewer's machine, and the following is what stands between it and a system finance would run a close on:
+
+- **A scheduled or inbox trigger.** A T+N business-day job after quarter end, or a watched inbox / SharePoint folder, calling `pipeline.execute()`; `run --watch` is the local stand-in.
+- **Authentication and roles on the review tool.** Today `approver` on an override, a proposal decision or a publish is a self-asserted string typed into the form; nothing checks who is at the keyboard or whether they may approve. Production needs SSO, a reviewer / approver / read-only split, and the approver taken from the session rather than the request body.
+- **Secrets management.** `PITCHBOOK_API_KEY`, `HC_SEC_CONTACT` and `ANTHROPIC_API_KEY` are bare environment variables.
+- **A durable audit store.** The decision records are YAML and JSON in git today, on purpose: `data/overrides.yaml`, `data/precedent.yaml`, `data/proposals/*.json` and `data/published/` are versioned so a booked number always travels with the decision behind it (only `data/published/history/` and the emitted `data/open_items_carry.yaml` stay local). That is auditable but not tamper-evident by itself; next is a database with append-only, immutable decision rows and the git history kept as a second copy.
+- **Concurrency.** One process and append-only YAML: two reviewers recording decisions at the same moment can race, and a recompute triggered by `--watch` can read a half-written ledger. A database with row locks, or a single writer queue, fixes both.
+- **Data retention and vendor licence terms.** The market cache and the vendor fixtures redistribute third-party data inside the repo and the exports; a real PitchBook or Capital IQ contract will say what may be stored, for how long, and what may appear in an exported workbook.
+- **Idempotency is already real** and needs no work: the run id is `sha256(input | policy | engine)`, the same inputs produce a byte-identical run (`tests/test_determinism.py`, the golden test), and a re-fired trigger reproduces rather than duplicates.
 
 ---
 
 ## 12. AI tooling note
 
-The rule set and this codebase were drafted with Claude, working from the workbook and the marking policy. The thresholds were not taken on faith: they were tuned by running the exception screens across all 100 companies and reading the resulting queue. A first cut flagged 58 of 96 active positions, which is a queue nobody would read; it was reworked with compound escalation (two REVIEW families to block) and the "could a reviewer change the number?" test, which moved non-participation dilution, unfunded notes and term sheets down to MONITOR and produced the queue in section 9.
+Where Claude helped, specifically: the rule set, the thresholds, the flag wording and the suggestion menus, the React review tool and the executive dashboard, the tests and the dirty-workbook gauntlet corpus, and these three documents were all drafted with Claude in agentic coding sessions, working from the workbook, the brief and the marking policy. Jackson reviewed and decided at each phase gate; the policy choices in section 9 (0.90 on Gryphonel, 0% lock-up discount, remainder at last round, absolute multiple bounds) and every "this is REVIEW, not MONITOR" call are his, and the model did not set a threshold that a person did not then read the resulting queue for. The thresholds were not taken on faith: they were tuned by running the exception screens across all 100 companies and reading the queue. A first cut flagged 58 of 96 active positions, which is a queue nobody would read; it was caught by reading it, and reworked with compound escalation (two REVIEW families to block) and the "could a reviewer change the number?" test, which moved non-participation dilution, unfunded notes and term sheets down to MONITOR and produced the queue in section 9.
 
-The build was agent-assisted with a gate per phase: each phase had a numeric or behavioural gate verified against the workbook (100 positions and 18 events; $1,183.9M proposed NAV; the blocked names; five open items; two runs serialising identically) before the next phase started, and the golden file exists so that later phases could not quietly change earlier numbers. The dashboard palette was validated with a colour-vision checker rather than by eye, and every view was screenshotted in light and dark and inspected before this document was written. No model output is a booked number anywhere in the system; the adjudicator proposes rules, the deterministic engine computes values, and a named person decides.
+The build was agent-assisted with a gate per phase: each phase had a numeric or behavioural gate verified against the workbook (100 positions and 18 events; $1,183.9M proposed NAV; the blocked names; five open items; two runs serialising identically) before the next phase started, and the golden file exists so that later phases could not quietly change earlier numbers. The dashboard palette was validated with a colour-vision checker rather than by eye, and every view was screenshotted in light and dark and inspected before this document was written.
+
+The one place a model sits *inside* the product is E-09: with `adjudication.provider: claude`, the draft treatment proposal for an event type no rule recognises is written by the model. That draft is a rule in a restricted DSL plus a list of missing facts; it never becomes a number until a named person accepts it, and the deterministic engine computes the value from the rule. No model output is a booked mark anywhere in the system.
+
+**Reuse and open-source.** No prior code of Jackson's was reused; everything in this repository was written for this exercise. Open-source components, by area — Python: FastAPI and uvicorn (the API and server), Typer (the CLI), pydantic (the value objects and the strict policy loader), openpyxl (the workbook in and out), PyYAML (the policy and the ledgers), httpx (the live feed, `live` extra) and the optional `anthropic` SDK (E-09 only, `adjudication` extra). Front ends: React, Vite, TypeScript, Tailwind CSS, TanStack Table (the review tool's tables) and Recharts (both dashboards' charts). Tests: pytest; Playwright drives the screenshot scripts in `frontend/screenshot.py` and `frontend-exec/screenshot.py` that produced the light/dark captures, and is not a test dependency.

@@ -158,6 +158,16 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
     grace = timedelta(days=config.tolerances.late_event_grace_days)
     entering = {e.company for e in feed.events if e.event_type == EventType.NEW_INVESTMENT.value}
 
+    # --- X-922: the activity tab names a quarter; the policy names a quarter; they must agree.
+    # A Q4 book run under the Q3 policy would carry Q4 events through Q3's window checks (and
+    # its measurement date), which is a wrong run, not a data error — so it stops here.
+    if feed.quarter_label and feed.quarter_label.strip().upper() != q.label.strip().upper():
+        issues.append(ValidationIssue(
+            rule_id="X-922", severity=Severity.BLOCK, blocking=True, sheet=feed.sheet_name,
+            message=f"The activity tab is {feed.quarter_label!r} but the policy is for {q.label!r} "
+                    f"(measurement date {q.measurement_date.isoformat()}). Run with the matching policy — "
+                    f"`hc-valuation next-policy` writes it — or point --input at the right workbook."))
+
     # --- Portfolio tab: what the reader read as what, then the row checks
     issues.extend(_issue_from(c) for c in snapshot.corrections)
     refused = _percent_blocked(snapshot.corrections)

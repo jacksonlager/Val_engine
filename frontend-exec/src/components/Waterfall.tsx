@@ -113,7 +113,7 @@ export function Waterfall({
             } else {
               const up = s.end >= s.start;
               top = y(Math.max(s.start, s.end)); bottom = y(Math.min(s.start, s.end));
-              fill = up ? "var(--up-mark)" : "var(--down-mark)"; rTop = up;
+              fill = s.bar.kind === "realized" ? "var(--realized-mark)" : up ? "var(--up-mark)" : "var(--down-mark)"; rTop = up;
             }
             const h = Math.max(bottom - top, 1.5);
             const r = Math.min(4, h / 2);
@@ -171,7 +171,7 @@ export function Waterfall({
             <>
               <div className="flex items-baseline justify-between gap-4">
                 <span className="font-medium text-ink">{active.label}</span>
-                <span className={`num font-semibold text-[14px] ${active.bar.delta >= 0 ? "up" : "down"}`}>{signedMoney(active.bar.delta, 2)}</span>
+                <span className={`num font-semibold text-[14px] ${active.bar.kind === "realized" ? "realized" : active.bar.delta >= 0 ? "up" : "down"}`}>{signedMoney(active.bar.delta, 2)}</span>
               </div>
               <div className="text-muted mt-0.5">{active.bar.note}</div>
               <div className="text-muted mt-0.5">{plural(active.bar.count, "position")} · running {money(active.bar.running_total, 1)}</div>

@@ -11,20 +11,32 @@ export function Sensitivity({ view }: { view: ExecView }) {
   const has = typeof lo === "number" && typeof hi === "number";
   const span = has ? hi - lo : 1;
   const basePos = has ? ((base - lo) / span) * 100 : 50;
+  // The shock size comes from the payload's keys (nav_if_multiples_±20pct); the ARR floor is
+  // the policy's exceptions.multiple.min_arr (rules/2026Q3.yaml: $0.5M).
+  const shock = (() => {
+    const k = Object.keys(s).find((x) => /^nav_if_multiples_\+?(\d+)pct$/.test(x));
+    const m = k ? /(\d+)pct$/.exec(k) : null;
+    return m ? m[1] : "20";
+  })();
 
   return (
     <Section
       id="sensitivity"
       eyebrow="Sensitivity and open items"
       title="What could move these numbers"
-      aside={<>Sensitivity re-marks every position that rests on a revenue multiple. Open items are events that have started but not yet resolved into a mark.</>}
+      aside={
+        <>
+          Applies the ±{shock}% shock to Level 3 positions with ARR ≥ $0.5M as a what-if; marks themselves rest on last-round
+          prices. Open items are events that have started but not yet resolved into a mark.
+        </>
+      }
     >
       <div className="grid grid-cols-12 gap-3 items-start">
         <div className="col-span-4 max-[1180px]:col-span-12 frame px-5 pt-4 pb-5">
-          <div className="text-[13px] font-medium text-ink">Booked NAV if revenue multiples move</div>
+          <div className="text-[13px] font-medium text-ink">{view.meta.status === "final" ? "Booked" : "Proposed"} NAV if revenue multiples moved</div>
           {typeof exposed === "number" && (
             <div className="text-[12px] text-muted mt-0.5">
-              <span className="num text-ink2">{money(exposed, 1)}</span> ({pct(exposed / base)}) of NAV is multiple-exposed
+              <span className="num text-ink2">{money(exposed, 1)}</span> ({pct(exposed / base)}) of NAV is in Level 3 positions with ARR ≥ $0.5M, the part the shock touches
             </div>
           )}
           {has ? (

@@ -62,7 +62,7 @@ def test_headline_totals(run_real):
     assert t.written_off == pytest.approx(21.4, abs=0.005)            # Larkspell 11.4 + Islewind 10.0 (shutdowns)
     assert t.exited_at_prior_mark == pytest.approx(18.2, abs=0.005)   # Cindral: sold, not written off
     assert t.level1_positions == 1
-    assert t.dispositions == {"BLOCK": 7, "REVIEW": 15, "MONITOR": 44, "CLEAR": 34}
+    assert t.dispositions == {"BLOCK": 7, "REVIEW": 20, "MONITOR": 39, "CLEAR": 34}
     assert not run_real.validation
 
 

@@ -1,16 +1,10 @@
 import { useState } from "react";
 import type { CompanyResult, Disposition, ValuationRun } from "../types";
-import { DISPOSITIONS } from "../types";
-import { deltaPct, musdTile, pct, signed, signClass } from "../lib/format";
+import { DISPOSITION_HINT, DISPOSITIONS } from "../types";
+import { deltaPct, musd, musdTile, pct, signed, signClass } from "../lib/format";
 import { CompanyDetail } from "../components/CompanyDetail";
-import { DispChip, FlagChip, MarkTriple } from "../components/ui";
-
-const TILE_HINT: Record<Disposition, string> = {
-  BLOCK: "Cannot be booked until a committee decision is recorded",
-  REVIEW: "A reviewer could change the number; read before booking",
-  MONITOR: "Annotated only; nothing a reviewer would change this quarter",
-  CLEAR: "No flags, or a terminal event this quarter",
-};
+import { FlagActionList } from "../components/Flags";
+import { DispChip, EscalatedChip, escalatedReviewFamilies, FlagChip } from "../components/ui";
 
 function Headline({ label, value, sub, cls = "" }: { label: string; value: string; sub?: string; cls?: string }) {
   return (
@@ -54,7 +48,7 @@ export function QueueView({
             key={d}
             className={`tile disp-${d} ${filter === d ? "active" : ""} stripe`}
             onClick={() => setFilter(filter === d ? "ALL" : d)}
-            title={TILE_HINT[d]}
+            title={DISPOSITION_HINT[d]}
             aria-pressed={filter === d}
           >
             <div className="flex items-center justify-between">
@@ -62,7 +56,7 @@ export function QueueView({
               <span className="text-[11px] text-muted">{filter === d ? "filtering" : ""}</span>
             </div>
             <div className="text-[28px] font-semibold leading-none mt-2">{t.dispositions[d] ?? 0}</div>
-            <div className="text-[11px] text-muted mt-1">{TILE_HINT[d]}</div>
+            <div className="text-[11px] text-muted mt-1">{DISPOSITION_HINT[d]}</div>
           </button>
         ))}
       </div>
@@ -143,49 +137,59 @@ function QueueCard({
   // The engine leaves `action` empty on MONITOR: nothing for a person to do is context, not a gate.
   const actions = c.flags.filter((f) => f.severity !== "MONITOR");
   const notes = c.flags.filter((f) => f.severity === "MONITOR");
+  // BLOCK with no BLOCK-severity flag: REVIEW findings from distinct families compounded (policy escalation)
+  const escalated = escalatedReviewFamilies(c);
+  const heading = escalated > 0 ? "Awaiting a committee decision — escalated from review" : (ACTION_HEADING[c.disposition] ?? "To check");
   return (
     <div className={`card qcard disp-${c.disposition} stripe`}>
-      <button className="w-full text-left p-3.5 pl-4" onClick={toggle} aria-expanded={open}>
-        {/* who, and how far the mark moved */}
-        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
-          <div className="min-w-[200px]">
+      <button className="w-full text-left px-3.5 pl-4 pt-2.5 pb-2" onClick={toggle} aria-expanded={open}>
+        {/* who, and how far the mark moved — one strip, numbers beside the name, no gulf between them */}
+        <div className="qhead">
+          <div className="qwho">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-[15px] tracking-tight">{c.company}</span>
               <DispChip d={c.disposition} />
+              <EscalatedChip n={escalated} />
             </div>
             <div className="text-[11px] text-muted mt-0.5">
               {c.fund} · {c.sector} · {c.stage}
               {c.fv_level !== null && ` · Level ${c.fv_level}`}
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-[10px] uppercase tracking-wider text-muted">prior → proposed → booked · $M</div>
-            <div className="mt-0.5 text-[13px]">
-              <MarkTriple prior={c.prior_mark} proposed={c.proposed_mark} booked={c.booked_mark} />
+          <dl className="qmarks">
+            <div>
+              <dt>Prior</dt>
+              <dd className="text-ink2">{musd(c.prior_mark)}</dd>
             </div>
-            <div className={`text-[13px] font-semibold num mt-0.5 ${signClass(d)}`}>
-              {signed(d)} <span className="font-normal">({pct(deltaPct(c.prior_mark, c.proposed_mark), 1, true)})</span>
+            <span className="qarrow" aria-hidden>→</span>
+            <div>
+              <dt>Proposed</dt>
+              <dd>{musd(c.proposed_mark)}</dd>
             </div>
-          </div>
+            <span className="qarrow" aria-hidden>→</span>
+            <div>
+              <dt>Booked</dt>
+              <dd className={Math.abs(c.booked_mark - c.proposed_mark) > 1e-6 ? "overridden" : ""}>{musd(c.booked_mark)}</dd>
+            </div>
+            <div className="qdelta">
+              <dt>Change</dt>
+              <dd className={signClass(d)}>
+                {signed(d)} <span className="font-normal">({pct(deltaPct(c.prior_mark, c.proposed_mark), 1, true)})</span>
+              </dd>
+            </div>
+            <span className="qunit">$M</span>
+          </dl>
         </div>
+      </button>
 
-        {/* what a person has to decide, and why the engine could not */}
+      {/* Below the header, not inside it: these rows carry their own "Details" buttons, and a
+          button inside a button is neither valid markup nor clickable. */}
+      <div className="px-3.5 pl-4 pb-3">
+        {/* what a person has to decide, and — in two or three lines — why the engine could not */}
         {actions.length > 0 && (
-          <div className="actions mt-3">
-            <div className="eyebrow mb-2">{ACTION_HEADING[c.disposition] ?? "To check"}</div>
-            <ul className="space-y-2.5">
-              {actions.map((f, i) => (
-                <li key={i} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2.5 gap-y-1 items-baseline">
-                  <span className="rule-tag mono" title={`${f.severity} · ${f.family}`}>
-                    {f.rule_id}
-                  </span>
-                  <span className="text-[13.5px] font-semibold leading-snug">{f.action || f.message}</span>
-                  {f.action && (
-                    <p className="col-start-2 text-[12px] text-ink2 leading-[1.5] max-w-[90ch] m-0">{f.message}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
+          <div className="actions">
+            <div className="eyebrow mb-2">{heading}</div>
+            <FlagActionList c={c} flags={actions} writeDisabled={writeDisabled} onChanged={onChanged} />
           </div>
         )}
 
@@ -198,9 +202,9 @@ function QueueCard({
             ))}
           </div>
         )}
-        {c.flags.length === 0 && <div className="mt-2 text-[11px] text-muted">No flags on this position.</div>}
-      </button>
-      <div className="flex gap-2 px-4 pb-3 -mt-1">
+        {c.flags.length === 0 && <div className="text-[11px] text-muted">No flags on this position.</div>}
+      </div>
+      <div className="flex gap-2 px-4 pb-3 -mt-1.5">
         <button className="btn btn-ghost" onClick={toggle} aria-expanded={open}>
           <span className="text-[10px] leading-none">{open ? "▾" : "▸"}</span>
           {open ? "Hide audit chain" : "Audit chain"}
@@ -211,7 +215,8 @@ function QueueCard({
       </div>
       {open && (
         <div className="border-t border-hair">
-          <CompanyDetail c={c} writeDisabled={writeDisabled} onChanged={onChanged} />
+          {/* the card above already lists every flag with its suggestions; the chain shows only what moved and the decision */}
+          <CompanyDetail c={c} writeDisabled={writeDisabled} onChanged={onChanged} showMarks={false} showFlags={false} />
         </div>
       )}
     </div>

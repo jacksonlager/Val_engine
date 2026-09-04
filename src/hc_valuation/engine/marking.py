@@ -16,7 +16,7 @@ from ..config import RuleConfig
 from .inputs import Event, EventType, Position, Status
 from .models import MarketData, OpenItem, OpenItemKind, Severity
 from .registry import rule
-from .state import Working
+from .state import Suggest, Working
 
 EFFECTIVE = date(2026, 7, 1)   # policy 2026Q3 in force from the start of the quarter
 V = "2026Q3.1"
@@ -73,6 +73,13 @@ def _related_party_flags(w: Working, e: Event, rid: str) -> None:
                f"The notes say HC led this round ({rid}). A price set by an existing investor that is also the party marking "
                "the position is a related-party price, not an arm's-length one, and ASC 820 asks for an orderly transaction "
                "between market participants.",
+               points=("**HC led** the round that set this price.",
+                       "A price set by the party marking the position is **not arm's length** (ASC 820).",
+                       "Needs an **independent investor** to have set or validated it."),
+               suggestions=(
+                   Suggest("as_proposed", "Book the round price as proposed.", ("The round is the latest transaction and the price is documented.", "An outside investor's validation can be recorded when it arrives."), "proposed"),
+                   Suggest("hold_prior", "Hold the prior mark until an independent investor validates the price.", ("A related-party price is not arm's-length under ASC 820.", "The prior mark is the last price an outside party set."), "prior"),
+               ),
                action="Confirm an independent investor set or validated this price.",
                rule=rid, hc_led=True, insider_led=insider)
     elif insider:
@@ -151,6 +158,13 @@ def priced_round(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
                "Ownership × post-money ignores liquidation preference and pay-to-play, which rounds like this almost always "
                "carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. "
                "The terms are in the round documents, not the workbook.",
+               points=(f"{'Recap' if is_recap else 'Down round'}: priced at **${post:.1f}M** against ${prior_post:.1f}M last round.",
+                       "Ownership × post-money **ignores liquidation preference** and pay-to-play.",
+                       "So the mark is a **ceiling**, not an estimate — the terms sit in the round documents."),
+               suggestions=(
+                   Suggest("as_proposed", f"Book the {'recap' if is_recap else 'down-round'} figure as proposed.", ("It is the only priced transaction and reflects the new capital structure.", "The preference stack can only lower it — a ceiling beats a stale higher mark."), "proposed"),
+                   Suggest("hold_prior", "Hold the prior mark until the round documents are read.", ("Defers the write-down until the preference terms are known.", "Overstates if the round closed as priced — only if documents arrive before the close."), "prior"),
+               ),
                action="Read the round documents and confirm the preference stack before booking this mark.",
                prior_post_money=prior_post, post_money=post, insider_led=("insider" in e.notes.lower()))
         w.staleness_anchor = e.date
@@ -164,6 +178,13 @@ def priced_round(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
                f"The extension raised money at the same ${post:.1f}M price, so ownership moved but nobody re-tested what the "
                f"company is worth. The last real price discovery was {months_between(w.staleness_anchor, cfg.quarter.measurement_date)} "
                f"months ago, on {w.staleness_anchor.isoformat()}.",
+               points=(f"Extension at the **same ${post:.1f}M price** — ownership moved, valuation did not.",
+                       "**No price discovery**: nobody re-tested what the company is worth.",
+                       f"Last real price was **{months_between(w.staleness_anchor, cfg.quarter.measurement_date)} months ago** ({w.staleness_anchor.isoformat()})."),
+               suggestions=(
+                   Suggest("as_proposed", "Keep the mark on the extension price as proposed.", ("New money came in at that price, even without a new lead.", "Nothing in the file says the company is worth less."), "proposed"),
+                   Suggest("calibrate", "Calibrate the mark to public comps instead.", ("The extension is not price discovery; comps have moved since the last round.", "Uses the M-080 calibration the engine already computed."), "alternative", value="calibrated_to_comps"),
+               ),
                action="Confirm the mark should still rest on a price nobody has re-tested since "
                       f"{w.staleness_anchor.isoformat()}.",
                post_money=post, anchor=w.staleness_anchor)
@@ -221,12 +242,26 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
         w.flag("X-101", "treatment", Severity.BLOCK,
                "The exit closed but no cash was recorded against it. Either the consideration is missing from the feed or it is "
                "sitting in escrow, and those book very differently.",
+               points=("Exit closed but **no cash recorded** against it.",
+                       "Either the consideration is **missing from the feed** or it sits in **escrow**.",
+                       "Those two book very differently."),
+               suggestions=(
+                   Suggest("hold_prior", "Hold the prior mark until the consideration is confirmed.", ("An exit with unknown proceeds cannot be booked either way.", "Keeps the position open so escrow or missing cash is chased."), "prior"),
+                   Suggest("write_to_zero", "Write the position to zero — exit closed, nothing recoverable recorded.", ("Nothing was received and nothing is recorded as receivable.", "Reverses cleanly if proceeds arrive in a later quarter."), "value", value=0.0),
+               ),
                action="Confirm what HC actually received, and whether any of it is held in escrow.",
                deal_value=e.value)
     elif implied is not None and abs(implied - proceeds) > cfg.tolerances.prior_mark_reconciliation_musd * 10:
         w.flag("X-101", "treatment", Severity.REVIEW,
                f"HC received ${proceeds:.2f}M, but its {w.ownership:.1%} of a ${float(e.value):.0f}M deal implies ${implied:.2f}M. "
                "A gap that size is usually escrow, a holdback, or transaction fees.",
+               points=(f"Received **${proceeds:.2f}M**; {w.ownership:.1%} of a ${float(e.value):.0f}M deal implies ${implied:.2f}M.",
+                       f"A **${abs(implied - proceeds):.2f}M gap** is unexplained.",
+                       "Usually **escrow, a holdback or fees** — but it has to be confirmed."),
+               suggestions=(
+                   Suggest("as_proposed", "Accept the recorded proceeds; treat the gap as escrow or fees.", ("Recorded cash is the fact; a gap this size is a normal deal structure.", "An open item can track any escrow release."), "proposed"),
+                   Suggest("carry_gap", f"Carry the ${abs(implied - proceeds):.2f}M gap as an escrow receivable.", ("Matches the deal value HC is owed on its ownership.", "Only if the purchase agreement confirms an escrow or holdback."), "value", value=max(0.0, implied - proceeds)),
+               ),
                action=f"Reconcile the ${abs(implied - proceeds):.2f}M difference between proceeds and deal value.",
                implied=implied, proceeds=proceeds)
     w.realized_quarter += proceeds
@@ -253,6 +288,13 @@ def stock_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
            f"HC was paid in shares of the buyer rather than cash, so ${new_equity:.2f}M is the deal value of what it received, "
            "not a price for what it now holds. If the acquirer is listed the position is Level 1 from here and moves daily; "
            "if it is private this is a new Level 3 position priced at the deal; either way a lock-up or escrow changes the answer.",
+           points=(f"Paid in **buyer's shares**, not cash — ${new_equity:.2f}M is deal value, not a price for what HC now holds.",
+                   "If the acquirer is **listed** this is Level 1 from here; if private, a new Level 3 position priced at the deal.",
+                   "A **lock-up or escrow** changes the answer either way."),
+           suggestions=(
+               Suggest("as_proposed", "Book the shares received at the deal value as proposed.", ("The deal value is the only price for the new holding.", "Right if the acquirer is private or the lock-up is short."), "proposed"),
+               Suggest("hold_prior", "Hold the prior mark until the acquirer's listing and lock-up are confirmed.", ("A listed acquirer makes this Level 1 — priced daily, not at the deal.", "Lock-up or escrow could reduce what HC can realise."), "prior"),
+           ),
            action="Confirm the acquirer, whether it is listed, the share count HC received and any lock-up.",
            deal_value=deal, ownership=w.ownership, value_of_shares=round(new_equity, 6))
     w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.ACQUIRER_SHARES, opened=e.date,
@@ -311,6 +353,12 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
         w.flag("X-101", "treatment", Severity.BLOCK,
                f"The row records ${proceeds:.1f}M of proceeds but no change in ownership, so there is no block sold to price the "
                "sale against. One of the two figures is wrong.",
+               points=(f"Row records **${proceeds:.1f}M of proceeds** but **no change in ownership**.",
+                       "There is no block sold to price the sale against.",
+                       "**One of the two figures is wrong.**"),
+               suggestions=(
+                   Suggest("hold_prior", "Hold the prior mark; correct the activity row and rerun.", ("A sale with no stake sold cannot be priced.", "Fixing the row is the clean resolution — nothing to book until then."), "prior"),
+               ),
                action="Reconcile the activity row: proceeds are recorded but no stake was sold.",
                proceeds=proceeds, ownership_before=before, ownership_after=after)
         w.realized_quarter += proceeds
@@ -331,6 +379,13 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
                "round set. One buyer taking one block is real evidence but not necessarily the principal market, so policy holds "
                f"the remaining stake at the round price. On the secondary price it would be "
                f"${(at_secondary if basis == 'last_round' else at_last_round):.2f}M instead.",
+               points=(f"Secondary implies **${implied_post:.1f}M**, **{spread:+.1%}** against the ${w.latest_post:.1f}M round price.",
+                       "One buyer taking one block is real evidence but **may not be the principal market**.",
+                       f"On the secondary price the remaining stake would be **${(at_secondary if basis == 'last_round' else at_last_round):.2f}M** instead."),
+               suggestions=(
+                   Suggest("as_proposed", "Keep the remaining stake at the last-round price.", ("The round is the principal market; one block sale is weaker evidence.", "Policy default — the secondary is recorded as an alternative mark."), "proposed"),
+                   Suggest("at_secondary", f"Mark the remaining stake at the secondary price ({spread:+.1%}).", ("The secondary is the most recent transaction in this security.", "Right if the buyer was informed and the block was meaningful."), "alternative", value="at_secondary_price" if basis == "last_round" else "at_last_round"),
+               ),
                action="Decide whether the stake HC still holds follows the last round or the secondary price.",
                spread=round(spread, 4), implied_post_money=implied_post, basis=basis)
     w.realized_quarter += proceeds
@@ -366,8 +421,15 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
     w.flag("X-101", "treatment", Severity.BLOCK,
            f"The position is now listed, so the mark comes from a market capitalisation rather than a funding round, and it should "
            f"be the closing price on {cfg.quarter.measurement_date.isoformat()} — not the ${float(e.value):,.0f}M the shares priced at "
-           f"on listing day. HC also cannot sell until {lockup_end.isoformat()}. ASC 820 disfavours blockage discounts for a Level 1 "
+           f"on listing day. HC also cannot sell until {lockup_end.isoformat()}. ASC 820 disfavors blockage discounts for a Level 1 "
            f"holding, so policy applies {disc:.0%}, but that is a committee call rather than an arithmetic one.",
+           points=(f"Now **listed**: the mark is the **{cfg.quarter.measurement_date.isoformat()} close**, not the ${float(e.value):,.0f}M listing-day price.",
+                   f"HC **cannot sell until {lockup_end.isoformat()}**.",
+                   f"Policy applies a **{disc:.0%}** lock-up discount (ASC 820 disfavors blockage on Level 1) — a committee call, not arithmetic."),
+           suggestions=(
+               Suggest("as_proposed", f"Book the {cfg.quarter.measurement_date.strftime('%d %b')} close with the {disc:.0%} lock-up discount, as proposed.", ("Level 1: the quoted price is fair value under ASC 820.", "Blockage discounts on quoted prices are disfavored."), "proposed"),
+               Suggest("at_ipo_print", "Book at the IPO print instead of the close.", ("Avoids marking to post-listing swings HC cannot trade during the lock-up.", "Conservative if the shares have run up since listing; the reverse if they fell."), "alternative", value="at_ipo_print"),
+           ),
            action=f"Confirm the {cfg.quarter.measurement_date.strftime('%d %b')} closing price, then ratify or change the "
                   f"{disc:.0%} lock-up discount.",
            price_source=source, price_source_note=w.market_note, lockup_end=lockup_end,
@@ -411,6 +473,14 @@ def announced(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
            f"A buyer has signed for ${deal:.0f}M but the deal has not closed and still needs approval. Booking the full deal value "
            "ignores that contingency; holding the old mark ignores a signed agreement. Policy splits the difference at "
            f"{p:.2f}, giving ${weighted:.2f}M against ${full:.2f}M at full value and ${hold:.2f}M if held.",
+           points=(f"Buyer signed for **${deal:.0f}M**, but the deal has **not closed** and still needs approval.",
+                   f"Policy weights it at **{p:.2f}** → **${weighted:.2f}M**.",
+                   f"Alternatives: **${full:.2f}M** at full value, **${hold:.2f}M** held at prior."),
+           suggestions=(
+               Suggest("as_proposed", f"Ratify the {p:.2f}-weighted mark of ${weighted:.2f}M.", ("Reflects a signed agreement with a real chance of not closing.", "Policy default for an announced, unclosed deal."), "proposed"),
+               Suggest("full_value", f"Book the full deal value, ${full:.2f}M.", ("The buyer has signed; only approval remains.", "Right if the closing conditions are formalities."), "value", value=full),
+               Suggest("hold_prior", f"Hold the prior mark, ${hold:.2f}M, until the deal closes.", ("Nothing is realised until closing; a signed deal can still break.", "Right if approval is uncertain or the buyer is stretched."), "value", value=hold),
+           ),
            action=f"Ratify the {p:.2f} close probability, or choose full deal value or hold at prior.",
            deal_value=deal, close_probability=p, treatment=treatment)
     w.alternative_marks.update({"at_full_deal_value": full, "hold_prior": hold, "probability_weighted": weighted})
@@ -438,6 +508,13 @@ def convertible_note(w: Working, e: Event, cfg: RuleConfig, market: MarketData) 
         w.flag("X-107", "treatment", Severity.REVIEW,
                f"HC put ${inv:.2f}M into a bridge note ({cap_txt}). The equity mark cannot move — a cap is a ceiling on a future "
                "conversion price, not a price — so the new money is carried separately at cost until the note converts.",
+               points=(f"**${inv:.2f}M** into a bridge note ({cap_txt}).",
+                       "A cap is a **ceiling on a future conversion**, not a price — the equity mark cannot move.",
+                       "The new money is carried **separately at cost** until it converts."),
+               suggestions=(
+                   Suggest("as_proposed", "Carry the note at cost beside the unchanged equity mark, as proposed.", ("A cap is not a price; cost is the only observable value for the note.", "Standard treatment until the note converts."), "proposed"),
+                   Suggest("impair_note", f"Treat the bridge as distress: carry equity only, note written to zero.", ("A bridge instead of a priced round often means the company cannot raise.", "Conservative; reverses on conversion."), "value", value=max(0.0, w.proposed_mark - inv)),
+               ),
                action=f"Confirm the ${inv:.2f}M is carried at cost, and whether the bridge signals distress.",
                hc_investment=inv, valuation_cap=cap, cap_vs_last_round=cap_vs_last)
     else:
@@ -449,6 +526,12 @@ def convertible_note(w: Working, e: Event, cfg: RuleConfig, market: MarketData) 
         w.flag("X-101", "treatment", Severity.REVIEW,
                f"The engine could not read a valuation cap out of the Detail text ({e.detail!r}), so it cannot tell how this note "
                "would convert.",
+               points=("**No valuation cap** could be read out of the Detail text.",
+                       "The engine **cannot tell how the note converts**.",
+                       "Cap, discount and interest have to be read **by hand**."),
+               suggestions=(
+                   Suggest("as_proposed", "Carry the note at cost as proposed until the terms are read.", ("Cost is the only observable value without a cap or discount.", "The terms can be entered on the row next quarter."), "proposed"),
+               ),
                action="Read the note terms by hand — cap, discount and interest.",
                detail=e.detail)
     w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.CONVERTIBLE_NOTE, opened=e.date,
@@ -500,6 +583,13 @@ def ownership_adjustment(w: Working, e: Event, cfg: RuleConfig, market: MarketDa
            f"Ownership moved from {before:.1%} to {after:.1%} with no price event. The mark follows the cap table mechanically, "
            "but a stake that changes without a round means someone restated the table, exercised something or expanded the "
            "pool — and the round basis it is priced on may no longer describe the same security.",
+           points=(f"Ownership moved **{before:.1%} → {after:.1%}** with **no price event**.",
+                   "Someone **restated the cap table**, exercised something, or expanded the pool.",
+                   "The round basis may **no longer price the same security**."),
+           suggestions=(
+               Suggest("as_proposed", "Book the mechanical mark on the new ownership, as proposed.", ("The cap table is the source of truth for the stake.", "The price basis is unchanged; only the share moved."), "proposed"),
+               Suggest("hold_prior", "Hold the prior mark until the cap table is confirmed.", ("A stake change with no round often means a restatement.", "Avoids booking a movement that may be reversed."), "prior"),
+           ),
            action="Confirm the cap table: what moved the ownership, and whether the last-round price still applies to it.",
            ownership_before=before, ownership_after=after, hc_investment=inv)
     w.equity_mark = new_equity
@@ -534,6 +624,12 @@ def new_investment(w: Working, e: Event, cfg: RuleConfig, market: MarketData) ->
         w.flag("X-918", "integrity", Severity.REVIEW,
                f"{w.pos.company} is not in the Portfolio tab. The engine created the position from the activity row "
                f"(fund {w.pos.fund!r}, sector {w.pos.sector!r}, stage {w.pos.stage!r}); anything the row does not say is a placeholder.",
+               points=(f"{w.pos.company} is **not in the Portfolio tab**.",
+                       f"The position was **created from activity row {e.row_index}**.",
+                       "Anything that row does not say — fund, sector, stage — is a **placeholder**."),
+               suggestions=(
+                   Suggest("as_proposed", "Book on the activity row's terms as proposed.", ("The row is the only record of the position.", "Placeholders are corrected once the Portfolio tab has the company."), "proposed"),
+               ),
                action="Add the company to the Portfolio tab with its fund, sector and stage, and confirm the entry terms.",
                fund=w.pos.fund, sector=w.pos.sector, stage=w.pos.stage, row_index=e.row_index)
     w.equity_mark = new_equity
@@ -601,6 +697,13 @@ def chapter_11(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
            f"Chapter 11: the ${w.equity_mark:.2f}M carrying value is almost certainly impaired. In a reorganisation the equity "
            "usually sits behind DIP financing and every class of creditor, and what comes out the other side is a different "
            "security. The workbook has no recovery estimate; only the plan of reorganisation does.",
+           points=(f"**Chapter 11** — the **${w.equity_mark:.2f}M** carrying value is almost certainly impaired.",
+                   "Equity sits **behind DIP financing and every creditor class**.",
+                   "Only the **plan of reorganisation** carries a recovery estimate; the workbook has none."),
+           suggestions=(
+               Suggest("write_to_zero", "Write the position to zero pending the plan of reorganisation.", ("Equity sits behind DIP financing and every creditor class.", "Recovery to old equity in Chapter 11 is usually nil."), "value", value=0.0),
+               Suggest("hold_prior", "Hold the prior mark until the plan is filed.", ("Defers the impairment until a recovery estimate exists.", "Overstates if the plan wipes out equity — short-term only."), "prior"),
+           ),
            action="Estimate recovery to HC's class under the plan and book that; the carrying value is almost certainly impaired.",
            prior_mark=round(w.equity_mark, 6))
     w.fv_level = 3
@@ -632,6 +735,12 @@ def secondary_purchase(w: Working, e: Event, cfg: RuleConfig, market: MarketData
         w.flag("X-101", "treatment", Severity.BLOCK,
                f"The row records ${inv:.2f}M paid for shares but no increase in ownership, so there is no block bought to price "
                "the purchase against. One of the two figures is wrong.",
+               points=(f"Row records **${inv:.2f}M paid** for shares but **no increase in ownership**.",
+                       "There is no block bought to price the purchase against.",
+                       "**One of the two figures is wrong.**"),
+               suggestions=(
+                   Suggest("hold_prior", "Hold the prior mark; correct the activity row and rerun.", ("A purchase with no stake bought cannot be priced.", "Fixing the row is the clean resolution — nothing to book until then."), "prior"),
+               ),
                action="Reconcile the activity row: cash was paid but the stake did not grow.",
                hc_investment=inv, ownership_before=before, ownership_after=after)
         w.invested += inv
@@ -652,6 +761,13 @@ def secondary_purchase(w: Working, e: Event, cfg: RuleConfig, market: MarketData
                f"HC paid a price that implies the company is worth ${implied_post:.1f}M, {spread:+.1%} against the ${w.latest_post:.1f}M "
                "the last round set. Policy marks the whole stake at the round price, so the block just bought is carried "
                f"{'below' if spread > 0 else 'above'} what HC paid for it. On the purchase price the stake would be ${at_implied:.2f}M instead.",
+               points=(f"HC paid a price implying **${implied_post:.1f}M**, **{spread:+.1%}** against the ${w.latest_post:.1f}M round.",
+                       f"Policy marks the whole stake at the round price, so the new block is carried **{'below' if spread > 0 else 'above'} what HC paid**.",
+                       f"On the purchase price the stake would be **${at_implied:.2f}M** instead."),
+               suggestions=(
+                   Suggest("as_proposed", "Keep the whole stake at the last-round price.", ("Policy: one block is weaker evidence than a priced round.", "The purchase price is recorded as an alternative mark."), "proposed"),
+                   Suggest("at_purchase", f"Mark the stake at the price HC just paid ({spread:+.1%}).", ("HC's own transaction is the most recent price in this security.", "Right if the purchase was at arm's length from an informed seller."), "alternative", value="at_implied_price"),
+               ),
                action="Decide whether the stake follows the last round or the price HC just paid for the block.",
                spread=round(spread, 4), implied_post_money=implied_post, basis="last_round", direction="purchase")
     else:
@@ -689,6 +805,12 @@ def listed_carry(w: Working, cfg: RuleConfig, market: MarketData) -> None:
         w.flag("X-113", "treatment", Severity.BLOCK,
                f"{w.pos.company} is listed but the market data has no price for it at {md.isoformat()}. The ${w.equity_mark:.2f}M "
                "carried forward is last quarter's number, and a Level 1 security is worth its close, not its history.",
+               points=(f"Listed, but the market data has **no price at {md.isoformat()}**.",
+                       f"The **${w.equity_mark:.2f}M** carried is **last quarter's number**.",
+                       "A **Level 1** security is worth its close, not its history."),
+               suggestions=(
+                   Suggest("hold_prior", "Hold last quarter's mark until the close is supplied.", ("The only stopgap without a quote; a stale Level 1 mark is still wrong.", "Rerun once the market cap is in the feed."), "prior"),
+               ),
                action=f"Supply the {md.strftime('%d %b %Y')} closing market capitalisation and re-run.",
                measurement_date=md, prior_mark=round(w.equity_mark, 6))
         w.fv_level = 1
@@ -724,6 +846,13 @@ def deal_terminated(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -
            f"The announced deal fell through; the mark has gone back to the last round at ${new_equity:.2f}M from ${w.equity_mark:.2f}M. "
            "A failed sale process is information — the round that set this price predates it, and the reason the deal broke "
            "may be a reason the round basis no longer holds.",
+           points=(f"Announced deal **fell through**; the mark reverts to the last round: ${w.equity_mark:.2f}M → **${new_equity:.2f}M**.",
+                   "A **failed sale process is information** — the round that set this price predates it.",
+                   "Why the deal broke may be why the **round basis no longer holds**."),
+           suggestions=(
+               Suggest("as_proposed", "Revert to the last-round mark as proposed.", ("The signed deal no longer exists; the round is the last real price.", "Policy default when a sale process fails."), "proposed"),
+               Suggest("hold_deal", "Hold the deal-based mark for one more quarter.", ("A new buyer may already be engaged; avoids whipsawing the mark.", "Only if a replacement process is under way."), "alternative", value="hold_deal_based"),
+           ),
            action="Confirm nothing about the round basis has changed — why the deal broke, and whether the company is still the one the round priced.",
            reverted_to=round(new_equity, 6), from_mark=round(w.equity_mark, 6), last_round_post_money=w.latest_post)
     w.alternative_marks["hold_deal_based"] = w.equity_mark
@@ -753,6 +882,13 @@ def note_repaid(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
            f"${principal - unmatched:.2f}M; " + (f"the remaining ${unmatched:.2f}M of principal was not carried as a separate leg, "
                                                   "so if it sat inside the prior mark the carrying basis is now overstated by that amount."
                                                   if unmatched > 1e-9 else "the equity mark is untouched."),
+           points=(f"Bridge note **repaid in cash** (${proceeds:.2f}M) rather than converting.",
+                   f"The note leg is reduced by **${principal - unmatched:.2f}M**.",
+                   (f"**${unmatched:.2f}M of principal** was not a separate leg — if it sat inside the prior mark the basis is now **overstated**." if unmatched > 1e-9 else "The **equity mark is untouched**.")),
+           suggestions=(
+               Suggest("as_proposed", "Book the equity mark with the note leg removed, as proposed.", ("The repaid principal was carried as a separate leg.", "Nothing else in the position changed."), "proposed"),
+               Suggest("reduce_basis", f"Reduce the carrying basis by the ${unmatched:.2f}M unmatched principal.", ("That principal sat inside the prior mark, not in the note leg.", "Prevents overstating the basis after repayment."), "value", value=max(0.0, w.proposed_mark - unmatched)),
+           ),
            action="Confirm where the note sat: if it was inside the prior mark, reduce the carrying basis by the principal.",
            proceeds=proceeds, principal=principal, note_at_cost_before=note_before, note_at_cost_after=note_after,
            principal_not_in_note_leg=round(unmatched, 6))
@@ -775,6 +911,12 @@ def unrecognised(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
     w.flag("M-999", "treatment", Severity.BLOCK,
            f"No rule covers a {e.event_type!r} ({e.detail}). The mark is unchanged and the position is held, because an event the "
            "engine does not understand must never look like a quarter in which nothing happened.",
+           points=(f"**No rule covers** a {e.event_type!r} ({e.detail}).",
+                   "The mark is **unchanged** and the position is **held**.",
+                   "An event the engine does not understand must **never look like a quiet quarter**."),
+           suggestions=(
+               Suggest("hold_prior", "Hold the prior mark and adjudicate the event.", ("An event the engine does not understand must not book a number.", "The Proposals view offers accept-once or promote-to-rule."), "prior"),
+           ),
            action=f"Decide how a {e.event_type!r} should be treated, then accept it once or promote it to a rule.",
            event_type=e.event_type, signature=e.signature)
 

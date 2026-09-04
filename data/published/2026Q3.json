@@ -2,9 +2,9 @@
  "publish": {
   "quarter": "Q3 2026",
   "slug": "2026Q3",
-  "published_at": "2026-10-02T17:00:00+00:00",
+  "published_at": "2026-09-04T23:15:48+00:00",
   "published_by": "Jackson Lagerwey",
-  "note": "Q3 proposed marks for IC",
+  "note": "Q3 2026 proposed marks for the valuation committee",
   "status": "proposed",
   "open_blocks": [
    "Gryphonel",
@@ -31,7 +31,7 @@
    "quarter_label": "Q3 2026",
    "measurement_date": "2026-09-30",
    "prior_close": "2026-06-30",
-   "generated_at": "2026-09-30T00:00:00",
+   "generated_at": "2026-09-04T23:15:48Z",
    "adjudication_enabled": true,
    "market_data_source": "stub"
   },
@@ -95,6 +95,8 @@
       "severity": "MONITOR",
       "message": "HC did not follow its pro rata, so ownership fell 13.6% \u2192 10.8% (-20.6%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "ownership_before": 0.136,
        "ownership_after": 0.108,
@@ -107,6 +109,8 @@
       "severity": "MONITOR",
       "message": "Carried at 38\u00d7 revenue (sector comp 7.1\u00d7), growing +83%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 37.79,
        "threshold": 30.0
@@ -168,6 +172,8 @@
       "severity": "MONITOR",
       "message": "Last priced 26 months ago (2024-07-05) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 26,
        "anchor": "2024-07-05"
@@ -179,6 +185,31 @@
       "severity": "REVIEW",
       "message": "About 5.0 months of cash left ($3.1M against $0.52M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
       "action": "Confirm the mark reflects a company with 5.0 months of cash.",
+      "points": [
+       "About **5.0 months of cash** left ($3.1M against $0.52M a month).",
+       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+       "The round that saves it **may be priced below this mark**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "Cash on hand does not change the last-round price.",
+         "The runway is tracked; the next round will reprice it."
+        ],
+        "booked": 8.1
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending the raise.",
+        "reasons": [
+         "A rescue round before the next close is likely to be priced down.",
+         "Cost is a defensible floor when a company must raise to survive."
+        ],
+        "booked": 6.0
+       }
+      ],
       "evidence": {
        "runway_months_aged": 4.96
       }
@@ -303,6 +334,8 @@
       "severity": "MONITOR",
       "message": "HC did not follow its pro rata, so ownership fell 7.6% \u2192 5.5% (-27.6%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "ownership_before": 0.076,
        "ownership_after": 0.055,
@@ -315,6 +348,8 @@
       "severity": "MONITOR",
       "message": "Carried at 42\u00d7 revenue (sector comp 9.2\u00d7), growing +186%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 41.52,
        "threshold": 30.0
@@ -384,6 +419,8 @@
       "severity": "MONITOR",
       "message": "The company raised a bridge note that HC did not fund (cap $32.0M, +42% vs last round). A cap is not a price, so the mark is unchanged and there is nothing to decide.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "valuation_cap": 32.0,
        "cap_vs_last_round": 0.4222222222222223
@@ -395,6 +432,8 @@
       "severity": "MONITOR",
       "message": "Carried at 32\u00d7 revenue (sector comp 13.0\u00d7), growing +207%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 32.14,
        "threshold": 30.0
@@ -535,6 +574,40 @@
       "severity": "BLOCK",
       "message": "A buyer has signed for $133M but the deal has not closed and still needs approval. Booking the full deal value ignores that contingency; holding the old mark ignores a signed agreement. Policy splits the difference at 0.90, giving $4.31M against $4.79M at full value and $3.50M if held.",
       "action": "Ratify the 0.90 close probability, or choose full deal value or hold at prior.",
+      "points": [
+       "Buyer signed for **$133M**, but the deal has **not closed** and still needs approval.",
+       "Policy weights it at **0.90** \u2192 **$4.31M**.",
+       "Alternatives: **$4.79M** at full value, **$3.50M** held at prior."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Ratify the 0.90-weighted mark of $4.31M.",
+        "reasons": [
+         "Reflects a signed agreement with a real chance of not closing.",
+         "Policy default for an announced, unclosed deal."
+        ],
+        "booked": 4.3092
+       },
+       {
+        "key": "full_value",
+        "label": "Book the full deal value, $4.79M.",
+        "reasons": [
+         "The buyer has signed; only approval remains.",
+         "Right if the closing conditions are formalities."
+        ],
+        "booked": 4.788
+       },
+       {
+        "key": "hold_prior",
+        "label": "Hold the prior mark, $3.50M, until the deal closes.",
+        "reasons": [
+         "Nothing is realised until closing; a signed deal can still break.",
+         "Right if approval is uncertain or the buyer is stretched."
+        ],
+        "booked": 3.5
+       }
+      ],
       "evidence": {
        "deal_value": 133.0,
        "close_probability": 0.9,
@@ -547,6 +620,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 72 months ago, on 2020-09-07. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 72 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **72 months old** (2020-09-07).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 4.3092
+       }
+      ],
       "evidence": {
        "months": 72,
        "anchor": "2020-09-07"
@@ -630,6 +719,8 @@
       "severity": "MONITOR",
       "message": "A term sheet indicates ~$50.0M against the $31.3M the mark rests on. It is non-binding and diligence is open, so nothing is booked from it \u2014 this is disclosure only.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "indicated_post_money": 50.0,
        "indicated_mark": 4.25
@@ -641,6 +732,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 71 months ago, on 2020-10-30. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 71 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **71 months old** (2020-10-30).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 2.7
+       }
+      ],
       "evidence": {
        "months": 71,
        "anchor": "2020-10-30"
@@ -724,6 +831,8 @@
       "severity": "MONITOR",
       "message": "HC did not follow its pro rata, so ownership fell 5.2% \u2192 3.8% (-26.9%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "ownership_before": 0.052,
        "ownership_after": 0.038,
@@ -794,6 +903,8 @@
       "severity": "MONITOR",
       "message": "Carried at 36\u00d7 revenue (sector comp 10.6\u00d7), growing +271%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 35.83,
        "threshold": 30.0
@@ -963,6 +1074,31 @@
       "severity": "REVIEW",
       "message": "The sale implies the company is worth $487.5M, -5.5% against the $516.0M the last round set. One buyer taking one block is real evidence but not necessarily the principal market, so policy holds the remaining stake at the round price. On the secondary price it would be $8.29M instead.",
       "action": "Decide whether the stake HC still holds follows the last round or the secondary price.",
+      "points": [
+       "Secondary implies **$487.5M**, **-5.5%** against the $516.0M round price.",
+       "One buyer taking one block is real evidence but **may not be the principal market**.",
+       "On the secondary price the remaining stake would be **$8.29M** instead."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the remaining stake at the last-round price.",
+        "reasons": [
+         "The round is the principal market; one block sale is weaker evidence.",
+         "Policy default \u2014 the secondary is recorded as an alternative mark."
+        ],
+        "booked": 8.772
+       },
+       {
+        "key": "at_secondary",
+        "label": "Mark the remaining stake at the secondary price (-5.5%).",
+        "reasons": [
+         "The secondary is the most recent transaction in this security.",
+         "Right if the buyer was informed and the block was meaningful."
+        ],
+        "booked": 8.2875
+       }
+      ],
       "evidence": {
        "spread": -0.0552,
        "implied_post_money": 487.5,
@@ -1035,6 +1171,8 @@
       "severity": "MONITOR",
       "message": "Carried at 50\u00d7 revenue (sector comp 22.7\u00d7), growing +125%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 50.11,
        "threshold": 30.0
@@ -1096,6 +1234,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 61 months ago, on 2021-08-18. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 61 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **61 months old** (2021-08-18).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 13.9
+       }
+      ],
       "evidence": {
        "months": 61,
        "anchor": "2021-08-18"
@@ -1165,6 +1319,22 @@
       "severity": "REVIEW",
       "message": "The extension raised money at the same $176.3M price, so ownership moved but nobody re-tested what the company is worth. The last real price discovery was 59 months ago, on 2021-10-08.",
       "action": "Confirm the mark should still rest on a price nobody has re-tested since 2021-10-08.",
+      "points": [
+       "Extension at the **same $176.3M price** \u2014 ownership moved, valuation did not.",
+       "**No price discovery**: nobody re-tested what the company is worth.",
+       "Last real price was **59 months ago** (2021-10-08)."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark on the extension price as proposed.",
+        "reasons": [
+         "New money came in at that price, even without a new lead.",
+         "Nothing in the file says the company is worth less."
+        ],
+        "booked": 13.9277
+       }
+      ],
       "evidence": {
        "post_money": 176.3,
        "anchor": "2021-10-08"
@@ -1176,6 +1346,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 59 months ago, on 2021-10-08. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 59 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **59 months old** (2021-10-08).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 13.9277
+       }
+      ],
       "evidence": {
        "months": 59,
        "anchor": "2021-10-08"
@@ -1237,6 +1423,8 @@
       "severity": "MONITOR",
       "message": "Last priced 34 months ago (2023-11-09) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 34,
        "anchor": "2023-11-09"
@@ -1404,9 +1592,47 @@
       "severity": "BLOCK",
       "message": "Recap: the round priced at $14.2M against $23.9M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook.",
       "action": "Read the round documents and confirm the preference stack before booking this mark.",
+      "points": [
+       "Recap: priced at **$14.2M** against $23.9M last round.",
+       "Ownership \u00d7 post-money **ignores liquidation preference** and pay-to-play.",
+       "So the mark is a **ceiling**, not an estimate \u2014 the terms sit in the round documents."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Book the recap figure as proposed.",
+        "reasons": [
+         "It is the only priced transaction and reflects the new capital structure.",
+         "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+        ],
+        "booked": 1.136
+       },
+       {
+        "key": "hold_prior",
+        "label": "Hold the prior mark until the round documents are read.",
+        "reasons": [
+         "Defers the write-down until the preference terms are known.",
+         "Overstates if the round closed as priced \u2014 only if documents arrive before the close."
+        ],
+        "booked": 2.0
+       }
+      ],
       "evidence": {
        "prior_post_money": 23.9,
        "post_money": 14.2,
+       "insider_led": true
+      }
+     },
+     {
+      "rule_id": "X-118",
+      "family": "treatment",
+      "severity": "MONITOR",
+      "message": "The notes say the round was insider-led (M-012). Existing investors re-pricing their own position is weaker evidence than a new lead, though not a related-party price for HC itself.",
+      "action": "",
+      "points": [],
+      "suggestions": [],
+      "evidence": {
+       "rule": "M-012",
        "insider_led": true
       }
      },
@@ -1416,6 +1642,22 @@
       "severity": "REVIEW",
       "message": "Revenue is shrinking -16% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
       "action": "Confirm the mark survives a 16% revenue decline.",
+      "points": [
+       "Revenue is **shrinking -16%** year on year.",
+       "The mark comes from a round **priced on growth that is no longer happening**.",
+       "The **thesis behind the price is materially broken**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "The last round is still the latest priced transaction.",
+         "The decline is recorded and will price into the next round."
+        ],
+        "booked": 1.136
+       }
+      ],
       "evidence": {
        "arr_growth": -0.16
       }
@@ -1476,6 +1718,8 @@
       "severity": "MONITOR",
       "message": "Last priced 35 months ago (2023-10-09) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 35,
        "anchor": "2023-10-09"
@@ -1487,6 +1731,31 @@
       "severity": "REVIEW",
       "message": "About 3.1 months of cash left ($5.6M against $1.36M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
       "action": "Confirm the mark reflects a company with 3.1 months of cash.",
+      "points": [
+       "About **3.1 months of cash** left ($5.6M against $1.36M a month).",
+       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+       "The round that saves it **may be priced below this mark**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "Cash on hand does not change the last-round price.",
+         "The runway is tracked; the next round will reprice it."
+        ],
+        "booked": 24.1
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending the raise.",
+        "reasons": [
+         "A rescue round before the next close is likely to be priced down.",
+         "Cost is a defensible floor when a company must raise to survive."
+        ],
+        "booked": 10.0
+       }
+      ],
       "evidence": {
        "runway_months_aged": 3.12
       }
@@ -1596,6 +1865,8 @@
       "severity": "MONITOR",
       "message": "Last priced 43 months ago (2023-02-23) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 43,
        "anchor": "2023-02-23"
@@ -1657,6 +1928,8 @@
       "severity": "MONITOR",
       "message": "Last priced 37 months ago (2023-08-13) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 37,
        "anchor": "2023-08-13"
@@ -1718,6 +1991,8 @@
       "severity": "MONITOR",
       "message": "Last priced 27 months ago (2024-06-23) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 27,
        "anchor": "2024-06-23"
@@ -1779,6 +2054,8 @@
       "severity": "MONITOR",
       "message": "Last priced 31 months ago (2024-02-14) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 31,
        "anchor": "2024-02-14"
@@ -1840,6 +2117,8 @@
       "severity": "MONITOR",
       "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 34,
        "anchor": "2023-11-10"
@@ -1851,13 +2130,44 @@
       "severity": "MONITOR",
       "message": "Carried at 30\u00d7 revenue (sector comp 11.3\u00d7), growing +270%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 30.29,
        "threshold": 30.0
       }
+     },
+     {
+      "rule_id": "X-405",
+      "family": "valuation",
+      "severity": "REVIEW",
+      "message": "The price behind this mark is 34 months old, and the current numbers disagree with it: carried above the multiple screen (30\u00d7 revenue, growing +270%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+      "points": [
+       "Price is **34 months old** \u2014 and today's numbers **argue with it**.",
+       "Screen: **carried above the multiple screen** (30\u00d7 revenue, growing +270%).",
+       "Two independent signals point the same way: **affirm or reprice**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Affirm the last-round mark as proposed.",
+        "reasons": [
+         "No transaction has repriced the company; the round is still the last real price.",
+         "The screen is a cross-check, not a valuation."
+        ],
+        "booked": 1.4
+       }
+      ],
+      "evidence": {
+       "months": 34,
+       "screens": [
+        "X-401"
+       ]
+      }
      }
     ],
-    "disposition": "MONITOR",
+    "disposition": "REVIEW",
     "open_items": [],
     "alternative_marks": {}
    },
@@ -1912,6 +2222,8 @@
       "severity": "MONITOR",
       "message": "Last priced 27 months ago (2024-06-24) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 27,
        "anchor": "2024-06-24"
@@ -1923,6 +2235,31 @@
       "severity": "REVIEW",
       "message": "Revenue is shrinking -21% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
       "action": "Confirm the mark survives a 21% revenue decline.",
+      "points": [
+       "Revenue is **shrinking -21%** year on year.",
+       "The mark comes from a round **priced on growth that is no longer happening**.",
+       "The **thesis behind the price is materially broken**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "The last round is still the latest priced transaction.",
+         "The decline is recorded and will price into the next round."
+        ],
+        "booked": 18.5
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending the next round.",
+        "reasons": [
+         "A round priced on growth does not hold when revenue shrinks.",
+         "Cost is a defensible floor until a new price exists."
+        ],
+        "booked": 10.0
+       }
+      ],
       "evidence": {
        "arr_growth": -0.21
       }
@@ -1983,6 +2320,8 @@
       "severity": "MONITOR",
       "message": "Carried at 54\u00d7 revenue (sector comp 22.7\u00d7), growing +194%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 53.88,
        "threshold": 30.0
@@ -2051,8 +2390,24 @@
       "rule_id": "X-101",
       "family": "treatment",
       "severity": "BLOCK",
-      "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round, and it should be the closing price on 2026-09-30 \u2014 not the $3,931M the shares priced at on listing day. HC also cannot sell until 2027-03-19. ASC 820 disfavours blockage discounts for a Level 1 holding, so policy applies 0%, but that is a committee call rather than an arithmetic one.",
+      "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round, and it should be the closing price on 2026-09-30 \u2014 not the $3,931M the shares priced at on listing day. HC also cannot sell until 2027-03-19. ASC 820 disfavors blockage discounts for a Level 1 holding, so policy applies 0%, but that is a committee call rather than an arithmetic one.",
       "action": "Confirm the 30 Sep closing price, then ratify or change the 0% lock-up discount.",
+      "points": [
+       "Now **listed**: the mark is the **2026-09-30 close**, not the $3,931M listing-day price.",
+       "HC **cannot sell until 2027-03-19**.",
+       "Policy applies a **0%** lock-up discount (ASC 820 disfavors blockage on Level 1) \u2014 a committee call, not arithmetic."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Book the 30 Sep close with the 0% lock-up discount, as proposed.",
+        "reasons": [
+         "Level 1: the quoted price is fair value under ASC 820.",
+         "Blockage discounts on quoted prices are disfavored."
+        ],
+        "booked": 110.068
+       }
+      ],
       "evidence": {
        "price_source": "stub:seeded_to_ipo_print",
        "price_source_note": "Synthetic ticker; no live feed can price it. Seeded to the IPO print \u2014 replace with the measurement-date close.",
@@ -2130,6 +2485,8 @@
       "severity": "MONITOR",
       "message": "Carried at 2.3\u00d7 revenue (sector comp 10.6\u00d7), growing +42%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 2.33,
        "threshold": 3.0
@@ -2191,6 +2548,8 @@
       "severity": "MONITOR",
       "message": "Last priced 31 months ago (2024-02-20) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 31,
        "anchor": "2024-02-20"
@@ -2252,6 +2611,8 @@
       "severity": "MONITOR",
       "message": "Last priced 38 months ago (2023-07-09) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 38,
        "anchor": "2023-07-09"
@@ -2313,6 +2674,8 @@
       "severity": "MONITOR",
       "message": "Last priced 33 months ago (2023-12-12) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 33,
        "anchor": "2023-12-12"
@@ -2374,6 +2737,8 @@
       "severity": "MONITOR",
       "message": "Last priced 47 months ago (2022-10-22) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 47,
        "anchor": "2022-10-22"
@@ -2435,6 +2800,8 @@
       "severity": "MONITOR",
       "message": "Last priced 30 months ago (2024-03-03) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 30,
        "anchor": "2024-03-03"
@@ -2446,6 +2813,31 @@
       "severity": "REVIEW",
       "message": "About 3.4 months of cash left ($6.6M against $1.50M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
       "action": "Confirm the mark reflects a company with 3.4 months of cash.",
+      "points": [
+       "About **3.4 months of cash** left ($6.6M against $1.50M a month).",
+       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+       "The round that saves it **may be priced below this mark**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "Cash on hand does not change the last-round price.",
+         "The runway is tracked; the next round will reprice it."
+        ],
+        "booked": 14.3
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending the raise.",
+        "reasons": [
+         "A rescue round before the next close is likely to be priced down.",
+         "Cost is a defensible floor when a company must raise to survive."
+        ],
+        "booked": 10.0
+       }
+      ],
       "evidence": {
        "runway_months_aged": 3.4
       }
@@ -2506,6 +2898,8 @@
       "severity": "MONITOR",
       "message": "Last priced 27 months ago (2024-06-08) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 27,
        "anchor": "2024-06-08"
@@ -2621,6 +3015,8 @@
       "severity": "MONITOR",
       "message": "Last priced 26 months ago (2024-07-24) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 26,
        "anchor": "2024-07-24"
@@ -2682,6 +3078,8 @@
       "severity": "MONITOR",
       "message": "Last priced 40 months ago (2023-05-09) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 40,
        "anchor": "2023-05-09"
@@ -2751,6 +3149,31 @@
       "severity": "BLOCK",
       "message": "Recap: the round priced at $37.0M against $71.0M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook.",
       "action": "Read the round documents and confirm the preference stack before booking this mark.",
+      "points": [
+       "Recap: priced at **$37.0M** against $71.0M last round.",
+       "Ownership \u00d7 post-money **ignores liquidation preference** and pay-to-play.",
+       "So the mark is a **ceiling**, not an estimate \u2014 the terms sit in the round documents."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Book the recap figure as proposed.",
+        "reasons": [
+         "It is the only priced transaction and reflects the new capital structure.",
+         "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+        ],
+        "booked": 2.331
+       },
+       {
+        "key": "hold_prior",
+        "label": "Hold the prior mark until the round documents are read.",
+        "reasons": [
+         "Defers the write-down until the preference terms are known.",
+         "Overstates if the round closed as priced \u2014 only if documents arrive before the close."
+        ],
+        "booked": 5.7
+       }
+      ],
       "evidence": {
        "prior_post_money": 71.0,
        "post_money": 37.0,
@@ -2763,10 +3186,25 @@
       "severity": "MONITOR",
       "message": "HC did not follow its pro rata, so ownership fell 8.0% \u2192 6.3% (-21.3%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "ownership_before": 0.08,
        "ownership_after": 0.063,
        "relative_change": -0.2125
+      }
+     },
+     {
+      "rule_id": "X-118",
+      "family": "treatment",
+      "severity": "MONITOR",
+      "message": "The notes say the round was insider-led (M-012). Existing investors re-pricing their own position is weaker evidence than a new lead, though not a related-party price for HC itself.",
+      "action": "",
+      "points": [],
+      "suggestions": [],
+      "evidence": {
+       "rule": "M-012",
+       "insider_led": true
       }
      },
      {
@@ -2775,6 +3213,8 @@
       "severity": "MONITOR",
       "message": "Revenue is down -8% year on year \u2014 mild, but the wrong direction.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "arr_growth": -0.08
       }
@@ -2835,6 +3275,8 @@
       "severity": "MONITOR",
       "message": "Last priced 33 months ago (2023-12-18) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 33,
        "anchor": "2023-12-18"
@@ -2846,13 +3288,53 @@
       "severity": "MONITOR",
       "message": "Carried at 31\u00d7 revenue (sector comp 13.0\u00d7), growing +51%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 31.32,
        "threshold": 30.0
       }
+     },
+     {
+      "rule_id": "X-405",
+      "family": "valuation",
+      "severity": "REVIEW",
+      "message": "The price behind this mark is 33 months old, and the current numbers disagree with it: carried above the multiple screen (31\u00d7 revenue, growing +51%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+      "points": [
+       "Price is **33 months old** \u2014 and today's numbers **argue with it**.",
+       "Screen: **carried above the multiple screen** (31\u00d7 revenue, growing +51%).",
+       "Two independent signals point the same way: **affirm or reprice**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Affirm the last-round mark as proposed.",
+        "reasons": [
+         "No transaction has repriced the company; the round is still the last real price.",
+         "The screen is a cross-check, not a valuation."
+        ],
+        "booked": 7.3
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending a new price.",
+        "reasons": [
+         "A defensible floor when the last price no longer describes the business.",
+         "Reverses at the next priced round."
+        ],
+        "booked": 6.0
+       }
+      ],
+      "evidence": {
+       "months": 33,
+       "screens": [
+        "X-401"
+       ]
+      }
      }
     ],
-    "disposition": "MONITOR",
+    "disposition": "REVIEW",
     "open_items": [],
     "alternative_marks": {}
    },
@@ -2907,6 +3389,22 @@
       "severity": "REVIEW",
       "message": "Revenue is shrinking -32% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
       "action": "Confirm the mark survives a 32% revenue decline.",
+      "points": [
+       "Revenue is **shrinking -32%** year on year.",
+       "The mark comes from a round **priced on growth that is no longer happening**.",
+       "The **thesis behind the price is materially broken**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "The last round is still the latest priced transaction.",
+         "The decline is recorded and will price into the next round."
+        ],
+        "booked": 1.6
+       }
+      ],
       "evidence": {
        "arr_growth": -0.32
       }
@@ -2967,6 +3465,8 @@
       "severity": "MONITOR",
       "message": "Last priced 37 months ago (2023-08-28) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 37,
        "anchor": "2023-08-28"
@@ -3028,6 +3528,8 @@
       "severity": "MONITOR",
       "message": "Carried at 40\u00d7 revenue (sector comp 11.3\u00d7), growing +116%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 39.86,
        "threshold": 30.0
@@ -3138,6 +3640,8 @@
       "severity": "MONITOR",
       "message": "At $0.3M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "arr": 0.3
       }
@@ -3198,6 +3702,8 @@
       "severity": "MONITOR",
       "message": "Revenue is down -11% year on year \u2014 mild, but the wrong direction.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "arr_growth": -0.11
       }
@@ -3258,6 +3764,8 @@
       "severity": "MONITOR",
       "message": "Last priced 42 months ago (2023-03-06) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 42,
        "anchor": "2023-03-06"
@@ -3319,6 +3827,8 @@
       "severity": "MONITOR",
       "message": "Last priced 32 months ago (2024-01-03) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 32,
        "anchor": "2024-01-03"
@@ -3330,13 +3840,44 @@
       "severity": "MONITOR",
       "message": "Carried at 1.0\u00d7 revenue (sector comp 5.8\u00d7), growing +85%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 1.03,
        "threshold": 3.0
       }
+     },
+     {
+      "rule_id": "X-405",
+      "family": "valuation",
+      "severity": "REVIEW",
+      "message": "The price behind this mark is 32 months old, and the current numbers disagree with it: carried below the multiple screen (1\u00d7 revenue, growing +85%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+      "points": [
+       "Price is **32 months old** \u2014 and today's numbers **argue with it**.",
+       "Screen: **carried below the multiple screen** (1\u00d7 revenue, growing +85%).",
+       "Two independent signals point the same way: **affirm or reprice**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Affirm the last-round mark as proposed.",
+        "reasons": [
+         "No transaction has repriced the company; the round is still the last real price.",
+         "The screen is a cross-check, not a valuation."
+        ],
+        "booked": 0.6
+       }
+      ],
+      "evidence": {
+       "months": 32,
+       "screens": [
+        "X-402"
+       ]
+      }
      }
     ],
-    "disposition": "MONITOR",
+    "disposition": "REVIEW",
     "open_items": [],
     "alternative_marks": {}
    },
@@ -3391,6 +3932,8 @@
       "severity": "MONITOR",
       "message": "Last priced 31 months ago (2024-02-02) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 31,
        "anchor": "2024-02-02"
@@ -3501,6 +4044,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 64 months ago, on 2021-05-11. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 64 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **64 months old** (2021-05-11).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 43.3
+       }
+      ],
       "evidence": {
        "months": 64,
        "anchor": "2021-05-11"
@@ -3512,6 +4071,31 @@
       "severity": "REVIEW",
       "message": "Revenue is shrinking -20% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
       "action": "Confirm the mark survives a 20% revenue decline.",
+      "points": [
+       "Revenue is **shrinking -20%** year on year.",
+       "The mark comes from a round **priced on growth that is no longer happening**.",
+       "The **thesis behind the price is materially broken**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "The last round is still the latest priced transaction.",
+         "The decline is recorded and will price into the next round."
+        ],
+        "booked": 43.3
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending the next round.",
+        "reasons": [
+         "A round priced on growth does not hold when revenue shrinks.",
+         "Cost is a defensible floor until a new price exists."
+        ],
+        "booked": 15.6
+       }
+      ],
       "evidence": {
        "arr_growth": -0.2
       }
@@ -3629,6 +4213,31 @@
       "severity": "REVIEW",
       "message": "HC put $0.50M into a bridge note (cap $133.0M, +80% vs last round). The equity mark cannot move \u2014 a cap is a ceiling on a future conversion price, not a price \u2014 so the new money is carried separately at cost until the note converts.",
       "action": "Confirm the $0.50M is carried at cost, and whether the bridge signals distress.",
+      "points": [
+       "**$0.50M** into a bridge note (cap $133.0M, +80% vs last round).",
+       "A cap is a **ceiling on a future conversion**, not a price \u2014 the equity mark cannot move.",
+       "The new money is carried **separately at cost** until it converts."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
+        "reasons": [
+         "A cap is not a price; cost is the only observable value for the note.",
+         "Standard treatment until the note converts."
+        ],
+        "booked": 6.6
+       },
+       {
+        "key": "impair_note",
+        "label": "Treat the bridge as distress: carry equity only, note written to zero.",
+        "reasons": [
+         "A bridge instead of a priced round often means the company cannot raise.",
+         "Conservative; reverses on conversion."
+        ],
+        "booked": 5.6
+       }
+      ],
       "evidence": {
        "hc_investment": 0.5,
        "valuation_cap": 133.0,
@@ -3641,6 +4250,8 @@
       "severity": "MONITOR",
       "message": "Last priced 40 months ago (2023-05-14) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 40,
        "anchor": "2023-05-14"
@@ -3652,6 +4263,31 @@
       "severity": "REVIEW",
       "message": "About 4.1 months of cash left ($2.3M against $0.45M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
       "action": "Confirm the mark reflects a company with 4.1 months of cash.",
+      "points": [
+       "About **4.1 months of cash** left ($2.3M against $0.45M a month).",
+       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+       "The round that saves it **may be priced below this mark**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "Cash on hand does not change the last-round price.",
+         "The runway is tracked; the next round will reprice it."
+        ],
+        "booked": 6.6
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending the raise.",
+        "reasons": [
+         "A rescue round before the next close is likely to be priced down.",
+         "Cost is a defensible floor when a company must raise to survive."
+        ],
+        "booked": 6.1
+       }
+      ],
       "evidence": {
        "runway_months_aged": 4.11
       }
@@ -3724,6 +4360,8 @@
       "severity": "MONITOR",
       "message": "Carried at 48\u00d7 revenue (sector comp 22.7\u00d7), growing +98%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 47.85,
        "threshold": 30.0
@@ -3785,6 +4423,8 @@
       "severity": "MONITOR",
       "message": "Last priced 35 months ago (2023-10-14) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 35,
        "anchor": "2023-10-14"
@@ -3796,6 +4436,8 @@
       "severity": "MONITOR",
       "message": "Carried at 33\u00d7 revenue (sector comp 7.1\u00d7), growing +103%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 32.56,
        "threshold": 30.0
@@ -3807,13 +4449,54 @@
       "severity": "MONITOR",
       "message": "Carrying a 6.6\u00d7 return on a price set 35 months ago \u2014 a large unrealised gain resting on an old mark.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "moic": 6.62,
        "months": 35
       }
+     },
+     {
+      "rule_id": "X-405",
+      "family": "valuation",
+      "severity": "REVIEW",
+      "message": "The price behind this mark is 35 months old, and the current numbers disagree with it: carried above the multiple screen; an outsized unrealised gain (33\u00d7 revenue, growing +103%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+      "points": [
+       "Price is **35 months old** \u2014 and today's numbers **argue with it**.",
+       "Screen: **carried above the multiple screen; an outsized unrealised gain** (33\u00d7 revenue, growing +103%).",
+       "Two independent signals point the same way: **affirm or reprice**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Affirm the last-round mark as proposed.",
+        "reasons": [
+         "No transaction has repriced the company; the round is still the last real price.",
+         "The screen is a cross-check, not a valuation."
+        ],
+        "booked": 26.5
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending a new price.",
+        "reasons": [
+         "A defensible floor when the last price no longer describes the business.",
+         "Reverses at the next priced round."
+        ],
+        "booked": 4.0
+       }
+      ],
+      "evidence": {
+       "months": 35,
+       "screens": [
+        "X-401",
+        "X-404"
+       ]
+      }
      }
     ],
-    "disposition": "MONITOR",
+    "disposition": "REVIEW",
     "open_items": [],
     "alternative_marks": {}
    },
@@ -4161,6 +4844,8 @@
       "severity": "MONITOR",
       "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 34,
        "anchor": "2023-11-10"
@@ -4172,12 +4857,52 @@
       "severity": "MONITOR",
       "message": "Revenue is down -5% year on year \u2014 mild, but the wrong direction.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "arr_growth": -0.05
       }
+     },
+     {
+      "rule_id": "X-405",
+      "family": "valuation",
+      "severity": "REVIEW",
+      "message": "The price behind this mark is 34 months old, and the current numbers disagree with it: revenue now shrinking (5\u00d7 revenue, growing -5%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+      "points": [
+       "Price is **34 months old** \u2014 and today's numbers **argue with it**.",
+       "Screen: **revenue now shrinking** (5\u00d7 revenue, growing -5%).",
+       "Two independent signals point the same way: **affirm or reprice**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Affirm the last-round mark as proposed.",
+        "reasons": [
+         "No transaction has repriced the company; the round is still the last real price.",
+         "The screen is a cross-check, not a valuation."
+        ],
+        "booked": 6.6
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending a new price.",
+        "reasons": [
+         "A defensible floor when the last price no longer describes the business.",
+         "Reverses at the next priced round."
+        ],
+        "booked": 4.0
+       }
+      ],
+      "evidence": {
+       "months": 34,
+       "screens": [
+        "X-301"
+       ]
+      }
      }
     ],
-    "disposition": "MONITOR",
+    "disposition": "REVIEW",
     "open_items": [],
     "alternative_marks": {}
    },
@@ -4232,6 +4957,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 49 months ago, on 2022-08-28. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 49 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **49 months old** (2022-08-28).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 21.3
+       }
+      ],
       "evidence": {
        "months": 49,
        "anchor": "2022-08-28"
@@ -4293,6 +5034,31 @@
       "severity": "REVIEW",
       "message": "About 2.5 months of cash left ($3.5M against $1.00M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
       "action": "Confirm the mark reflects a company with 2.5 months of cash.",
+      "points": [
+       "About **2.5 months of cash** left ($3.5M against $1.00M a month).",
+       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+       "The round that saves it **may be priced below this mark**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "Cash on hand does not change the last-round price.",
+         "The runway is tracked; the next round will reprice it."
+        ],
+        "booked": 7.3
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending the raise.",
+        "reasons": [
+         "A rescue round before the next close is likely to be priced down.",
+         "Cost is a defensible floor when a company must raise to survive."
+        ],
+        "booked": 4.0
+       }
+      ],
       "evidence": {
        "runway_months_aged": 2.5
       }
@@ -4451,6 +5217,8 @@
       "severity": "MONITOR",
       "message": "Last priced 44 months ago (2023-01-12) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 44,
        "anchor": "2023-01-12"
@@ -4512,6 +5280,8 @@
       "severity": "MONITOR",
       "message": "Last priced 33 months ago (2023-12-07) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 33,
        "anchor": "2023-12-07"
@@ -4523,6 +5293,31 @@
       "severity": "REVIEW",
       "message": "About 3.7 months of cash left ($1.4M against $0.30M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
       "action": "Confirm the mark reflects a company with 3.7 months of cash.",
+      "points": [
+       "About **3.7 months of cash** left ($1.4M against $0.30M a month).",
+       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+       "The round that saves it **may be priced below this mark**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "Cash on hand does not change the last-round price.",
+         "The runway is tracked; the next round will reprice it."
+        ],
+        "booked": 1.7
+       },
+       {
+        "key": "to_cost",
+        "label": "Mark down to invested cost pending the raise.",
+        "reasons": [
+         "A rescue round before the next close is likely to be priced down.",
+         "Cost is a defensible floor when a company must raise to survive."
+        ],
+        "booked": 1.4
+       }
+      ],
       "evidence": {
        "runway_months_aged": 3.67
       }
@@ -4632,6 +5427,8 @@
       "severity": "MONITOR",
       "message": "Last priced 28 months ago (2024-05-06) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 28,
        "anchor": "2024-05-06"
@@ -4643,6 +5440,8 @@
       "severity": "MONITOR",
       "message": "At $0.2M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "arr": 0.2
       }
@@ -4801,6 +5600,8 @@
       "severity": "MONITOR",
       "message": "Last priced 44 months ago (2023-01-30) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 44,
        "anchor": "2023-01-30"
@@ -4862,6 +5663,8 @@
       "severity": "MONITOR",
       "message": "At $0.1M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "arr": 0.1
       }
@@ -4922,6 +5725,8 @@
       "severity": "MONITOR",
       "message": "Last priced 28 months ago (2024-05-23) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 28,
        "anchor": "2024-05-23"
@@ -4933,6 +5738,8 @@
       "severity": "MONITOR",
       "message": "About 11.6 months of cash left \u2014 enough to reach a raise, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "runway_months_aged": 11.62
       }
@@ -4993,6 +5800,8 @@
       "severity": "MONITOR",
       "message": "Last priced 37 months ago (2023-08-01) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 37,
        "anchor": "2023-08-01"
@@ -5004,6 +5813,8 @@
       "severity": "MONITOR",
       "message": "At $0.4M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "arr": 0.4
       }
@@ -5064,6 +5875,8 @@
       "severity": "MONITOR",
       "message": "Last priced 45 months ago (2022-12-30) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 45,
        "anchor": "2022-12-30"
@@ -5271,6 +6084,8 @@
       "severity": "MONITOR",
       "message": "Last priced 38 months ago (2023-07-20) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 38,
        "anchor": "2023-07-20"
@@ -5484,6 +6299,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 60 months ago, on 2021-09-16. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 60 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **60 months old** (2021-09-16).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 0.7
+       }
+      ],
       "evidence": {
        "months": 60,
        "anchor": "2021-09-16"
@@ -5495,6 +6326,8 @@
       "severity": "MONITOR",
       "message": "Carried at 1.7\u00d7 revenue (sector comp 10.6\u00d7), growing +101%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 1.71,
        "threshold": 3.0
@@ -5556,6 +6389,8 @@
       "severity": "MONITOR",
       "message": "Last priced 48 months ago (2022-09-02) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 48,
        "anchor": "2022-09-02"
@@ -5666,6 +6501,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 52 months ago, on 2022-05-21. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 52 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **52 months old** (2022-05-21).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 68.4
+       }
+      ],
       "evidence": {
        "months": 52,
        "anchor": "2022-05-21"
@@ -5677,6 +6528,8 @@
       "severity": "MONITOR",
       "message": "Carrying a 6.3\u00d7 return on a price set 52 months ago \u2014 a large unrealised gain resting on an old mark.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "moic": 6.28,
        "months": 52
@@ -5738,6 +6591,8 @@
       "severity": "MONITOR",
       "message": "Last priced 33 months ago (2023-12-06) \u2014 normal at this stage, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "months": 33,
        "anchor": "2023-12-06"
@@ -5749,6 +6604,8 @@
       "severity": "MONITOR",
       "message": "About 7.1 months of cash left \u2014 enough to reach a raise, worth watching.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "runway_months_aged": 7.12
       }
@@ -5858,6 +6715,22 @@
       "severity": "REVIEW",
       "message": "Revenue is shrinking -30% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
       "action": "Confirm the mark survives a 30% revenue decline.",
+      "points": [
+       "Revenue is **shrinking -30%** year on year.",
+       "The mark comes from a round **priced on growth that is no longer happening**.",
+       "The **thesis behind the price is materially broken**."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "The last round is still the latest priced transaction.",
+         "The decline is recorded and will price into the next round."
+        ],
+        "booked": 1.7
+       }
+      ],
       "evidence": {
        "arr_growth": -0.3
       }
@@ -5868,6 +6741,8 @@
       "severity": "MONITOR",
       "message": "Carried at 32\u00d7 revenue (sector comp 11.3\u00d7), growing -30%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 32.29,
        "threshold": 30.0
@@ -5929,6 +6804,8 @@
       "severity": "MONITOR",
       "message": "Carried at 35\u00d7 revenue (sector comp 9.2\u00d7), growing +62%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 35.47,
        "threshold": 30.0
@@ -6088,6 +6965,22 @@
       "severity": "REVIEW",
       "message": "The mark rests on a round that closed 56 months ago, on 2022-01-03. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
       "action": "Decide whether a price set 56 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **56 months old** (2022-01-03).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 2.1
+       }
+      ],
       "evidence": {
        "months": 56,
        "anchor": "2022-01-03"
@@ -6198,6 +7091,8 @@
       "severity": "MONITOR",
       "message": "Carried at 46\u00d7 revenue (sector comp 10.6\u00d7), growing +199%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
       "action": "",
+      "points": [],
+      "suggestions": [],
       "evidence": {
        "implied_multiple": 45.5,
        "threshold": 30.0
@@ -6381,8 +7276,8 @@
    "exited_at_prior_mark": 18.2,
    "dispositions": {
     "BLOCK": 7,
-    "REVIEW": 15,
-    "MONITOR": 44,
+    "REVIEW": 20,
+    "MONITOR": 39,
     "CLEAR": 34
    },
    "level1_positions": 1,

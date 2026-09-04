@@ -50,9 +50,14 @@ export interface BridgeBar {
   note: string;
   delta: number;
   count: number;
+  /** "realized" for cash-back bars (exits, distributions); otherwise the sign of the delta. */
+  kind?: "up" | "down" | "realized";
   running_total: number;
   companies: { company: string; delta: number }[];
 }
+
+/** Coarse movement category: realized exits are kept apart from write-downs. */
+export type DriverKind = "round_up" | "round_down" | "realized" | "written_off" | "other";
 
 export interface CompanyRow {
   company: string;
@@ -72,6 +77,19 @@ export interface CompanyRow {
   ownership: number;
   disposition: Disposition;
   overridden: boolean;
+  /** Bridge driver key (see exec_view.DRIVERS), null when nothing moved the mark. */
+  driver?: string | null;
+  driver_kind?: DriverKind;
+  /** e.g. "Realized $28.2M", "New round up", "Written off". */
+  driver_label?: string;
+}
+
+/** One resolution the engine can put a number on; accepting it books `booked`. */
+export interface Suggestion {
+  key: string;
+  label: string;
+  reasons: string[];
+  booked: number;
 }
 
 export interface Action {
@@ -79,6 +97,9 @@ export interface Action {
   severity: Severity;
   action: string;
   message: string;
+  /** The reasoning in two or three scannable lines; `**bold**` marks the decisive words. */
+  points?: string[];
+  suggestions?: Suggestion[];
 }
 
 export interface Decision extends CompanyRow {
@@ -137,7 +158,9 @@ export interface ExecView {
   meta: Meta;
   headline: Headline;
   bridge: BridgeBar[];
-  movers: { up: CompanyRow[]; down: CompanyRow[] };
+  movers: { up: CompanyRow[]; down: CompanyRow[]; realized?: CompanyRow[] };
+  /** Every position in the run: the full proposed-marks schedule (fund, then |Δ| desc). */
+  marks?: CompanyRow[];
   funds: Fund[];
   composition: { by_sector: CompositionSlice[]; by_stage: CompositionSlice[]; by_fund: CompositionSlice[] };
   hierarchy: Record<string, { count: number; nav: number }>;

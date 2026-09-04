@@ -10,7 +10,7 @@ from ..config import RuleConfig
 from .inputs import Event, EventType
 from .marking import months_between
 from .models import Disposition, Flag, MarketData, Severity
-from .state import Working
+from .state import Suggest, Working
 
 
 def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
@@ -29,6 +29,13 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
                    f"The mark rests on a round that closed {age} months ago, on {w.staleness_anchor.isoformat()}. Companies at this "
                    "stage normally reprice every 18–24 months, so this valuation predates two funding cycles and probably the "
                    "business it describes.",
+                   points=(f"The mark rests on a round **{age} months old** ({w.staleness_anchor.isoformat()}).",
+                           "Companies at this stage normally **reprice every 18–24 months**.",
+                           "This price **predates two funding cycles** — and probably the business it describes."),
+                   suggestions=(
+                       Suggest("as_proposed", "Keep the mark as proposed.", ("No transaction or metric in the file says the value moved.", "Staleness alone is not evidence of a decline."), "proposed"),
+                       Suggest("calibrate", "Calibrate the mark to public comps.", ("Comps have repriced since the round; the calibration is already computed (M-080).", "Keeps a stale Level 3 mark tied to something observable."), "alternative", value="calibrated_to_comps"),
+                   ),
                    action=f"Decide whether a price set {age} months ago is still fair value.",
                    months=age, anchor=w.staleness_anchor)
         elif age > x.staleness.monitor_months:
@@ -43,6 +50,13 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
             w.flag("X-302", "growth", Severity.REVIEW,
                    f"Revenue is shrinking {g:+.0%} year on year. The mark comes from a round priced on growth that is no longer "
                    "happening, so the thesis behind it is materially broken.",
+                   points=(f"Revenue is **shrinking {g:+.0%}** year on year.",
+                           "The mark comes from a round **priced on growth that is no longer happening**.",
+                           "The **thesis behind the price is materially broken**."),
+                   suggestions=(
+                       Suggest("as_proposed", "Keep the mark as proposed.", ("The last round is still the latest priced transaction.", "The decline is recorded and will price into the next round."), "proposed"),
+                       Suggest("to_cost", "Mark down to invested cost pending the next round.", ("A round priced on growth does not hold when revenue shrinks.", "Cost is a defensible floor until a new price exists."), "cost"),
+                   ),
                    action=f"Confirm the mark survives a {abs(g):.0%} revenue decline.", arr_growth=g)
         elif g < x.arr_growth.monitor_below:
             w.flag("X-301", "growth", Severity.MONITOR, f"Revenue is down {g:+.0%} year on year — mild, but the wrong direction.", arr_growth=g)
@@ -57,6 +71,13 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
                    f"About {aged:.1f} months of cash left (${p.cash:.1f}M against ${p.net_burn:.2f}M a month, aged "
                    f"{cfg.metrics.reporting_lag_months} month for the reporting lag). The company has to raise before the next "
                    "close, and the round that saves it may well be priced below this mark.",
+                   points=(f"About **{aged:.1f} months of cash** left (${p.cash:.1f}M against ${p.net_burn:.2f}M a month).",
+                           f"Aged {cfg.metrics.reporting_lag_months} month for the reporting lag — the company **must raise before the next close**.",
+                           "The round that saves it **may be priced below this mark**."),
+                   suggestions=(
+                       Suggest("as_proposed", "Keep the mark as proposed.", ("Cash on hand does not change the last-round price.", "The runway is tracked; the next round will reprice it."), "proposed"),
+                       Suggest("to_cost", "Mark down to invested cost pending the raise.", ("A rescue round before the next close is likely to be priced down.", "Cost is a defensible floor when a company must raise to survive."), "cost"),
+                   ),
                    action=f"Confirm the mark reflects a company with {aged:.1f} months of cash.",
                    runway_months_aged=round(aged, 2))
         elif aged < x.runway.monitor_below_mo:
@@ -102,6 +123,44 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
                    f"Carrying a {moic:.1f}× return on a price set {age} months ago — a large unrealised gain resting on an old mark.",
                    moic=round(moic, 2), months=age)
 
+    # ---- X-405 mark no longer squares with performance: an old price AND a live screen against it.
+    # Each half is MONITOR on its own (staleness is not evidence of a move; a screen is not a
+    # valuation). Together they are the case the policy exists for: a reviewer could change
+    # this number, so it is REVIEW.
+    if x.performance_gap.enabled and not w.listed:
+        ids = {f.rule_id for f in w.flags}
+        age = months_between(w.staleness_anchor, md)
+        screens = {
+            "X-401": "carried above the multiple screen", "X-402": "carried below the multiple screen",
+            "X-404": "an outsized unrealised gain", "X-301": "revenue now shrinking",
+        }
+        hits = [screens[k] for k in ("X-401", "X-402", "X-404", "X-301") if k in ids]
+        if age > x.staleness.monitor_months and hits and not (ids & {"X-302", "X-202"}):
+            # (X-302 / X-202 already put the position in REVIEW on their own; no double count)
+            mult_txt = f"{w.latest_post / p.arr:.0f}× revenue" if p.arr else "an unscreenable multiple"
+            w.flag("X-405", "valuation", Severity.REVIEW,
+                   f"The price behind this mark is {age} months old, and the current numbers disagree with it: "
+                   f"{'; '.join(hits)} ({mult_txt}"
+                   + (f", growing {g:+.0%}" if g is not None else "") + "). Neither fact alone would move the "
+                   "mark — an old price is not a wrong price, and a screen is not a valuation — but an old price "
+                   "that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+                   points=(f"Price is **{age} months old** — and today's numbers **argue with it**.",
+                           f"Screen: **{'; '.join(hits)}** ({mult_txt}" + (f", growing {g:+.0%}" if g is not None else "") + ").",
+                           "Two independent signals point the same way: **affirm or reprice**."),
+                   suggestions=(
+                       Suggest("as_proposed", "Affirm the last-round mark as proposed.",
+                               ("No transaction has repriced the company; the round is still the last real price.",
+                                "The screen is a cross-check, not a valuation."), "proposed"),
+                       Suggest("calibrate", "Calibrate the mark to public comps.",
+                               ("Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+                                "Uses the M-080 calibration the engine already computed."), "alternative", value="calibrated_to_comps"),
+                       Suggest("to_cost", "Mark down to invested cost pending a new price.",
+                               ("A defensible floor when the last price no longer describes the business.",
+                                "Reverses at the next priced round."), "cost"),
+                   ),
+                   action="Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+                   months=age, screens=[k for k in ("X-401", "X-402", "X-404", "X-301") if k in ids])
+
 
 # A lock-up is the expected consequence of a listing, and M-040 already carries it as an open
 # item; on any other event the word means a restriction the schema does not hold.
@@ -122,6 +181,12 @@ def screen_notes(w: Working, events: list[Event], cfg: RuleConfig) -> None:
             w.flag("X-105", "treatment", Severity.REVIEW,
                    f"The note on this row mentions {', '.join(hits)} — terms the columns cannot represent, so no rule has taken "
                    f"account of them: \"{e.notes or e.detail}\"",
+                   points=(f"The row note mentions **{', '.join(hits)}** — terms the columns cannot represent.",
+                           "**No rule has taken account of them**; the mark ignores the terms entirely.",
+                           f"The note has to be read: \"{(e.notes or e.detail)[:120]}\""),
+                   suggestions=(
+                       Suggest("as_proposed", "Book as proposed; reflect the note's terms by override once read.", ("The engine applied every term the columns can hold.", "Unrepresented terms need a human number, not a guess."), "proposed"),
+                   ),
                    action="Read the note on the activity row; it describes a treatment the schema cannot hold.",
                    terms=hits, row_index=e.row_index)
 

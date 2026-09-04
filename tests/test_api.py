@@ -108,3 +108,48 @@ def test_decision_route_is_501_until_promote_exists(client: TestClient):
 def test_rerun(client: TestClient):
     r = client.post("/api/rerun")
     assert r.status_code == 200 and r.json()["booked_nav"] == pytest.approx(1183.9, abs=0.05)
+
+
+def test_signals_route_lines_vendor_metrics_up_against_the_workbook(client: TestClient):
+    """The Foresight / AlphaSense slots: context beside a position, never a mark input."""
+    s = client.get("/api/signals").json()
+    assert set(s) >= {"as_of", "since", "providers", "note", "companies"}
+    assert s["providers"]["metrics"]["live"] is False and "Foresight" in s["providers"]["metrics"]["name"]
+    assert s["providers"]["news"]["protocol"].endswith("NewsSignalProvider")
+    fern = s["companies"]["Fernwave"]["metrics"]
+    rows = {r["key"]: r for r in fern["rows"]}
+    assert rows["arr"]["vendor"] == 81.4 and rows["arr"]["workbook"] == pytest.approx(80.1)
+    assert rows["arr"]["material"] is False and rows["cash"]["material"] is True   # 210 vs 66.1: a restatement to look at
+    assert fern["extra"] == {"netRevenueRetention": 1.24}
+    gry = s["companies"]["Gryphonel"]["news"]
+    assert gry and gry[0]["published_at"].startswith("2026-") and gry[0]["topics"]
+    # a company neither feed covers is simply absent, not an empty shell
+    assert "Aravine" not in s["companies"]
+    # and nothing about the run changed because a vendor said so
+    run = client.get("/api/run").json()
+    assert next(c for c in run["companies"] if c["company"] == "Fernwave")["arr"] == pytest.approx(80.1)
+
+
+def test_watch_mode_recomputes_when_an_input_changes(paths: RunPaths, tmp_path: Path):
+    """`hc-valuation run --watch`: a ledger written while serving becomes a new run id."""
+    import time
+
+    from hc_valuation.api.app import watch_inputs
+
+    app = create_app(paths, static_dir=tmp_path / "no-static")
+    client = TestClient(app)
+    before = client.get("/api/health").json()["generated_at"]   # the id is input|policy|engine; the stamp moves
+    seen: list[str] = []
+    watch_inputs(app, interval_s=0.2, log=seen.append)
+    time.sleep(0.5)
+    paths.overrides.write_text(yaml.safe_dump({"overrides": [{
+        "company": "Aravine", "quarter": "Q3 2026", "proposed": 13.878, "booked": 12.0,
+        "reason": "watch test", "approver": "T", "created_at": "2026-09-04", "rule_ids_addressed": [],
+    }]}))
+    deadline = time.time() + 5
+    while time.time() < deadline and not seen:
+        time.sleep(0.1)
+    assert seen and "recomputed run" in seen[0]
+    after = client.get("/api/health").json()["generated_at"]
+    assert after != before
+    assert client.get("/api/companies/Aravine").json()["booked_mark"] == pytest.approx(12.0)

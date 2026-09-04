@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from ..config import RuleConfig
 from .models import OpenItem, OpenItemKind, Severity
-from .state import Working
+from .state import Suggest, Working
 
 
 def _threshold(kind: OpenItemKind, cfg: RuleConfig) -> int | None:
@@ -42,6 +42,12 @@ def carry_prior_items(w: Working, prior: list[OpenItem], cfg: RuleConfig, resolv
             w.flag("E-07", "treatment", Severity.REVIEW,
                    f"A {item.kind.value.replace('_', ' ')} opened {item.opened.isoformat()} is still unresolved {age} quarter(s) "
                    f"later ({item.detail}). Something pending this long is a different fact from something signed last month.",
+                   points=(f"A {item.kind.value.replace('_', ' ')} opened {item.opened.isoformat()} is **still unresolved**.",
+                           f"It has been open **{age} quarter(s)** ({item.detail}).",
+                           "Something pending this long is a **different fact** from something signed last month."),
+                   suggestions=(
+                       Suggest("as_proposed", "Keep the mark as proposed and chase the item.", ("The delay alone does not change the price basis.", "The item keeps ageing and escalating until it resolves."), "proposed"),
+                   ),
                    action=f"Chase the {item.kind.value.replace('_', ' ')}, or reflect the delay in the mark.",
                    kind=item.kind.value, age_quarters=age, opened=item.opened)
 

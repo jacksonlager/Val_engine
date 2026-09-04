@@ -54,6 +54,8 @@ exceptions:
     min_arr: 0.5
   moic:
     monitor_above: 5.0
+  performance_gap:
+    enabled: true                    # X-405: stale price + a live performance screen against it -> REVIEW
   escalation:
     review_rules_to_block: 2         # distinct REVIEW families needed to escalate to BLOCK
 

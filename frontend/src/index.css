@@ -87,6 +87,8 @@
 html, body, #root { height: 100%; }
 body {
   margin: 0;
+  /* wide grids scroll inside their own wrapper; the page itself never scrolls sideways */
+  overflow-x: hidden;
   background: var(--ground);
   color: var(--ink);
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -116,7 +118,26 @@ body {
 .chip::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--c); flex: none; }
 .chip.no-dot::before { display: none; }
 
+/* BLOCK reached by compounding REVIEW findings rather than by a single BLOCK rule */
+.chip.escalated { background: transparent; border: 1px dashed var(--c); padding-top: 0; padding-bottom: 0; font-weight: 500; }
+
 .stripe { box-shadow: inset 3px 0 0 var(--c); }
+
+/* ---- top bar ---------------------------------------------------------------- */
+/* the disposition filter: full labels on a wide screen, dot + count once the bar gets tight */
+.dfilter { display: flex; gap: 4px; }
+.dfilter .btn { padding-left: 8px; padding-right: 8px; }
+.dfilter-dot { display: none; width: 7px; height: 7px; border-radius: 999px; background: var(--c); flex: none; }
+@media (max-width: 1100px) {
+  .dfilter .dfilter-label { display: none; }
+  .dfilter-dot { display: inline-block; }
+  .dfilter .btn { padding-left: 7px; padding-right: 7px; }
+}
+/* a static export: one quiet line under the bar saying what this page cannot do */
+.static-banner {
+  padding: 4px 16px; font-size: 11.5px; color: var(--review-text);
+  background: var(--review-wash); border-bottom: 1px solid color-mix(in srgb, var(--review) 30%, var(--hairline));
+}
 
 /* ---- queue card: the reviewer's to-do list -------------------------------- */
 /* The disposition wash carries the severity; the eyebrow names what the panel is
@@ -128,14 +149,100 @@ body {
 .actions {
   background: var(--cw);
   border-radius: 6px;
-  padding: 9px 11px 10px;
-  /* the block ends near its text rather than bleeding across an empty card */
-  max-width: min(100%, 820px);
+  padding: 8px 11px 9px;
+}
+
+/* ---- queue card header: name, then the numbers right beside it ------------- */
+.qhead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; }
+.qwho { min-width: 180px; }
+.qmarks { display: flex; align-items: flex-end; gap: 10px; margin: 0; }
+.qmarks > div { display: flex; flex-direction: column; }
+.qmarks dt { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.qmarks dd { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.qmarks dd.overridden { text-decoration: underline dotted; text-underline-offset: 3px; }
+.qarrow { color: var(--muted); font-size: 14px; padding-bottom: 2px; }
+.qdelta { margin-left: 6px; padding-left: 12px; border-left: 1px solid var(--hairline); }
+.qdelta dd { font-size: 15px; }
+.qunit { font-size: 10px; color: var(--muted); padding-bottom: 3px; }
+
+/* ---- expanded company: decision strip + position facts ---------------------- */
+.dstrip {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px;
+  padding: 8px 12px; border-radius: 6px; background: var(--cw); border-left: 3px solid var(--c);
+}
+.dstrip-disp { display: flex; align-items: center; gap: 8px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px; margin: 4px 0 10px; }
+.fact-k { font-size: 10.5px; color: var(--muted); line-height: 1.2; }
+.fact-v { font-size: 13px; line-height: 1.3; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸ "; font-size: 10px; }
+details[open] > summary::before { content: "▾ "; }
+
+/* ---- vendor signals: vendor vs workbook, gaps highlighted ------------------- */
+.signals-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.signals-tbl th { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 2px 6px; }
+.signals-tbl td { padding: 2px 6px; border-top: 1px solid var(--hairline); }
+.signals-tbl tr.material td { background: color-mix(in srgb, var(--review) 10%, transparent); }
+
+/* ---- one flag = why (left) + what to do about it (right) ------------------- */
+.flag-list { margin: 0; padding: 0; list-style: none; }
+.flag-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px 18px; }
+.flag-row + .flag-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid color-mix(in srgb, var(--c) 18%, transparent); }
+@media (min-width: 980px) { .flag-row { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); } }
+.flag-why { min-width: 0; }
+.flag-do { min-width: 0; }
+.eyebrow-sm {
+  font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 4px;
+}
+/* the suggestion menu: each card is one button */
+.suggest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 6px; }
+.suggest-grid > span { display: block; min-width: 0; }
+.suggest {
+  display: flex; flex-direction: column; gap: 3px; width: 100%; height: 100%;
+  text-align: left; padding: 7px 9px 6px; border-radius: 6px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border); color: var(--ink);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.suggest:hover:not(:disabled) { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent); }
+.suggest:disabled { opacity: 0.55; cursor: not-allowed; color: var(--ink-2); border-style: dashed; }
+.suggest.current { border-color: var(--clear); }
+.suggest-label { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
+.suggest-why { margin: 0; padding: 0 0 0 11px; list-style: none; }
+.suggest-why > li { position: relative; font-size: 11px; line-height: 1.35; color: var(--ink-2); }
+.suggest-why > li::before {
+  content: ""; position: absolute; left: -9px; top: 0.55em;
+  width: 3px; height: 3px; border-radius: 50%; background: var(--muted);
+}
+.suggest-foot {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  margin-top: auto; padding-top: 4px; border-top: 1px solid var(--hairline); font-size: 12px;
+}
+.suggest-cta { font-size: 11px; font-weight: 600; color: var(--accent); }
+.suggest.current .suggest-cta { color: var(--clear-text, var(--clear)); }
+/* a read-only export cannot take a decision: the call to action loses its accent */
+.suggest:disabled .suggest-cta { color: var(--muted); }
+.decided {
+  padding: 7px 9px; border-radius: 6px; background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--clear) 45%, var(--border));
 }
 .eyebrow {
   font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--ct);
 }
+/* the two or three lines under an action: scannable, tight, never a paragraph */
+.flag-points { margin: 0; padding: 0; list-style: none; }
+.flag-points > li {
+  position: relative; padding-left: 13px;
+  font-size: 12.5px; line-height: 1.45; color: var(--ink-2);
+}
+.flag-points > li + li { margin-top: 3px; }
+.flag-points > li::before {
+  content: ""; position: absolute; left: 3px; top: 0.62em;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--c, var(--muted)); opacity: 0.65;
+}
+.flag-points strong { font-weight: 600; color: var(--ink); }
+
 /* rule id beside an action: traceability, not decoration — quiet, never a severity blob */
 .rule-tag {
   display: inline-flex; align-items: center;
@@ -198,6 +305,8 @@ body {
 /* a disabled link cannot be :disabled; the wrapper span carries the tooltip */
 a.btn[aria-disabled="true"] { pointer-events: none; }
 .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+/* disabled primary (Publish in a static export): no accent, so it does not read as live */
+.btn-primary:disabled { background: var(--hairline); color: var(--muted); border-color: var(--border); opacity: 1; }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
 .btn-ghost:hover:not(:disabled) { background: var(--hairline); border-color: transparent; }
 .btn-danger { color: var(--block-text); }
@@ -210,7 +319,25 @@ a.btn[aria-disabled="true"] { pointer-events: none; }
   outline: 2px solid var(--accent); outline-offset: 1px;
 }
 
+/* ---- wide-grid wrapper: scrolls sideways with a scrollbar that is always visible ---- */
+.dtable-wrap {
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.dtable-wrap::-webkit-scrollbar { height: 6px; width: 6px; }
+.dtable-wrap::-webkit-scrollbar-track { background: transparent; }
+.dtable-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.dtable-wrap::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
 table.dtable { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+/* the twenty-column company grid: tighter cells so Disposition and Flags fit at 1440 */
+table.dtable.compact th { padding: 5px 8px; letter-spacing: 0.02em; }
+table.dtable.compact td { padding: 4px 8px; }
+/* the least important columns give way first on a narrower screen; each is still in the audit chain */
+@media (max-width: 1499px) { table.dtable .hide-lt-1500 { display: none; } }
+@media (max-width: 1299px) { table.dtable .hide-lt-1300 { display: none; } }
 table.dtable th {
   position: sticky; top: 0; z-index: 2;
   background: var(--surface); color: var(--ink-2);

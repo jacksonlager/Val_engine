@@ -267,11 +267,13 @@ run/build --refresh-market` forces a refetch; those commands take the price sour
 
 ## 5. Replacing it with PitchBook (or anything else)
 
-A vendor connector is one class implementing `CompsProvider` (`base.py`) and one branch in
-`assemble_market_data`. `StubCompsProvider` already parses the PitchBook-shaped payload
+A vendor connector is one class implementing `CompsProvider` (`base.py`) and one
+`register_comps_provider(name, factory)` call in `connectors/__init__.py` — providers are a
+registry of factories keyed by name, and `assemble_market_data` looks the name up rather
+than branching on it. `StubCompsProvider` already parses the PitchBook-shaped payload
 in `data/mock_responses/pitchbook/comps_software.json`; a real client only has to fetch
-that shape with credentials and hand it to the same parser. Provider names are
-`stub | live | pitchbook` (the last raising a clear "not configured" until keys exist).
+that shape with credentials and hand it to the same parser. Registered names are
+`stub | live | pitchbook` (the last answering with a clear "not configured" until keys exist).
 The report (§3) is provider-agnostic: `constituents[]` may be empty and `source` says
 who answered. The engine, the policy file, the golden test and the review tool do not
 change.

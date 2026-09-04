@@ -69,6 +69,48 @@ def test_executives_see_booked_marks_and_actions_only(result):
     assert v["hierarchy"]["level1"]["count"] == 1
 
 
+def test_marks_schedule_lists_every_position(result):
+    v = build_exec_view(result.run, {})
+    marks = v["marks"]
+    assert len(marks) == len(result.run.companies) == 100
+    assert {m["company"] for m in marks} == {c.company for c in result.run.companies}
+    assert sum(m["booked"] for m in marks) == pytest.approx(v["headline"]["booked_nav"], abs=0.05)
+    # default order: fund, then size of movement
+    for a, b in zip(marks, marks[1:]):
+        assert (a["fund"], -abs(a["delta"])) <= (b["fund"], -abs(b["delta"]))
+    for key in ("company", "fund", "sector", "stage", "status", "fv_level", "prior", "proposed", "booked",
+                "delta", "delta_pct", "disposition", "driver_kind", "driver_label"):
+        assert key in marks[0]
+
+
+def test_realized_exits_are_not_mark_downs(result):
+    v = build_exec_view(result.run, {})
+    realized = v["movers"]["realized"]
+    assert [r["company"] for r in realized] == ["Cindral"]
+    assert realized[0]["driver_kind"] == "realized" and realized[0]["driver_label"] == "Realized $28.2M"
+    assert "Cindral" not in {r["company"] for r in v["movers"]["down"]}
+    downs = {r["company"]: r["driver_kind"] for r in v["movers"]["down"]}
+    assert downs["Larkspell"] == "written_off" and downs["Oakenvale"] == "round_down"
+    assert all(r["driver_kind"] == "round_up" for r in v["movers"]["up"] if r["driver"] == "rounds_up")
+    by = {b["key"]: b for b in v["bridge"]}
+    assert by["exits"]["kind"] == "realized" and by["writeoffs"]["kind"] == "down"
+
+
+def test_status_follows_the_publish_record(result):
+    assert build_exec_view(result.run, {})["meta"]["status"] == "proposed"
+    assert build_exec_view(result.run, {"status": "final"})["meta"]["status"] == "final"
+
+
+def test_decision_actions_carry_suggestions(result):
+    v = build_exec_view(result.run, {})
+    actions = [a for d in v["decisions"] for a in d["actions"]]
+    assert all("suggestions" in a and "points" in a for a in actions)
+    with_suggestions = [a for a in actions if a["suggestions"]]
+    assert with_suggestions, "at least one blocked flag should offer a numbered resolution"
+    for sg in with_suggestions[0]["suggestions"]:
+        assert set(sg) == {"key", "label", "reasons", "booked"} and isinstance(sg["booked"], float)
+
+
 def test_composition_shares_sum_to_one(result):
     v = build_exec_view(result.run, {})
     for key in ("by_sector", "by_stage", "by_fund"):

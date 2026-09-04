@@ -6,12 +6,14 @@ export function Headline({ view }: { view: ExecView }) {
   const h = view.headline;
   const d = h.dispositions;
   const dir = dirClass(h.net_movement);
+  // "Booked" is reserved for a final release; a proposed release shows the proposal the committee is being asked to book.
+  const navLabel = view.meta.status === "final" ? "Booked NAV" : "Proposed NAV";
 
   return (
     <section id="headline" className="pb-12">
       <div className="grid grid-cols-6 gap-3 max-[1180px]:grid-cols-3">
         <Tile
-          label={`Booked NAV · ${shortDate(view.meta.measurement_date)}`}
+          label={`${navLabel} · ${shortDate(view.meta.measurement_date)}`}
           value={money(h.booked_nav, 1)}
           delta={
             <span className={`num font-semibold ${dir}`}>

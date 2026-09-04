@@ -10,6 +10,7 @@ import { Composition } from "./sections/Composition";
 import { Risk } from "./sections/Risk";
 import { Sensitivity } from "./sections/Sensitivity";
 import { Activity } from "./sections/Activity";
+import { Marks } from "./sections/Marks";
 import { Footer } from "./sections/Footer";
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -70,6 +71,7 @@ export default function App() {
         <Risk view={view} />
         <Sensitivity view={view} />
         <Activity view={view} />
+        <Marks view={view} />
         <Footer view={view} />
       </Shell>
     </>

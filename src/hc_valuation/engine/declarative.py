@@ -11,7 +11,7 @@ from . import dsl
 from .inputs import Event
 from .models import MarketData, Severity
 from .registry import Registry, RuleMeta
-from .state import Working
+from .state import Suggest, Working
 
 
 def _values(w: Working, e: Event, cfg: RuleConfig) -> dict[str, float | None]:
@@ -48,6 +48,12 @@ def register_custom_rules(registry: Registry, cfg: RuleConfig) -> None:
                 w.flag(_spec.rule_id, "treatment", Severity.BLOCK,
                        f"Rule {_spec.rule_id} ({_spec.formula}) could not be evaluated on row {e.row_index}: {ex}. The mark is "
                        "unchanged; nothing from this row — proceeds, ownership, cost — has been booked.",
+                       points=(f"Rule {_spec.rule_id} **could not be evaluated** on row {e.row_index}: {ex}.",
+                               f"Formula: {_spec.formula}.",
+                               "The mark is **unchanged** — **nothing from this row** (proceeds, ownership, cost) was booked."),
+                       suggestions=(
+                           Suggest("hold_prior", "Hold the prior mark; correct the row and rerun.", ("A formula that cannot produce a number must not book one.", "Rerunning after the fix clears this without an override."), "prior"),
+                       ),
                        action=f"Correct row {e.row_index} so that {_spec.rule_id}'s formula has every input it needs, and rerun.",
                        formula=_spec.formula, error=str(ex), row_index=e.row_index)
                 return
@@ -62,6 +68,14 @@ def register_custom_rules(registry: Registry, cfg: RuleConfig) -> None:
                    f"with effect from {_spec.effective_from.isoformat()}: {_spec.rationale}",
                    action=("" if sev is Severity.MONITOR else
                            f"Confirm {_spec.rule_id} is still the right treatment for a {_spec.event_type}."),
+                   points=(() if sev is Severity.MONITOR else
+                           (f"Marked by **{_spec.rule_id}**, a rule **promoted from an earlier adjudication**.",
+                            f"Approved by **{_spec.approver}**, effective {_spec.effective_from.isoformat()}.",
+                            f"Rationale: {_spec.rationale}")),
+                   suggestions=(() if sev is Severity.MONITOR else
+                                (Suggest("as_proposed", f"Book as {_spec.rule_id} proposes.",
+                                         (f"The rule was approved by {_spec.approver} as precedent for this event.",
+                                          "Confirming it here records that the precedent still holds."), "proposed"),)),
                    formula=_spec.formula, approver=_spec.approver)
             w.equity_mark = new_equity
             if e.ownership_after is not None:

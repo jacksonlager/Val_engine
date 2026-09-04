@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Disposition, Sources, ValuationRun } from "./types";
-import { DISPOSITIONS } from "./types";
-import { loadHistory, loadRun, STATIC_REASON, type Mode } from "./lib/api";
+import { DISPOSITION_HINT, DISPOSITIONS } from "./types";
+import { currentRunStamp, loadHistory, loadRun, loadSignals, STATIC_REASON, type Mode } from "./lib/api";
 import { HistoryProvider, type HistoryState } from "./lib/history";
 import { SourcesProvider } from "./lib/sources";
 import { isoDateTime, shortSha } from "./lib/format";
@@ -48,9 +48,8 @@ export default function App() {
       ({ run, mode, sources }) => {
         setState({ run, mode, sources });
         setReloads((n) => n + 1);
-        loadHistory(mode).then(
-          (data) => setHistory({ data }),
-          (e) => setHistory({ error: String(e?.message ?? e) }),
+        Promise.all([loadHistory(mode).then((data) => ({ data }), (e) => ({ error: String(e?.message ?? e) })), loadSignals(mode)]).then(
+          ([h, signals]) => setHistory({ ...h, signals }),
         );
       },
       (e) => setState((s) => ({ ...s, error: String(e?.message ?? e), stale: false })),
@@ -58,6 +57,17 @@ export default function App() {
   }, []);
 
   useEffect(reload, [reload]);
+  // Self-refreshing page: `hc-valuation run --watch` recomputes when the workbook, policy or a
+  // ledger changes; the page notices the new run id and reloads itself. Served mode only.
+  useEffect(() => {
+    if (state.mode !== "served" || !state.run) return;
+    const mine = `${state.run.manifest.run_id}@${state.run.manifest.generated_at}`;
+    const t = window.setInterval(async () => {
+      const stamp = await currentRunStamp();
+      if (stamp && stamp !== mine) reload();
+    }, 5000);
+    return () => window.clearInterval(t);
+  }, [state.mode, state.run, reload]);
   useEffect(() => {
     const on = () => setView(viewFromHash());
     window.addEventListener("hashchange", on);
@@ -98,26 +108,15 @@ export default function App() {
     <div className={`min-h-full flex flex-col ${state.stale ? "opacity-70 transition-opacity" : ""}`}>
       <header className="sticky top-0 z-30 bg-surface border-b border-line">
         <div className="px-4 py-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-[15px] tracking-tight">Valuation review</span>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 min-w-0">
+            <span className="font-semibold text-[15px] tracking-tight">Quarterly portfolio valuation engine</span>
             <span className="text-[13px] font-medium">{m.quarter_label}</span>
             <span className="text-[11px] text-muted mono">policy {m.policy_version}</span>
             <span className="text-[11px] text-muted mono" title={`input sha256 ${m.input_sha256}`}>
               run {m.run_id}
             </span>
-            <a
-              href="#market"
-              className="text-[11px] text-muted mono hover:underline hover:text-ink2"
-              title="Where the sector comps came from — open the Market view"
-              onClick={(e) => {
-                e.preventDefault();
-                go("market");
-              }}
-            >
-              market {m.market_data_source}
-            </a>
           </div>
-          <nav className="flex gap-1 ml-2" aria-label="Views">
+          <nav className="flex flex-wrap gap-1 ml-2" aria-label="Views">
             {VIEWS.map((v) => (
               <button
                 key={v.id}
@@ -132,9 +131,10 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-2">
+          {/* the right-hand cluster wraps onto its own line on a narrow screen rather than pushing the page wider */}
+          <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
             <label className="text-[11px] text-muted">Disposition</label>
-            <div className="flex gap-1" role="group" aria-label="Disposition filter">
+            <div className="dfilter" role="group" aria-label="Disposition filter">
               <button className={`btn ${filter === "ALL" ? "btn-primary" : ""}`} onClick={() => setFilter("ALL")}>
                 All
               </button>
@@ -142,11 +142,14 @@ export default function App() {
                 <button
                   key={d}
                   className={`btn disp-${d} ${filter === d ? "" : "btn-ghost"}`}
+                  title={`${d} · ${DISPOSITION_HINT[d]}`}
+                  aria-label={`${d} (${run.totals.dispositions[d] ?? 0})`}
                   style={filter === d ? { background: "var(--cw)", borderColor: "var(--c)", color: "var(--ct)" } : undefined}
                   onClick={() => setFilter(filter === d ? "ALL" : d)}
                   aria-pressed={filter === d}
                 >
-                  {d}
+                  <span className="dfilter-dot" aria-hidden />
+                  <span className="dfilter-label">{d}</span>
                   <span className="mono text-[10px] opacity-80">{run.totals.dispositions[d] ?? 0}</span>
                 </button>
               ))}
@@ -161,6 +164,12 @@ export default function App() {
             </span>
           </div>
         </div>
+        {mode === "static" && (
+          <div className="static-banner" role="note">
+            Read-only export — decisions (suggestions, overrides, publish) need the served app: run{" "}
+            <span className="mono">hc-valuation run</span>.
+          </div>
+        )}
       </header>
 
       <main className="flex-1 px-4 py-4 max-w-[1600px] w-full mx-auto">

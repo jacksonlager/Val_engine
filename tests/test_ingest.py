@@ -10,7 +10,7 @@ from pathlib import Path
 import openpyxl
 import pytest
 
-from conftest import event, make_workbook, position
+from conftest import next_quarter_cfg, event, make_workbook, position
 from hc_valuation.engine.inputs import EventType, Status
 from hc_valuation.ingest.reader import IngestError, read_workbook
 from hc_valuation.ingest.validate import validate
@@ -479,7 +479,9 @@ def test_zero_portfolio_rows_is_an_ingest_error(tmp_path, cfg):
 ])
 def test_relaxed_activity_sheet_names_load_with_x919(tmp_path, cfg, sheet, label):
     path = make_workbook(tmp_path, [position()], [event(value=150.0, ownership_after=0.1)], activity_sheet=sheet)
-    _, feed, issues = _issues(path, cfg)
+    # a sheet that names a later quarter is read under that quarter's policy (X-922 refuses the mismatch)
+    use = cfg if label == cfg.quarter.label else next_quarter_cfg(cfg)
+    _, feed, issues = _issues(path, use)
     assert feed.sheet_name == sheet and feed.quarter_label == label and len(feed.events) == 1
     x919 = _by_rule(issues, "X-919")
     assert len(x919) == 1 and not x919[0].blocking and sheet in x919[0].message

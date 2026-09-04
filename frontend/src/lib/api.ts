@@ -2,7 +2,7 @@
 //   served  — the FastAPI app serves this bundle at '/' and exposes /api/*
 //   static  — the run is inlined as window.__HC_RUN__ (hc-valuation build); no API,
 //             so every write action is disabled with an explanation.
-import type { MarkHistory, MarketReport, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun } from "../types";
+import type { MarkHistory, MarketReport, Signals, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun } from "../types";
 
 export type Mode = "served" | "static";
 
@@ -84,6 +84,28 @@ export async function loadHistory(mode: Mode): Promise<MarkHistory> {
     throw new Error(NO_HISTORY_REASON);
   }
   return getJson<MarkHistory>("/api/history");
+}
+
+/** Vendor context beside a position (api/signals.py). Never throws: no feed = no card. */
+export async function loadSignals(mode: Mode): Promise<Signals | undefined> {
+  if (mode === "static" || window.__HC_RUN__) return window.__HC_SIGNALS__;
+  try {
+    return await getJson<Signals>("/api/signals");
+  } catch {
+    return undefined;
+  }
+}
+
+/** Identifies the run the server currently holds — run id plus generation time, because a
+    ledger change re-runs without changing the id — for the self-refreshing page
+    (`hc-valuation run --watch`). */
+export async function currentRunStamp(): Promise<string | null> {
+  try {
+    const h = await getJson<{ run_id: string; generated_at: string }>("/api/health");
+    return h.run_id ? `${h.run_id}@${h.generated_at}` : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function loadProposals(mode: Mode): Promise<TreatmentProposal[]> {

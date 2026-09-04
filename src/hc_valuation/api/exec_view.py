@@ -40,6 +40,14 @@ DRIVERS: list[tuple[str, str, str]] = [
 _DRIVER_LABEL = {k: v for k, v, _ in DRIVERS}
 _DRIVER_NOTE = {k: n for k, _, n in DRIVERS}
 
+# Bridge bars whose "mark-down" is cash coming back rather than value lost. They are drawn
+# in their own hue so a realized exit never reads as a write-down.
+REALIZED_DRIVERS = {"exits", "distributions"}
+
+# The coarse movement categories a mover is presented under. Realized exits are kept apart
+# from write-downs: the mark goes to zero because the cash arrived, not because value was lost.
+MOVER_KINDS = ("round_up", "round_down", "realized", "written_off", "other")
+
 
 def _driver_for(c: CompanyResult) -> str | None:
     """Classify the engine's movement (prior -> proposed) by the rule that produced it."""
@@ -89,13 +97,52 @@ def _pct(delta: float, base: float) -> float | None:
     return _r(delta / base, 4) if base else None
 
 
-def _actions(c: CompanyResult) -> list[dict[str, str]]:
-    return [{"rule_id": f.rule_id, "severity": f.severity.value, "action": f.action, "message": f.message}
+def _mover_kind(c: CompanyResult) -> str:
+    """Coarse category for how a position moved, for the movers lists and the marks schedule.
+
+    A closed acquisition with proceeds is *realized*, never a mark-down: the mark goes to zero
+    because cash came back. Shutdowns are *written_off*. Priced rounds split by direction.
+    """
+    drv = _driver_for(c)
+    if drv == "exits" or (c.status_after == Status.ACQUIRED and c.realized_quarter > 1e-9 and c.booked_mark <= 1e-9):
+        return "realized"
+    if drv == "writeoffs":
+        return "written_off"
+    if drv in ("rounds_up", "rounds_down"):
+        return "round_up" if c.booked_mark >= c.prior_mark else "round_down"
+    return "other"
+
+
+def _mover_label(c: CompanyResult, kind: str) -> str:
+    """Short caption for the movement, e.g. 'Realized $28.2M' or 'New round up'."""
+    if kind == "realized":
+        return f"Realized ${c.realized_quarter:,.1f}M"
+    if kind == "written_off":
+        return "Written off"
+    if kind == "round_up":
+        return "New round up"
+    if kind == "round_down":
+        return "New round down"
+    drv = _driver_for(c)
+    if drv:
+        return _DRIVER_LABEL[drv]
+    return "Committee override" if c.override is not None else "No activity"
+
+
+def _suggestions(f) -> list[dict[str, Any]]:
+    return [{"key": s.key, "label": s.label, "reasons": list(s.reasons), "booked": _r(s.booked)}
+            for s in (getattr(f, "suggestions", ()) or ())]
+
+
+def _actions(c: CompanyResult) -> list[dict[str, Any]]:
+    return [{"rule_id": f.rule_id, "severity": f.severity.value, "action": f.action, "message": f.message,
+             "points": list(getattr(f, "points", ()) or ()), "suggestions": _suggestions(f)}
             for f in c.flags if f.severity != Severity.MONITOR and f.action]
 
 
 def _company_row(c: CompanyResult) -> dict[str, Any]:
     d = c.booked_mark - c.prior_mark
+    kind = _mover_kind(c)
     return {
         "company": c.company, "fund": c.fund, "sector": c.sector, "stage": c.stage,
         "status": c.status_after.value, "fv_level": c.fv_level,
@@ -104,7 +151,17 @@ def _company_row(c: CompanyResult) -> dict[str, Any]:
         "delta": _r(d), "delta_pct": _pct(d, c.prior_mark),
         "realized_quarter": _r(c.realized_quarter), "ownership": _r(c.ownership_after, 4),
         "disposition": c.disposition.value, "overridden": c.override is not None,
+        "driver": _driver_for(c), "driver_kind": kind, "driver_label": _mover_label(c, kind),
     }
+
+
+def _marks_schedule(cs: list[CompanyResult]) -> list[dict[str, Any]]:
+    """Every position in the run, one row each: the full proposed-marks schedule.
+
+    Default order is fund, then size of movement, so each fund's book reads largest change
+    first; the front end may re-sort by any column.
+    """
+    return [_company_row(c) for c in sorted(cs, key=lambda c: (c.fund, -abs(c.booked_mark - c.prior_mark), c.company))]
 
 
 def build_exec_view(run: ValuationRun, publish: dict[str, Any]) -> dict[str, Any]:
@@ -132,6 +189,7 @@ def build_exec_view(run: ValuationRun, publish: dict[str, Any]) -> dict[str, Any
         running += delta
         bridge.append({
             "key": key, "label": label, "note": note, "delta": _r(delta), "count": len(members),
+            "kind": "realized" if key in REALIZED_DRIVERS else ("up" if delta >= 0 else "down"),
             "running_total": _r(running),
             "companies": sorted(({"company": c.company, "delta": _r((c.booked_mark if key == "overrides" else c.proposed_mark)
                                                                     - (c.proposed_mark if key == "overrides" else c.prior_mark))}
@@ -139,9 +197,13 @@ def build_exec_view(run: ValuationRun, publish: dict[str, Any]) -> dict[str, Any
         })
 
     # ---- movers (on booked marks)
+    # Realized exits leave the mark-downs list: cash came back, so they are neither up nor down.
     moved = [c for c in cs if abs(c.booked_mark - c.prior_mark) > 1e-9]
-    ups = sorted((c for c in moved if c.booked_mark > c.prior_mark), key=lambda c: -(c.booked_mark - c.prior_mark))
-    downs = sorted((c for c in moved if c.booked_mark < c.prior_mark), key=lambda c: (c.booked_mark - c.prior_mark))
+    realized = sorted((c for c in moved if _mover_kind(c) == "realized"), key=lambda c: -c.realized_quarter)
+    ups = sorted((c for c in moved if c.booked_mark > c.prior_mark and _mover_kind(c) != "realized"),
+                 key=lambda c: -(c.booked_mark - c.prior_mark))
+    downs = sorted((c for c in moved if c.booked_mark < c.prior_mark and _mover_kind(c) != "realized"),
+                   key=lambda c: (c.booked_mark - c.prior_mark))
 
     # ---- composition (booked NAV, active positions only)
     def _comp(key):
@@ -188,7 +250,9 @@ def build_exec_view(run: ValuationRun, publish: dict[str, Any]) -> dict[str, Any
             hier[f"level{c.fv_level}"]["count"] += 1
             hier[f"level{c.fv_level}"]["nav"] += c.booked_mark
 
-    status = "final" if not decisions else "proposed"
+    # The publish record is the authority on status (publish.py sets it at release time);
+    # a snapshot without one falls back to whether any block is still open.
+    status = publish.get("status") or ("final" if not decisions else "proposed")
     return {
         "meta": {
             "firm": "Human Capital",
@@ -225,7 +289,9 @@ def build_exec_view(run: ValuationRun, publish: dict[str, Any]) -> dict[str, Any
             "dpi": _r(t.realized_cumulative / max(sum(c.invested_after for c in cs), 1e-9), 4),
         },
         "bridge": bridge,
-        "movers": {"up": [_company_row(c) for c in ups[:8]], "down": [_company_row(c) for c in downs[:8]]},
+        "movers": {"up": [_company_row(c) for c in ups[:8]], "down": [_company_row(c) for c in downs[:8]],
+                   "realized": [_company_row(c) for c in realized[:8]]},
+        "marks": _marks_schedule(cs),
         "funds": [
             {"fund": r.fund, "companies": r.companies, "active": r.active, "invested": _r(r.invested),
              "prior_nav": _r(r.prior_nav), "booked_nav": _r(r.booked_nav), "delta": _r(r.booked_nav - r.prior_nav),

@@ -8,6 +8,7 @@ The run is computed once when the app is created and held in `app.state.result`;
 from __future__ import annotations
 
 import threading
+import time
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,7 @@ from ..export.static_report import render_report
 from ..pipeline import PipelineResult, RunPaths, execute
 from .history import build_history
 from .publish import exec_payload, list_published, publish_run
+from .signals import build_signals
 from .sources import build_sources
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -36,6 +38,7 @@ class OverrideIn(BaseModel):
     reason: str = Field(min_length=1)
     approver: str = Field(min_length=1)
     rule_ids_addressed: list[str] = Field(default_factory=list)
+    source_suggestion: str | None = None   # "<rule_id>/<key>" when the reviewer accepted an engine suggestion
 
 
 class PublishIn(BaseModel):
@@ -66,6 +69,52 @@ def append_override(path: Path, record: dict[str, Any]) -> None:
     raw["overrides"] = records
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(raw, sort_keys=False, allow_unicode=True))
+
+
+def watched_inputs(paths: RunPaths) -> list[Path]:
+    """The files whose change means "the answer may have changed": the workbook, the policy
+    (and anything it inherits from, approximated by its folder), the decision ledgers, the
+    prior quarter's sidecar. Not the market cache — a refetch is an explicit `--refresh-market`."""
+    out = [paths.workbook, paths.policy, paths.overrides, paths.precedent, paths.open_items_carry]
+    out += sorted(Path(paths.policy).parent.glob("*.yaml"))
+    out += sorted(Path(paths.proposals_dir).glob("*.json")) if Path(paths.proposals_dir).exists() else []
+    return out
+
+
+def _stamp(files: list[Path]) -> tuple[tuple[str, float], ...]:
+    return tuple((str(p), p.stat().st_mtime) for p in files if p.exists())
+
+
+def watch_inputs(app: FastAPI, interval_s: float = 2.0, log: Any = None) -> threading.Thread:
+    """Recompute the run whenever a watched input changes — the self-refreshing page.
+
+    Polls mtimes (portable, no extra dependency) every `interval_s`; a change triggers one
+    recompute under the app lock, and the served run id changes, which the dashboard notices
+    and reloads on. A failed recompute (a half-written workbook, say) is logged and the last
+    good run stays served; the next change retries."""
+    paths: RunPaths = app.state.paths
+
+    def loop() -> None:
+        last = _stamp(watched_inputs(paths))
+        while True:
+            time.sleep(interval_s)
+            now = _stamp(watched_inputs(paths))
+            if now == last:
+                continue
+            last = now
+            time.sleep(0.5)   # let a save finish
+            try:
+                r = app.state.recompute()
+                if log:
+                    log(f"inputs changed; recomputed run {r.run.manifest.run_id} "
+                        f"(booked NAV {r.run.totals.booked_nav:,.1f})")
+            except Exception as exc:  # noqa: BLE001 — keep serving the last good run
+                if log:
+                    log(f"inputs changed but the rerun failed: {exc}; still serving the previous run")
+
+    t = threading.Thread(target=loop, name="hc-watch", daemon=True)
+    t.start()
+    return t
 
 
 def rule_catalogue(result: PipelineResult) -> list[dict[str, Any]]:
@@ -99,6 +148,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     app.state.paths = paths
     app.state.provider = provider
     app.state.static_dir = static_dir
+    app.state.recompute = recompute     # `hc-valuation run --watch` calls this when an input file changes
     recompute(refresh=refresh_market)   # a forced refetch applies to the first run only; reruns read the cache
 
     def result() -> PipelineResult:
@@ -142,6 +192,12 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     def get_history() -> JSONResponse:
         """Quarter-over-quarter booked marks per company: backfill + publish ledger + this run (api/history.py)."""
         return JSONResponse(build_history(result().run, paths.root))
+
+    @app.get("/api/signals")
+    def get_signals() -> JSONResponse:
+        """Vendor context beside each position — Foresight-shaped metrics cross-checked against the
+        workbook and AlphaSense-shaped dated signals (api/signals.py). Never an input to a mark."""
+        return JSONResponse(build_signals(result()))
 
     @app.get("/api/proposals")
     def get_proposals() -> JSONResponse:
@@ -199,6 +255,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
             "reason": body.reason, "approver": body.approver,
             "created_at": date.today().isoformat(),
             "rule_ids_addressed": body.rule_ids_addressed or [f.rule_id for f in c.flags],
+            **({"source_suggestion": body.source_suggestion} if body.source_suggestion else {}),
         })
         r2 = recompute()
         return _json(r2.run.by_company()[body.company])
@@ -246,6 +303,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         @app.get("/", include_in_schema=False)
         def index() -> HTMLResponse:
             return HTMLResponse(render_report(result().run, None, market=result().market_report,
-                                              history=build_history(result().run, paths.root)))
+                                              history=build_history(result().run, paths.root),
+                                              signals=build_signals(result())))
 
     return app

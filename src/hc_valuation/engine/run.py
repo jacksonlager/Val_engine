@@ -42,7 +42,7 @@ from .open_items import RESOLVES, carry_prior_items
 from .overrides import apply_override
 from .registry import BUILTIN, Registry
 from .rollup import fund_rollups, portfolio_totals, sensitivity
-from .state import Working
+from .state import Suggest, Working
 
 ENGINE_VERSION = "0.1.0"
 
@@ -108,6 +108,12 @@ def _refuse(w: Working, e: Event, issues: list[ValidationIssue]) -> None:
     w.flag("X-900", "data", Severity.BLOCK,
            f"Row {e.row_index} of the activity tab ({e.event_type}) could not be applied: {why}. The engine will not "
            "book a number from a cell it could not read, so the prior mark is carried until the workbook is corrected.",
+           points=(f"Activity row **{e.row_index}** ({e.event_type}) **could not be applied**: {why}.",
+                   "The engine **will not book a number from a cell it could not read**.",
+                   "The **prior mark is carried** until the workbook is corrected."),
+           suggestions=(
+               Suggest("hold_prior", "Hold the prior mark; correct the cell and rerun.", ("The engine will not book a number from a cell it could not read.", "Rerunning after the fix clears this without an override."), "prior"),
+           ),
            action=f"Correct the cell(s) named in {', '.join(ids)} on row {e.row_index} of the activity tab and rerun.",
            sheet="activity", row_index=e.row_index, validation=ids)
 
@@ -122,6 +128,12 @@ def _refuse_book_row(w: Working, p: Position, issues: list[ValidationIssue]) -> 
            f"Row {p.row_index} of the Portfolio tab ({p.company}) failed validation: {why}. The position is rolled on the "
            "figures the book carries, but a mark that starts from a row the engine could not reconcile cannot be booked "
            "until the book is corrected.",
+           points=(f"Portfolio row **{p.row_index}** ({p.company}) **failed validation**: {why}.",
+                   "The position is rolled on the figures the book carries.",
+                   "A mark starting from an **unreconciled row cannot be booked**."),
+           suggestions=(
+               Suggest("hold_prior", "Hold the prior mark; correct the cell and rerun.", ("A mark starting from an unreconciled row cannot be booked.", "Rerunning after the fix clears this without an override."), "prior"),
+           ),
            action=f"Correct the cell(s) named in {', '.join(ids)} on row {p.row_index} of the Portfolio tab and rerun.",
            sheet="portfolio", row_index=p.row_index, validation=ids)
 
@@ -228,11 +240,12 @@ def run_valuation(
         disp = disposition(w.flags, w.terminal, config,
                            addressed=set(override.rule_ids_addressed) if override else None,
                            overridden=override is not None)
-        # A terminal position drops its carry-side noise but never a BLOCK: an exit with no proceeds must surface.
-        flags = tuple(f for f in w.flags if f.severity == Severity.BLOCK) if w.terminal else tuple(w.flags)
-
         realized_cum = p.realized + w.realized_quarter
         invested_after = w.invested
+        # Suggestions get their numbers only now, when the proposal is final; then a terminal position
+        # drops its carry-side noise but never a BLOCK: an exit with no proceeds must surface.
+        final_flags = w.resolved_flags(w.proposed_mark, p.prior_mark, invested_after)
+        flags = tuple(f for f in final_flags if f.severity == Severity.BLOCK) if w.terminal else tuple(final_flags)
         aged_runway = (p.runway_months - config.metrics.reporting_lag_months) if p.runway_months is not None else None
         implied_mult = (w.latest_post / p.arr) if (p.arr and p.arr >= config.exceptions.multiple.min_arr and w.latest_post and not w.terminal) else None
 

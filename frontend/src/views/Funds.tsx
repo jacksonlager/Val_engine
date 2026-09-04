@@ -1,12 +1,12 @@
 import type { ValuationRun } from "../types";
-import { musd, pct, signClass, signed } from "../lib/format";
+import { deltaPct, musd, musdTile, pct, signClass, signed } from "../lib/format";
 import { SectionTitle } from "../components/ui";
 
 export function FundsView({ run, gotoCompany }: { run: ValuationRun; gotoCompany: (n: string) => void }) {
   const maxNav = Math.max(...run.rollups.map((r) => r.booked_nav), 1);
   return (
     <div className="space-y-4">
-      <div className="card overflow-x-auto">
+      <div className="card dtable-wrap">
         <table className="dtable text-[12px]">
           <thead>
             <tr>
@@ -17,7 +17,7 @@ export function FundsView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
               <th className="r">Prior NAV</th>
               <th className="r">Proposed NAV</th>
               <th className="r">Booked NAV</th>
-              <th className="r">Δ</th>
+              <th className="r">Δ · %</th>
               <th className="r">Realized Q</th>
               <th className="r">Realized cum.</th>
               <th className="r">TVPI</th>
@@ -29,18 +29,21 @@ export function FundsView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
           <tbody>
             {run.rollups.map((r) => {
               const d = r.proposed_nav - r.prior_nav;
+              const dp = deltaPct(r.prior_nav, r.proposed_nav);
               return (
                 <tr key={r.fund}>
                   <td className="font-medium">{r.fund}</td>
                   <td className="r num">{r.companies}</td>
                   <td className="r num">{r.active}</td>
-                  <td className="r num">{musd(r.invested)}</td>
-                  <td className="r num">{musd(r.prior_nav)}</td>
-                  <td className="r num">{musd(r.proposed_nav)}</td>
-                  <td className={`r num ${Math.abs(r.booked_nav - r.proposed_nav) > 1e-6 ? "font-semibold" : "text-ink2"}`}>{musd(r.booked_nav)}</td>
-                  <td className={`r num ${signClass(d)}`}>{signed(d)}</td>
-                  <td className="r num">{musd(r.realized_quarter)}</td>
-                  <td className="r num">{musd(r.realized_cumulative)}</td>
+                  <td className="r num">{musdTile(r.invested)}</td>
+                  <td className="r num">{musdTile(r.prior_nav)}</td>
+                  <td className="r num">{musdTile(r.proposed_nav)}</td>
+                  <td className={`r num ${Math.abs(r.booked_nav - r.proposed_nav) > 1e-6 ? "font-semibold" : "text-ink2"}`}>{musdTile(r.booked_nav)}</td>
+                  <td className={`r num ${signClass(d)}`}>
+                    {signed(d, 1)} <span className="text-[11px] font-normal">({pct(dp, 1, true)})</span>
+                  </td>
+                  <td className="r num">{musdTile(r.realized_quarter)}</td>
+                  <td className="r num">{musdTile(r.realized_cumulative)}</td>
                   <td className="r num">{musd(r.tvpi)}×</td>
                   <td className="r num">{musd(r.dpi)}×</td>
                   <td className="r num">{musd(r.rvpi)}×</td>
@@ -60,13 +63,16 @@ export function FundsView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
               <td className="font-medium">Portfolio</td>
               <td className="r num">{run.totals.positions}</td>
               <td className="r num">{run.totals.active_after}</td>
-              <td className="r num">{musd(run.rollups.reduce((s, r) => s + r.invested, 0))}</td>
-              <td className="r num">{musd(run.totals.prior_nav)}</td>
-              <td className="r num">{musd(run.totals.proposed_nav)}</td>
-              <td className="r num">{musd(run.totals.booked_nav)}</td>
-              <td className={`r num ${signClass(run.totals.net_movement)}`}>{signed(run.totals.net_movement)}</td>
-              <td className="r num">{musd(run.totals.realized_quarter)}</td>
-              <td className="r num">{musd(run.totals.realized_cumulative)}</td>
+              <td className="r num">{musdTile(run.rollups.reduce((s, r) => s + r.invested, 0))}</td>
+              <td className="r num">{musdTile(run.totals.prior_nav)}</td>
+              <td className="r num">{musdTile(run.totals.proposed_nav)}</td>
+              <td className="r num">{musdTile(run.totals.booked_nav)}</td>
+              <td className={`r num ${signClass(run.totals.net_movement)}`}>
+                {signed(run.totals.net_movement, 1)}{" "}
+                <span className="text-[11px] font-normal">({pct(deltaPct(run.totals.prior_nav, run.totals.proposed_nav), 1, true)})</span>
+              </td>
+              <td className="r num">{musdTile(run.totals.realized_quarter)}</td>
+              <td className="r num">{musdTile(run.totals.realized_cumulative)}</td>
               <td className="r num text-muted" colSpan={3}>
                 top-10 concentration {pct(run.totals.top10_concentration)}
               </td>

@@ -98,6 +98,12 @@ class MoicCfg(_Strict):
     monitor_above: float
 
 
+class PerformanceGapCfg(_Strict):
+    """X-405: a stale price that a live performance screen disagrees with is a REVIEW on its
+    own, even though each half is only MONITOR. Off = the halves stay separate."""
+    enabled: bool = True
+
+
 class EscalationCfg(_Strict):
     review_rules_to_block: int = 2
 
@@ -110,6 +116,7 @@ class ExceptionsCfg(_Strict):
     secondary: SecondaryXCfg
     multiple: MultipleCfg
     moic: MoicCfg
+    performance_gap: PerformanceGapCfg = PerformanceGapCfg()
     escalation: EscalationCfg = EscalationCfg()
 
 

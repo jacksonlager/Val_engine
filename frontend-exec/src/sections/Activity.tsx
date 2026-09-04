@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { CompanyRow, ExecView } from "../types";
 import { Section, Chip, Delta, DeltaPct, Empty } from "../components/ui";
-import { num, plural } from "../lib/format";
+import { money, num, plural, signed } from "../lib/format";
 
 type Key = "company" | "event" | "prior" | "proposed" | "booked" | "delta" | "delta_pct" | "disposition";
 const ORDER: Record<string, number> = { BLOCK: 0, REVIEW: 1, MONITOR: 2, CLEAR: 3 };
@@ -72,8 +72,17 @@ export function Activity({ view }: { view: ExecView }) {
                   <td className="r text-ink2">{num(e.prior)}</td>
                   <td className={`r ${e.overridden ? "text-muted line-through" : "text-ink2"}`}>{num(e.proposed)}</td>
                   <td className="r text-ink font-medium">{num(e.booked)}</td>
-                  <td className="r"><Delta v={e.delta} className="font-medium" /></td>
-                  <td className="r"><DeltaPct v={e.delta_pct} /></td>
+                  {e.driver_kind === "realized" ? (
+                    <>
+                      <td className="r"><span className="num font-medium realized">{signed(e.delta)}</span></td>
+                      <td className="r"><span className="num realized whitespace-nowrap">{e.driver_label ?? `Realized ${money(e.realized_quarter, 1)}`}</span></td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="r"><Delta v={e.delta} className="font-medium" /></td>
+                      <td className="r"><DeltaPct v={e.delta_pct} /></td>
+                    </>
+                  )}
                   <td><Chip d={e.disposition} /></td>
                   <td className="num text-muted text-[12px]">{e.rule}</td>
                 </tr>

@@ -4,11 +4,13 @@
 // server without /api/history, or an export made before the archive existed, simply
 // means the card explains that instead of rendering an empty chart.
 import { createContext, useContext, type ReactNode } from "react";
-import type { MarkHistory } from "../types";
+import type { MarkHistory, Signals } from "../types";
 
 export interface HistoryState {
   data?: MarkHistory;
   error?: string;
+  /** vendor context (Foresight / AlphaSense slots); undefined when the run has none */
+  signals?: Signals;
 }
 
 const HistoryCtx = createContext<HistoryState>({});

@@ -52,13 +52,14 @@ export function Bar({
   title,
 }: {
   share: number;
-  tone?: "series" | "up" | "down" | "neutral";
+  tone?: "series" | "up" | "down" | "neutral" | "realized";
   height?: number;
   align?: "left" | "right";
   title?: string;
 }) {
   const color =
-    tone === "up" ? "var(--up-mark)" : tone === "down" ? "var(--down-mark)" : tone === "neutral" ? "var(--neutral-mark)" : "var(--series-1)";
+    tone === "up" ? "var(--up-mark)" : tone === "down" ? "var(--down-mark)" : tone === "neutral" ? "var(--neutral-mark)"
+      : tone === "realized" ? "var(--realized-mark)" : "var(--series-1)";
   const w = Math.max(0, Math.min(1, share)) * 100;
   return (
     <div className="w-full" style={{ height }} title={title} aria-hidden>

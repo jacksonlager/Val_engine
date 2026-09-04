@@ -69,6 +69,7 @@ class OverrideRecord(_Frozen):
     created_at: date
     rule_ids_addressed: tuple[str, ...] = ()
     source_proposal: str | None = None
+    source_suggestion: str | None = None   # "<rule_id>/<suggestion key>" when a suggestion was accepted
 
 
 class OverrideLedger(_Frozen):
@@ -119,19 +120,41 @@ class MarkStep(_Frozen):
     evidence: EventRef | None = None
 
 
+class Suggestion(_Frozen):
+    """One way a reviewer could resolve a flag, with the mark it would book.
+
+    `label` is one sentence in the imperative; `reasons` are two short lines saying why a
+    committee might choose it. `booked` is the resulting booked mark in $M — always a real
+    number the engine computed (the proposal, the prior mark, an alternative mark, a deal
+    figure), never a guess — so accepting a suggestion is a fully specified E-01 override.
+    Suggestions never change the proposal; they are the menu, not the decision.
+    """
+    key: str
+    label: str
+    reasons: tuple[str, ...]
+    booked: float
+
+
 class Flag(_Frozen):
     """A reason a human should look at a position. Never changes a mark.
 
     `action` is the imperative: exactly what the reviewer must decide or check. It is
     empty for MONITOR flags by design — a flag with nothing for a person to do is
     information, not a gate, which is the same test that sets its severity.
-    `message` says why the engine cannot decide it alone.
+    `points` is the same reasoning as `message`, cut to two or three scannable lines so a
+    reviewer can see why a position stopped without reading a paragraph; `**bold**` marks
+    the words that carry the decision. Every BLOCK and REVIEW flag carries them and MONITOR
+    never does (state.py enforces both). `message` is the long form, shown on demand.
+    `suggestions` are the one or two resolutions the rule can put a number on; a reviewer
+    accepting one records an override addressed to this rule id.
     """
     rule_id: str
     family: str
     severity: Severity
     message: str
     action: str = ""
+    points: tuple[str, ...] = ()
+    suggestions: tuple[Suggestion, ...] = ()
     evidence: dict[str, Any] = Field(default_factory=dict)
 
 

@@ -63,6 +63,14 @@ def history_json_script(history: dict | None) -> str:
     return "<script>window.__HC_HISTORY__ = " + payload.replace("<", "\\u003c") + ";</script>"
 
 
+def signals_json_script(signals: dict | None) -> str:
+    """`window.__HC_SIGNALS__` — the `/api/signals` vendor context (api/signals.py). Empty when none."""
+    if not signals:
+        return ""
+    payload = json.dumps(signals, default=str)
+    return "<script>window.__HC_SIGNALS__ = " + payload.replace("<", "\\u003c") + ";</script>"
+
+
 # ---------------------------------------------------------------- bundle inlining
 
 def _is_local(ref: str) -> bool:
@@ -81,7 +89,7 @@ def _resolve(static_dir: Path, ref: str) -> Path | None:
 
 
 def inline_bundle(index_html: str, static_dir: Path, run: ValuationRun, sources: dict | None = None,
-                  market: dict | None = None, history: dict | None = None) -> str:
+                  market: dict | None = None, history: dict | None = None, signals: dict | None = None) -> str:
     def script_repl(m: re.Match) -> str:
         pre, src, post = m.group(1), m.group(2), m.group(3)
         p = _resolve(static_dir, src) if _is_local(src) else None
@@ -108,7 +116,7 @@ def inline_bundle(index_html: str, static_dir: Path, run: ValuationRun, sources:
     out = _SCRIPT_TAG.sub(script_repl, index_html)
     out = _LINK_TAG.sub(link_repl, out)
     injection = (run_json_script(run) + sources_json_script(sources) + market_json_script(market)
-                 + history_json_script(history))
+                 + history_json_script(history) + signals_json_script(signals))
     idx = out.lower().find("<script")
     if idx < 0:
         idx = out.lower().find("</head>")
@@ -168,7 +176,7 @@ def _table_html(t: Table, wrap_cols: tuple[str, ...] = ()) -> str:
 
 
 def fallback_html(run: ValuationRun, sources: dict | None = None, market: dict | None = None,
-                  history: dict | None = None) -> str:
+                  history: dict | None = None, signals: dict | None = None) -> str:
     m, t = run.manifest, run.totals
     tiles = [
         ("Prior NAV ($M)", f"{t.prior_nav:,.1f}"), ("Proposed NAV ($M)", f"{t.proposed_nav:,.1f}"),
@@ -199,7 +207,7 @@ def fallback_html(run: ValuationRun, sources: dict | None = None, market: dict |
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HC valuation — {html.escape(m.quarter_label)}</title><style>{_CSS}</style>
-{run_json_script(run)}{sources_json_script(sources)}{market_json_script(market)}{history_json_script(history)}
+{run_json_script(run)}{sources_json_script(sources)}{market_json_script(market)}{history_json_script(history)}{signals_json_script(signals)}
 </head><body><main>
 <h1>Quarterly valuation — {html.escape(m.quarter_label)}</h1>
 <div class="sub">Measurement date {m.measurement_date.isoformat()} · policy {html.escape(m.policy_version)} · engine {html.escape(m.engine_version)}
@@ -218,7 +226,7 @@ def fallback_html(run: ValuationRun, sources: dict | None = None, market: dict |
 
 
 def render_report(run: ValuationRun, static_dir: str | Path | None, sources: dict | None = None,
-                  market: dict | None = None, history: dict | None = None) -> str:
+                  market: dict | None = None, history: dict | None = None, signals: dict | None = None) -> str:
     """The report HTML: the inlined dashboard bundle when present, else the fallback page.
 
     `sources` is the optional cell provenance (`api.sources.build_sources`); when given it is
@@ -228,14 +236,14 @@ def render_report(run: ValuationRun, static_dir: str | Path | None, sources: dic
     if static_dir is not None:
         index = Path(static_dir) / "index.html"
         if index.is_file():
-            return inline_bundle(index.read_text(encoding="utf-8"), Path(static_dir), run, sources, market, history)
-    return fallback_html(run, sources, market, history)
+            return inline_bundle(index.read_text(encoding="utf-8"), Path(static_dir), run, sources, market, history, signals)
+    return fallback_html(run, sources, market, history, signals)
 
 
 def write_static_report(run: ValuationRun, path: str | Path, static_dir: str | Path | None = None,
                         sources: dict | None = None, market: dict | None = None,
-                        history: dict | None = None) -> Path:
+                        history: dict | None = None, signals: dict | None = None) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(render_report(run, static_dir, sources, market, history), encoding="utf-8")
+    out.write_text(render_report(run, static_dir, sources, market, history, signals), encoding="utf-8")
     return out

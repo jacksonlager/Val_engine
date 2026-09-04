@@ -475,7 +475,26 @@ def test_x404_moic_outlier_on_stale_round(build):
     c = only(run)
     f = _flag(c, "X-404")
     assert f.evidence["moic"] == pytest.approx(10.0) and f.evidence["months"] == 27 and f.severity == Severity.MONITOR
-    assert "X-201" in flag_ids(c) and c.disposition == Disposition.MONITOR
+    # each half is MONITOR; together (X-405) an old price that today's numbers argue with is a REVIEW
+    assert "X-201" in flag_ids(c) and "X-405" in flag_ids(c) and c.disposition == Disposition.REVIEW
+    x405 = _flag(c, "X-405")
+    assert x405.severity == Severity.REVIEW and x405.evidence["screens"] == ["X-404"]
+    assert [s.key for s in x405.suggestions][0] == "as_proposed"
+
+
+def test_x405_is_off_when_the_policy_says_so(build, cfg):
+    from hc_valuation.config import PerformanceGapCfg
+    off = cfg.model_copy(update={"exceptions": cfg.exceptions.model_copy(update={"performance_gap": PerformanceGapCfg(enabled=False)})})
+    run, _ = build([position(invested=1.0, latest_round=date(2024, 6, 15))], [], cfg_=off)
+    c = only(run)
+    assert "X-404" in flag_ids(c) and "X-405" not in flag_ids(c) and c.disposition == Disposition.MONITOR
+
+
+def test_x405_does_not_double_count_a_review_already_raised(build):
+    # X-202 (>48 months) already puts the position in REVIEW; X-405 stays out of the way
+    run, _ = build([position(invested=1.0, latest_round=date(2021, 6, 15))], [])
+    c = only(run)
+    assert "X-202" in flag_ids(c) and "X-405" not in flag_ids(c)
 
 
 def test_x404_needs_both_moic_and_staleness(build):

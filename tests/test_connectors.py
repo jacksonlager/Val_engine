@@ -24,7 +24,7 @@ from hc_valuation.pipeline import RunPaths, execute
 
 ROOT = repo_root()
 FIXTURES = ROOT / "data" / "mock_responses"
-BASELINE = {"BLOCK": 7, "REVIEW": 15, "MONITOR": 44, "CLEAR": 34}
+BASELINE = {"BLOCK": 7, "REVIEW": 20, "MONITOR": 39, "CLEAR": 34}
 
 
 @pytest.fixture(scope="module")
