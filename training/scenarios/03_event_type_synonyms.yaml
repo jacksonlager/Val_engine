@@ -1,0 +1,50 @@
+name: 03_event_type_synonyms
+description: >
+  Event types written the way analysts actually write them — "Series B", "Bridge", "Exit",
+  "Wind down", "SAFE", "Dividend", "Escrow release", "Warrant exercise" — each must map to its
+  canonical type (X-912, method synonym) and drive the right rule. A bare "LOI" is ambiguous
+  (acquisition or financing?) and must X-914. The escrow release lands on Kolvani Health, which is
+  already Acquired: a Distribution on a terminal company is allowed (no X-907).
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-10, company: Solvantra, event: "Series B", detail: "Series B", value: 100.0, hc_investment: 1.0, ownership_after: 0.11,
+      notes: "$24.0M round led by a new investor. HC participated." }
+  - { date: 2026-07-14, company: Kilnbrook, event: "Bridge", detail: "$3.0M bridge note, $80.0M valuation cap", hc_investment: 0.5,
+      notes: "Uncapped interest, converts at next priced round. HC participated in the note." }
+  - { date: 2026-07-28, company: Ambercrest, event: "Exit", detail: "All-cash acquisition", value: 400.0, proceeds: 16.8,
+      notes: "Transaction closed and cash received during the quarter." }
+  - { date: 2026-08-07, company: "Coppermoss Energy", event: "Wind down", detail: "Ceased operations", proceeds: 0.1,
+      notes: "Board voted to wind down. Residual cash distributed to investors." }
+  - { date: 2026-08-12, company: Ventabrook, event: "SAFE", detail: "$1.5M post-money SAFE, post-money cap $30.0M", hc_investment: 0.3,
+      notes: "Standard YC post-money SAFE; HC took $0.3M." }
+  - { date: 2026-08-21, company: Dellforge, event: "Dividend", detail: "Cash dividend from operating profits", proceeds: 1.5,
+      notes: "Pro rata cash dividend; no change in the stake." }
+  - { date: 2026-08-24, company: "Kolvani Health", event: "Escrow release", detail: "Final cash release from the acquirer, 18 months after close", proceeds: 0.8,
+      notes: "Indemnity period expired with no claims." }
+  - { date: 2026-08-25, company: "Jadewell Payments", event: "Warrant exercise", detail: "Warrant exercise", hc_investment: 0.2, ownership_after: 0.08,
+      notes: "HC exercised its Series A warrants at the strike price." }
+  - { date: 2026-09-01, company: Quillshade, event: "LOI", detail: "Letter of intent signed", value: 200.0,
+      notes: "Whether this is a financing or a sale is not stated on this row." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-912, X-914], must_not: [X-901, X-907, X-913, X-902, X-903] }
+  validation_must:
+    - { id: X-912, contains: "Series B" }
+    - { id: X-912, contains: "Wind down" }
+    - { id: X-912, contains: "SAFE" }
+    - { id: X-914, company: Quillshade }
+  validation_must_not:
+    - { id: X-907, company: "Kolvani Health" }
+  totals: { events: 9, positions: 100 }
+  companies:
+    Solvantra:            { disposition: CLEAR,   rules: [M-010], proposed: 11.0,   flags_must_not: [M-999] }
+    Kilnbrook:            { disposition: REVIEW,  rules: [M-060], proposed: 4.9,    flags_must: [X-107], flags_must_not: [M-999] }
+    Ambercrest:           { disposition: CLEAR,   rules: [M-020], proposed: 0.0,    realized_quarter: 16.8, status: Acquired, flags_must_not: [M-999] }
+    Coppermoss Energy:    { disposition: CLEAR,   rules: [M-021], proposed: 0.0,    status: "Shut Down", flags_must_not: [M-999] }
+    Ventabrook:           { disposition: REVIEW,  rules: [M-060], proposed: 2.6,    note_at_cost: 0.3, flags_must: [X-107], flags_must_not: [M-999, X-101], open_items_must: [convertible_note] }
+    Dellforge:            { disposition: MONITOR, rules: [M-022], proposed: 27.8,   realized_quarter: 1.5, flags_must: [X-111], flags_must_not: [M-999] }
+    Kolvani Health:       { disposition_in: [CLEAR, MONITOR], rules_contains: [M-022], rules_must_not: [M-999], proposed: 0.0, realized_quarter: 0.8, status: Acquired, flags_must_not: [M-999] }
+    Jadewell Payments:    { disposition: REVIEW,  rules: [M-013], proposed: 6.32,   flags_must: [X-110], flags_must_not: [M-999] }
+    Quillshade:           { disposition: BLOCK,   rules: [M-999], proposed: 8.9,    flags_must: [M-999] }

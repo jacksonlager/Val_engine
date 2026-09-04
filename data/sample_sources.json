@@ -1,0 +1,646 @@
+{
+ "workbook": {
+  "name": "HC_Mock_Portfolio_Data.xlsx",
+  "path": "/home/claude/hc/Val_engine/data/HC_Mock_Portfolio_Data.xlsx",
+  "sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc"
+ },
+ "sheets": {
+  "portfolio": "Portfolio",
+  "activity": "Q3 2026 Activity"
+ },
+ "columns": {
+  "portfolio": {
+   "Company": "A",
+   "Sector": "B",
+   "Fund": "C",
+   "Stage": "D",
+   "Status": "E",
+   "First Investment": "F",
+   "Latest Round": "G",
+   "Latest Post-Money ($M)": "H",
+   "Invested ($M)": "I",
+   "Ownership (FD %)": "J",
+   "Prior Mark ($M)": "K",
+   "Realized ($M)": "L",
+   "MOIC (x)": "M",
+   "ARR ($M)": "N",
+   "ARR Growth (YoY %)": "O",
+   "Gross Margin (%)": "P",
+   "Net Burn ($M/mo)": "Q",
+   "Cash ($M)": "R",
+   "Runway (mo)": "S",
+   "Headcount": "T"
+  },
+  "activity": {
+   "Date": "A",
+   "Company": "B",
+   "Event": "C",
+   "Detail": "D",
+   "Post-Money / Deal Value ($M)": "E",
+   "HC Investment ($M)": "F",
+   "HC Ownership After (FD %)": "G",
+   "Proceeds to HC ($M)": "H",
+   "Notes": "I"
+  }
+ },
+ "input_columns": {
+  "post_money": {
+   "sheet": "activity",
+   "column": "Post-Money / Deal Value ($M)"
+  },
+  "deal_value": {
+   "sheet": "activity",
+   "column": "Post-Money / Deal Value ($M)"
+  },
+  "ipo_market_cap": {
+   "sheet": "activity",
+   "column": "Post-Money / Deal Value ($M)"
+  },
+  "indicated_post_money": {
+   "sheet": "activity",
+   "column": "Post-Money / Deal Value ($M)"
+  },
+  "hc_investment": {
+   "sheet": "activity",
+   "column": "HC Investment ($M)"
+  },
+  "ownership_after": {
+   "sheet": "activity",
+   "column": "HC Ownership After (FD %)"
+  },
+  "proceeds": {
+   "sheet": "activity",
+   "column": "Proceeds to HC ($M)"
+  },
+  "detail": {
+   "sheet": "activity",
+   "column": "Detail"
+  },
+  "notes": {
+   "sheet": "activity",
+   "column": "Notes"
+  },
+  "prior_mark": {
+   "sheet": "portfolio",
+   "column": "Prior Mark ($M)"
+  },
+  "ownership": {
+   "sheet": "portfolio",
+   "column": "Ownership (FD %)"
+  },
+  "ownership_before": {
+   "sheet": "portfolio",
+   "column": "Ownership (FD %)"
+  },
+  "latest_post_money": {
+   "sheet": "portfolio",
+   "column": "Latest Post-Money ($M)"
+  },
+  "prior_post_money": {
+   "sheet": "portfolio",
+   "column": "Latest Post-Money ($M)"
+  },
+  "last_round_post_money": {
+   "sheet": "portfolio",
+   "column": "Latest Post-Money ($M)"
+  },
+  "arr": {
+   "sheet": "portfolio",
+   "column": "ARR ($M)"
+  },
+  "arr_growth": {
+   "sheet": "portfolio",
+   "column": "ARR Growth (YoY %)"
+  },
+  "cash": {
+   "sheet": "portfolio",
+   "column": "Cash ($M)"
+  },
+  "net_burn": {
+   "sheet": "portfolio",
+   "column": "Net Burn ($M/mo)"
+  },
+  "realized": {
+   "sheet": "portfolio",
+   "column": "Realized ($M)"
+  },
+  "invested": {
+   "sheet": "portfolio",
+   "column": "Invested ($M)"
+  },
+  "status": {
+   "sheet": "portfolio",
+   "column": "Status"
+  }
+ },
+ "companies": {
+  "Aravine": {
+   "portfolio_row": 2,
+   "events": [
+    {
+     "row": 10,
+     "event_type": "Priced Equity Round",
+     "date": "2026-08-24"
+    }
+   ]
+  },
+  "Beltrix": {
+   "portfolio_row": 3,
+   "events": []
+  },
+  "Cindral": {
+   "portfolio_row": 4,
+   "events": [
+    {
+     "row": 7,
+     "event_type": "Acquisition (Closed)",
+     "date": "2026-08-12"
+    }
+   ]
+  },
+  "Dovelane Systems": {
+   "portfolio_row": 5,
+   "events": [
+    {
+     "row": 2,
+     "event_type": "Priced Equity Round",
+     "date": "2026-07-06"
+    }
+   ]
+  },
+  "Emberfold": {
+   "portfolio_row": 6,
+   "events": [
+    {
+     "row": 9,
+     "event_type": "Convertible Note",
+     "date": "2026-08-23"
+    }
+   ]
+  },
+  "Fernwave": {
+   "portfolio_row": 7,
+   "events": [
+    {
+     "row": 5,
+     "event_type": "Priced Equity Round",
+     "date": "2026-08-04"
+    }
+   ]
+  },
+  "Gryphonel": {
+   "portfolio_row": 8,
+   "events": [
+    {
+     "row": 15,
+     "event_type": "Acquisition (Announced)",
+     "date": "2026-09-08"
+    }
+   ]
+  },
+  "Halcyra": {
+   "portfolio_row": 9,
+   "events": [
+    {
+     "row": 17,
+     "event_type": "Term Sheet Signed",
+     "date": "2026-09-17"
+    }
+   ]
+  },
+  "Ironquill Security": {
+   "portfolio_row": 10,
+   "events": [
+    {
+     "row": 11,
+     "event_type": "Priced Equity Round",
+     "date": "2026-08-27"
+    }
+   ]
+  },
+  "Jettamar": {
+   "portfolio_row": 11,
+   "events": [
+    {
+     "row": 3,
+     "event_type": "Priced Equity Round",
+     "date": "2026-07-08"
+    }
+   ]
+  },
+  "Kolvani Health": {
+   "portfolio_row": 12,
+   "events": []
+  },
+  "Lumetra": {
+   "portfolio_row": 13,
+   "events": []
+  },
+  "Marrowick Bio": {
+   "portfolio_row": 14,
+   "events": [
+    {
+     "row": 8,
+     "event_type": "Secondary Sale",
+     "date": "2026-08-19"
+    }
+   ]
+  },
+  "Nimbrel": {
+   "portfolio_row": 15,
+   "events": [
+    {
+     "row": 4,
+     "event_type": "Priced Equity Round",
+     "date": "2026-07-27"
+    }
+   ]
+  },
+  "Ostrella": {
+   "portfolio_row": 16,
+   "events": []
+  },
+  "Pellagrin": {
+   "portfolio_row": 17,
+   "events": [
+    {
+     "row": 6,
+     "event_type": "Priced Equity Round",
+     "date": "2026-08-11"
+    }
+   ]
+  },
+  "Quindle": {
+   "portfolio_row": 18,
+   "events": []
+  },
+  "Rivenmark": {
+   "portfolio_row": 19,
+   "events": []
+  },
+  "Solvantra": {
+   "portfolio_row": 20,
+   "events": []
+  },
+  "Tarnwick Aerospace": {
+   "portfolio_row": 21,
+   "events": [
+    {
+     "row": 14,
+     "event_type": "Priced Equity Round",
+     "date": "2026-09-06"
+    }
+   ]
+  },
+  "Umberly": {
+   "portfolio_row": 22,
+   "events": []
+  },
+  "Vexmoor": {
+   "portfolio_row": 23,
+   "events": []
+  },
+  "Wrenfield Data": {
+   "portfolio_row": 24,
+   "events": []
+  },
+  "Xalorin": {
+   "portfolio_row": 25,
+   "events": []
+  },
+  "Yondermist": {
+   "portfolio_row": 26,
+   "events": []
+  },
+  "Zephrine": {
+   "portfolio_row": 27,
+   "events": []
+  },
+  "Arcfoundry": {
+   "portfolio_row": 28,
+   "events": []
+  },
+  "Brumewell": {
+   "portfolio_row": 29,
+   "events": []
+  },
+  "Cascabel Labs": {
+   "portfolio_row": 30,
+   "events": []
+  },
+  "Drayvenn": {
+   "portfolio_row": 31,
+   "events": [
+    {
+     "row": 18,
+     "event_type": "IPO",
+     "date": "2026-09-20"
+    }
+   ]
+  },
+  "Eastport Compute": {
+   "portfolio_row": 32,
+   "events": []
+  },
+  "Fallowmere": {
+   "portfolio_row": 33,
+   "events": []
+  },
+  "Glintworks": {
+   "portfolio_row": 34,
+   "events": []
+  },
+  "Hollowpine Robotics": {
+   "portfolio_row": 35,
+   "events": []
+  },
+  "Isoquill": {
+   "portfolio_row": 36,
+   "events": []
+  },
+  "Jupelan": {
+   "portfolio_row": 37,
+   "events": []
+  },
+  "Kestwick": {
+   "portfolio_row": 38,
+   "events": []
+  },
+  "Larkspell": {
+   "portfolio_row": 39,
+   "events": [
+    {
+     "row": 16,
+     "event_type": "Shutdown",
+     "date": "2026-09-14"
+    }
+   ]
+  },
+  "Mossbriar Bio": {
+   "portfolio_row": 40,
+   "events": []
+  },
+  "Nightloom Security": {
+   "portfolio_row": 41,
+   "events": []
+  },
+  "Oakenvale": {
+   "portfolio_row": 42,
+   "events": [
+    {
+     "row": 13,
+     "event_type": "Priced Equity Round",
+     "date": "2026-09-01"
+    }
+   ]
+  },
+  "Pinwhistle": {
+   "portfolio_row": 43,
+   "events": []
+  },
+  "Quarrystone AI": {
+   "portfolio_row": 44,
+   "events": []
+  },
+  "Redgrove Health": {
+   "portfolio_row": 45,
+   "events": []
+  },
+  "Saltmarsh Analytics": {
+   "portfolio_row": 46,
+   "events": []
+  },
+  "Thistledown Energy": {
+   "portfolio_row": 47,
+   "events": []
+  },
+  "Underbough": {
+   "portfolio_row": 48,
+   "events": []
+  },
+  "Vellichor Systems": {
+   "portfolio_row": 49,
+   "events": []
+  },
+  "Westwilder": {
+   "portfolio_row": 50,
+   "events": []
+  },
+  "Yarrowbank": {
+   "portfolio_row": 51,
+   "events": []
+  },
+  "Zinniafold": {
+   "portfolio_row": 52,
+   "events": []
+  },
+  "Ambercrest": {
+   "portfolio_row": 53,
+   "events": []
+  },
+  "Birchhollow": {
+   "portfolio_row": 54,
+   "events": []
+  },
+  "Covebright": {
+   "portfolio_row": 55,
+   "events": []
+  },
+  "Duskfern": {
+   "portfolio_row": 56,
+   "events": [
+    {
+     "row": 12,
+     "event_type": "Convertible Note",
+     "date": "2026-08-28"
+    }
+   ]
+  },
+  "Elmsworth Data": {
+   "portfolio_row": 57,
+   "events": []
+  },
+  "Foxtrellis": {
+   "portfolio_row": 58,
+   "events": []
+  },
+  "Gorseline": {
+   "portfolio_row": 59,
+   "events": []
+  },
+  "Hearthwick": {
+   "portfolio_row": 60,
+   "events": []
+  },
+  "Inkmoor": {
+   "portfolio_row": 61,
+   "events": []
+  },
+  "Jadewell Payments": {
+   "portfolio_row": 62,
+   "events": []
+  },
+  "Kilnbrook": {
+   "portfolio_row": 63,
+   "events": []
+  },
+  "Loamfield Robotics": {
+   "portfolio_row": 64,
+   "events": []
+  },
+  "Mirthstone": {
+   "portfolio_row": 65,
+   "events": []
+  },
+  "Nettlebay": {
+   "portfolio_row": 66,
+   "events": []
+  },
+  "Orchardline": {
+   "portfolio_row": 67,
+   "events": []
+  },
+  "Palefire Labs": {
+   "portfolio_row": 68,
+   "events": []
+  },
+  "Quillshade": {
+   "portfolio_row": 69,
+   "events": []
+  },
+  "Rushlight AI": {
+   "portfolio_row": 70,
+   "events": []
+  },
+  "Stonegather": {
+   "portfolio_row": 71,
+   "events": []
+  },
+  "Tidewell Health": {
+   "portfolio_row": 72,
+   "events": []
+  },
+  "Umbrelight": {
+   "portfolio_row": 73,
+   "events": []
+  },
+  "Vinecroft": {
+   "portfolio_row": 74,
+   "events": []
+  },
+  "Willowmere Compute": {
+   "portfolio_row": 75,
+   "events": []
+  },
+  "Xylotta": {
+   "portfolio_row": 76,
+   "events": []
+  },
+  "Yewbranch Security": {
+   "portfolio_row": 77,
+   "events": []
+  },
+  "Zealwick": {
+   "portfolio_row": 78,
+   "events": []
+  },
+  "Alderpoint": {
+   "portfolio_row": 79,
+   "events": []
+  },
+  "Brackenvale": {
+   "portfolio_row": 80,
+   "events": []
+  },
+  "Coppermoss Energy": {
+   "portfolio_row": 81,
+   "events": []
+  },
+  "Dellforge": {
+   "portfolio_row": 82,
+   "events": []
+  },
+  "Everbrook Analytics": {
+   "portfolio_row": 83,
+   "events": []
+  },
+  "Fenwright": {
+   "portfolio_row": 84,
+   "events": []
+  },
+  "Gablewood": {
+   "portfolio_row": 85,
+   "events": []
+  },
+  "Harrowgate Bio": {
+   "portfolio_row": 86,
+   "events": []
+  },
+  "Islewind": {
+   "portfolio_row": 87,
+   "events": [
+    {
+     "row": 19,
+     "event_type": "Shutdown",
+     "date": "2026-09-22"
+    }
+   ]
+  },
+  "Juttermill": {
+   "portfolio_row": 88,
+   "events": []
+  },
+  "Knollward": {
+   "portfolio_row": 89,
+   "events": []
+  },
+  "Lanternfell Space": {
+   "portfolio_row": 90,
+   "events": []
+  },
+  "Mardellan": {
+   "portfolio_row": 91,
+   "events": []
+  },
+  "Northquill": {
+   "portfolio_row": 92,
+   "events": []
+  },
+  "Oxbowlane": {
+   "portfolio_row": 93,
+   "events": []
+  },
+  "Petrelbay": {
+   "portfolio_row": 94,
+   "events": []
+  },
+  "Quenchpoint Energy": {
+   "portfolio_row": 95,
+   "events": []
+  },
+  "Saffronwell": {
+   "portfolio_row": 96,
+   "events": []
+  },
+  "Thornmill Systems": {
+   "portfolio_row": 97,
+   "events": []
+  },
+  "Uplandreach": {
+   "portfolio_row": 98,
+   "events": []
+  },
+  "Ventabrook": {
+   "portfolio_row": 99,
+   "events": []
+  },
+  "Wildebrook": {
+   "portfolio_row": 100,
+   "events": []
+  },
+  "Zerocrest": {
+   "portfolio_row": 101,
+   "events": []
+  }
+ }
+}

@@ -1,0 +1,49 @@
+name: 24_terminal_refused
+description: >
+  Refused rows on companies that were already Acquired or Shut Down at the prior close. Cash after
+  an exit is allowed (no X-907), but a cash row the ingest layer cannot trust must still be refused
+  on the terminal branch — recorded, X-900 BLOCK, nothing booked — and a terminal position keeps
+  its BLOCK flags. Kolvani Health (Acquired): a clean escrow release of 0.8 is applied, then a
+  Distribution of -0.3 (X-903) is refused — realized 0.8, not 0.5, mark 0, BLOCK. Everbrook
+  Analytics (Shut Down): a Note Repaid with proceeds in euros (X-920) — refused, realized 0, BLOCK.
+  Zerocrest (Shut Down): a Distribution whose proceeds cell is text "tbc" (X-902) — refused.
+  Hearthwick (Acquired): a priced round with no post-money — X-907 and X-902 at run level; the
+  row is not on the allowed list and never reaches the position, whose mark stays 0.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-15, company: "Kolvani Health", event: "Distribution", detail: "Escrow release", proceeds: 0.8,
+      notes: "First tranche of the indemnity escrow." }
+  - { date: 2026-08-20, company: "Kolvani Health", event: "Distribution", detail: "Escrow release", proceeds: -0.3,
+      notes: "Second tranche typed with the wrong sign." }
+  - { date: 2026-08-22, company: "Everbrook Analytics", event: "Note Repaid", detail: "Residual note principal recovered from the estate", proceeds: "€0.1M",
+      notes: "Recovered from the liquidator." }
+  - { date: 2026-09-02, company: Zerocrest, event: "Distribution", detail: "Final liquidating cash release", proceeds: "tbc",
+      notes: "Amount not yet confirmed by the liquidator." }
+  - { date: 2026-09-05, company: Hearthwick, event: "Priced Equity Round", detail: "Series A", ownership_after: 0.09,
+      notes: "Entered against the wrong company." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-903, X-920, X-907, X-902], must_not: [X-901, X-909, X-914] }
+  validation_must:
+    - { id: X-903, company: "Kolvani Health", blocking: true, count: 1 }
+    - { id: X-920, company: "Everbrook Analytics", blocking: true }
+    - { id: X-902, company: Zerocrest, blocking: true }
+    - { id: X-907, company: Hearthwick, count: 1 }
+    - { id: X-902, company: Hearthwick, blocking: true }
+    - { id: X-907, count: 1 }
+  validation_must_not:
+    - { id: X-907, company: "Kolvani Health" }
+    - { id: X-907, company: "Everbrook Analytics" }
+    - { id: X-907, company: Zerocrest }
+  validation_blocking: true
+  totals: { events: 5, positions: 100 }
+  companies:
+    Kolvani Health:       { disposition: BLOCK, rules: [M-000, M-022, M-000], proposed: 0.0, realized_quarter: 0.8, status: Acquired, ownership_after: 0.071,
+                            flags_must: [X-900], flags_must_not: [M-999, X-111] }
+    Everbrook Analytics:  { disposition: BLOCK, rules: [M-000, M-000], proposed: 0.0, realized_quarter: 0.0, status: "Shut Down",
+                            flags_must: [X-900], flags_must_not: [M-999, X-115] }
+    Zerocrest:            { disposition: BLOCK, rules: [M-000, M-000], proposed: 0.0, realized_quarter: 0.0, status: "Shut Down",
+                            flags_must: [X-900], flags_must_not: [M-999, X-111] }
+    Hearthwick:           { rules: [M-000], rules_must_not: [M-010], proposed: 0.0, realized_quarter: 0.0, status: Acquired, flags_must_not: [X-900, M-999] }

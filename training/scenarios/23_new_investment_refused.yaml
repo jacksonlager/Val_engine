@@ -1,0 +1,48 @@
+name: 23_new_investment_refused
+description: >
+  New Investment rows for companies the Portfolio tab does not have, where the row itself is bad.
+  The engine synthesises the position (X-918) and then must refuse the row: the position exists at
+  zero, is BLOCK on X-900, and nothing is booked from a cell that could not be trusted. Brightmoor
+  Health: ownership after 150 points (X-903). Nightjar Robotics: entry post-money in euros (X-920).
+  Fennel Dynamics: a negative post-money (X-903 — the money-domain checks must run for a company
+  that is not in the book, not just for book companies). Corvid Analytics: a post-money of 0 (X-903;
+  otherwise M-014 would enter the position at 0 × 0.10 = 0 and call it a mark). Heron Payments is
+  the control: a clean first check, 0.10 × 20 = 2.0, invested 2.0, X-918 REVIEW, fund from Detail.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-08, company: "Brightmoor Health", event: "New Investment", detail: "Seed round, Fund III, Healthcare", value: 12.0, hc_investment: 1.2, ownership_after: 150,
+      notes: "New portfolio company; ownership typed in points above 100." }
+  - { date: 2026-07-15, company: "Nightjar Robotics", event: "New Investment", detail: "Seed round, Fund II", value: "€10.0M", hc_investment: 1.0, ownership_after: 0.10,
+      notes: "New portfolio company; European round." }
+  - { date: 2026-07-22, company: "Fennel Dynamics", event: "New Investment", detail: "Series A, Fund III", value: -50.0, hc_investment: 2.0, ownership_after: 0.05,
+      notes: "Post-money typed with the wrong sign." }
+  - { date: 2026-08-02, company: "Corvid Analytics", event: "New Investment", detail: "Seed round, Fund I", value: 0, hc_investment: 0.5, ownership_after: 0.10,
+      notes: "Post-money not yet agreed; left at zero." }
+  - { date: 2026-08-19, company: "Heron Payments", event: "New Investment", detail: "Seed round, Fund III, Fintech", value: 20.0, hc_investment: 2.0, ownership_after: 0.10,
+      notes: "New portfolio company; not yet on the Portfolio tab." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-918, X-903, X-920], must_not: [X-901, X-909, X-914, X-907] }
+  validation_must:
+    - { id: X-918, count: 5 }
+    - { id: X-903, company: "Brightmoor Health", blocking: true }
+    - { id: X-920, company: "Nightjar Robotics", blocking: true }
+    - { id: X-903, company: "Fennel Dynamics", blocking: true }
+    - { id: X-903, company: "Corvid Analytics", blocking: true }
+  validation_must_not:
+    - { company: "Heron Payments", blocking: true }
+  validation_blocking: true
+  totals: { events: 5, positions: 105 }
+  companies:
+    Brightmoor Health:  { disposition: BLOCK, rules_contains: [M-000], rules_must_not: [M-014, M-999], proposed: 0.0, invested_after: 0.0, ownership_after: 0.0, fund: "Fund III", sector: Healthcare,
+                          flags_must: [X-900], flags_must_not: [X-120] }
+    Nightjar Robotics:  { disposition: BLOCK, rules_must_not: [M-014, M-999], proposed: 0.0, invested_after: 0.0, ownership_after: 0.0, fund: "Fund II",
+                          flags_must: [X-900], flags_must_not: [X-120] }
+    Fennel Dynamics:    { disposition: BLOCK, rules_must_not: [M-014, M-999], proposed: 0.0, invested_after: 0.0, ownership_after: 0.0,
+                          flags_must: [X-900], flags_must_not: [X-120] }
+    Corvid Analytics:   { disposition: BLOCK, rules_must_not: [M-014, M-999], proposed: 0.0, invested_after: 0.0, ownership_after: 0.0,
+                          flags_must: [X-900], flags_must_not: [X-120] }
+    Heron Payments:     { disposition: REVIEW, rules: [M-014], proposed: 2.0, invested_after: 2.0, ownership_after: 0.10, latest_post_money: 20.0, fund: "Fund III", sector: Fintech, status: Active,
+                          flags_must: [X-120, X-918], flags_must_not: [X-900, M-999] }

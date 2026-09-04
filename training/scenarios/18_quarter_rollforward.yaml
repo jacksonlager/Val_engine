@@ -1,0 +1,36 @@
+name: 18_quarter_rollforward
+description: >
+  The emitted Q4 book run under policy 2026Q4 with the open_items_carry.yaml sidecar. Open items
+  carried from Q3 age by one quarter: Halcyra's term sheet (limit 1) escalates (E-07 REVIEW),
+  Emberfold's note (limit 3) and Drayvenn's lock-up (expires 2027-03-19) do not. Gryphonel's
+  announced deal closes (M-020 at 3.6% × $133M = 4.788 realized, every open item resolved) and
+  Duskfern's bridge converts in a Series B (M-010: 9.0% × $150M = 13.5, the note leg and its
+  open item gone). The run must then emit the Q1 2027 book — the year-end rollover of the
+  quarter label is parsed, never hardcoded.
+base: snapshot:2026Q3
+policy: 2026Q4
+activity:
+  - { date: 2026-11-15, company: Gryphonel, event: "Acquisition (Closed)", detail: "All-cash acquisition", value: 133.0, proceeds: 4.788,
+      notes: "Regulatory approval received; transaction closed and cash received." }
+  - { date: 2026-11-20, company: Duskfern, event: "Priced Equity Round", detail: "Series B", value: 150.0, ownership_after: 0.09,
+      notes: "$25.0M round led by a new investor; the August bridge note converted into the round." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [], must_not: [X-901, X-909, X-902, X-903, X-907, X-914] }
+  validation_must:
+    - { id: X-904, company: Duskfern, blocking: false }
+    - { id: X-904, company: Gryphonel, blocking: false }
+  validation_blocking: false
+  manifest: { quarter_label: "Q4 2026" }
+  totals: { events: 2, positions: 100 }
+  snapshot: { next_label: "Q1 2027", activity_sheet: "Q1 2027 Activity", portfolio_rows: 100 }
+  companies:
+    Gryphonel:  { disposition: CLEAR, rules: [M-020], proposed: 0.0, realized_quarter: 4.788, status: Acquired, open_items_count: 0, flags_must_not: [E-07, X-101] }
+    Duskfern:   { disposition: REVIEW, rules: [M-010], proposed: 13.5, note_at_cost: 0.0, ownership_after: 0.09, flags_must_not: [E-07, X-107, X-102], open_items_must_not: [convertible_note] }
+    Halcyra:    { disposition: BLOCK, rules: [M-000], proposed: 2.7, flags_must: [E-07], open_items_must: [{ kind: term_sheet, age_quarters: 1, escalated: true }] }
+    Emberfold:  { rules: [M-000], proposed: 1.8, flags_must_not: [E-07], open_items_must: [{ kind: convertible_note, age_quarters: 1, escalated: false }] }
+    Drayvenn:   { listed: true, fv_level: 1, flags_must_not: [E-07], open_items_must: [{ kind: ipo_lockup, age_quarters: 1, escalated: false }] }
+    Marrowick Bio: { disposition: CLEAR, rules: [M-000], proposed: 8.772, ownership_after: 0.017 }
+    Pellagrin:  { rules: [M-000], proposed: 13.9277, flags_must: [X-202], flags_must_not: [X-106] }
+    Cindral:    { rules: [M-000], proposed: 0.0, status: Acquired }

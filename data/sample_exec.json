@@ -1,0 +1,1993 @@
+{
+ "meta": {
+  "firm": "Human Capital",
+  "quarter": "Q3 2026",
+  "measurement_date": "2026-09-30",
+  "prior_close": "2026-06-30",
+  "status": "proposed",
+  "published_at": "2026-10-02T17:00:00+00:00",
+  "published_by": "Jackson Lagerwey",
+  "note": "Q3 proposed marks for IC",
+  "run_id": "d8c4f428fa0b",
+  "policy_version": "2026Q3-0.1",
+  "engine_version": "0.1.0",
+  "input_file": "HC_Mock_Portfolio_Data.xlsx",
+  "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
+  "market_data_source": "stub",
+  "generated_at": "2026-09-30T00:00:00"
+ },
+ "headline": {
+  "prior_nav": 1139.3,
+  "proposed_nav": 1183.93,
+  "booked_nav": 1183.93,
+  "net_movement": 44.63,
+  "net_movement_pct": 0.0392,
+  "override_adjustment": 0.0,
+  "realized_quarter": 32.5,
+  "realized_cumulative": 49.6,
+  "written_off": 21.4,
+  "exited_at_prior_mark": 18.2,
+  "exit_proceeds": 28.2,
+  "positions": 100,
+  "active": 93,
+  "events": 18,
+  "level1_positions": 1,
+  "top10_concentration": 0.4461,
+  "dispositions": {
+   "BLOCK": 7,
+   "REVIEW": 15,
+   "MONITOR": 44,
+   "CLEAR": 34
+  },
+  "invested": 617.5,
+  "tvpi": 1.9976,
+  "dpi": 0.0803
+ },
+ "bridge": [
+  {
+   "key": "rounds_up",
+   "label": "New rounds",
+   "note": "Priced rounds and extensions that reset the mark upward",
+   "delta": 61.51,
+   "count": 7,
+   "running_total": 1200.81,
+   "companies": [
+    {
+     "company": "Fernwave",
+     "delta": 35.02
+    },
+    {
+     "company": "Ironquill Security",
+     "delta": 13.24
+    },
+    {
+     "company": "Aravine",
+     "delta": 6.98
+    },
+    {
+     "company": "Jettamar",
+     "delta": 1.87
+    },
+    {
+     "company": "Nimbrel",
+     "delta": 1.87
+    },
+    {
+     "company": "Dovelane Systems",
+     "delta": 1.61
+    },
+    {
+     "company": "Pellagrin",
+     "delta": 0.93
+    }
+   ]
+  },
+  {
+   "key": "ipo",
+   "label": "IPO / listing",
+   "note": "Positions that became listed and are now marked to market",
+   "delta": 29.77,
+   "count": 1,
+   "running_total": 1230.58,
+   "companies": [
+    {
+     "company": "Drayvenn",
+     "delta": 29.77
+    }
+   ]
+  },
+  {
+   "key": "announced",
+   "label": "Announced deals",
+   "note": "Signed but unclosed acquisitions, probability-weighted",
+   "delta": 0.81,
+   "count": 1,
+   "running_total": 1231.39,
+   "companies": [
+    {
+     "company": "Gryphonel",
+     "delta": 0.81
+    }
+   ]
+  },
+  {
+   "key": "notes",
+   "label": "Bridge notes",
+   "note": "HC's new money into convertible notes, carried at cost",
+   "delta": 0.5,
+   "count": 1,
+   "running_total": 1231.89,
+   "companies": [
+    {
+     "company": "Duskfern",
+     "delta": 0.5
+    }
+   ]
+  },
+  {
+   "key": "secondary",
+   "label": "Secondary sales",
+   "note": "Partial sales; the stake still held is re-marked",
+   "delta": -4.13,
+   "count": 1,
+   "running_total": 1227.76,
+   "companies": [
+    {
+     "company": "Marrowick Bio",
+     "delta": -4.13
+    }
+   ]
+  },
+  {
+   "key": "rounds_down",
+   "label": "Down rounds & recaps",
+   "note": "Priced rounds below the prior post-money",
+   "delta": -4.23,
+   "count": 2,
+   "running_total": 1223.53,
+   "companies": [
+    {
+     "company": "Oakenvale",
+     "delta": -3.37
+    },
+    {
+     "company": "Tarnwick Aerospace",
+     "delta": -0.86
+    }
+   ]
+  },
+  {
+   "key": "exits",
+   "label": "Exits realized",
+   "note": "Closed acquisitions: the mark goes to zero and cash comes back",
+   "delta": -18.2,
+   "count": 1,
+   "running_total": 1205.33,
+   "companies": [
+    {
+     "company": "Cindral",
+     "delta": -18.2
+    }
+   ]
+  },
+  {
+   "key": "writeoffs",
+   "label": "Write-offs",
+   "note": "Shutdowns with little or no recovery",
+   "delta": -21.4,
+   "count": 2,
+   "running_total": 1183.93,
+   "companies": [
+    {
+     "company": "Larkspell",
+     "delta": -11.4
+    },
+    {
+     "company": "Islewind",
+     "delta": -10.0
+    }
+   ]
+  }
+ ],
+ "movers": {
+  "up": [
+   {
+    "company": "Fernwave",
+    "fund": "Fund I",
+    "sector": "Infrastructure",
+    "stage": "Series D",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series D",
+    "rule": "M-010",
+    "prior": 38.5,
+    "proposed": 73.52,
+    "booked": 73.52,
+    "delta": 35.02,
+    "delta_pct": 0.9095,
+    "realized_quarter": 0.0,
+    "ownership": 0.04,
+    "disposition": "CLEAR",
+    "overridden": false
+   },
+   {
+    "company": "Drayvenn",
+    "fund": "Fund I",
+    "sector": "Space & Defense",
+    "stage": "Public",
+    "status": "Active",
+    "fv_level": 1,
+    "event": "IPO",
+    "rule": "M-040",
+    "prior": 80.3,
+    "proposed": 110.07,
+    "booked": 110.07,
+    "delta": 29.77,
+    "delta_pct": 0.3707,
+    "realized_quarter": 0.0,
+    "ownership": 0.028,
+    "disposition": "BLOCK",
+    "overridden": false
+   },
+   {
+    "company": "Ironquill Security",
+    "fund": "Fund I",
+    "sector": "Developer Tools",
+    "stage": "Series D",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series D",
+    "rule": "M-010",
+    "prior": 15.8,
+    "proposed": 29.04,
+    "booked": 29.04,
+    "delta": 13.24,
+    "delta_pct": 0.8379,
+    "realized_quarter": 0.0,
+    "ownership": 0.038,
+    "disposition": "MONITOR",
+    "overridden": false
+   },
+   {
+    "company": "Aravine",
+    "fund": "Fund I",
+    "sector": "Climate & Energy",
+    "stage": "Series B",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series B",
+    "rule": "M-010",
+    "prior": 6.9,
+    "proposed": 13.88,
+    "booked": 13.88,
+    "delta": 6.98,
+    "delta_pct": 1.0113,
+    "realized_quarter": 0.0,
+    "ownership": 0.108,
+    "disposition": "MONITOR",
+    "overridden": false
+   },
+   {
+    "company": "Jettamar",
+    "fund": "Fund III",
+    "sector": "Enterprise SaaS",
+    "stage": "Series A",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series A",
+    "rule": "M-010",
+    "prior": 2.9,
+    "proposed": 4.77,
+    "booked": 4.77,
+    "delta": 1.87,
+    "delta_pct": 0.6459,
+    "realized_quarter": 0.0,
+    "ownership": 0.111,
+    "disposition": "MONITOR",
+    "overridden": false
+   },
+   {
+    "company": "Nimbrel",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series A",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series A",
+    "rule": "M-010",
+    "prior": 1.2,
+    "proposed": 3.07,
+    "booked": 3.07,
+    "delta": 1.87,
+    "delta_pct": 1.5557,
+    "realized_quarter": 0.0,
+    "ownership": 0.068,
+    "disposition": "MONITOR",
+    "overridden": false
+   },
+   {
+    "company": "Dovelane Systems",
+    "fund": "Fund II",
+    "sector": "Fintech",
+    "stage": "Series B",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series B",
+    "rule": "M-010",
+    "prior": 4.1,
+    "proposed": 5.71,
+    "booked": 5.71,
+    "delta": 1.61,
+    "delta_pct": 0.3924,
+    "realized_quarter": 0.0,
+    "ownership": 0.055,
+    "disposition": "MONITOR",
+    "overridden": false
+   },
+   {
+    "company": "Pellagrin",
+    "fund": "Fund I",
+    "sector": "Climate & Energy",
+    "stage": "Series B",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series B extension (same terms)",
+    "rule": "M-011",
+    "prior": 13.0,
+    "proposed": 13.93,
+    "booked": 13.93,
+    "delta": 0.93,
+    "delta_pct": 0.0714,
+    "realized_quarter": 0.0,
+    "ownership": 0.079,
+    "disposition": "BLOCK",
+    "overridden": false
+   }
+  ],
+  "down": [
+   {
+    "company": "Cindral",
+    "fund": "Fund I",
+    "sector": "Developer Tools",
+    "stage": "Series B",
+    "status": "Acquired",
+    "fv_level": null,
+    "event": "Acquisition (Closed) \u00b7 All-cash acquisition",
+    "rule": "M-020",
+    "prior": 18.2,
+    "proposed": 0.0,
+    "booked": 0.0,
+    "delta": -18.2,
+    "delta_pct": -1.0,
+    "realized_quarter": 28.2,
+    "ownership": 0.087,
+    "disposition": "CLEAR",
+    "overridden": false
+   },
+   {
+    "company": "Larkspell",
+    "fund": "Fund II",
+    "sector": "Consumer",
+    "stage": "Series A",
+    "status": "Shut Down",
+    "fv_level": null,
+    "event": "Shutdown \u00b7 Ceased operations",
+    "rule": "M-021",
+    "prior": 11.4,
+    "proposed": 0.0,
+    "booked": 0.0,
+    "delta": -11.4,
+    "delta_pct": -1.0,
+    "realized_quarter": 0.4,
+    "ownership": 0.131,
+    "disposition": "CLEAR",
+    "overridden": false
+   },
+   {
+    "company": "Islewind",
+    "fund": "Fund II",
+    "sector": "Infrastructure",
+    "stage": "Series B",
+    "status": "Shut Down",
+    "fv_level": null,
+    "event": "Shutdown \u00b7 Ceased operations",
+    "rule": "M-021",
+    "prior": 10.0,
+    "proposed": 0.0,
+    "booked": 0.0,
+    "delta": -10.0,
+    "delta_pct": -1.0,
+    "realized_quarter": 0.0,
+    "ownership": 0.036,
+    "disposition": "CLEAR",
+    "overridden": false
+   },
+   {
+    "company": "Marrowick Bio",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series C",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Secondary Sale",
+    "rule": "M-030",
+    "prior": 12.9,
+    "proposed": 8.77,
+    "booked": 8.77,
+    "delta": -4.13,
+    "delta_pct": -0.32,
+    "realized_quarter": 3.9,
+    "ownership": 0.017,
+    "disposition": "REVIEW",
+    "overridden": false
+   },
+   {
+    "company": "Oakenvale",
+    "fund": "Fund III",
+    "sector": "Healthcare",
+    "stage": "Series B",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series B (recap)",
+    "rule": "M-012",
+    "prior": 5.7,
+    "proposed": 2.33,
+    "booked": 2.33,
+    "delta": -3.37,
+    "delta_pct": -0.5911,
+    "realized_quarter": 0.0,
+    "ownership": 0.063,
+    "disposition": "BLOCK",
+    "overridden": false
+   },
+   {
+    "company": "Tarnwick Aerospace",
+    "fund": "Fund II",
+    "sector": "Enterprise SaaS",
+    "stage": "Series A",
+    "status": "Active",
+    "fv_level": 3,
+    "event": "Priced Equity Round \u00b7 Series A (recap)",
+    "rule": "M-012",
+    "prior": 2.0,
+    "proposed": 1.14,
+    "booked": 1.14,
+    "delta": -0.86,
+    "delta_pct": -0.432,
+    "realized_quarter": 0.0,
+    "ownership": 0.08,
+    "disposition": "BLOCK",
+    "overridden": false
+   }
+  ]
+ },
+ "funds": [
+  {
+   "fund": "Fund I",
+   "companies": 30,
+   "active": 29,
+   "invested": 268.9,
+   "prior_nav": 656.8,
+   "booked_nav": 725.34,
+   "delta": 68.54,
+   "delta_pct": 0.1044,
+   "realized_quarter": 28.2,
+   "realized_cumulative": 28.2,
+   "tvpi": 2.8023,
+   "dpi": 0.1049,
+   "rvpi": 2.6974,
+   "top_positions": [
+    {
+     "company": "Drayvenn",
+     "share": 0.1517
+    },
+    {
+     "company": "Fernwave",
+     "share": 0.1014
+    },
+    {
+     "company": "Mardellan",
+     "share": 0.0943
+    },
+    {
+     "company": "Xylotta",
+     "share": 0.0787
+    },
+    {
+     "company": "Knollward",
+     "share": 0.0673
+    }
+   ]
+  },
+  {
+   "fund": "Fund II",
+   "companies": 38,
+   "active": 34,
+   "invested": 258.1,
+   "prior_nav": 391.3,
+   "booked_nav": 368.88,
+   "delta": -22.42,
+   "delta_pct": -0.0573,
+   "realized_quarter": 4.3,
+   "realized_cumulative": 20.2,
+   "tvpi": 1.5075,
+   "dpi": 0.0783,
+   "rvpi": 1.4292,
+   "top_positions": [
+    {
+     "company": "Lanternfell Space",
+     "share": 0.1011
+    },
+    {
+     "company": "Hollowpine Robotics",
+     "share": 0.0824
+    },
+    {
+     "company": "Mossbriar Bio",
+     "share": 0.0819
+    },
+    {
+     "company": "Thornmill Systems",
+     "share": 0.0764
+    },
+    {
+     "company": "Umberly",
+     "share": 0.0653
+    }
+   ]
+  },
+  {
+   "fund": "Fund III",
+   "companies": 32,
+   "active": 30,
+   "invested": 90.5,
+   "prior_nav": 91.2,
+   "booked_nav": 89.7,
+   "delta": -1.5,
+   "delta_pct": -0.0164,
+   "realized_quarter": 0.0,
+   "realized_cumulative": 1.2,
+   "tvpi": 1.0045,
+   "dpi": 0.0133,
+   "rvpi": 0.9912,
+   "top_positions": [
+    {
+     "company": "Vellichor Systems",
+     "share": 0.1315
+    },
+    {
+     "company": "Quillshade",
+     "share": 0.0992
+    },
+    {
+     "company": "Palefire Labs",
+     "share": 0.0725
+    },
+    {
+     "company": "Harrowgate Bio",
+     "share": 0.068
+    },
+    {
+     "company": "Jadewell Payments",
+     "share": 0.0624
+    }
+   ]
+  }
+ ],
+ "composition": {
+  "by_sector": [
+   {
+    "name": "AI/ML",
+    "nav": 213.35,
+    "share": 0.1802,
+    "count": 17
+   },
+   {
+    "name": "Space & Defense",
+    "nav": 174.87,
+    "share": 0.1477,
+    "count": 4
+   },
+   {
+    "name": "Cybersecurity",
+    "nav": 155.3,
+    "share": 0.1312,
+    "count": 8
+   },
+   {
+    "name": "Developer Tools",
+    "nav": 133.64,
+    "share": 0.1129,
+    "count": 10
+   },
+   {
+    "name": "Robotics",
+    "nav": 103.4,
+    "share": 0.0873,
+    "count": 6
+   },
+   {
+    "name": "Infrastructure",
+    "nav": 100.22,
+    "share": 0.0846,
+    "count": 6
+   },
+   {
+    "name": "Enterprise SaaS",
+    "nav": 88.91,
+    "share": 0.0751,
+    "count": 11
+   },
+   {
+    "name": "Fintech",
+    "nav": 77.11,
+    "share": 0.0651,
+    "count": 9
+   },
+   {
+    "name": "Climate & Energy",
+    "nav": 69.81,
+    "share": 0.059,
+    "count": 5
+   },
+   {
+    "name": "Data & Analytics",
+    "nav": 40.8,
+    "share": 0.0345,
+    "count": 8
+   },
+   {
+    "name": "Healthcare",
+    "nav": 19.43,
+    "share": 0.0164,
+    "count": 7
+   },
+   {
+    "name": "Consumer",
+    "nav": 7.1,
+    "share": 0.006,
+    "count": 2
+   }
+  ],
+  "by_stage": [
+   {
+    "name": "Series D+",
+    "nav": 284.0,
+    "share": 0.2399,
+    "count": 8
+   },
+   {
+    "name": "Series B",
+    "nav": 270.15,
+    "share": 0.2282,
+    "count": 21
+   },
+   {
+    "name": "Series C",
+    "nav": 243.27,
+    "share": 0.2055,
+    "count": 11
+   },
+   {
+    "name": "Series A",
+    "nav": 142.98,
+    "share": 0.1208,
+    "count": 29
+   },
+   {
+    "name": "Public",
+    "nav": 110.07,
+    "share": 0.093,
+    "count": 1
+   },
+   {
+    "name": "Series D",
+    "nav": 102.56,
+    "share": 0.0866,
+    "count": 2
+   },
+   {
+    "name": "Seed",
+    "nav": 30.9,
+    "share": 0.0261,
+    "count": 21
+   }
+  ],
+  "by_fund": [
+   {
+    "name": "Fund I",
+    "nav": 725.34,
+    "share": 0.6127,
+    "count": 29
+   },
+   {
+    "name": "Fund II",
+    "nav": 368.88,
+    "share": 0.3116,
+    "count": 34
+   },
+   {
+    "name": "Fund III",
+    "nav": 89.7,
+    "share": 0.0758,
+    "count": 30
+   }
+  ]
+ },
+ "hierarchy": {
+  "level1": {
+   "count": 1,
+   "nav": 110.07
+  },
+  "level3": {
+   "count": 92,
+   "nav": 1073.86
+  }
+ },
+ "decisions": [
+  {
+   "company": "Drayvenn",
+   "fund": "Fund I",
+   "sector": "Space & Defense",
+   "stage": "Public",
+   "status": "Active",
+   "fv_level": 1,
+   "event": "IPO",
+   "rule": "M-040",
+   "prior": 80.3,
+   "proposed": 110.07,
+   "booked": 110.07,
+   "delta": 29.77,
+   "delta_pct": 0.3707,
+   "realized_quarter": 0.0,
+   "ownership": 0.028,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-101",
+     "severity": "BLOCK",
+     "action": "Confirm the 30 Sep closing price, then ratify or change the 0% lock-up discount.",
+     "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round, and it should be the closing price on 2026-09-30 \u2014 not the $3,931M the shares priced at on listing day. HC also cannot sell until 2027-03-19. ASC 820 disfavours blockage discounts for a Level 1 holding, so policy applies 0%, but that is a committee call rather than an arithmetic one."
+    }
+   ],
+   "alternative_marks": {
+    "at_ipo_print": 110.07
+   }
+  },
+  {
+   "company": "Oakenvale",
+   "fund": "Fund III",
+   "sector": "Healthcare",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series B (recap)",
+   "rule": "M-012",
+   "prior": 5.7,
+   "proposed": 2.33,
+   "booked": 2.33,
+   "delta": -3.37,
+   "delta_pct": -0.5911,
+   "realized_quarter": 0.0,
+   "ownership": 0.063,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-102",
+     "severity": "BLOCK",
+     "action": "Read the round documents and confirm the preference stack before booking this mark.",
+     "message": "Recap: the round priced at $37.0M against $71.0M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook."
+    }
+   ],
+   "alternative_marks": {}
+  },
+  {
+   "company": "Pellagrin",
+   "fund": "Fund I",
+   "sector": "Climate & Energy",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series B extension (same terms)",
+   "rule": "M-011",
+   "prior": 13.0,
+   "proposed": 13.93,
+   "booked": 13.93,
+   "delta": 0.93,
+   "delta_pct": 0.0714,
+   "realized_quarter": 0.0,
+   "ownership": 0.079,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-106",
+     "severity": "REVIEW",
+     "action": "Confirm the mark should still rest on a price nobody has re-tested since 2021-10-08.",
+     "message": "The extension raised money at the same $176.3M price, so ownership moved but nobody re-tested what the company is worth. The last real price discovery was 59 months ago, on 2021-10-08."
+    },
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 59 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 59 months ago, on 2021-10-08. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    }
+   ],
+   "alternative_marks": {}
+  },
+  {
+   "company": "Tarnwick Aerospace",
+   "fund": "Fund II",
+   "sector": "Enterprise SaaS",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series A (recap)",
+   "rule": "M-012",
+   "prior": 2.0,
+   "proposed": 1.14,
+   "booked": 1.14,
+   "delta": -0.86,
+   "delta_pct": -0.432,
+   "realized_quarter": 0.0,
+   "ownership": 0.08,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-102",
+     "severity": "BLOCK",
+     "action": "Read the round documents and confirm the preference stack before booking this mark.",
+     "message": "Recap: the round priced at $14.2M against $23.9M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook."
+    },
+    {
+     "rule_id": "X-302",
+     "severity": "REVIEW",
+     "action": "Confirm the mark survives a 16% revenue decline.",
+     "message": "Revenue is shrinking -16% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken."
+    }
+   ],
+   "alternative_marks": {}
+  },
+  {
+   "company": "Gryphonel",
+   "fund": "Fund I",
+   "sector": "AI/ML",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Acquisition (Announced) \u00b7 Definitive agreement signed, all cash",
+   "rule": "M-050",
+   "prior": 3.5,
+   "proposed": 4.31,
+   "booked": 4.31,
+   "delta": 0.81,
+   "delta_pct": 0.2312,
+   "realized_quarter": 0.0,
+   "ownership": 0.036,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-101",
+     "severity": "BLOCK",
+     "action": "Ratify the 0.90 close probability, or choose full deal value or hold at prior.",
+     "message": "A buyer has signed for $133M but the deal has not closed and still needs approval. Booking the full deal value ignores that contingency; holding the old mark ignores a signed agreement. Policy splits the difference at 0.90, giving $4.31M against $4.79M at full value and $3.50M if held."
+    },
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 72 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 72 months ago, on 2020-09-07. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    }
+   ],
+   "alternative_marks": {
+    "at_full_deal_value": 4.79,
+    "hold_prior": 3.5,
+    "probability_weighted": 4.31
+   }
+  },
+  {
+   "company": "Duskfern",
+   "fund": "Fund II",
+   "sector": "Data & Analytics",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Convertible Note \u00b7 $4.7M bridge note, $133.0M valuation cap",
+   "rule": "M-060",
+   "prior": 6.1,
+   "proposed": 6.6,
+   "booked": 6.6,
+   "delta": 0.5,
+   "delta_pct": 0.082,
+   "realized_quarter": 0.0,
+   "ownership": 0.082,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-107",
+     "severity": "REVIEW",
+     "action": "Confirm the $0.50M is carried at cost, and whether the bridge signals distress.",
+     "message": "HC put $0.50M into a bridge note (cap $133.0M, +80% vs last round). The equity mark cannot move \u2014 a cap is a ceiling on a future conversion price, not a price \u2014 so the new money is carried separately at cost until the note converts."
+    },
+    {
+     "rule_id": "X-304",
+     "severity": "REVIEW",
+     "action": "Confirm the mark reflects a company with 4.1 months of cash.",
+     "message": "About 4.1 months of cash left ($2.3M against $0.45M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark."
+    }
+   ],
+   "alternative_marks": {}
+  },
+  {
+   "company": "Birchhollow",
+   "fund": "Fund I",
+   "sector": "Cybersecurity",
+   "stage": "Series D+",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 43.3,
+   "proposed": 43.3,
+   "booked": 43.3,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.029,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 64 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 64 months ago, on 2021-05-11. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    },
+    {
+     "rule_id": "X-302",
+     "severity": "REVIEW",
+     "action": "Confirm the mark survives a 20% revenue decline.",
+     "message": "Revenue is shrinking -20% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken."
+    }
+   ],
+   "alternative_marks": {}
+  }
+ ],
+ "reviews": [
+  {
+   "company": "Mardellan",
+   "fund": "Fund I",
+   "sector": "Robotics",
+   "stage": "Series D+",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 68.4,
+   "proposed": 68.4,
+   "booked": 68.4,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.012,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 52 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 52 months ago, on 2022-05-21. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    }
+   ]
+  },
+  {
+   "company": "Umberly",
+   "fund": "Fund II",
+   "sector": "AI/ML",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 24.1,
+   "proposed": 24.1,
+   "booked": 24.1,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.086,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-304",
+     "severity": "REVIEW",
+     "action": "Confirm the mark reflects a company with 3.1 months of cash.",
+     "message": "About 3.1 months of cash left ($5.6M against $1.36M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark."
+    }
+   ]
+  },
+  {
+   "company": "Nettlebay",
+   "fund": "Fund II",
+   "sector": "Robotics",
+   "stage": "Series C",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 21.3,
+   "proposed": 21.3,
+   "booked": 21.3,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.026,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 49 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 49 months ago, on 2022-08-28. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    }
+   ]
+  },
+  {
+   "company": "Brumewell",
+   "fund": "Fund II",
+   "sector": "AI/ML",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 18.5,
+   "proposed": 18.5,
+   "booked": 18.5,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.075,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-302",
+     "severity": "REVIEW",
+     "action": "Confirm the mark survives a 21% revenue decline.",
+     "message": "Revenue is shrinking -21% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken."
+    }
+   ]
+  },
+  {
+   "company": "Jupelan",
+   "fund": "Fund II",
+   "sector": "Cybersecurity",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 14.3,
+   "proposed": 14.3,
+   "booked": 14.3,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.074,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-304",
+     "severity": "REVIEW",
+     "action": "Confirm the mark reflects a company with 3.4 months of cash.",
+     "message": "About 3.4 months of cash left ($6.6M against $1.50M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark."
+    }
+   ]
+  },
+  {
+   "company": "Ostrella",
+   "fund": "Fund I",
+   "sector": "Space & Defense",
+   "stage": "Series D+",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 13.9,
+   "proposed": 13.9,
+   "booked": 13.9,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.012,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 61 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 61 months ago, on 2021-08-18. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    }
+   ]
+  },
+  {
+   "company": "Marrowick Bio",
+   "fund": "Fund II",
+   "sector": "AI/ML",
+   "stage": "Series C",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Secondary Sale",
+   "rule": "M-030",
+   "prior": 12.9,
+   "proposed": 8.77,
+   "booked": 8.77,
+   "delta": -4.13,
+   "delta_pct": -0.32,
+   "realized_quarter": 3.9,
+   "ownership": 0.017,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-104",
+     "severity": "REVIEW",
+     "action": "Decide whether the stake HC still holds follows the last round or the secondary price.",
+     "message": "The sale implies the company is worth $487.5M, -5.5% against the $516.0M the last round set. One buyer taking one block is real evidence but not necessarily the principal market, so policy holds the remaining stake at the round price. On the secondary price it would be $8.29M instead."
+    }
+   ]
+  },
+  {
+   "company": "Beltrix",
+   "fund": "Fund II",
+   "sector": "Fintech",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 8.1,
+   "proposed": 8.1,
+   "booked": 8.1,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.132,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-304",
+     "severity": "REVIEW",
+     "action": "Confirm the mark reflects a company with 5.0 months of cash.",
+     "message": "About 5.0 months of cash left ($3.1M against $0.52M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark."
+    }
+   ]
+  },
+  {
+   "company": "Orchardline",
+   "fund": "Fund I",
+   "sector": "Data & Analytics",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 7.3,
+   "proposed": 7.3,
+   "booked": 7.3,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.061,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-304",
+     "severity": "REVIEW",
+     "action": "Confirm the mark reflects a company with 2.5 months of cash.",
+     "message": "About 2.5 months of cash left ($3.5M against $1.00M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark."
+    }
+   ]
+  },
+  {
+   "company": "Halcyra",
+   "fund": "Fund I",
+   "sector": "Cybersecurity",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Term Sheet Signed \u00b7 Series B term sheet at ~$50.0M post",
+   "rule": "M-070",
+   "prior": 2.7,
+   "proposed": 2.7,
+   "booked": 2.7,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.085,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 71 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 71 months ago, on 2020-10-30. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    }
+   ]
+  },
+  {
+   "company": "Uplandreach",
+   "fund": "Fund I",
+   "sector": "Data & Analytics",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 2.1,
+   "proposed": 2.1,
+   "booked": 2.1,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.121,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 56 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 56 months ago, on 2022-01-03. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    }
+   ]
+  },
+  {
+   "company": "Stonegather",
+   "fund": "Fund III",
+   "sector": "Data & Analytics",
+   "stage": "Seed",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 1.7,
+   "proposed": 1.7,
+   "booked": 1.7,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.094,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-304",
+     "severity": "REVIEW",
+     "action": "Confirm the mark reflects a company with 3.7 months of cash.",
+     "message": "About 3.7 months of cash left ($1.4M against $0.30M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark."
+    }
+   ]
+  },
+  {
+   "company": "Petrelbay",
+   "fund": "Fund III",
+   "sector": "Infrastructure",
+   "stage": "Seed",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 1.7,
+   "proposed": 1.7,
+   "booked": 1.7,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.077,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-302",
+     "severity": "REVIEW",
+     "action": "Confirm the mark survives a 30% revenue decline.",
+     "message": "Revenue is shrinking -30% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken."
+    }
+   ]
+  },
+  {
+   "company": "Quarrystone AI",
+   "fund": "Fund III",
+   "sector": "AI/ML",
+   "stage": "Seed",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 1.6,
+   "proposed": 1.6,
+   "booked": 1.6,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.106,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-302",
+     "severity": "REVIEW",
+     "action": "Confirm the mark survives a 32% revenue decline.",
+     "message": "Revenue is shrinking -32% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken."
+    }
+   ]
+  },
+  {
+   "company": "Juttermill",
+   "fund": "Fund I",
+   "sector": "Enterprise SaaS",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-000",
+   "prior": 0.7,
+   "proposed": 0.7,
+   "booked": 0.7,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.08,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "actions": [
+    {
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "action": "Decide whether a price set 60 months ago is still fair value.",
+     "message": "The mark rests on a round that closed 60 months ago, on 2021-09-16. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes."
+    }
+   ]
+  }
+ ],
+ "risk_watch": {
+  "short_runway": [
+   {
+    "company": "Umberly",
+    "fund": "Fund II",
+    "booked": 24.1,
+    "detail": "About 3.1 months of cash left ($5.6M against $1.36M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+    "evidence": {
+     "runway_months_aged": 3.12
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Jupelan",
+    "fund": "Fund II",
+    "booked": 14.3,
+    "detail": "About 3.4 months of cash left ($6.6M against $1.50M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+    "evidence": {
+     "runway_months_aged": 3.4
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Beltrix",
+    "fund": "Fund II",
+    "booked": 8.1,
+    "detail": "About 5.0 months of cash left ($3.1M against $0.52M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+    "evidence": {
+     "runway_months_aged": 4.96
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Orchardline",
+    "fund": "Fund I",
+    "booked": 7.3,
+    "detail": "About 2.5 months of cash left ($3.5M against $1.00M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+    "evidence": {
+     "runway_months_aged": 2.5
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Duskfern",
+    "fund": "Fund II",
+    "booked": 6.6,
+    "detail": "About 4.1 months of cash left ($2.3M against $0.45M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+    "evidence": {
+     "runway_months_aged": 4.11
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Stonegather",
+    "fund": "Fund III",
+    "booked": 1.7,
+    "detail": "About 3.7 months of cash left ($1.4M against $0.30M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+    "evidence": {
+     "runway_months_aged": 3.67
+    },
+    "severity": "REVIEW"
+   }
+  ],
+  "arr_contraction": [
+   {
+    "company": "Birchhollow",
+    "fund": "Fund I",
+    "booked": 43.3,
+    "detail": "Revenue is shrinking -20% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+    "evidence": {
+     "arr_growth": -0.2
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Brumewell",
+    "fund": "Fund II",
+    "booked": 18.5,
+    "detail": "Revenue is shrinking -21% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+    "evidence": {
+     "arr_growth": -0.21
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Petrelbay",
+    "fund": "Fund III",
+    "booked": 1.7,
+    "detail": "Revenue is shrinking -30% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+    "evidence": {
+     "arr_growth": -0.3
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Quarrystone AI",
+    "fund": "Fund III",
+    "booked": 1.6,
+    "detail": "Revenue is shrinking -32% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+    "evidence": {
+     "arr_growth": -0.32
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Tarnwick Aerospace",
+    "fund": "Fund II",
+    "booked": 1.14,
+    "detail": "Revenue is shrinking -16% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+    "evidence": {
+     "arr_growth": -0.16
+    },
+    "severity": "REVIEW"
+   }
+  ],
+  "stale_marks": [
+   {
+    "company": "Mardellan",
+    "fund": "Fund I",
+    "booked": 68.4,
+    "detail": "The mark rests on a round that closed 52 months ago, on 2022-05-21. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 52,
+     "anchor": "2022-05-21"
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Birchhollow",
+    "fund": "Fund I",
+    "booked": 43.3,
+    "detail": "The mark rests on a round that closed 64 months ago, on 2021-05-11. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 64,
+     "anchor": "2021-05-11"
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Nettlebay",
+    "fund": "Fund II",
+    "booked": 21.3,
+    "detail": "The mark rests on a round that closed 49 months ago, on 2022-08-28. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 49,
+     "anchor": "2022-08-28"
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Pellagrin",
+    "fund": "Fund I",
+    "booked": 13.93,
+    "detail": "The mark rests on a round that closed 59 months ago, on 2021-10-08. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 59,
+     "anchor": "2021-10-08"
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Ostrella",
+    "fund": "Fund I",
+    "booked": 13.9,
+    "detail": "The mark rests on a round that closed 61 months ago, on 2021-08-18. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 61,
+     "anchor": "2021-08-18"
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Gryphonel",
+    "fund": "Fund I",
+    "booked": 4.31,
+    "detail": "The mark rests on a round that closed 72 months ago, on 2020-09-07. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 72,
+     "anchor": "2020-09-07"
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Halcyra",
+    "fund": "Fund I",
+    "booked": 2.7,
+    "detail": "The mark rests on a round that closed 71 months ago, on 2020-10-30. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 71,
+     "anchor": "2020-10-30"
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Uplandreach",
+    "fund": "Fund I",
+    "booked": 2.1,
+    "detail": "The mark rests on a round that closed 56 months ago, on 2022-01-03. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 56,
+     "anchor": "2022-01-03"
+    },
+    "severity": "REVIEW"
+   },
+   {
+    "company": "Juttermill",
+    "fund": "Fund I",
+    "booked": 0.7,
+    "detail": "The mark rests on a round that closed 60 months ago, on 2021-09-16. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+    "evidence": {
+     "months": 60,
+     "anchor": "2021-09-16"
+    },
+    "severity": "REVIEW"
+   }
+  ]
+ },
+ "sensitivity": {
+  "base_nav": 1183.93,
+  "multiple_exposed_nav": 1067.56,
+  "nav_if_multiples_-20pct": 970.41,
+  "nav_if_multiples_+20pct": 1397.44
+ },
+ "open_items": [
+  {
+   "company": "Emberfold",
+   "kind": "convertible_note",
+   "opened": "2026-08-23",
+   "expected_resolution": null,
+   "amount": null,
+   "detail": "$8.5M bridge note, $32.0M valuation cap (HC did not participate)",
+   "escalated": false
+  },
+  {
+   "company": "Gryphonel",
+   "kind": "pending_acquisition",
+   "opened": "2026-09-08",
+   "expected_resolution": null,
+   "amount": 133.0,
+   "detail": "Expected to close in Q4 2026, subject to regulatory approval. No cash received.",
+   "escalated": false
+  },
+  {
+   "company": "Halcyra",
+   "kind": "term_sheet",
+   "opened": "2026-09-17",
+   "expected_resolution": null,
+   "amount": 50.0,
+   "detail": "Not closed; diligence underway, expected to close Q4.",
+   "escalated": false
+  },
+  {
+   "company": "Drayvenn",
+   "kind": "ipo_lockup",
+   "opened": "2026-09-20",
+   "expected_resolution": "2027-03-19",
+   "amount": null,
+   "detail": "180-day lock-up; 2.8% of listed equity",
+   "escalated": false
+  },
+  {
+   "company": "Duskfern",
+   "kind": "convertible_note",
+   "opened": "2026-08-28",
+   "expected_resolution": null,
+   "amount": 0.5,
+   "detail": "$4.7M bridge note, $133.0M valuation cap",
+   "escalated": false
+  }
+ ],
+ "events": [
+  {
+   "company": "Fernwave",
+   "fund": "Fund I",
+   "sector": "Infrastructure",
+   "stage": "Series D",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series D",
+   "rule": "M-010",
+   "prior": 38.5,
+   "proposed": 73.52,
+   "booked": 73.52,
+   "delta": 35.02,
+   "delta_pct": 0.9095,
+   "realized_quarter": 0.0,
+   "ownership": 0.04,
+   "disposition": "CLEAR",
+   "overridden": false
+  },
+  {
+   "company": "Drayvenn",
+   "fund": "Fund I",
+   "sector": "Space & Defense",
+   "stage": "Public",
+   "status": "Active",
+   "fv_level": 1,
+   "event": "IPO",
+   "rule": "M-040",
+   "prior": 80.3,
+   "proposed": 110.07,
+   "booked": 110.07,
+   "delta": 29.77,
+   "delta_pct": 0.3707,
+   "realized_quarter": 0.0,
+   "ownership": 0.028,
+   "disposition": "BLOCK",
+   "overridden": false
+  },
+  {
+   "company": "Cindral",
+   "fund": "Fund I",
+   "sector": "Developer Tools",
+   "stage": "Series B",
+   "status": "Acquired",
+   "fv_level": null,
+   "event": "Acquisition (Closed) \u00b7 All-cash acquisition",
+   "rule": "M-020",
+   "prior": 18.2,
+   "proposed": 0.0,
+   "booked": 0.0,
+   "delta": -18.2,
+   "delta_pct": -1.0,
+   "realized_quarter": 28.2,
+   "ownership": 0.087,
+   "disposition": "CLEAR",
+   "overridden": false
+  },
+  {
+   "company": "Ironquill Security",
+   "fund": "Fund I",
+   "sector": "Developer Tools",
+   "stage": "Series D",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series D",
+   "rule": "M-010",
+   "prior": 15.8,
+   "proposed": 29.04,
+   "booked": 29.04,
+   "delta": 13.24,
+   "delta_pct": 0.8379,
+   "realized_quarter": 0.0,
+   "ownership": 0.038,
+   "disposition": "MONITOR",
+   "overridden": false
+  },
+  {
+   "company": "Larkspell",
+   "fund": "Fund II",
+   "sector": "Consumer",
+   "stage": "Series A",
+   "status": "Shut Down",
+   "fv_level": null,
+   "event": "Shutdown \u00b7 Ceased operations",
+   "rule": "M-021",
+   "prior": 11.4,
+   "proposed": 0.0,
+   "booked": 0.0,
+   "delta": -11.4,
+   "delta_pct": -1.0,
+   "realized_quarter": 0.4,
+   "ownership": 0.131,
+   "disposition": "CLEAR",
+   "overridden": false
+  },
+  {
+   "company": "Islewind",
+   "fund": "Fund II",
+   "sector": "Infrastructure",
+   "stage": "Series B",
+   "status": "Shut Down",
+   "fv_level": null,
+   "event": "Shutdown \u00b7 Ceased operations",
+   "rule": "M-021",
+   "prior": 10.0,
+   "proposed": 0.0,
+   "booked": 0.0,
+   "delta": -10.0,
+   "delta_pct": -1.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.036,
+   "disposition": "CLEAR",
+   "overridden": false
+  },
+  {
+   "company": "Aravine",
+   "fund": "Fund I",
+   "sector": "Climate & Energy",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series B",
+   "rule": "M-010",
+   "prior": 6.9,
+   "proposed": 13.88,
+   "booked": 13.88,
+   "delta": 6.98,
+   "delta_pct": 1.0113,
+   "realized_quarter": 0.0,
+   "ownership": 0.108,
+   "disposition": "MONITOR",
+   "overridden": false
+  },
+  {
+   "company": "Marrowick Bio",
+   "fund": "Fund II",
+   "sector": "AI/ML",
+   "stage": "Series C",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Secondary Sale",
+   "rule": "M-030",
+   "prior": 12.9,
+   "proposed": 8.77,
+   "booked": 8.77,
+   "delta": -4.13,
+   "delta_pct": -0.32,
+   "realized_quarter": 3.9,
+   "ownership": 0.017,
+   "disposition": "REVIEW",
+   "overridden": false
+  },
+  {
+   "company": "Oakenvale",
+   "fund": "Fund III",
+   "sector": "Healthcare",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series B (recap)",
+   "rule": "M-012",
+   "prior": 5.7,
+   "proposed": 2.33,
+   "booked": 2.33,
+   "delta": -3.37,
+   "delta_pct": -0.5911,
+   "realized_quarter": 0.0,
+   "ownership": 0.063,
+   "disposition": "BLOCK",
+   "overridden": false
+  },
+  {
+   "company": "Jettamar",
+   "fund": "Fund III",
+   "sector": "Enterprise SaaS",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series A",
+   "rule": "M-010",
+   "prior": 2.9,
+   "proposed": 4.77,
+   "booked": 4.77,
+   "delta": 1.87,
+   "delta_pct": 0.6459,
+   "realized_quarter": 0.0,
+   "ownership": 0.111,
+   "disposition": "MONITOR",
+   "overridden": false
+  },
+  {
+   "company": "Nimbrel",
+   "fund": "Fund II",
+   "sector": "AI/ML",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series A",
+   "rule": "M-010",
+   "prior": 1.2,
+   "proposed": 3.07,
+   "booked": 3.07,
+   "delta": 1.87,
+   "delta_pct": 1.5557,
+   "realized_quarter": 0.0,
+   "ownership": 0.068,
+   "disposition": "MONITOR",
+   "overridden": false
+  },
+  {
+   "company": "Dovelane Systems",
+   "fund": "Fund II",
+   "sector": "Fintech",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series B",
+   "rule": "M-010",
+   "prior": 4.1,
+   "proposed": 5.71,
+   "booked": 5.71,
+   "delta": 1.61,
+   "delta_pct": 0.3924,
+   "realized_quarter": 0.0,
+   "ownership": 0.055,
+   "disposition": "MONITOR",
+   "overridden": false
+  },
+  {
+   "company": "Pellagrin",
+   "fund": "Fund I",
+   "sector": "Climate & Energy",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series B extension (same terms)",
+   "rule": "M-011",
+   "prior": 13.0,
+   "proposed": 13.93,
+   "booked": 13.93,
+   "delta": 0.93,
+   "delta_pct": 0.0714,
+   "realized_quarter": 0.0,
+   "ownership": 0.079,
+   "disposition": "BLOCK",
+   "overridden": false
+  },
+  {
+   "company": "Tarnwick Aerospace",
+   "fund": "Fund II",
+   "sector": "Enterprise SaaS",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Priced Equity Round \u00b7 Series A (recap)",
+   "rule": "M-012",
+   "prior": 2.0,
+   "proposed": 1.14,
+   "booked": 1.14,
+   "delta": -0.86,
+   "delta_pct": -0.432,
+   "realized_quarter": 0.0,
+   "ownership": 0.08,
+   "disposition": "BLOCK",
+   "overridden": false
+  },
+  {
+   "company": "Gryphonel",
+   "fund": "Fund I",
+   "sector": "AI/ML",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Acquisition (Announced) \u00b7 Definitive agreement signed, all cash",
+   "rule": "M-050",
+   "prior": 3.5,
+   "proposed": 4.31,
+   "booked": 4.31,
+   "delta": 0.81,
+   "delta_pct": 0.2312,
+   "realized_quarter": 0.0,
+   "ownership": 0.036,
+   "disposition": "BLOCK",
+   "overridden": false
+  },
+  {
+   "company": "Duskfern",
+   "fund": "Fund II",
+   "sector": "Data & Analytics",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Convertible Note \u00b7 $4.7M bridge note, $133.0M valuation cap",
+   "rule": "M-060",
+   "prior": 6.1,
+   "proposed": 6.6,
+   "booked": 6.6,
+   "delta": 0.5,
+   "delta_pct": 0.082,
+   "realized_quarter": 0.0,
+   "ownership": 0.082,
+   "disposition": "BLOCK",
+   "overridden": false
+  },
+  {
+   "company": "Emberfold",
+   "fund": "Fund III",
+   "sector": "Cybersecurity",
+   "stage": "Seed",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Convertible Note \u00b7 $8.5M bridge note, $32.0M valuation cap",
+   "rule": "M-060",
+   "prior": 1.8,
+   "proposed": 1.8,
+   "booked": 1.8,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.078,
+   "disposition": "MONITOR",
+   "overridden": false
+  },
+  {
+   "company": "Halcyra",
+   "fund": "Fund I",
+   "sector": "Cybersecurity",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "Term Sheet Signed \u00b7 Series B term sheet at ~$50.0M post",
+   "rule": "M-070",
+   "prior": 2.7,
+   "proposed": 2.7,
+   "booked": 2.7,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.085,
+   "disposition": "REVIEW",
+   "overridden": false
+  }
+ ],
+ "validation_issues": 0,
+ "history": [
+  {
+   "quarter": "Q3 2026",
+   "slug": "2026Q3",
+   "published_at": "2026-10-02T17:00:00+00:00",
+   "published_by": "Jackson Lagerwey",
+   "status": "proposed",
+   "booked_nav": 1183.9263
+  }
+ ]
+}

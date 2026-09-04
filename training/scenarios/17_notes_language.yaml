@@ -1,0 +1,88 @@
+name: 17_notes_language
+description: >
+  One row per X-105 note-screen term (the thirteen the policy already lists plus the nine SPEC §3
+  adds: warrant, pay-to-play, cram / cram-down, lock-up, related party, going concern, covenant,
+  default), each on a Term Sheet Signed so the mark is unchanged and the only new signal is the
+  REVIEW that guarantees a human reads the sentence. Two controls: "lock-up" in an IPO note must
+  NOT fire (it is the normal condition of a listing), and a clean note must not fire at all.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-01, company: "Lumetra", event: "Term Sheet Signed", detail: "Series term sheet at ~$8.0M post", value: 8.0,
+      notes: "Term sheet includes an escrow of 10% of the round for eighteen months." }
+  - { date: 2026-07-02, company: "Rivenmark", event: "Term Sheet Signed", detail: "Series term sheet at ~$35.0M post", value: 35.0,
+      notes: "A holdback of $0.5M applies until the audit closes." }
+  - { date: 2026-07-03, company: "Solvantra", event: "Term Sheet Signed", detail: "Series term sheet at ~$100.0M post", value: 100.0,
+      notes: "Part of the price is an earn-out tied to 2027 revenue." }
+  - { date: 2026-07-04, company: "Vexmoor", event: "Term Sheet Signed", detail: "Series term sheet at ~$520.0M post", value: 520.0,
+      notes: "Includes an earnout payable on a defence contract award." }
+  - { date: 2026-07-05, company: "Thistledown Energy", event: "Term Sheet Signed", detail: "Series term sheet at ~$16.0M post", value: 16.0,
+      notes: "Second tranche released on a clinical milestone." }
+  - { date: 2026-07-06, company: "Ambercrest", event: "Term Sheet Signed", detail: "Series term sheet at ~$330.0M post", value: 330.0,
+      notes: "Pricing is contingent on the Q4 renewal cohort." }
+  - { date: 2026-07-07, company: "Covebright", event: "Term Sheet Signed", detail: "Series term sheet at ~$340.0M post", value: 340.0,
+      notes: "New preferred is participating with a 1x cap." }
+  - { date: 2026-07-08, company: "Gorseline", event: "Term Sheet Signed", detail: "Series term sheet at ~$40.0M post", value: 40.0,
+      notes: "Investors receive a 2x liquidation preference." }
+  - { date: 2026-07-09, company: "Inkmoor", event: "Term Sheet Signed", detail: "Series term sheet at ~$32.0M post", value: 32.0,
+      notes: "Full ratchet anti-dilution on the new class." }
+  - { date: 2026-07-10, company: "Jadewell Payments", event: "Term Sheet Signed", detail: "Series term sheet at ~$100.0M post", value: 100.0,
+      notes: "Closing depends on settling the pending litigation." }
+  - { date: 2026-07-11, company: "Kilnbrook", event: "Term Sheet Signed", detail: "Series term sheet at ~$80.0M post", value: 80.0,
+      notes: "The cap table was restated before pricing." }
+  - { date: 2026-07-12, company: "Loamfield Robotics", event: "Term Sheet Signed", detail: "Series term sheet at ~$20.0M post", value: 20.0,
+      notes: "Lead investor emerged from bankruptcy last year; diligence ongoing." }
+  - { date: 2026-07-13, company: "Palefire Labs", event: "Term Sheet Signed", detail: "Series term sheet at ~$70.0M post", value: 70.0,
+      notes: "Conversion of the founder loan is a closing condition." }
+  - { date: 2026-07-14, company: "Quillshade", event: "Term Sheet Signed", detail: "Series term sheet at ~$85.0M post", value: 85.0,
+      notes: "Lead receives a warrant for 2% of the company." }
+  - { date: 2026-07-15, company: "Tidewell Health", event: "Term Sheet Signed", detail: "Series term sheet at ~$18.0M post", value: 18.0,
+      notes: "Pay-to-play provision for existing investors." }
+  - { date: 2026-07-16, company: "Willowmere Compute", event: "Term Sheet Signed", detail: "Series term sheet at ~$50.0M post", value: 50.0,
+      notes: "Structured as a cram-down of non-participating holders." }
+  - { date: 2026-07-17, company: "Coppermoss Energy", event: "Term Sheet Signed", detail: "Series term sheet at ~$33.0M post", value: 33.0,
+      notes: "The lead is a related party of the founder." }
+  - { date: 2026-07-18, company: "Dellforge", event: "Term Sheet Signed", detail: "Series term sheet at ~$880.0M post", value: 880.0,
+      notes: "Auditors raised a going concern note in the FY25 accounts." }
+  - { date: 2026-07-19, company: "Gablewood", event: "Term Sheet Signed", detail: "Series term sheet at ~$13.0M post", value: 13.0,
+      notes: "A minimum-cash covenant applies from closing." }
+  - { date: 2026-07-20, company: "Harrowgate Bio", event: "Term Sheet Signed", detail: "Series term sheet at ~$110.0M post", value: 110.0,
+      notes: "The venture loan is in technical default pending waiver." }
+  - { date: 2026-07-21, company: "Lanternfell Space", event: "Term Sheet Signed", detail: "Series term sheet at ~$850.0M post", value: 850.0,
+      notes: "Founders subject to a 12-month lock-up on secondary sales." }
+  - { date: 2026-07-22, company: "Oxbowlane", event: "Term Sheet Signed", detail: "Series term sheet at ~$390.0M post", value: 390.0,
+      notes: "Existing holders cram in the new class at closing." }
+  - { date: 2026-08-14, company: Vinecroft, event: "IPO", detail: "Listed on Nasdaq", value: 2500.0, ownership_after: 0.014,
+      notes: "Priced at the midpoint of the range. HC shares subject to a 180-day lock-up." }
+  - { date: 2026-08-15, company: Ventabrook, event: "Term Sheet Signed", detail: "Series A term sheet at ~$30.0M post", value: 30.0,
+      notes: "Standard terms; the lead is a new investor. Nothing unusual in the documents." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [], must_not: [X-901, X-909, X-914, X-902] }
+  totals: { events: 24, positions: 100 }
+  companies:
+    Lumetra:               { disposition: REVIEW, rules: [M-070], proposed: 0.4, flags_must: [X-105, X-109] }   # escrow
+    Rivenmark:             { disposition: REVIEW, rules: [M-070], proposed: 2.9, flags_must: [X-105, X-109] }   # holdback
+    Solvantra:             { disposition: REVIEW, rules: [M-070], proposed: 8.9, flags_must: [X-105, X-109] }   # earn-out
+    Vexmoor:               { disposition: REVIEW, rules: [M-070], proposed: 22.7, flags_must: [X-105, X-109] }   # earnout
+    Thistledown Energy:    { disposition: REVIEW, rules: [M-070], proposed: 1.2, flags_must: [X-105, X-109] }   # milestone
+    Ambercrest:            { disposition: REVIEW, rules: [M-070], proposed: 10.6, flags_must: [X-105, X-109] }   # contingent
+    Covebright:            { disposition: REVIEW, rules: [M-070], proposed: 14.6, flags_must: [X-105, X-109] }   # participating
+    Gorseline:             { disposition: REVIEW, rules: [M-070], proposed: 3.1, flags_must: [X-105, X-109] }   # preference
+    Inkmoor:               { disposition: REVIEW, rules: [M-070], proposed: 3.0, flags_must: [X-105, X-109] }   # ratchet
+    Jadewell Payments:     { disposition: REVIEW, rules: [M-070], proposed: 5.6, flags_must: [X-105, X-109] }   # litigation
+    Kilnbrook:             { disposition: REVIEW, rules: [M-070], proposed: 4.4, flags_must: [X-105, X-109] }   # restated
+    Loamfield Robotics:    { disposition: REVIEW, rules: [M-070], proposed: 1.1, flags_must: [X-105, X-109] }   # bankruptcy
+    Palefire Labs:         { disposition: REVIEW, rules: [M-070], proposed: 6.5, flags_must: [X-105, X-109] }   # conversion
+    Quillshade:            { disposition: REVIEW, rules: [M-070], proposed: 8.9, flags_must: [X-105, X-109] }   # warrant
+    Tidewell Health:       { disposition: REVIEW, rules: [M-070], proposed: 1.2, flags_must: [X-105, X-109] }   # pay-to-play
+    Willowmere Compute:    { disposition: REVIEW, rules: [M-070], proposed: 4.7, flags_must: [X-105, X-109] }   # cram-down
+    Coppermoss Energy:     { disposition: REVIEW, rules: [M-070], proposed: 2.6, flags_must: [X-105, X-109] }   # related party
+    Dellforge:             { disposition: REVIEW, rules: [M-070], proposed: 27.8, flags_must: [X-105, X-109] }   # going concern
+    Gablewood:             { disposition: REVIEW, rules: [M-070], proposed: 0.6, flags_must: [X-105, X-109] }   # covenant
+    Harrowgate Bio:        { disposition: REVIEW, rules: [M-070], proposed: 6.1, flags_must: [X-105, X-109] }   # default
+    Lanternfell Space:     { disposition: REVIEW, rules: [M-070], proposed: 37.3, flags_must: [X-105, X-109] }   # lock-up
+    Oxbowlane:             { disposition: REVIEW, rules: [M-070], proposed: 13.0, flags_must: [X-105, X-109] }   # cram
+    Vinecroft:             { disposition: BLOCK, rules: [M-040], proposed: 35.0, flags_must: [X-101], flags_must_not: [X-105] }   # lock-up on an IPO is not a screen hit
+    Ventabrook:            { disposition: MONITOR, rules: [M-070], proposed: 2.3, flags_must: [X-109], flags_must_not: [X-105] }   # clean control

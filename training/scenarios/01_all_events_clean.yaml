@@ -1,0 +1,64 @@
+name: 01_all_events_clean
+description: >
+  Every canonical event type (the original 8 and the 8 new ones) exactly once, cleanly spelled,
+  on companies that are CLEAR at carry so each rule's arithmetic and flag is checkable in isolation.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  # ---- the original eight
+  - { date: 2026-07-10, company: Solvantra, event: "Priced Equity Round", detail: "Series B", value: 100.0, hc_investment: 1.0, ownership_after: 0.11,
+      notes: "$24.0M round led by a new investor. HC participated." }
+  - { date: 2026-07-14, company: Kilnbrook, event: "Convertible Note", detail: "$3.0M bridge note, $80.0M valuation cap", hc_investment: 0.5,
+      notes: "Uncapped interest, converts at next priced round. HC participated in the note." }
+  - { date: 2026-07-20, company: Vinecroft, event: "IPO", detail: "Listed on Nasdaq", value: 2500.0, ownership_after: 0.014,
+      notes: "Priced at the midpoint of the range." }
+  - { date: 2026-07-28, company: Ambercrest, event: "Acquisition (Closed)", detail: "All-cash acquisition", value: 400.0, proceeds: 16.8,
+      notes: "Transaction closed and cash received during the quarter." }
+  - { date: 2026-08-03, company: Oxbowlane, event: "Acquisition (Announced)", detail: "Definitive agreement signed, all cash", value: 500.0,
+      notes: "Expected to close in Q4 2026, subject to regulatory approval. No cash received." }
+  - { date: 2026-08-07, company: "Coppermoss Energy", event: "Shutdown", detail: "Ceased operations", proceeds: 0.1,
+      notes: "Board voted to wind down. Residual cash distributed to investors." }
+  - { date: 2026-08-11, company: "Lanternfell Space", event: "Secondary Sale", detail: "HC sold 30% of its position", value: 653.6, ownership_after: 0.04, proceeds: 11.1112,
+      notes: "Buyer paid a price consistent with the latest round." }
+  - { date: 2026-08-14, company: "Willowmere Compute", event: "Term Sheet Signed", detail: "Series B term sheet at ~$60.0M post", value: 60.0,
+      notes: "Not closed; diligence underway, expected to close Q4." }
+  # ---- the new eight
+  - { date: 2026-08-18, company: Gorseline, event: "Secondary Purchase", detail: "Bought 2.0% from a departing angel", hc_investment: 0.606, ownership_after: 0.122,
+      notes: "Priced at the Series A post-money." }
+  - { date: 2026-08-21, company: Dellforge, event: "Distribution", detail: "Cash dividend from operating profits", proceeds: 1.5,
+      notes: "Pro rata cash dividend; no change in the stake." }
+  - { date: 2026-08-25, company: "Jadewell Payments", event: "Ownership Adjustment", detail: "Warrant exercise", hc_investment: 0.2, ownership_after: 0.08,
+      notes: "HC exercised its Series A warrants at the strike price." }
+  - { date: 2026-08-28, company: "Tidewell Health", event: "New Investment", detail: "Seed extension, Fund III", value: 20.0, hc_investment: 0.5, ownership_after: 0.10,
+      notes: "First priced check into the company after the SAFE." }
+  - { date: 2026-09-02, company: Inkmoor, event: "Acquisition (Terminated)", detail: "Buyer walked after diligence", value: 60.0,
+      notes: "The announced deal was withdrawn; the company continues independently." }
+  - { date: 2026-09-05, company: Rivenmark, event: "Note Repaid", detail: "Bridge note redeemed in cash", hc_investment: 0.4, proceeds: 0.4,
+      notes: "Principal returned with interest; no shares issued." }
+  - { date: 2026-09-09, company: "Thornmill Systems", event: "Bankruptcy (Chapter 11)", detail: "Voluntary Chapter 11 filing",
+      notes: "Company continues to operate under DIP financing." }
+  - { date: 2026-09-12, company: Vexmoor, event: "Direct Listing", detail: "Direct listing on NYSE", value: 600.0, ownership_after: 0.05,
+      notes: "Reference price set by the exchange; no primary raise." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [], must_not: [X-909, X-901, X-912, X-913, X-914, X-902, X-903, X-907, X-920] }
+  validation_blocking: false
+  totals: { events: 16, positions: 100 }
+  companies:
+    Solvantra:            { disposition: CLEAR,   rules: [M-010], proposed: 11.0,    invested_after: 6.1, ownership_after: 0.11, flags_must_not: [M-999, X-102, X-106, X-117, X-118] }
+    Kilnbrook:            { disposition: REVIEW,  rules: [M-060], proposed: 4.9,     note_at_cost: 0.5, flags_must: [X-107], flags_must_not: [X-101, M-999], open_items_must: [convertible_note] }
+    Vinecroft:            { disposition: BLOCK,   rules: [M-040], proposed: 35.0,    fv_level: 1, listed: true, stage: Public, flags_must: [X-101], open_items_must: [ipo_lockup] }
+    Ambercrest:           { disposition: CLEAR,   rules: [M-020], proposed: 0.0,     realized_quarter: 16.8, status: Acquired, flags_must_not: [X-101] }
+    Oxbowlane:            { disposition: BLOCK,   rules: [M-050], proposed: 19.35,   flags_must: [X-101], open_items_must: [pending_acquisition] }
+    Coppermoss Energy:    { disposition: CLEAR,   rules: [M-021], proposed: 0.0,     realized_quarter: 0.1, status: "Shut Down" }
+    Lanternfell Space:    { disposition: CLEAR,   rules: [M-030], proposed: 26.144,  realized_quarter: 11.1112, ownership_after: 0.04, flags_must_not: [X-104, X-101] }
+    Willowmere Compute:   { disposition: MONITOR, rules: [M-070], proposed: 4.7,     flags_must: [X-109], open_items_must: [term_sheet] }
+    Gorseline:            { disposition: MONITOR, rules: [M-031], proposed: 3.6966,  invested_after: 2.706, ownership_after: 0.122, flags_must: [X-121], flags_must_not: [X-104, M-999] }
+    Dellforge:            { disposition: MONITOR, rules: [M-022], proposed: 27.8,    realized_quarter: 1.5, ownership_after: 0.041, flags_must: [X-111], flags_must_not: [M-999] }
+    Jadewell Payments:    { disposition: REVIEW,  rules: [M-013], proposed: 6.32,    invested_after: 4.8, ownership_after: 0.08, flags_must: [X-110], flags_must_not: [M-999] }
+    Tidewell Health:      { disposition: MONITOR, rules: [M-014], proposed: 2.0,     invested_after: 1.9, ownership_after: 0.10, latest_post_money: 20.0, flags_must: [X-120], flags_must_not: [M-999, X-918] }
+    Inkmoor:              { disposition: REVIEW,  rules: [M-051], proposed: 2.964,   flags_must: [X-114], flags_must_not: [M-999], open_items_must_not: [pending_acquisition] }
+    Rivenmark:            { disposition: REVIEW,  rules: [M-061], proposed: 2.9,     realized_quarter: 0.4, note_at_cost: 0.0, flags_must: [X-115], flags_must_not: [M-999] }
+    Thornmill Systems:    { disposition: BLOCK,   rules: [M-025], proposed: 28.2,    status: Active, fv_level: 3, flags_must: [X-116], flags_must_not: [M-999] }
+    Vexmoor:              { disposition: BLOCK,   rules: [M-040], proposed: 30.0,    fv_level: 1, listed: true, stage: Public, flags_must: [X-101], flags_must_not: [M-999] }

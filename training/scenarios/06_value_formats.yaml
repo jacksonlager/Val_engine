@@ -1,0 +1,65 @@
+name: 06_value_formats
+description: >
+  Numbers and dates as text: "$100.0M", "400,000,000" (dollars → X-916), "11%", "(0.11)",
+  a bare Excel serial (46266 = 2026-09-01), dates as strings in six formats, and the blank tokens
+  ("-", "—", "n/a", "N/A", "TBD"). Every coercion must be recorded (X-915) and the arithmetic must
+  come out exactly as it does from clean cells. The dirty representations are written verbatim
+  into the workbook — a string stays a string.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+portfolio_mutations:
+  Solvantra:
+    "Ownership (FD %)": "11.8%"
+    "Latest Post-Money ($M)": "$75.5M"
+    "Prior Mark ($M)": "8.9"
+    "Latest Round": "2025-11-24"
+    "First Investment": "06/19/2023"
+  Vellichor Systems:
+    "ARR Growth (YoY %)": "(0.11)"
+  Yewbranch Security:
+    "ARR Growth (YoY %)": "n/a"
+  Kolvani Health:
+    "ARR ($M)": "N/A"
+    "Cash ($M)": "—"
+  Lumetra:
+    "Cash ($M)": " 3.3 "
+    "Invested ($M)": "$0.5M"
+activity:
+  - { date: "2026-07-10", company: Solvantra, event: "Priced Equity Round", detail: "Series B", value: "$100.0M", hc_investment: "$1.0M", ownership_after: "11%",
+      notes: "$24.0M round led by a new investor. HC participated." }
+  - { date: "07/28/2026", company: Ambercrest, event: "Acquisition (Closed)", detail: "All-cash acquisition", value: "400,000,000", proceeds: "$16.8M",
+      notes: "Transaction closed and cash received during the quarter." }
+  - { date: "8/11/26", company: "Lanternfell Space", event: "Secondary Sale", detail: "HC sold 30% of its position", value: "$653.6 M", ownership_after: "4.0%", proceeds: "11.1112",
+      notes: "Buyer paid a price consistent with the latest round." }
+  - { date: "14-Jul-2026", company: Kilnbrook, event: "Convertible Note", detail: "$3.0M bridge note, $80.0M valuation cap", hc_investment: "0.5", value: "-", proceeds: "—",
+      notes: "Uncapped interest, converts at next priced round. HC participated in the note." }
+  - { date: "Aug 14, 2026", company: "Willowmere Compute", event: "Term Sheet Signed", detail: "Series B term sheet at ~$60.0M post", value: "$60M", hc_investment: "n/a", proceeds: "TBD",
+      notes: "Not closed; diligence underway, expected to close Q4." }
+  - { date: 46266, company: Oxbowlane, event: "Acquisition (Announced)", detail: "Definitive agreement signed, all cash", value: "$500.0M", ownership_after: "N/A",
+      notes: "Expected to close in Q4 2026, subject to regulatory approval. No cash received." }
+  - { date: "2026/08/07", company: "Coppermoss Energy", event: "Shutdown", detail: "Ceased operations", proceeds: " 0.1 ", value: "",
+      notes: "Board voted to wind down. Residual cash distributed to investors." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-915, X-916], must_not: [X-909, X-901, X-902, X-903, X-914, X-904] }
+  validation_must:
+    - { id: X-915, contains: "$100.0M" }
+    - { id: X-915, contains: "11%" }
+    - { id: X-915, contains: "(0.11)" }
+    - { id: X-915, contains: "46266" }
+    - { id: X-915, contains: "14-Jul-2026" }
+    - { id: X-916, company: Ambercrest }
+  validation_blocking: false
+  totals: { events: 7, positions: 100 }
+  companies:
+    Solvantra:            { disposition: CLEAR,   rules: [M-010], proposed: 11.0,   invested_after: 6.1, ownership_after: 0.11 }
+    Ambercrest:           { disposition: CLEAR,   rules: [M-020], proposed: 0.0,    realized_quarter: 16.8, status: Acquired, flags_must_not: [X-101] }
+    Lanternfell Space:    { disposition: CLEAR,   rules: [M-030], proposed: 26.144, realized_quarter: 11.1112, ownership_after: 0.04, flags_must_not: [X-104] }
+    Kilnbrook:            { disposition: REVIEW,  rules: [M-060], proposed: 4.9,    note_at_cost: 0.5, flags_must: [X-107] }
+    Willowmere Compute:   { disposition: MONITOR, rules: [M-070], proposed: 4.7,    flags_must: [X-109] }
+    Oxbowlane:            { disposition: BLOCK,   rules: [M-050], proposed: 19.35,  flags_must: [X-101] }
+    Coppermoss Energy:    { disposition: CLEAR,   rules: [M-021], proposed: 0.0,    realized_quarter: 0.1, status: "Shut Down" }
+    Vellichor Systems:    { disposition: MONITOR, rules: [M-000], proposed: 11.8,   flags_must: [X-301] }
+    Yewbranch Security:   { rules: [M-000], proposed: 2.5, flags_must_not: [X-301, X-302] }
+    Lumetra:              { disposition: CLEAR,   rules: [M-000], proposed: 0.4,    invested_after: 0.5 }

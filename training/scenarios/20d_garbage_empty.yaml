@@ -1,0 +1,10 @@
+name: 20d_garbage_empty
+description: >
+  A zero-byte file with an .xlsx extension. Must raise IngestError saying the file is empty / not a workbook — never a traceback.
+garbage: empty
+workbook: 20d_garbage_empty.xlsx
+policy: 2026Q3
+expect:
+  ingest_ok: false
+  error_contains: ['empty', '0 bytes', 'not a workbook', 'zip', 'xlsx', 'not a valid']
+  no_crash: true

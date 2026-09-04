@@ -1,0 +1,45 @@
+name: 26_announced_then_refused_close
+description: >
+  An announced acquisition followed in the same quarter by a closing (or termination) row that
+  the ingest layer refused. A refused row is not evidence of anything — it must not supersede the
+  announcement, and it must not close the position. Oxbowlane: announced at $500M, then a close
+  with no deal value (X-902) — M-050 applies, 0.043 × 500 × 0.90 = 19.35, the pending_acquisition
+  item stays open, the close is recorded and refused (X-900), the 21.5 of proceeds on the refused
+  row is NOT realized, status stays Active. Inkmoor: announced at $60M then a termination with a
+  negative value (X-903) — M-050 applies, 0.12 × 60 × 0.90 = 6.48, no M-051 / X-114, item stays
+  open. Ambercrest is the control — announced then a clean close: M-000 (skipped) then M-020,
+  realized 0.042 × 400 = 16.8, Acquired, CLEAR.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-08-01, company: Oxbowlane, event: "Acquisition (Announced)", detail: "Definitive agreement signed, all cash", value: 500.0,
+      notes: "Expected to close within the quarter." }
+  - { date: 2026-09-20, company: Oxbowlane, event: "Acquisition (Closed)", detail: "All-cash acquisition", proceeds: 21.5,
+      notes: "Deal value left blank on the closing row." }
+  - { date: 2026-07-20, company: Inkmoor, event: "Acquisition (Announced)", detail: "Definitive agreement signed, all cash", value: 60.0,
+      notes: "Expected to close in Q4." }
+  - { date: 2026-08-15, company: Inkmoor, event: "Acquisition (Terminated)", detail: "Buyer walked after diligence", value: -60.0,
+      notes: "Value typed with the wrong sign." }
+  - { date: 2026-08-05, company: Ambercrest, event: "Acquisition (Announced)", detail: "Definitive agreement signed, all cash", value: 400.0,
+      notes: "Expected to close within the quarter." }
+  - { date: 2026-09-10, company: Ambercrest, event: "Acquisition (Closed)", detail: "All-cash acquisition", value: 400.0, proceeds: 16.8,
+      notes: "Transaction closed and cash received during the quarter." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-902, X-903], must_not: [X-901, X-909, X-914, X-907] }
+  validation_must:
+    - { id: X-902, company: Oxbowlane, blocking: true }
+    - { id: X-903, company: Inkmoor, blocking: true }
+  validation_must_not:
+    - { company: Ambercrest, blocking: true }
+  validation_blocking: true
+  totals: { events: 6, positions: 100 }
+  companies:
+    Oxbowlane:   { disposition: BLOCK, rules: [M-050, M-000], proposed: 19.35, realized_quarter: 0.0, status: Active, ownership_after: 0.043,
+                   flags_must: [X-101, X-900], flags_must_not: [M-999], open_items_must: [pending_acquisition], open_items_count: 1,
+                   alternative_marks: { at_full_deal_value: 21.5, hold_prior: 13.0 } }
+    Inkmoor:     { disposition: BLOCK, rules: [M-050, M-000], proposed: 6.48, status: Active, ownership_after: 0.12,
+                   flags_must: [X-101, X-900], flags_must_not: [X-114, M-999], open_items_must: [pending_acquisition], open_items_count: 1 }
+    Ambercrest:  { disposition: CLEAR, rules: [M-000, M-020], proposed: 0.0, realized_quarter: 16.8, status: Acquired, open_items_count: 0,
+                   flags_must_not: [X-101, X-900] }

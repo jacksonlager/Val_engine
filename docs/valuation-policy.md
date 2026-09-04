@@ -1,0 +1,251 @@
+# HC Valuation Engine — Marking Policy v0.1-draft
+
+Measurement date **2026-09-30** · prior close **2026-06-30** · 100 positions (96 active) · 18 Q3 events · prior NAV **$1,139.3M**
+
+> Rendered version: https://claude.ai/code/artifact/df056a40-d661-4734-a85b-738c5dd48707
+> Destination in repo: `docs/valuation-policy.md`
+
+---
+
+## 1. Design principles
+
+1. **Mechanical rules produce a number.** Deterministic, no run-time judgment. All judgment lives in a rule definition or a config value, both versioned.
+2. **Exception rules never change a number.** They annotate only. If flags could move marks, nobody could tell whether a figure came from policy or heuristic.
+3. **Config holds every threshold.** No magic numbers in code. Changing a threshold bumps the policy version; re-running Q3 under v0.1 always reproduces v0.1.
+4. **Every mark is a chain, not a value.** Each rule appends a `MarkStep` (rule ID, inputs, prior, new, rationale, evidence). `proposed_mark` == last step's `new_value`. The review table is that chain rendered.
+5. **Severity test:** a rule may gate a mark only if a reviewer could change the booked number. Otherwise it is MONITOR, however interesting.
+
+Base identity: `mark = FD ownership × post-money`.
+
+---
+
+## 2. Layer 1 — mechanical marking rules
+
+| ID | Rule | Formula | Notes |
+|---|---|---|---|
+| **M-000** | Carry forward | `mark(t) = mark(t−1)` | Default. 82 companies in Q3. |
+| **M-010** | Priced equity round | `mark = ownership_after × post_money`; `invested += hc_investment` | Resets mark, ownership, stage, staleness clock. |
+| **M-011** | Flat / same-terms extension | as M-010, **staleness clock NOT reset** | No price discovery occurred. → Pellagrin. |
+| **M-012** | Down round / recap | as M-010, treated as an **upper bound** | Recaps carry structure (preference, pay-to-play) the headline ignores. Always BLOCK. → Oakenvale, Tarnwick. |
+| **M-020** | Closed exit | `mark = 0`; `realized += proceeds`; status → Acquired | Schema supports escrow/holdback as a receivable; none in Q3. → Cindral. |
+| **M-021** | Shutdown | `mark = 0`; `realized += residual` | Terminal; suppresses all carry-side exceptions. → Larkspell, Islewind. |
+| **M-030** | Secondary sale | `realized += proceeds`; `remainder = ownership_after × basis` | `basis: last_round` (default) or `secondary_price`. Spread always flagged. → Marrowick Bio. |
+| **M-040** | IPO / direct listing | `mark = ownership_after × market_cap(measurement_date) × (1 − lockup_discount)` | **9/30 close, not the IPO print.** L3 → L1. Default lockup discount 0% (ASC 820 blockage prohibition). Always BLOCK. `Direct Listing` dispatches here too. → Drayvenn. |
+| **M-050** | Announced acquisition | `mark = ownership × deal_value × close_probability` (default 0.90) | Alternatives: `full_deal_value`, `hold_prior`. Always BLOCK. → Gryphonel. |
+| **M-060** | Convertible note / SAFE | equity mark unchanged; `note_at_cost += hc_investment` | A cap is a ceiling, not a price. Cap parsed from `$X valuation cap`, `$X post-money cap`, `$X pre-money cap`, `$X cap`, `cap of $X`, `cap $X`. A note outstanding at a later priced round or listing converts (note leg folds into equity). → Duskfern (funded), Emberfold (unfunded). |
+| **M-070** | Signed term sheet | mark unchanged, disclosed | Non-binding. → Halcyra. |
+| **M-013** | Ownership adjustment | `ownership = ownership_after`; `mark = ownership_after × latest_post`; `invested += hc_investment` (warrant strike) | No price event (warrant exercise, pool expansion, cap-table restatement): re-marked on the unchanged last-round basis; staleness clock untouched. Always REVIEW (X-110). |
+| **M-014** | New investment | `mark = ownership_after × post`; `invested += hc_investment`; anchor = date | First check. A company not in the Portfolio tab is created from the row (fund from `Fund I/II/III` in Notes/Detail else `Unassigned`; sector from a known sector name else `Unclassified`; stage from Detail else `Unknown`) and additionally raises X-918. |
+| **M-022** | Distribution | `realized += proceeds`; mark unchanged | Dividend, escrow release, earn-out, holdback, milestone. Allowed on Acquired / Shut Down companies (cash arriving after the exit). |
+| **M-024** | Stock-consideration exit | `mark = ownership × deal_value`; status stays Active; stage `Acquired (stock)`; `latest_post = deal_value`; anchor = date | Dispatched from `Acquisition (Closed)` when Detail/Notes say stock / shares / all-stock / stock-for-stock / equity consideration **and** no proceeds. Opens an `acquirer_shares` item. Always BLOCK (X-112). |
+| **M-025** | Chapter 11 | mark unchanged; **not** terminal; fv stays 3 | Reorganisation, going concern. Carry-side screens still run. Always BLOCK (X-116): the recovery estimate is a human's job. |
+| **M-031** | Secondary purchase | `ownership = ownership_after`; `invested += hc_investment`; `mark = ownership_after × latest_post`; implied post = `hc_investment / (after − before)` recorded as `at_implied_price` | HC buys more from another holder. Spread vs last round beyond tolerance → X-104 REVIEW; else X-121 MONITOR. |
+| **M-041** | Listed carry | `mark = ownership × market_cap(measurement_date)`; fv 1 | Carry side: a `Public` position with no event re-marks to the quote. No quote → M-000 and X-113 BLOCK. |
+| **M-051** | Deal terminated | `mark = ownership × latest_post` (back to the last-round basis); drops `pending_acquisition`; anchor unchanged | X-114 REVIEW. An announcement and its termination in one quarter: the announcement is superseded. |
+| **M-061** | Note repaid | `realized += proceeds`; `note_at_cost = max(0, note_at_cost − principal)`, principal = `hc_investment` else `proceeds`; equity unchanged | X-115 REVIEW — if the note sat inside the prior mark rather than the note leg, the reviewer reduces the carrying basis. |
+| **M-999** | Unrecognised event | mark unchanged + **validation error + BLOCK** | Never falls through to carry. An unregistered event type halts that position. |
+| **M-080** | Stale-round comps calibration | `prior_mark × comp_mult(t) / comp_mult(round_date)`, bounded | **Off by default.** Writes a labelled alternative column, never overwrites. Also powers the ±20% sensitivity view. 40 candidates. |
+
+### Event precedence (multi-event quarters)
+
+1. Shutdown / closed exit (terminal — suppresses everything except a later Distribution / Note Repaid, which move cash only)
+2. IPO / Direct Listing; Chapter 11 (not terminal)
+3. Priced round (latest by date); New investment
+4. Secondary sale / purchase; Distribution; Ownership adjustment; Note repaid
+5. Acquisition terminated (wins over an announcement in the same quarter); Announced acquisition
+6. Convertible note / SAFE
+7. Term sheet
+8. Carry forward (M-000, or M-041 for a listed position)
+
+Within a tier, later date wins. A note outstanding at a priced round or listing converts: the note leg folds into the equity mark.
+
+---
+
+## 3. Layer 2 — exception rules
+
+Severity ∈ {BLOCK, REVIEW, MONITOR}. **Escalation:** any BLOCK rule → BLOCK; ≥2 REVIEW rules from different families → BLOCK; 1 REVIEW → REVIEW; MONITOR only → MONITOR. Terminal events → CLEAR.
+
+| ID | Rule | Severity | Trigger |
+|---|---|---|---|
+| **X-101** | Non-mechanical treatment | BLOCK | Announced acquisition, IPO w/ lock-up, closed exit with no proceeds, secondary with no ownership change |
+| **X-102** | Down-round structure risk | BLOCK | New post < prior post |
+| **X-103** | Non-participation dilution | MONITOR | No HC participation, ownership −20% relative. *Portfolio signal, not a valuation one — the mark comes from a fresh arm's-length round.* |
+| **X-104** | Secondary price spread | REVIEW | \|implied − last round\| > 5% |
+| **X-106** | Flat extension, no price discovery | REVIEW | Same-terms extension (M-011); mark repriced, clock not reset |
+| **X-107** | Funded bridge note | REVIEW | HC put new money into a note (M-060); cost basis + distress signal |
+| **X-108** | Unfunded bridge note | MONITOR | Note HC did not fund; nothing to decide |
+| **X-109** | Term sheet disclosure | MONITOR | Non-binding; indicated value disclosed, not booked |
+| **X-105** | Note language screen | REVIEW | `Notes` free text contains a term the schema cannot encode (escrow, holdback, earn-out, milestone, contingent, participating, ratchet, preference, litigation, restated, bankruptcy, conversion, warrant, pay-to-play, cram-down, lock-up, related party, going concern, covenant, default). `lock-up` is exempt on an IPO / Direct Listing row (M-040 already carries it as an open item). **Never parses a note into a number** — it exists only to guarantee a human reads that sentence. |
+| **X-110** | Ownership moved with no price event | REVIEW | M-013: confirm the cap table. |
+| **X-111** | Cash distribution received | MONITOR | M-022: stake unchanged, realized up. |
+| **X-112** | Consideration was shares | BLOCK | M-024: confirm the acquirer, whether it is listed, the share count and any lock-up. |
+| **X-113** | Listed position has no measurement-date price | BLOCK | M-041 with no quote: supply the close. |
+| **X-114** | Announced deal fell through | REVIEW | M-051: mark reverted to the last round — confirm nothing about the round basis has changed. |
+| **X-115** | Note repaid | REVIEW | M-061: if the note sat inside the prior mark, reduce the carrying basis by the principal. |
+| **X-116** | Chapter 11 | BLOCK | M-025: estimate recovery; the carrying value is almost certainly impaired. |
+| **X-117** | HC-led round | REVIEW | M-010/011/012 when Notes/Detail say `led by HC`, `HC led`, `HC-led`, `Human Capital led`: a related-party price is not arm's-length. Confirm an independent investor set or validated it. |
+| **X-118** | Insider-led round | MONITOR | Priced round marked `insider-led` / `insider round` and not HC-led. Weaker evidence than a new lead; nothing to decide. |
+| **X-120** | New position entered at cost | MONITOR | M-014. |
+| **X-121** | Secondary purchase at the last-round price | MONITOR | M-031 with the implied price inside tolerance; outside it X-104 REVIEW carries the spread. |
+| **X-918** | New investment for a company not in the book | REVIEW | M-014 created the position; add the row to the Portfolio tab and confirm the entry terms. |
+| **X-201/202** | Stale round | MONITOR >24mo / REVIEW >48mo | M-011 extensions do not reset the clock |
+| **X-301/302** | ARR contraction | MONITOR <0% / REVIEW <−15% | |
+| **X-303/304** | Runway | MONITOR <12mo / REVIEW <6mo | Recomputed from cash/burn **and aged 1 month** — metrics are as of late August |
+| **X-401/402** | Mark vs performance | MONITOR | Implied post/ARR vs sector comp; fires **both directions** (over- and under-marked) |
+| **X-403** | ARR below screening floor | MONITOR | ARR < $0.5M — multiple is meaningless, own bucket |
+| **X-404** | MOIC outlier on stale round | MONITOR | MOIC > 5× |
+| **X-9xx** | Ingestion integrity | BLOCK | Unknown company (X-901), missing post-money / ownership / deal value (X-902), a number outside its domain (X-903: ownership outside 0–100%, a post-money or price ≤ 0, negative proceeds or investment), **prior-mark reconciliation** (X-904, ±$0.05M; a departure the prior quarter's sidecar explains is a non-blocking REVIEW), an event dated after the measurement date or more than `tolerances.late_event_grace_days` before the window (X-905 BLOCK; inside the grace period it is applied on REVIEW), a duplicated Portfolio row (X-906 on **every** copy — the engine cannot know which is the position), activity on a terminal company (X-907; a `Distribution` on an Acquired company and a `Distribution` / `Note Repaid` on a Shut Down company are allowed), unrecognised event type (X-909, routed to M-999), a `Latest Round` dated after the measurement date (X-921). Normalization records X-911…X-920 (training/SPEC.md §2). |
+| **X-900** | Row refused, position blocked | BLOCK | **A row that blocks blocks its position.** An activity row (or the position's own Portfolio row) carrying a blocking X-9xx issue is recorded in the audit chain as *not applied* and the prior mark is carried; the engine will not book a number from a cell it could not read. The one exception is an unrecognised or ambiguous event type, which still reaches M-999 so the adjudication proposal is raised. The flag names the row and the issue ids to fix. |
+| **X-911** | Header matched by normalization | MONITOR | Case, whitespace, a known alias (`Carrying Value` → `Prior Mark ($M)`) or a typo ≤ 2 edits. Message carries `original → canonical`. |
+| **X-912** | Event type matched by synonym or typo | MONITOR | `Series B` → `Priced Equity Round`, `Aquisition (Closed)` → `Acquisition (Closed)` (distance 1). Typo tolerance needs ≥ 6 characters and a unique best match; the raw text is kept in `Event.extra["raw_event_type"]`. |
+| **X-913** | Company matched by normalization | MONITOR | Case, whitespace, corporate suffix (`Inc.`, `Ltd`, `LLC`, `Corp`, `plc`), `X (formerly Y)`, or a typo ≤ 1 on names ≥ 8 characters. |
+| **X-914** | Ambiguous match | BLOCK | ≥ 2 candidates within tolerance for an event type (`Acquisition`, `Sale`, `LOI`), a company, a header, or an activity sheet; a typo match on a token too short to trust; or a company typo-match that another book name extends (`Aravin` when the book holds both `Aravine` and `Aravine Labs`). Names every candidate; never guessed. An exact or case-folded match is never second-guessed. |
+| **X-915** | Value coerced from text | MONITOR | `$28.2M`, `5.5%`, `(1.2)`, `28,200,000`, a date string, an Excel serial. `03/04/2026` is read month-first and the ambiguity noted. |
+| **X-916** | Unit suspicion | REVIEW | A percent field > 1 read as percentage points (÷100); a $M field > 100,000 read as dollars (÷1e6). ARR growth is exempt from the points rule (growth above 100% is real). Carries the assumption. |
+| **X-917** | Structure tolerated | MONITOR | Header found below row 1 (title rows ignored), blank rows inside the data, a `Total` / `Subtotal` row, a trailing note row. |
+| **X-919** | Activity sheet matched by the relaxed rule | MONITOR | Any sheet whose name contains `activity` or `events` when nothing matches the policy regex (`Q4-2026 Activity`, `4Q26 Activity`, `Events`). The quarter label is parsed from the name when present. |
+| **X-920** | Non-USD currency | BLOCK | `€ £ ¥` or `EUR GBP CHF JPY CAD AUD` in a value cell, Detail or Notes. The engine is USD-only. |
+
+### Resulting queue (Q3 2026)
+
+**7 BLOCK · 15 REVIEW · 44 MONITOR · 34 CLEAR** *(engine output, policy 2026Q3-0.1; unchanged by the extended rule set — X-118 now also annotates the two insider-led recaps, Oakenvale and Tarnwick, which were already blocked)*
+
+Blocked: Drayvenn (IPO), Gryphonel (announced), Oakenvale (recap), Tarnwick Aerospace (recap + ARR −16%), Duskfern (funded note + runway 4.1mo), Birchhollow (64mo stale + ARR −20%), **Pellagrin (flat extension + 59mo stale)**.
+
+> The hand count in the first draft of this policy was 6 / 15 / 41 / 34. The engine is stricter in two places, both correct: (1) it applies the staleness clock to companies *with* activity, so Pellagrin's same-terms extension — which by policy does not reset the clock — is a 59-month-stale round plus a treatment flag, two REVIEW families, hence BLOCK; and (2) the revenue-multiple screen uses the *new* post-money for repriced companies (Jettamar, Nimbrel), which is the basis the mark now rests on. Halcyra similarly moves to REVIEW because its 71-month-stale round is screened alongside the term-sheet disclosure.
+
+> Note: an earlier threshold set flagged 58 of 96. The fix was compound escalation plus the "could a reviewer change the number?" test, which moved X-103, unfunded notes and term sheets down to MONITOR.
+
+---
+
+## 4. Layer 3 — `rules.yaml`
+
+```yaml
+quarter:      { measurement_date: 2026-09-30, prior_close: 2026-06-30 }
+metrics:      { reporting_lag_months: 1 }
+
+marking:
+  secondary:   { remainder_basis: last_round }        # | secondary_price
+  ipo:         { price_source: market_close, lockup_discount_pct: 0.00 }
+  announced:   { treatment: probability_weighted, close_probability: 0.90 }
+  convertible: { new_money_basis: cost }
+  calibration: { enabled: false, min_age_months: 24, bound_pct: 0.35 }
+
+exceptions:
+  staleness:  { monitor_months: 24, review_months: 48 }
+  arr_growth: { monitor_below: 0.00, review_below: -0.15 }
+  runway:     { monitor_below_mo: 12, review_below_mo: 6 }
+  dilution:   { monitor_relative_drop: 0.20 }
+  secondary:  { spread_tolerance_pct: 0.05 }
+  multiple:   { high_x_comp: 2.0, low_x_comp: 0.5, absolute_high: 30, min_arr: 0.5 }
+  moic:       { monitor_above: 5.0 }
+  escalation: { review_rules_to_block: 2 }
+
+tolerances:  { prior_mark_reconciliation_musd: 0.05 }
+sensitivity: { multiple_shock_pct: [-0.20, 0.20] }
+
+# forward compatibility — for quarters this policy has not seen
+schema:
+  activity_sheet_pattern: "^Q[1-4] \\d{4} Activity$"   # never a literal name
+  unknown_event_type: block                            # never carry silently
+  unknown_column: record_and_warn
+  missing_required_column: fail
+  unknown_sector: absolute_thresholds_and_flag
+note_screen:
+  terms: [escrow, holdback, earn-out, milestone, contingent, participating,
+          ratchet, preference, litigation, restated, bankruptcy, conversion,
+          warrant, pay-to-play, cram, cram-down, lock-up, related party, going concern,
+          covenant, default]
+open_items:
+  announced_deal_stale_quarters: 2    # still pending this long -> escalates alone
+  term_sheet_stale_quarters: 1
+  note_unconverted_quarters: 3
+adjudication:                         # E-09 — assist, never a dependency
+  enabled: true
+  auto_accept: never                  # not a threshold. there is no value here.
+  cache_proposals: true               # same signature -> same draft, no re-query
+  promote_after_repeats: 3            # then the queue suggests writing a rule
+  allowed_fields: [ownership_before, ownership_after, post_money, deal_value,
+                   proceeds, prior_mark, hc_investment, close_probability]
+  allowed_operators: ["*", "/", "+", "-", "min", "max"]
+```
+
+---
+
+## 5. Engine components (all in scope)
+
+| ID | Component | Why it exists |
+|---|---|---|
+| **E-01** | Override ledger | `booked = override.booked ?? proposed`. An override that names the BLOCK rule it addresses (`rule_ids_addressed`) resolves the block — the flag stays visible, the position stops waiting, and its disposition is never below MONITOR so the decision itself remains in the queue. The missing half of human review — without it the committee's decision evaporates and the same flag re-litigates every quarter. Record: company, quarter, proposed, booked, reason, approver, created_at, rule_ids_addressed. Never mutates `proposed_mark`. |
+| **E-02** | Next-quarter snapshot | Emits a Q4 Portfolio tab in the identical input schema. This quarter's output is next quarter's input; otherwise automation covers half the job. |
+| **E-03** | Run manifest + determinism | run_id, sha256(input), policy_version, engine_version, measurement_date, generated_at. Same input → byte-identical output. |
+| **E-04** | Fair value hierarchy | L1/L2/L3 per position, assigned by the marking rule. Q3: Drayvenn L1, 95 active L3. |
+| **E-05** | Fund roll-up | TVPI / DPI / RVPI per Fund I–III, plus top-10 concentration. Q3 moves DPI materially ($32.5M returned). |
+| **E-06** | Golden-file test | Pins 18 event treatments, 4 queue counts, portfolio total. Prevents the quiet regression. |
+| **E-07** | Open items register | Carries unfinished business across quarter boundaries — outstanding notes, pending announced deals, disclosed term sheets, lock-up expiries — each aging, each escalating on its own if unresolved too long. Q3 opens: Duskfern note, Emberfold note, Gryphonel pending close, Halcyra term sheet, Drayvenn lock-up (expires 2027-03-19). |
+| **E-09** | Novel-case adjudication | When M-999 halts on something unseen, the engine drafts an opinion — closest analogous rule, proposed treatment, and the facts only a human can supply — and puts it beside the blocked position. Three outcomes: **reject** (falls back to manual override), **accept once** (applied as an E-01 override with the draft as documented reason, no rule created), **promote** (written into the next quarter's rule file with approver + `effective_from` + link to the proposal). A precedent system: settled cases mechanical, novel cases adjudicated once, decisions become precedent. |
+| **E-09a** | Adjudicator constraints | (1) Never produces a mark — proposes a *rule*; the engine computes the number. (2) Formulas are a restricted expression language over a field whitelist, never executable code. (3) No auto-accept at any confidence. (4) Runs at ingest, outside `run_valuation`; proposals cached by event signature so re-runs reproduce, not re-query — determinism and golden test intact. (5) Promotion goes through git with a named approver and must leave prior quarters unchanged. (6) Optional — with no model configured, M-999 blocks exactly as before. |
+| **E-08** | Rule registry + effective dating | `@rule(id, version, applies_to, severity, effective_from)`. Adding a rule = adding a function + a config entry, no engine edit. `effective_from` means a Q4 rule never silently rewrites Q3. Config is per-quarter with inheritance, so the diff between quarters *is* the policy audit trail. |
+
+---
+
+## 6. Q3 2026 event walkthrough
+
+| Company | Event | Rule | Prior | Proposed | Δ | Realized | Flag |
+|---|---|---|---:|---:|---:|---:|---|
+| Fernwave | Series D, $1,837.9M | M-010 | 38.5 | 73.52 | +35.02 | — | — |
+| Drayvenn | IPO, Nasdaq | M-040 | 80.3 | 110.07* | +29.77 | — | BLOCK |
+| Cindral | Acquisition closed, $324M | M-020 | 18.2 | 0.00 | −18.20 | 28.2 | — |
+| Ironquill Security | Series D, $764.2M | M-010 | 15.8 | 29.04 | +13.24 | — | MONITOR |
+| Larkspell | Shutdown | M-021 | 11.4 | 0.00 | −11.40 | 0.4 | — |
+| Islewind | Shutdown | M-021 | 10.0 | 0.00 | −10.00 | — | — |
+| Aravine | Series B, $128.5M | M-010 | 6.9 | 13.88 | +6.98 | — | MONITOR |
+| Marrowick Bio | Secondary, 30% of position | M-030 | 12.9 | 8.77 | −4.13 | 3.9 | REVIEW |
+| Oakenvale | Series B recap, $37.0M | M-012 | 5.7 | 2.33 | −3.37 | — | BLOCK |
+| Jettamar | Series A, $43.0M | M-010 | 2.9 | 4.77 | +1.87 | — | MONITOR |
+| Nimbrel | Series A, $45.1M | M-010 | 1.2 | 3.07 | +1.87 | — | MONITOR |
+| Dovelane Systems | Series B, $103.8M | M-010 | 4.1 | 5.71 | +1.61 | — | MONITOR |
+| Pellagrin | Series B extension, flat | M-011 | 13.0 | 13.93 | +0.93 | — | BLOCK |
+| Tarnwick Aerospace | Series A recap, $14.2M | M-012 | 2.0 | 1.14 | −0.86 | — | BLOCK |
+| Gryphonel | Acquisition announced, $133M | M-050 | 3.5 | 4.31 | +0.81 | — | BLOCK |
+| Duskfern | Bridge note, $133M cap | M-060 | 6.1 | 6.60 | +0.50 | — | BLOCK |
+| Emberfold | Bridge note, $32M cap | M-060 | 1.8 | 1.80 | 0.00 | — | MONITOR |
+| Halcyra | Term sheet, ~$50M | M-070 | 2.7 | 2.70 | 0.00 | — | REVIEW |
+
+\* at the IPO print; booked figure comes from the 9/30 close.
+
+**Totals:** proposed NAV **$1,183.9M** (from $1,139.3M, +3.9%) · net movement **+$44.6M** · realized in quarter **$32.5M** (cumulative $49.6M) · written off **$21.4M** (Larkspell, Islewind) · exited **$18.2M** at prior mark (Cindral, for $28.2M cash).
+
+---
+
+## 6b. Quarters we have not seen
+
+This policy was written against one quarter. The honest risk is that it is *fitted* to that quarter — that it handles these eight event types and breaks, or worse quietly does the wrong thing, on the ninth. Five design decisions carry that weight; each is cheap now and expensive to retrofit.
+
+1. **Fail loud.** An unrecognised event type BLOCKS (M-999). The difference between an engine that says "I don't know what a SPAC merger is" and one that reports an unchanged mark and looks confident doing it. Same for missing required columns, out-of-range ownership, and activity naming an unknown company.
+2. **Read the notes.** A new kind of deal appears in prose long before anyone adds a column for it. X-105 screens the free text and escalates — without letting a keyword touch a number.
+3. **Carry the unfinished.** E-07 keeps open items alive across quarters and ages them, so nothing spanning a boundary depends on a person remembering.
+4. **Tolerate the file, not the schema.** Activity sheet located by pattern, never by literal name. New columns recorded and surfaced, never silently ignored. Missing required columns are a hard stop. Unknown sectors fall back to absolute thresholds and flag.
+5. **Prove the coverage.** A test asserts every event type in the Field Definitions tab has a registered handler, so enumeration and code cannot drift. A separate fixture pack exercises what Q3 lacks: two events on one company, round-then-exit, event on a terminal company, unknown type, a note converting, a prior-quarter deal closing.
+
+**The honest risk in E-09** is a plausible-but-wrong draft that a busy reviewer waves through. Three counterweights: every proposal must cite the existing rule it reasons by analogy from, so a weak analogy is visible; every proposal must list the facts the schema doesn't contain, which is usually where the real work is; and *accept once* is deliberately cheaper than *promote*, so the low-friction path doesn't silently create policy. After the same treatment is accepted three times, the queue suggests promoting it — by then it's a pattern, not a guess.
+
+**What still needs a person:** a genuinely new instrument — structured secondary, continuation vehicle, token — must not be absorbed by an existing rule because it superficially resembles one. The engine's job is to notice it does not fit and stop. Adding the rule is a policy decision with a version bump, not a quiet mid-quarter code change.
+
+---
+
+## 7. Rules deliberately not written
+
+- **Margin trend** — gross margin is a single point, no prior period.
+- **Headcount change** — one observation, no baseline.
+- **Sector drift** — sector labels do not track company names in this workbook (Marrowick Bio is tagged AI/ML, Jadewell Payments Robotics). Comps map off the `Sector` column, never the name.
+- **FX** — single currency. Schema carries a currency field; no conversion logic ships unused.
+
+---
+
+## 8. Open decisions (defaults set, engine runs either way)
+
+1. **Gryphonel** — probability-weight at 0.90 *(default)*, full deal value, or hold at prior?
+2. **Drayvenn** — lock-up discount 0% *(default)* or a haircut for the 180-day restriction?
+3. **Marrowick** — remainder at last round *(default)* or at the secondary print 5.5% below?
+4. **M-080 calibration** — build against a live comps feed, or spec it and ship the base engine clean?

@@ -1,0 +1,20 @@
+name: 16b_unparseable_date
+description: >
+  A Date cell that is prose ("sometime in August"). SPEC §2.3 says a date that does not parse
+  blocks naming the cell; §2.5 lists it as a hard IngestError. Either is accepted; what is not
+  accepted is a guessed date or a silent skip. If it raises, the message must name the cell or
+  the company and must not be a traceback.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: "sometime in August", company: "Coppermoss Energy", event: "Shutdown", detail: "Ceased operations", proceeds: 0.1,
+      notes: "Board voted to wind down." }
+expect:
+  ingest_ok: any
+  error_contains: ["sometime in August", "Coppermoss", "Date", "A2"]
+  no_crash: true
+  validation_must:
+    - { company: "Coppermoss Energy", blocking: true, contains: "sometime in August" }
+  validation_blocking: true
+  companies:
+    Coppermoss Energy:    { disposition: BLOCK }

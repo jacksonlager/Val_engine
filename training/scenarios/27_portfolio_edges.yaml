@@ -1,0 +1,45 @@
+name: 27_portfolio_edges
+description: >
+  The Portfolio tab arriving dirty, one bad cell per company, with no activity for any of them.
+  A book row that fails a blocking check must block ITS position — a run-level issue with a CLEAR
+  position carrying a number nobody can reconcile is the failure mode this corpus exists to catch.
+  Solvantra: Prior Mark "n/a" (a blank token → 0.0, X-904 against 0.118 × 75.5 = 8.909) — carried
+  at the 0.0 the book says, BLOCK. Vexmoor: Ownership 0 with a prior mark of 22.7 (X-903 and
+  X-904) — carried at 22.7, ownership 0, BLOCK. Covebright: Latest Round 2027-01-15, after the
+  measurement date (X-921: the prior-close book cannot carry a round that has not happened) —
+  carried at 14.6, no staleness flag, BLOCK. Rivenmark pasted twice (X-906 on BOTH rows: the engine
+  cannot know which is the position) — 101 positions, both rows BLOCK. Ambercrest: Status "active " (folded, X-915) — Active,
+  CLEAR. Palefire Labs: Latest Round exactly on the prior close (2026-06-30) — allowed, CLEAR.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+portfolio_mutations:
+  Solvantra: { "Prior Mark ($M)": "n/a" }
+  Vexmoor: { "Ownership (FD %)": 0 }
+  Covebright: { "Latest Round": 2027-01-15 }
+  Ambercrest: { Status: "active " }
+  Palefire Labs: { "Latest Round": 2026-06-30 }
+portfolio_duplicates: [Rivenmark]
+activity: []
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-904, X-903, X-906, X-915, X-921], must_not: [X-901, X-909, X-914, X-902] }
+  validation_must:
+    - { id: X-904, company: Solvantra, blocking: true }
+    - { id: X-903, company: Vexmoor, blocking: true }
+    - { id: X-904, company: Vexmoor, blocking: true }
+    - { id: X-921, company: Covebright, blocking: true, contains: "2027-01-15" }
+    - { id: X-906, company: Rivenmark, blocking: true, count: 2 }
+    - { id: X-915, company: Ambercrest, contains: "Active" }
+  validation_must_not:
+    - { company: Ambercrest, blocking: true }
+    - { company: "Palefire Labs" }
+  validation_blocking: true
+  totals: { events: 0, positions: 101 }
+  companies:
+    Solvantra:      { disposition: BLOCK, rules: [M-000], proposed: 0.0, ownership_after: 0.118, latest_post_money: 75.5, flags_must: [X-900], flags_must_not: [M-999] }
+    Vexmoor:        { disposition: BLOCK, rules: [M-000], proposed: 22.7, ownership_after: 0.0, flags_must: [X-900] }
+    Covebright:     { disposition: BLOCK, rules: [M-000], proposed: 14.6, flags_must: [X-900], flags_must_not: [X-201, X-202] }
+    Rivenmark:      { disposition: BLOCK, rules: [M-000], proposed: 2.9, flags_must: [X-900] }
+    Ambercrest:     { disposition: CLEAR, rules: [M-000], proposed: 10.6, status: Active, flags_must_not: [X-900] }
+    Palefire Labs:  { disposition: CLEAR, rules: [M-000], proposed: 6.5, flags_must_not: [X-900, X-201] }

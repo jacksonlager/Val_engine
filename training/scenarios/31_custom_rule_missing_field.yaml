@@ -1,0 +1,48 @@
+name: 31_custom_rule_missing_field
+description: >
+  Declarative rules promoted from adjudication (E-08), run against rows that do not carry what the
+  formula needs. M-120 "SPAC Merger" = ownership_after × deal_value × close_probability. Kilnbrook
+  is the control: 0.08 × 400 × 0.90 = 28.8, REVIEW on M-120. Solvantra's SPAC row has no value
+  cell — the formula's deal_value is None: the row must be refused before the rule runs (X-902
+  naming the field), prior mark 8.9 carried (M-000 refused, M-000 carry), BLOCK on X-900 — never a DSLError out of the engine.
+  M-121 "Earn-out True-up" = prior_mark × proceeds / hc_investment: Oxbowlane's row has proceeds
+  but hc_investment 0 — a division by zero the validator cannot see; the rule itself must refuse
+  to evaluate, leave the mark at 13.0 and BLOCK on M-121, and the proceeds on that row are not
+  realized. Willowmere Compute: the same rule with hc_investment 0.5 and proceeds 1.0 →
+  4.7 × 1.0 / 0.5 = 9.4, realized 1.0, REVIEW.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+policy_overrides:
+  custom_rules:
+    - { rule_id: M-120, version: "1", event_type: "SPAC Merger", formula: "ownership_after * deal_value * close_probability",
+        severity: REVIEW, rationale: "De-SPAC treated like an announced acquisition, probability-weighted.", approver: "J. Doe",
+        effective_from: 2026-07-01, source_proposal: prop-0001 }
+    - { rule_id: M-121, version: "1", event_type: "Earn-out True-up", formula: "prior_mark * proceeds / hc_investment",
+        severity: REVIEW, rationale: "Earn-out received scales the carrying value by the payout ratio.", approver: "J. Doe",
+        effective_from: 2026-07-01, source_proposal: prop-0002 }
+activity:
+  - { date: 2026-07-09, company: Kilnbrook, event: "SPAC Merger", detail: "De-SPAC with a listed sponsor", value: 400.0, ownership_after: 0.08,
+      notes: "Business combination agreement signed." }
+  - { date: 2026-07-16, company: Solvantra, event: "SPAC Merger", detail: "De-SPAC with a listed sponsor", ownership_after: 0.09,
+      notes: "Deal value not yet disclosed." }
+  - { date: 2026-08-05, company: Oxbowlane, event: "Earn-out True-up", detail: "First earn-out tranche", proceeds: 2.0, hc_investment: 0,
+      notes: "Tranche paid; denominator left at zero." }
+  - { date: 2026-08-19, company: "Willowmere Compute", event: "Earn-out True-up", detail: "First earn-out tranche", proceeds: 1.0, hc_investment: 0.5,
+      notes: "Tranche paid." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-902], must_not: [X-901, X-909, X-914, X-903] }
+  validation_must:
+    - { id: X-902, company: Solvantra, blocking: true, contains: "deal_value" }
+  validation_must_not:
+    - { company: Kilnbrook, blocking: true }
+    - { company: "Willowmere Compute", blocking: true }
+    - { id: X-909 }
+  validation_blocking: true
+  totals: { events: 4, positions: 100 }
+  companies:
+    Kilnbrook:           { disposition: REVIEW, rules: [M-120], proposed: 28.8, ownership_after: 0.08, flags_must: [M-120], flags_must_not: [M-999, X-900] }
+    Solvantra:           { disposition: BLOCK,  rules: [M-000, M-000], proposed: 8.9, ownership_after: 0.118, flags_must: [X-900], flags_must_not: [M-120, M-999] }
+    Oxbowlane:           { disposition: BLOCK,  rules: [M-121], proposed: 13.0, realized_quarter: 0.0, flags_must: [M-121], flags_must_not: [M-999, X-900] }
+    Willowmere Compute:  { disposition: REVIEW, rules: [M-121], proposed: 9.4, realized_quarter: 1.0, invested_after: 6.5, flags_must: [M-121], flags_must_not: [M-999] }

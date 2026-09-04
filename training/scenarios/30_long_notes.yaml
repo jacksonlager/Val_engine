@@ -1,0 +1,39 @@
+name: 30_long_notes
+description: >
+  Cells that are far longer than a human would write — a board memo pasted into Notes. Solvantra:
+  a clean Series B with a ~10,500-character note carrying no screen term — applied, 0.11 × 100 =
+  11.0, CLEAR, no X-105. Kilnbrook: a Series B whose ~10,000-character note buries "escrow" in its
+  last sentence — applied, 0.075 × 90 = 6.75, X-105 REVIEW names the term. Oxbowlane: a term sheet
+  whose long note ends with a euro figure — X-920 finds it wherever it is, the row is refused
+  (M-000 recorded, M-000 carry), X-900. Lanternfell Space: a Series D whose Detail is ~2,000 characters starting "Series D" — the
+  mark is 0.05 × 800 = 40.0 and the Stage the position carries forward is "Series D", not the
+  memo. Nothing here may be slow: the whole run stays under 10 seconds.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-10, company: Solvantra, event: "Priced Equity Round", detail: "Series B", value: 100.0, hc_investment: 1.0, ownership_after: 0.11,
+      notes: { repeat: "Board update: hiring on plan, pipeline strong, no change to the operating plan. ", times: 125 } }
+  - { date: 2026-08-12, company: Kilnbrook, event: "Priced Equity Round", detail: "Series B", value: 90.0, ownership_after: 0.075,
+      notes: { repeat: "Board update: hiring on plan, pipeline strong, no change to the operating plan. Ten percent of the round sits in escrow.", times: 80 } }
+  - { date: 2026-08-20, company: Oxbowlane, event: "Term Sheet Signed", detail: "Series C term sheet", value: 600.0,
+      notes: { repeat: "Board update: hiring on plan, pipeline strong, no change to the operating plan. Indicated post converted from €550M.", times: 80 } }
+  - { date: 2026-09-02, company: "Lanternfell Space", event: "Priced Equity Round", detail: { repeat: "Series D round led by a new investor with a syndicate of existing holders. ", times: 25 }, value: 800.0, ownership_after: 0.05,
+      notes: "$120.0M round led by a new investor. HC did not participate." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  max_seconds: 10
+  validation_ids: { must: [X-920], must_not: [X-901, X-909, X-914, X-902, X-903] }
+  validation_must:
+    - { id: X-920, company: Oxbowlane, blocking: true }
+  validation_must_not:
+    - { company: Solvantra }
+    - { company: Kilnbrook }
+    - { company: "Lanternfell Space" }
+  validation_blocking: true
+  totals: { events: 4, positions: 100 }
+  companies:
+    Solvantra:            { disposition: CLEAR,  rules: [M-010], proposed: 11.0, invested_after: 6.1, flags_must_not: [X-105, X-900] }
+    Kilnbrook:            { disposition: REVIEW, rules: [M-010], proposed: 6.75, ownership_after: 0.075, flags_must: [X-105], flags_must_not: [X-900] }
+    Oxbowlane:            { disposition: BLOCK,  rules: [M-000, M-000], proposed: 13.0, flags_must: [X-900], flags_must_not: [X-109], open_items_count: 0 }
+    Lanternfell Space:    { disposition: CLEAR,  rules: [M-010], proposed: 40.0, ownership_after: 0.05, stage: "Series D", flags_must_not: [X-900, X-103] }

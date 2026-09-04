@@ -1,0 +1,52 @@
+name: 05_header_variants
+description: >
+  Column headers as they drift between quarters: aliases from SPEC §2.2, case and spacing
+  changes, a transposition typo, a dropped hyphen, the columns in a different order, an extra
+  column the schema does not know, and an optional column (Notes) missing altogether. Every
+  header must be matched by normalization (X-911), the extra column recorded (X-910), and the
+  four clean events must drive exactly the rules they would in a clean file.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+header_mutations:
+  activity:
+    "Date": "Event Date"
+    "Company": "company name"
+    "Event": "Event Type"
+    "Detail": "Details"
+    "Post-Money / Deal Value ($M)": "Post Money / Deal Value ($M)"
+    "HC Investment ($M)": "HC Investmnet ($M)"
+    "HC Ownership After (FD %)": "Ownership After"
+    "Proceeds to HC ($M)": "Proceeds"
+  portfolio:
+    "Company": "Portfolio Company"
+    "Latest Post-Money ($M)": "Post-Money Valuation"
+    "Invested ($M)": "Invested Capital"
+    "Ownership (FD %)": "FD Ownership"
+    "Prior Mark ($M)": "Carrying Value"
+    "Headcount": "Employees"
+    "ARR ($M)": "ARR  ($M)"
+drop_columns:
+  activity: ["Notes"]
+extra_columns:
+  activity: { "Source": "Board deck" }
+column_order: ["Company", "Event", "Date", "Proceeds to HC ($M)", "HC Ownership After (FD %)", "Detail", "Source", "Post-Money / Deal Value ($M)", "HC Investment ($M)"]
+activity:
+  - { date: 2026-07-10, company: Solvantra, event: "Priced Equity Round", detail: "Series B", value: 100.0, hc_investment: 1.0, ownership_after: 0.11 }
+  - { date: 2026-07-14, company: Kilnbrook, event: "Convertible Note", detail: "$3.0M bridge note, $80.0M valuation cap", hc_investment: 0.5 }
+  - { date: 2026-07-28, company: Ambercrest, event: "Acquisition (Closed)", detail: "All-cash acquisition", value: 400.0, proceeds: 16.8 }
+  - { date: 2026-08-14, company: "Willowmere Compute", event: "Term Sheet Signed", detail: "Series B term sheet at ~$60.0M post", value: 60.0 }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-911, X-910], must_not: [X-914, X-909, X-901, X-902, X-903, X-904] }
+  validation_must:
+    - { id: X-911, contains: "Investmnet" }
+    - { id: X-911, contains: "Carrying Value" }
+    - { id: X-910, contains: "Source" }
+  totals: { events: 4, positions: 100 }
+  companies:
+    Solvantra:            { disposition: CLEAR,   rules: [M-010], proposed: 11.0, invested_after: 6.1, ownership_after: 0.11 }
+    Kilnbrook:            { disposition: REVIEW,  rules: [M-060], proposed: 4.9,  note_at_cost: 0.5, flags_must: [X-107] }
+    Ambercrest:           { disposition: CLEAR,   rules: [M-020], proposed: 0.0,  realized_quarter: 16.8, status: Acquired }
+    Willowmere Compute:   { disposition: MONITOR, rules: [M-070], proposed: 4.7,  flags_must: [X-109] }
+    Dellforge:            { disposition: CLEAR,   rules: [M-000], proposed: 27.8, invested_after: 14.4, ownership_after: 0.041 }

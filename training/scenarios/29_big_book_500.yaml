@@ -1,0 +1,28 @@
+name: 29_big_book_500
+description: >
+  A second big book with a different seed: 500 synthetic companies, 64 events (8 per original
+  type on distinct companies). Runtime sanity — under 10 seconds — and exact disposition totals:
+  16 BLOCK (8 IPOs + 8 announced deals), 8 REVIEW (funded notes), 8 MONITOR (term sheets),
+  468 CLEAR. Spot checks are computed by hand from the synthesiser's own rows (post, ownership,
+  the event's value / ownership-after / proceeds), never from engine output.
+synthesize: { companies: 500, events: 64, seed: 29 }
+policy: 2026Q3
+expect:
+  ingest_ok: true
+  no_crash: true
+  max_seconds: 10
+  validation_ids: { must: [], must_not: [X-901, X-909, X-902, X-903, X-904, X-906, X-914, X-905] }
+  validation_blocking: false
+  manifest: { quarter_label: "Q3 2026", policy_version: "2026Q3-0.1" }
+  totals: { events: 64, positions: 500, dispositions: { BLOCK: 16, REVIEW: 8, MONITOR: 8, CLEAR: 468 } }
+  companies:
+    "Synth-0283": { disposition: CLEAR,   rules: [M-010], proposed: 5.6097, ownership_after: 0.0542 }          # 5.42% × $103.5M
+    "Synth-0039": { disposition: REVIEW,  rules: [M-060], proposed: 22.04761, note_at_cost: 0.3, flags_must: [X-107] }   # 21.74761 + 0.3
+    "Synth-0179": { disposition: BLOCK,   rules: [M-040], proposed: 14.93394, fv_level: 1, listed: true }      # 6.51% × $229.4M
+    "Synth-0310": { disposition: CLEAR,   rules: [M-020], proposed: 0.0, realized_quarter: 27.2355, status: Acquired, flags_must_not: [X-101] }
+    "Synth-0437": { disposition: BLOCK,   rules: [M-050], proposed: 68.206212 }                                # 12.69% × $597.2M × 0.90
+    "Synth-0314": { disposition: CLEAR,   rules: [M-021], proposed: 0.0, status: "Shut Down" }
+    "Synth-0149": { disposition: CLEAR,   rules: [M-030], proposed: 3.149205, realized_quarter: 3.149205, ownership_after: 0.01065, flags_must_not: [X-104] }
+    "Synth-0045": { disposition: MONITOR, rules: [M-070], proposed: 12.28225, flags_must: [X-109] }
+    "Synth-0001": { disposition: CLEAR,   rules: [M-000] }
+    "Synth-0500": { disposition: CLEAR,   rules: [M-000] }

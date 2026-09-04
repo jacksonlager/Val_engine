@@ -1,0 +1,38 @@
+name: 15_terminal_activity
+description: >
+  Activity on companies that were already Acquired or Shut Down at the prior close. Cash that
+  arrives after an exit is normal: a Distribution on Kolvani Health (Acquired) and a Note Repaid
+  on Everbrook Analytics (Shut Down) must be applied to realized proceeds with no X-907. Anything
+  that pretends the company is still live — a priced round on Kolvani, a term sheet on Hearthwick,
+  a secondary sale on Zerocrest — is X-907 (BLOCK) and must not touch the zero mark.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-15, company: "Kolvani Health", event: "Distribution", detail: "Final cash release from the acquirer", proceeds: 0.8,
+      notes: "Indemnity period expired with no claims." }
+  - { date: 2026-08-20, company: "Kolvani Health", event: "Priced Equity Round", detail: "Series C", value: 150.0, ownership_after: 0.07,
+      notes: "Entered against the wrong company." }
+  - { date: 2026-08-22, company: "Everbrook Analytics", event: "Note Repaid", detail: "Residual note principal recovered from the estate", proceeds: 0.1,
+      notes: "Recovered from the liquidator." }
+  - { date: 2026-09-01, company: Hearthwick, event: "Term Sheet Signed", detail: "Series A term sheet", value: 20.0,
+      notes: "Entered against the wrong company." }
+  - { date: 2026-09-05, company: Zerocrest, event: "Secondary Sale", detail: "HC sold half of its position", value: 12.1, ownership_after: 0.041, proceeds: 0.5,
+      notes: "Entered against the wrong company." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-907], must_not: [X-901, X-909, X-914] }
+  validation_must:
+    - { id: X-907, company: "Kolvani Health", count: 1 }
+    - { id: X-907, company: Hearthwick, count: 1 }
+    - { id: X-907, company: Zerocrest, count: 1 }
+    - { id: X-907, count: 3 }
+  validation_must_not:
+    - { id: X-907, company: "Everbrook Analytics" }
+  validation_blocking: true
+  totals: { events: 5, positions: 100 }
+  companies:
+    Kolvani Health:       { rules_contains: [M-022], rules_must_not: [M-010, M-999], proposed: 0.0, realized_quarter: 0.8, status: Acquired, ownership_after: 0.071 }
+    Everbrook Analytics:  { rules_contains: [M-061], rules_must_not: [M-999], proposed: 0.0, realized_quarter: 0.1, status: "Shut Down" }
+    Hearthwick:           { rules_must_not: [M-070], proposed: 0.0, realized_quarter: 0.0, status: Acquired, open_items_count: 0 }
+    Zerocrest:            { rules_must_not: [M-030], proposed: 0.0, realized_quarter: 0.0, status: "Shut Down" }

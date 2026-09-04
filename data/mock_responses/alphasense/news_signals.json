@@ -1,0 +1,116 @@
+{
+ "_note": "synthetic; shaped like the vendor payload",
+ "requestId": "as-search-91c0d7",
+ "query": "portfolio watchlist (Gryphonel OR Drayvenn OR Duskfern OR Birchhollow OR Oakenvale)",
+ "asOfDate": "2026-09-30",
+ "pagination": {
+  "offset": 0,
+  "limit": 25,
+  "total": 7
+ },
+ "results": [
+  {
+   "documentId": "as-doc-50121",
+   "publishedAt": "2026-08-21T13:05:00Z",
+   "company": "Gryphonel",
+   "sourceType": "news",
+   "source": "TechWire",
+   "sentiment": -0.2,
+   "relevance": 0.94,
+   "title": "Gryphonel acquisition draws second-request review from competition regulator",
+   "snippet": "The $133M all-cash acquisition announced in July is now subject to an extended review; the acquirer reiterated its expectation of closing in Q4 2026.",
+   "topics": [
+    "M&A",
+    "regulatory"
+   ]
+  },
+  {
+   "documentId": "as-doc-50188",
+   "publishedAt": "2026-09-19T21:40:00Z",
+   "company": "Gryphonel",
+   "sourceType": "filing",
+   "source": "Acquirer 8-K",
+   "sentiment": 0.1,
+   "relevance": 0.91,
+   "title": "Acquirer files 8-K: outside date extended to 2027-01-31",
+   "snippet": "Merger agreement amended to extend the outside date; break fee unchanged.",
+   "topics": [
+    "M&A"
+   ]
+  },
+  {
+   "documentId": "as-doc-49877",
+   "publishedAt": "2026-09-16T14:30:00Z",
+   "company": "Drayvenn",
+   "sourceType": "news",
+   "source": "Exchange notice",
+   "sentiment": 0.6,
+   "relevance": 0.99,
+   "title": "Drayvenn prices IPO, begins trading on Nasdaq",
+   "snippet": "Shares opened above the offer price; 180-day lock-up applies to pre-IPO holders.",
+   "topics": [
+    "IPO",
+    "lock-up"
+   ]
+  },
+  {
+   "documentId": "as-doc-49950",
+   "publishedAt": "2026-09-28T16:10:00Z",
+   "company": "Drayvenn",
+   "sourceType": "broker_research",
+   "source": "Initiation note",
+   "sentiment": 0.3,
+   "relevance": 0.82,
+   "title": "Post-IPO initiation: valuation supported by defense backlog, near-term volatility expected",
+   "snippet": "Coverage initiated with a neutral rating; notes limited float until lock-up expiry.",
+   "topics": [
+    "research"
+   ]
+  },
+  {
+   "documentId": "as-doc-48702",
+   "publishedAt": "2026-08-30T09:00:00Z",
+   "company": "Duskfern",
+   "sourceType": "news",
+   "source": "Sector newsletter",
+   "sentiment": -0.4,
+   "relevance": 0.88,
+   "title": "Duskfern raises insider bridge ahead of planned Series B",
+   "snippet": "Existing investors funded a convertible bridge at a $133M cap; the company said the round buys 'two to three quarters' of runway.",
+   "topics": [
+    "financing",
+    "bridge"
+   ]
+  },
+  {
+   "documentId": "as-doc-48210",
+   "publishedAt": "2026-07-29T11:20:00Z",
+   "company": "Birchhollow",
+   "sourceType": "news",
+   "source": "TechWire",
+   "sentiment": -0.5,
+   "relevance": 0.86,
+   "title": "Birchhollow cuts 15% of staff as renewals slow",
+   "snippet": "The security vendor cited longer sales cycles and churn in its mid-market base.",
+   "topics": [
+    "layoffs",
+    "churn"
+   ]
+  },
+  {
+   "documentId": "as-doc-48044",
+   "publishedAt": "2026-07-24T08:45:00Z",
+   "company": "Oakenvale",
+   "sourceType": "news",
+   "source": "Sector newsletter",
+   "sentiment": -0.6,
+   "relevance": 0.9,
+   "title": "Oakenvale recapitalises with pay-to-play round led by insiders",
+   "snippet": "Non-participating holders were converted to common; new preferred carries a 1.5x liquidation preference.",
+   "topics": [
+    "recap",
+    "preference"
+   ]
+  }
+ ]
+}

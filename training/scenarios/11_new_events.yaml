@@ -1,0 +1,73 @@
+name: 11_new_events
+description: >
+  The eight new canonical types with checkable arithmetic, including the variants that change
+  the flag: a secondary purchase above the round price (X-104 instead of X-121), a distribution
+  and a note repayment on companies already Shut Down (allowed, no X-907), an option-pool
+  expansion with no cash, a New Investment into a company the book does not have (position
+  created, X-918, fund from Detail), a stock-consideration exit (M-024, X-112, not terminal),
+  an HC-led round (X-117), an insider-led round (X-118), and a round priced in euros (X-920 —
+  the engine is USD-only; the row blocks).
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-08, company: Gorseline, event: "Secondary Purchase", detail: "Bought 2.0% from a departing angel", hc_investment: 0.7, ownership_after: 0.122,
+      notes: "Seller wanted liquidity; HC paid a premium to the Series A price." }
+  - { date: 2026-07-12, company: Dellforge, event: "Distribution", detail: "Cash dividend from operating profits", proceeds: 1.5,
+      notes: "Pro rata cash dividend; no change in the stake." }
+  - { date: 2026-07-15, company: "Everbrook Analytics", event: "Distribution", detail: "Final liquidating cash release", proceeds: 0.2,
+      notes: "Residual cash from the wind-down estate." }
+  - { date: 2026-07-19, company: "Jadewell Payments", event: "Ownership Adjustment", detail: "Warrant exercise", hc_investment: 0.2, ownership_after: 0.08,
+      notes: "HC exercised its Series A warrants at the strike price." }
+  - { date: 2026-07-22, company: Saffronwell, event: "Ownership Adjustment", detail: "Option pool expansion", ownership_after: 0.068,
+      notes: "Board approved a 5% pool top-up; no new money." }
+  - { date: 2026-07-26, company: "Tidewell Health", event: "New Investment", detail: "Seed extension, Fund III", value: 20.0, hc_investment: 0.5, ownership_after: 0.10,
+      notes: "First priced check into the company after the SAFE." }
+  - { date: 2026-07-30, company: "Brightmoor Health", event: "New Investment", detail: "Seed round, Fund III, Healthcare", value: 12.0, hc_investment: 1.2, ownership_after: 0.10,
+      notes: "New portfolio company; not yet on the Portfolio tab." }
+  - { date: 2026-08-02, company: Inkmoor, event: "Acquisition (Terminated)", detail: "Buyer walked after diligence", value: 60.0,
+      notes: "The announced deal was withdrawn; the company continues independently." }
+  - { date: 2026-08-06, company: Rivenmark, event: "Note Repaid", detail: "Bridge note redeemed in cash", hc_investment: 0.4, proceeds: 0.4,
+      notes: "Principal returned with interest; no shares issued." }
+  - { date: 2026-08-09, company: Zerocrest, event: "Note Repaid", detail: "Residual note principal recovered from the estate", proceeds: 0.05,
+      notes: "Recovered from the liquidator." }
+  - { date: 2026-08-13, company: "Thornmill Systems", event: "Bankruptcy (Chapter 11)", detail: "Voluntary Chapter 11 filing",
+      notes: "Company continues to operate under DIP financing." }
+  - { date: 2026-08-17, company: Vexmoor, event: "Direct Listing", detail: "Direct listing on NYSE", value: 600.0, ownership_after: 0.05,
+      notes: "Reference price set by the exchange; no primary raise." }
+  - { date: 2026-08-20, company: Covebright, event: "Acquisition (Closed)", detail: "All-stock acquisition by a listed acquirer", value: 350.0,
+      notes: "Consideration was shares of the acquirer; no cash received." }
+  - { date: 2026-08-27, company: "Willowmere Compute", event: "Priced Equity Round", detail: "Series B", value: 70.0, hc_investment: 2.0, ownership_after: 0.14,
+      notes: "Round led by HC; no new outside investor set the price." }
+  - { date: 2026-09-03, company: "Palefire Labs", event: "Priced Equity Round", detail: "Series B", value: 90.0, hc_investment: 0.8, ownership_after: 0.115,
+      notes: "Insider round: existing investors only, priced by the syndicate." }
+  - { date: 2026-09-08, company: "Harrowgate Bio", event: "Priced Equity Round", detail: "Series B", value: "€120.0M", ownership_after: 0.065,
+      notes: "European round, priced in euros." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-920], must_not: [X-901, X-909, X-914, X-912, X-913] }
+  validation_must:
+    - { id: X-920, company: "Harrowgate Bio", blocking: true }
+  validation_must_not:
+    - { id: X-907, company: "Everbrook Analytics" }
+    - { id: X-907, company: Zerocrest }
+    - { id: X-901, company: "Brightmoor Health" }
+  anywhere_must: [X-918]
+  totals: { events: 16, positions: 101 }
+  companies:
+    Gorseline:            { disposition: REVIEW,  rules: [M-031], proposed: 3.6966, invested_after: 2.8, ownership_after: 0.122, flags_must: [X-104], flags_must_not: [X-121, M-999], alternative_marks: { at_implied_price: 4.27 } }
+    Dellforge:            { disposition: MONITOR, rules: [M-022], proposed: 27.8, realized_quarter: 1.5, flags_must: [X-111] }
+    Everbrook Analytics:  { disposition_in: [CLEAR, MONITOR], rules_contains: [M-022], rules_must_not: [M-999], proposed: 0.0, realized_quarter: 0.2, status: "Shut Down" }
+    Jadewell Payments:    { disposition: REVIEW,  rules: [M-013], proposed: 6.32, invested_after: 4.8, ownership_after: 0.08, flags_must: [X-110] }
+    Saffronwell:          { disposition: REVIEW,  rules: [M-013], proposed: 1.0608, invested_after: 2.9, ownership_after: 0.068, flags_must: [X-110] }
+    Tidewell Health:      { disposition: MONITOR, rules: [M-014], proposed: 2.0, invested_after: 1.9, flags_must: [X-120], flags_must_not: [X-918] }
+    Brightmoor Health:    { disposition_in: [MONITOR, REVIEW], rules: [M-014], proposed: 1.2, invested_after: 1.2, ownership_after: 0.10, fund: "Fund III", sector: Healthcare, status: Active, flags_must: [X-120], flags_must_not: [M-999] }
+    Inkmoor:              { disposition: REVIEW,  rules: [M-051], proposed: 2.964, flags_must: [X-114] }
+    Rivenmark:            { disposition: REVIEW,  rules: [M-061], proposed: 2.9, realized_quarter: 0.4, note_at_cost: 0.0, flags_must: [X-115] }
+    Zerocrest:            { disposition_in: [CLEAR, MONITOR, REVIEW], rules_contains: [M-061], rules_must_not: [M-999], proposed: 0.0, realized_quarter: 0.05, status: "Shut Down" }
+    Thornmill Systems:    { disposition: BLOCK,   rules: [M-025], proposed: 28.2, status: Active, flags_must: [X-116] }
+    Vexmoor:              { disposition: BLOCK,   rules: [M-040], proposed: 30.0, fv_level: 1, listed: true, flags_must: [X-101], flags_must_not: [M-999] }
+    Covebright:           { disposition: BLOCK,   rules: [M-024], proposed: 19.6, status: Active, stage: "Acquired (stock)", latest_post_money: 350.0, realized_quarter: 0.0, flags_must: [X-112], flags_must_not: [M-999], open_items_must: [acquirer_shares] }
+    Willowmere Compute:   { disposition: REVIEW,  rules: [M-010], proposed: 9.8, invested_after: 8.0, flags_must: [X-117], flags_must_not: [X-118] }
+    Palefire Labs:        { disposition: MONITOR, rules: [M-010], proposed: 10.35, flags_must: [X-118], flags_must_not: [X-117] }
+    Harrowgate Bio:       { disposition: BLOCK, flags_must_not: [X-117] }

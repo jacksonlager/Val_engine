@@ -1,0 +1,10 @@
+name: 20b_garbage_no_portfolio
+description: >
+  A workbook with a cover sheet and an activity tab but no Portfolio tab by any name. Must raise IngestError naming the missing Portfolio sheet and listing the sheets present.
+garbage: no_portfolio
+workbook: 20b_garbage_no_portfolio.xlsx
+policy: 2026Q3
+expect:
+  ingest_ok: false
+  error_contains: ['Portfolio']
+  no_crash: true

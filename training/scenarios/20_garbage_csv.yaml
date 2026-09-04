@@ -1,0 +1,10 @@
+name: 20_garbage_csv
+description: >
+  A CSV renamed to .xlsx. Not a workbook: must raise IngestError saying what was found (not a zip / not an xlsx / CSV) and what was expected — never a BadZipFile traceback.
+garbage: csv
+workbook: 20_garbage_csv.xlsx
+policy: 2026Q3
+expect:
+  ingest_ok: false
+  error_contains: ['not a workbook', 'not an xlsx', 'not a valid', 'csv', 'zip', 'xlsx']
+  no_crash: true

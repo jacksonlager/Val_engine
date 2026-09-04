@@ -1,0 +1,43 @@
+name: 25_unknown_type_with_currency
+description: >
+  Rows that are wrong in two ways at once: an event type the engine has no rule for AND a
+  non-USD currency (X-920, blocking). The currency block must not hide the unknown event — the
+  row still reaches M-999 so the position blocks on M-999 and the adjudication proposal is
+  raised; X-900 is not used for it. Solvantra: "SPAC Merger" with a euro value cell (X-909 +
+  X-920). Oxbowlane: bare "Tender Offer" (ambiguous sold/bought → X-914) with sterling in the
+  Notes (X-920). Willowmere Compute: bare "LOI" (X-914) with CHF in Detail. Kilnbrook is the
+  contrast: a known type (priced round) with euros in the Notes only — that row IS refused
+  (X-900), M-010 never runs, prior mark 4.4 carried — the chain reads M-000 (refused) then M-000 (carry). Every position keeps its prior mark.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-09, company: Solvantra, event: "SPAC Merger", detail: "De-SPAC with a listed sponsor", value: "€400M", ownership_after: 0.09,
+      notes: "Business combination agreement signed." }
+  - { date: 2026-08-04, company: Oxbowlane, event: "Tender Offer", detail: "Company-run tender", value: 302.2, ownership_after: 0.04,
+      notes: "Priced at £2.10 per share." }
+  - { date: 2026-08-18, company: "Willowmere Compute", event: "LOI", detail: "LOI at CHF 45M", value: 45.0,
+      notes: "Non-binding." }
+  - { date: 2026-09-03, company: Kilnbrook, event: "Priced Equity Round", detail: "Series B", value: 90.0, ownership_after: 0.075,
+      notes: "Round priced at €82M; USD figure in the value cell is a conversion." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-909, X-914, X-920], must_not: [X-901, X-907, X-902, X-903] }
+  validation_must:
+    - { id: X-909, company: Solvantra, blocking: true }
+    - { id: X-920, company: Solvantra, blocking: true }
+    - { id: X-914, company: Oxbowlane, blocking: true, contains: "Secondary" }
+    - { id: X-920, company: Oxbowlane, blocking: true, contains: "£" }
+    - { id: X-914, company: "Willowmere Compute", blocking: true }
+    - { id: X-920, company: "Willowmere Compute", blocking: true, contains: "CHF" }
+    - { id: X-920, company: Kilnbrook, blocking: true, contains: "€" }
+  validation_must_not:
+    - { id: X-909, company: Oxbowlane }
+    - { id: X-909, company: "Willowmere Compute" }
+  validation_blocking: true
+  totals: { events: 4, positions: 100 }
+  companies:
+    Solvantra:            { disposition: BLOCK, rules: [M-999], proposed: 8.9, ownership_after: 0.118, flags_must: [M-999], flags_must_not: [X-900] }
+    Oxbowlane:            { disposition: BLOCK, rules: [M-999], proposed: 13.0, ownership_after: 0.043, realized_quarter: 0.0, flags_must: [M-999], flags_must_not: [X-900, X-104] }
+    Willowmere Compute:   { disposition: BLOCK, rules: [M-999], proposed: 4.7, flags_must: [M-999], flags_must_not: [X-900, X-109], open_items_count: 0 }
+    Kilnbrook:            { disposition: BLOCK, rules: [M-000, M-000], proposed: 4.4, ownership_after: 0.069, latest_post_money: 63.6, flags_must: [X-900], flags_must_not: [M-999] }

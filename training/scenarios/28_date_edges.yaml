@@ -1,0 +1,54 @@
+name: 28_date_edges
+description: >
+  Event dates at and beyond the edges of the quarter. On the prior close itself (2026-06-30,
+  Solvantra's round): outside the window by one day, X-905 REVIEW, but a round missed at the last
+  close is still the best evidence of value — applied, 0.11 × 100 = 11.0, CLEAR. On the window end
+  itself (2026-09-30, Ambercrest's exit): inside, no X-905, applied, realized 0.042 × 400 = 16.8.
+  Within the grace period before the window (Lanternfell, 2026-04-15, 77 days before 1 July):
+  X-905 REVIEW, applied, 0.05 × 800 = 40.0. After the measurement date (Kilnbrook 2026-10-05,
+  Oxbowlane 2030-01-01): a transaction that has not happened at the measurement date is not
+  evidence at the measurement date — X-905 BLOCK, the row is refused, prior mark carried, X-900.
+  Older than the grace period (Willowmere 2026-03-15, Coppermoss 1900-01-01 — a real Excel date
+  of serial 1): the row belongs to a quarter that has already been closed, or is not a date at
+  all — X-905 BLOCK, refused, carried (chain: M-000 refused, M-000 carry). The grace period (tolerances.late_event_grace_days) is policy.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-06-30, company: Solvantra, event: "Priced Equity Round", detail: "Series B", value: 100.0, hc_investment: 1.0, ownership_after: 0.11,
+      notes: "$24.0M round led by a new investor. HC participated. Closed on the last day of Q2; missed at the Q2 close." }
+  - { date: 2026-09-30, company: Ambercrest, event: "Acquisition (Closed)", detail: "All-cash acquisition", value: 400.0, proceeds: 16.8,
+      notes: "Closed on the measurement date; cash received." }
+  - { date: 2026-04-15, company: "Lanternfell Space", event: "Priced Equity Round", detail: "Series D", value: 800.0, ownership_after: 0.05,
+      notes: "$120.0M round led by a new investor. HC did not participate. Missed at the Q2 close." }
+  - { date: 2026-10-05, company: Kilnbrook, event: "Priced Equity Round", detail: "Series B", value: 90.0, ownership_after: 0.075,
+      notes: "$15.0M round led by a new investor. HC did not participate. Closed after quarter end." }
+  - { date: 2030-01-01, company: Oxbowlane, event: "Term Sheet Signed", detail: "Series C term sheet", value: 600.0,
+      notes: "Date typed with the wrong year." }
+  - { date: 2026-03-15, company: "Willowmere Compute", event: "Term Sheet Signed", detail: "Series B term sheet at ~$60.0M post", value: 60.0,
+      notes: "Belongs to Q1; pasted into the Q3 tab." }
+  - { date: 1900-01-01, company: "Coppermoss Energy", event: "Secondary Sale", detail: "HC sold half of its position", value: 25.5, ownership_after: 0.0505, proceeds: 1.28775,
+      notes: "Date cell holds serial 1." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-905], must_not: [X-901, X-909, X-914, X-902, X-903, X-906] }
+  validation_must:
+    - { id: X-905, company: Solvantra, blocking: false, count: 1 }
+    - { id: X-905, company: "Lanternfell Space", blocking: false, count: 1 }
+    - { id: X-905, company: Kilnbrook, blocking: true, count: 1 }
+    - { id: X-905, company: Oxbowlane, blocking: true, contains: "2030" }
+    - { id: X-905, company: "Willowmere Compute", blocking: true }
+    - { id: X-905, company: "Coppermoss Energy", blocking: true, contains: "1900" }
+  validation_must_not:
+    - { id: X-905, company: Ambercrest }
+    - { company: Ambercrest, blocking: true }
+  validation_blocking: true
+  totals: { events: 7, positions: 100 }
+  companies:
+    Solvantra:            { disposition: CLEAR, rules: [M-010], proposed: 11.0, invested_after: 6.1, ownership_after: 0.11, flags_must_not: [X-900] }
+    Ambercrest:           { disposition: CLEAR, rules: [M-020], proposed: 0.0, realized_quarter: 16.8, status: Acquired, flags_must_not: [X-900, X-101] }
+    Lanternfell Space:    { disposition: CLEAR, rules: [M-010], proposed: 40.0, ownership_after: 0.05, flags_must_not: [X-900, X-103] }
+    Kilnbrook:            { disposition: BLOCK, rules: [M-000, M-000], proposed: 4.4, ownership_after: 0.069, latest_post_money: 63.6, flags_must: [X-900], flags_must_not: [M-999] }
+    Oxbowlane:            { disposition: BLOCK, rules: [M-000, M-000], proposed: 13.0, flags_must: [X-900], flags_must_not: [X-109], open_items_count: 0 }
+    Willowmere Compute:   { disposition: BLOCK, rules: [M-000, M-000], proposed: 4.7, flags_must: [X-900], flags_must_not: [X-109], open_items_count: 0 }
+    Coppermoss Energy:    { disposition: BLOCK, rules: [M-000, M-000], proposed: 2.6, realized_quarter: 0.0, ownership_after: 0.101, flags_must: [X-900], flags_must_not: [X-104] }

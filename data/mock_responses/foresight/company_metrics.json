@@ -1,0 +1,99 @@
+{
+ "_note": "synthetic; shaped like the vendor payload",
+ "requestId": "fs-req-00b1e4",
+ "asOfDate": "2026-08-31",
+ "currency": "USD",
+ "units": {
+  "arr": "USD millions",
+  "burn": "USD millions per month",
+  "cash": "USD millions"
+ },
+ "pagination": {
+  "page": 1,
+  "perPage": 100,
+  "totalItems": 5,
+  "totalPages": 1
+ },
+ "companies": [
+  {
+   "companyId": "fs-c-1043",
+   "name": "Fernwave",
+   "reportingPeriod": "2026-08",
+   "metrics": {
+    "arr": 81.4,
+    "arrGrowthYoY": 0.7,
+    "grossMargin": 0.78,
+    "netBurn": 2.9,
+    "cash": 210.0,
+    "headcount": 412,
+    "netRevenueRetention": 1.24
+   },
+   "sourceDocument": "board_deck_2026_08.pdf",
+   "confidence": "reported"
+  },
+  {
+   "companyId": "fs-c-2210",
+   "name": "Gryphonel",
+   "reportingPeriod": "2026-08",
+   "metrics": {
+    "arr": 14.2,
+    "arrGrowthYoY": 0.52,
+    "grossMargin": 0.71,
+    "netBurn": 0.9,
+    "cash": 11.5,
+    "headcount": 96,
+    "netRevenueRetention": 1.12
+   },
+   "sourceDocument": "monthly_update_2026_08.pdf",
+   "confidence": "reported"
+  },
+  {
+   "companyId": "fs-c-0871",
+   "name": "Duskfern",
+   "reportingPeriod": "2026-08",
+   "metrics": {
+    "arr": 7.1,
+    "arrGrowthYoY": 1.1,
+    "grossMargin": 0.66,
+    "netBurn": 1.6,
+    "cash": 6.4,
+    "headcount": 58,
+    "netRevenueRetention": 1.31
+   },
+   "sourceDocument": "monthly_update_2026_08.pdf",
+   "confidence": "reported"
+  },
+  {
+   "companyId": "fs-c-3388",
+   "name": "Birchhollow",
+   "reportingPeriod": "2026-08",
+   "metrics": {
+    "arr": 128.9,
+    "arrGrowthYoY": -0.21,
+    "grossMargin": 0.74,
+    "netBurn": 3.1,
+    "cash": 61.0,
+    "headcount": 540,
+    "netRevenueRetention": 0.88
+   },
+   "sourceDocument": "board_deck_2026_08.pdf",
+   "confidence": "estimated"
+  },
+  {
+   "companyId": "fs-c-1902",
+   "name": "Drayvenn",
+   "reportingPeriod": "2026-06",
+   "metrics": {
+    "arr": 148.9,
+    "arrGrowthYoY": 0.43,
+    "grossMargin": 0.61,
+    "netBurn": 4.8,
+    "cash": 890.0,
+    "headcount": 1210,
+    "netRevenueRetention": 1.19
+   },
+   "sourceDocument": "S-1 (2026-08)",
+   "confidence": "public_filing"
+  }
+ ]
+}

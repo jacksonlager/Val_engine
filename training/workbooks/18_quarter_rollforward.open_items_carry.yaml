@@ -1,0 +1,55 @@
+source_run_id: d8c4f428fa0b
+quarter: Q3 2026
+open_items:
+- company: Emberfold
+  kind: convertible_note
+  opened: '2026-08-23'
+  opened_quarter: Q3 2026
+  expected_resolution: null
+  amount_musd: null
+  detail: $8.5M bridge note, $32.0M valuation cap (HC did not participate)
+  age_quarters: 0
+  escalated: false
+- company: Gryphonel
+  kind: pending_acquisition
+  opened: '2026-09-08'
+  opened_quarter: Q3 2026
+  expected_resolution: null
+  amount_musd: 133.0
+  detail: Expected to close in Q4 2026, subject to regulatory approval. No cash received.
+  age_quarters: 0
+  escalated: false
+- company: Halcyra
+  kind: term_sheet
+  opened: '2026-09-17'
+  opened_quarter: Q3 2026
+  expected_resolution: null
+  amount_musd: 50.0
+  detail: Not closed; diligence underway, expected to close Q4.
+  age_quarters: 0
+  escalated: false
+- company: Drayvenn
+  kind: ipo_lockup
+  opened: '2026-09-20'
+  opened_quarter: Q3 2026
+  expected_resolution: '2027-03-19'
+  amount_musd: null
+  detail: 180-day lock-up; 2.8% of listed equity
+  age_quarters: 0
+  escalated: false
+- company: Duskfern
+  kind: convertible_note
+  opened: '2026-08-28'
+  opened_quarter: Q3 2026
+  expected_resolution: null
+  amount_musd: 0.5
+  detail: $4.7M bridge note, $133.0M valuation cap
+  age_quarters: 0
+  escalated: false
+mark_basis:
+- company: Gryphonel
+  reason: 'Prior Mark $4.31M departs from ownership × last-round post-money (3.6%
+    × $97.00M = $3.49M): equity mark $4.31M set by M-050, not ownership × last round.'
+- company: Duskfern
+  reason: 'Prior Mark $6.60M departs from ownership × last-round post-money (8.2%
+    × $73.80M = $6.05M): note leg $0.50M carried at cost (M-060).'

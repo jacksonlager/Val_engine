@@ -1,0 +1,17 @@
+name: 28b_date_serial_1900
+description: >
+  A Date cell holding the bare integer 1 — the Excel serial for 1 January 1900, what a formula
+  that lost its reference collapses to. It is outside the serial range the reader accepts
+  (20000..80000, SPEC §2.3), so it is not a date in any accepted form and the file is refused
+  with a message naming the sheet, the row, the column and the range (SPEC §2.5) — never a
+  silent blank and never a 1900 event.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-07-10, company: Solvantra, event: "Priced Equity Round", detail: "Series B", value: 100.0, hc_investment: 1.0, ownership_after: 0.11,
+      notes: "$24.0M round led by a new investor. HC participated." }
+  - { date: 1, company: "Coppermoss Energy", event: "Secondary Sale", detail: "HC sold half of its position", value: 25.5, ownership_after: 0.0505, proceeds: 1.28775,
+      notes: "Date cell holds serial 1." }
+expect:
+  ingest_ok: false
+  error_contains: ["serial"]

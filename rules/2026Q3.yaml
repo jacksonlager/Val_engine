@@ -1,0 +1,117 @@
+# HC Valuation Engine — policy 2026Q3 (v0.1)
+# Every threshold the engine uses lives here. There are no numeric literals in engine code.
+# A change to any value below is a policy change: bump policy_version and record why.
+
+policy_version: "2026Q3-0.1"
+inherits: null
+
+quarter:
+  label: "Q3 2026"
+  measurement_date: 2026-09-30
+  prior_close: 2026-06-30
+  window_start: 2026-07-01
+  window_end: 2026-09-30
+
+metrics:
+  reporting_lag_months: 1          # operating metrics are "as of late August"; age runway by this
+
+marking:
+  secondary:
+    remainder_basis: last_round      # last_round | secondary_price
+  ipo:
+    price_source: market_close       # market_close | ipo_print
+    lockup_discount_pct: 0.00
+  announced:
+    treatment: probability_weighted  # probability_weighted | full_deal_value | hold_prior
+    close_probability: 0.90
+  convertible:
+    new_money_basis: cost
+  calibration:
+    enabled: false
+    min_age_months: 24
+    bound_pct: 0.35
+
+exceptions:
+  staleness:
+    monitor_months: 24
+    review_months: 48
+  arr_growth:
+    monitor_below: 0.00
+    review_below: -0.15
+  runway:
+    monitor_below_mo: 12
+    review_below_mo: 6
+  dilution:
+    monitor_relative_drop: 0.20
+  secondary:
+    spread_tolerance_pct: 0.05
+  multiple:
+    mode: absolute                   # absolute | relative_to_comps
+    absolute_high: 30
+    absolute_low: 3
+    high_x_comp: 2.0
+    low_x_comp: 0.5
+    min_arr: 0.5
+  moic:
+    monitor_above: 5.0
+  escalation:
+    review_rules_to_block: 2         # distinct REVIEW families needed to escalate to BLOCK
+
+tolerances:
+  prior_mark_reconciliation_musd: 0.05
+  late_event_grace_days: 91          # a row dated up to this many days before window_start is applied (X-905 REVIEW);
+                                     # older, or dated after the measurement date: refused (X-905 BLOCK)
+
+sensitivity:
+  multiple_shock_pct: [-0.20, 0.20]
+
+# ---- forward compatibility: for quarters this policy has not seen ----
+schema:
+  activity_sheet_pattern: '^Q[1-4] \d{4} Activity$'
+  portfolio_sheet_name: "Portfolio"
+  unknown_event_type: block          # block | (nothing else is allowed)
+  unknown_column: record_and_warn
+  missing_required_column: fail
+  unknown_sector: absolute_thresholds_and_flag
+
+note_screen:
+  enabled: true
+  # "lock-up" is exempt on an IPO / Direct Listing row (M-040 carries it as an open item).
+  terms: [escrow, holdback, earn-out, earnout, milestone, contingent, participating,
+          ratchet, preference, litigation, restated, bankruptcy, conversion,
+          warrant, pay-to-play, cram, cram-down, lock-up, related party, going concern,
+          covenant, default]
+
+# ---- ingest normalization tolerances (training/SPEC.md §1.2, §2) ----
+# How far a cell may be from a known spelling before the reader refuses to read it.
+# Every correction the reader makes is recorded as an X-911..X-920 issue; nothing is silent.
+normalization:
+  event_type_max_distance: 2         # Damerau-Levenshtein budget for an event-type typo
+  company_max_distance: 1            # ... for a company name
+  header_max_distance: 2             # ... for a column header
+  min_length_for_fuzzy: 6            # shorter tokens are never typo-matched (event types, headers)
+  company_min_length_for_fuzzy: 8    # typo tolerance on company names only from this length
+  unit_suspect_musd_above: 100000    # a $M cell above this was typed in dollars: divide by 1e6, X-916
+  percent_points_above: 1.0          # a percent field above this was typed in points: divide by 100, X-916
+  percent_block_above: 100           # ... and above this it is neither fraction nor points: block
+  header_scan_rows: 10               # rows searched for the header row
+  header_min_known_columns: 3        # known columns a row must carry to be taken as the header
+
+open_items:
+  announced_deal_stale_quarters: 2
+  term_sheet_stale_quarters: 1
+  note_unconverted_quarters: 3
+  ipo_lockup_days: 180
+
+adjudication:
+  enabled: true
+  provider: stub                     # stub | claude
+  auto_accept: never                 # not a threshold. there is no value here.
+  cache_proposals: true
+  promote_after_repeats: 3
+  allowed_fields: [ownership_before, ownership_after, post_money, deal_value,
+                   proceeds, prior_mark, hc_investment, close_probability, note_at_cost]
+  allowed_operators: ["*", "/", "+", "-", "min", "max"]
+
+# Declarative rules promoted from E-09 adjudication land here. Empty for the base quarter.
+custom_rules: []

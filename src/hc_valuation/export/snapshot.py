@@ -1,0 +1,250 @@
+"""E-02 — the next-quarter input workbook.
+
+The booked marks become next quarter's `Prior Mark ($M)`, in the exact schema the reader
+expects, so the refresh workflow is "drop the new activity into the emitted file". The
+gate for this module is that the emitted file re-ingests with zero blocking issues.
+
+The one place that gate bites is the identity the source book defines
+(`Prior Mark = Ownership x Latest Post-Money`), which a probability-weighted announced
+deal, a note leg carried at cost or a committee override deliberately does not satisfy.
+We do NOT fake a post-money to make the identity hold — the last-round print is written
+as-is, because it is the true last price and next quarter's down-round test depends on it.
+Instead each departure is recorded in the `open_items_carry.yaml` sidecar under
+`mark_basis`, which the pipeline hands to X-904 so the reconciliation becomes a
+non-blocking REVIEW ("departs from last-round pricing; explained by ...") rather than a
+BLOCK. The same rows are listed on the `Snapshot Notes` tab for the human reader.
+"""
+from __future__ import annotations
+
+import re
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+import openpyxl
+import yaml
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+
+from ..config import RuleConfig
+from ..engine.inputs import EventType, Position, Status
+from ..engine.models import CompanyResult, ValuationRun
+from ..ingest.reader import read_workbook
+from ..ingest.schema import ACTIVITY_COLUMNS, PORTFOLIO_COLUMNS
+
+HEADER_FONT = Font(bold=True, color="FFFFFF")
+HEADER_FILL = PatternFill("solid", fgColor="000000")
+_QUARTER_RX = re.compile(r"^\s*Q([1-4])\s+(\d{4})\s*$")
+
+# Number formats copied from the source book so the emitted file looks like the input.
+_FORMATS: dict[str, str] = {
+    "First Investment": "mm/dd/yyyy", "Latest Round": "mm/dd/yyyy",
+    "Latest Post-Money ($M)": r"\$#,##0.0", "Invested ($M)": r"\$#,##0.0", "Ownership (FD %)": "0.0%",
+    "Prior Mark ($M)": r"\$#,##0.0", "Realized ($M)": r"\$#,##0.0", "MOIC (x)": r"0.0\x",
+    "ARR ($M)": r"\$#,##0.0", "ARR Growth (YoY %)": "0%", "Gross Margin (%)": "0%",
+    "Net Burn ($M/mo)": r"\$#,##0.00", "Cash ($M)": r"\$#,##0.0", "Runway (mo)": "0.0", "Headcount": "#,##0",
+}
+_WIDTHS: dict[str, float] = {"Company": 22, "Sector": 15, "Fund": 9, "Stage": 10, "Status": 11}
+_PRICING_EVENTS = {EventType.PRICED_ROUND.value, EventType.IPO.value}
+_OPERATING = ("ARR ($M)", "ARR Growth (YoY %)", "Gross Margin (%)", "Net Burn ($M/mo)", "Cash ($M)", "Headcount")
+
+
+def next_quarter_label(label: str) -> str:
+    """'Q3 2026' -> 'Q4 2026'; 'Q4 2026' -> 'Q1 2027'. Parsed, never hardcoded."""
+    m = _QUARTER_RX.match(label)
+    if not m:
+        raise ValueError(f"quarter label {label!r} is not of the form 'Qn YYYY'")
+    q, y = int(m.group(1)), int(m.group(2))
+    return f"Q1 {y + 1}" if q == 4 else f"Q{q + 1} {y}"
+
+
+def _latest_round_date(c: CompanyResult, src: Position) -> date:
+    """Date of the last event that set a price (priced round or IPO); else the source value.
+
+    A same-terms extension (M-011) reprices ownership but is not price discovery, so its date
+    must not be written as `Latest Round` — otherwise the staleness clock the engine
+    deliberately kept running would be reset by the export and lost next quarter. The
+    engine's own `staleness_anchor` is the authority; an IPO is the one pricing event that
+    sits outside it (a listed position is carried at its close, M-041)."""
+    dates = [s.evidence.date for s in c.steps if s.evidence and s.evidence.event_type in _PRICING_EVENTS
+             and s.rule_id not in ("M-000", "M-011")]
+    if dates:
+        return max(dates[-1], c.staleness_anchor)
+    return c.staleness_anchor if c.staleness_anchor != date.min else src.latest_round
+
+
+def _post_money(c: CompanyResult, tol: float) -> tuple[float, str | None]:
+    """The last-round post-money, written as-is, plus a reason when the booked mark deliberately
+    departs from ownership × that print (the departure is carried in the sidecar for X-904)."""
+    post = c.latest_post_money
+    if c.status_after != Status.ACTIVE or c.ownership_after <= 0:
+        return post, None
+    if abs(c.ownership_after * post - c.booked_mark) <= tol:
+        return post, None
+    why = []
+    if c.note_at_cost:
+        why.append(f"note leg ${c.note_at_cost:.2f}M carried at cost (M-060)")
+    if c.override is not None:
+        why.append(f"committee override booked ${c.booked_mark:.2f}M vs proposed ${c.proposed_mark:.2f}M (E-01)")
+    marking_rules = [s.rule_id for s in c.steps if s.rule_id.startswith("M-") and s.rule_id not in ("M-000", "M-060", "M-080")]
+    if abs(c.equity_mark - c.ownership_after * post) > tol and marking_rules:
+        why.append(f"equity mark ${c.equity_mark:.2f}M set by {marking_rules[-1]}, not ownership × last round")
+    reason = "; ".join(why or ["booked mark does not reconcile to ownership × last-round post-money"])
+    return post, (f"Prior Mark ${c.booked_mark:.2f}M departs from ownership × last-round post-money "
+                  f"({c.ownership_after:.1%} × ${post:.2f}M = ${c.ownership_after * post:.2f}M): {reason}.")
+
+
+def _portfolio_row(c: CompanyResult, src: Position, r: int, tol: float) -> tuple[list[Any], str | None]:
+    active = c.status_after == Status.ACTIVE
+    post, note = _post_money(c, tol)
+    values: dict[str, Any] = {
+        "Company": c.company, "Sector": c.sector, "Fund": c.fund, "Stage": c.stage, "Status": c.status_after.value,
+        "First Investment": src.first_investment, "Latest Round": _latest_round_date(c, src),
+        "Latest Post-Money ($M)": post, "Invested ($M)": c.invested_after, "Ownership (FD %)": c.ownership_after,
+        "Prior Mark ($M)": c.booked_mark if active else 0.0, "Realized ($M)": c.realized_cumulative,
+        "MOIC (x)": f"=(K{r}+L{r})/I{r}",
+        "ARR ($M)": src.arr if active else None, "ARR Growth (YoY %)": src.arr_growth if active else None,
+        "Gross Margin (%)": src.gross_margin if active else None, "Net Burn ($M/mo)": src.net_burn if active else None,
+        "Cash ($M)": src.cash if active else None,
+        "Runway (mo)": f'=IF(AND(ISNUMBER(Q{r}),Q{r}>0),R{r}/Q{r},"-")',
+        "Headcount": src.headcount if active else None,
+    }
+    return [values[col] for col in PORTFOLIO_COLUMNS], note
+
+
+def _style_header(ws, ncols: int, freeze: str) -> None:
+    for i in range(1, ncols + 1):
+        cell = ws.cell(row=1, column=i)
+        cell.font = HEADER_FONT
+        cell.fill = HEADER_FILL
+        cell.alignment = Alignment(wrap_text=True, vertical="center")
+    ws.row_dimensions[1].height = 30
+    ws.freeze_panes = freeze
+
+
+def _write_portfolio(wb: Workbook, run: ValuationRun, sources: dict[str, Position], tol: float) -> list[tuple[str, str]]:
+    ws = wb.active
+    ws.title = "Portfolio"
+    cols = list(PORTFOLIO_COLUMNS)
+    ws.append(cols)
+    notes: list[tuple[str, str]] = []
+    for i, c in enumerate(run.companies, start=2):
+        src = sources.get(c.company)
+        if src is None:
+            raise ValueError(f"{c.company} is in the run but not in the source workbook; cannot carry its metrics")
+        row, note = _portfolio_row(c, src, i, tol)
+        ws.append(row)
+        if note:
+            notes.append((c.company, note))
+        for j, col in enumerate(cols, start=1):
+            if col in _FORMATS:
+                ws.cell(row=i, column=j).number_format = _FORMATS[col]
+    for j, col in enumerate(cols, start=1):
+        ws.column_dimensions[ws.cell(row=1, column=j).column_letter].width = _WIDTHS.get(col, 13)
+    _style_header(ws, len(cols), "B2")
+    return notes
+
+
+def _write_activity(wb: Workbook, sheet_name: str) -> None:
+    ws = wb.create_sheet(sheet_name)
+    cols = list(ACTIVITY_COLUMNS)
+    ws.append(cols)
+    for j, col in enumerate(cols, start=1):
+        ws.column_dimensions[ws.cell(row=1, column=j).column_letter].width = {"Detail": 30, "Notes": 60, "Company": 22, "Event": 21}.get(col, 13)
+    _style_header(ws, len(cols), "A2")
+
+
+def _copy_field_definitions(wb: Workbook, source_path: Path, run: ValuationRun, next_label: str) -> None:
+    src_wb = openpyxl.load_workbook(source_path, read_only=False, data_only=True)
+    name = next((s for s in src_wb.sheetnames if s.lower().startswith("field def")), None)
+    ws = wb.create_sheet(name or "Field Definitions")
+    if name is not None:
+        src = src_wb[name]
+        for row in src.iter_rows(values_only=True):
+            ws.append(list(row))
+        for key, dim in src.column_dimensions.items():
+            ws.column_dimensions[key].width = dim.width
+    else:
+        ws.append(["Field", "Definition"])
+    src_wb.close()
+    m = run.manifest
+    ws.append([None, None])
+    ws.append(["SNAPSHOT", None])
+    ws.append(["Generated by", f"hc-valuation engine {m.engine_version}, policy {m.policy_version}, run {m.run_id}"])
+    ws.append(["Portfolio tab", f"The book as of the {m.quarter_label} close ({m.measurement_date.isoformat()}): "
+                                "Prior Mark is the booked mark from that run; Ownership, Invested and Realized are post-activity. "
+                                "Operating metrics are carried unchanged from the source file and should be refreshed."])
+    ws.append([f"{next_label} Activity tab", f"Empty. Record every portfolio event in {next_label} here, then run hc-valuation "
+                                             "with the matching policy file."])
+    ws.append(["Open Items tab", "Unresolved items carried from the prior run (also emitted as open_items_carry.yaml, "
+                                 "which the pipeline reads as prior_open_items)."])
+    ws.append(["Snapshot Notes tab", "Rows whose Prior Mark deliberately departs from Ownership x Latest Post-Money "
+                                     "(note at cost, pending deal, override). Also carried in open_items_carry.yaml as mark_basis."])
+    for c in ws[1]:
+        c.font = Font(bold=True)
+
+
+def _write_open_items(wb: Workbook, run: ValuationRun) -> None:
+    ws = wb.create_sheet("Open Items")
+    ws.append(["Company", "Kind", "Opened", "Opened Quarter", "Expected Resolution", "Amount ($M)", "Detail", "Age (quarters)", "Escalated"])
+    for o in run.open_items:
+        ws.append([o.company, o.kind.value, o.opened, o.opened_quarter, o.expected_resolution, o.amount_musd, o.detail,
+                   o.age_quarters, "yes" if o.escalated else "no"])
+    for col, w in zip("ABCDEFGHI", (22, 20, 12, 14, 18, 12, 70, 14, 10)):
+        ws.column_dimensions[col].width = w
+    for r in range(2, ws.max_row + 1):
+        ws.cell(row=r, column=3).number_format = "yyyy-mm-dd"
+        ws.cell(row=r, column=5).number_format = "yyyy-mm-dd"
+    _style_header(ws, 9, "A2")
+
+
+def _write_notes(wb: Workbook, notes: list[tuple[str, str]]) -> None:
+    ws = wb.create_sheet("Snapshot Notes")
+    ws.append(["Company", "Note"])
+    for company, note in notes:
+        ws.append([company, note])
+    ws.column_dimensions["A"].width = 22
+    ws.column_dimensions["B"].width = 120
+    _style_header(ws, 2, "A2")
+
+
+def write_open_items_sidecar(run: ValuationRun, path: str | Path, mark_basis: list[tuple[str, str]] | None = None) -> Path:
+    """`open_items_carry.yaml`: what the pipeline loads next quarter — `open_items` as
+    `prior_open_items`, and `mark_basis` as the explained departures X-904 accepts."""
+    p = Path(path)
+    payload = {
+        "source_run_id": run.manifest.run_id,
+        "quarter": run.manifest.quarter_label,
+        "open_items": [o.model_dump(mode="json") for o in run.open_items],
+        "mark_basis": [{"company": c, "reason": r} for c, r in (mark_basis or [])],
+    }
+    p.write_text(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True))
+    return p
+
+
+def write_next_quarter_workbook(run: ValuationRun, source_workbook_path: str | Path, out_path: str | Path,
+                                cfg: RuleConfig) -> Path:
+    """Emit the next quarter's input workbook plus the `open_items_carry.yaml` sidecar beside it."""
+    source = Path(source_workbook_path)
+    out = Path(out_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    next_label = next_quarter_label(cfg.quarter.label)
+    activity_name = f"{next_label} Activity"
+    if not re.match(cfg.schema_.activity_sheet_pattern, activity_name):
+        raise ValueError(f"emitted activity sheet name {activity_name!r} would not match the policy pattern "
+                         f"{cfg.schema_.activity_sheet_pattern!r}; the file could not be re-ingested")
+
+    snapshot, _feed = read_workbook(source, cfg)
+    sources = snapshot.by_company()
+    tol = cfg.tolerances.prior_mark_reconciliation_musd
+
+    wb = Workbook()
+    notes = _write_portfolio(wb, run, sources, tol)
+    _write_activity(wb, activity_name)
+    _copy_field_definitions(wb, source, run, next_label)
+    _write_open_items(wb, run)
+    _write_notes(wb, notes)
+    wb.save(out)
+    write_open_items_sidecar(run, out.parent / "open_items_carry.yaml", mark_basis=notes)
+    return out

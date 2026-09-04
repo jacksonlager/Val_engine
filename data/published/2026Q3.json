@@ -1,0 +1,6455 @@
+{
+ "publish": {
+  "quarter": "Q3 2026",
+  "slug": "2026Q3",
+  "published_at": "2026-10-02T17:00:00+00:00",
+  "published_by": "Jackson Lagerwey",
+  "note": "Q3 proposed marks for IC",
+  "status": "proposed",
+  "open_blocks": [
+   "Gryphonel",
+   "Pellagrin",
+   "Tarnwick Aerospace",
+   "Drayvenn",
+   "Oakenvale",
+   "Birchhollow",
+   "Duskfern"
+  ],
+  "run_id": "d8c4f428fa0b",
+  "policy_version": "2026Q3-0.1",
+  "engine_version": "0.1.0",
+  "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
+  "booked_nav": 1183.9263
+ },
+ "run": {
+  "manifest": {
+   "run_id": "d8c4f428fa0b",
+   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
+   "input_file": "HC_Mock_Portfolio_Data.xlsx",
+   "policy_version": "2026Q3-0.1",
+   "engine_version": "0.1.0",
+   "quarter_label": "Q3 2026",
+   "measurement_date": "2026-09-30",
+   "prior_close": "2026-06-30",
+   "generated_at": "2026-09-30T00:00:00",
+   "adjudication_enabled": true,
+   "market_data_source": "stub"
+  },
+  "companies": [
+   {
+    "company": "Aravine",
+    "fund": "Fund I",
+    "sector": "Climate & Energy",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 6.9,
+    "equity_mark": 13.878,
+    "note_at_cost": 0.0,
+    "proposed_mark": 13.878,
+    "booked_mark": 13.878,
+    "override": null,
+    "ownership_before": 0.136,
+    "ownership_after": 0.108,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 128.5,
+    "staleness_anchor": "2026-08-24",
+    "fv_level": 3,
+    "arr": 3.4,
+    "arr_growth": 0.83,
+    "runway_months_aged": 32.52,
+    "implied_multiple": 37.79,
+    "moic_after": 2.313,
+    "steps": [
+     {
+      "rule_id": "M-010",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 128.5,
+       "prior_post_money": 50.8,
+       "ownership_before": 0.136,
+       "ownership_after": 0.108,
+       "hc_investment": 0.0,
+       "detail": "Series B"
+      },
+      "prior_value": 6.9,
+      "new_value": 13.878,
+      "rationale": "Priced round at $128.5M post (Series B). Mark = 10.8% \u00d7 $128.5M. An arm's-length transaction in the subject security is the strongest Level 3 input available.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 10,
+       "event_type": "Priced Equity Round",
+       "date": "2026-08-24"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-103",
+      "family": "treatment",
+      "severity": "MONITOR",
+      "message": "HC did not follow its pro rata, so ownership fell 13.6% \u2192 10.8% (-20.6%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
+      "action": "",
+      "evidence": {
+       "ownership_before": 0.136,
+       "ownership_after": 0.108,
+       "relative_change": -0.2059
+      }
+     },
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 38\u00d7 revenue (sector comp 7.1\u00d7), growing +83%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 37.79,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Beltrix",
+    "fund": "Fund II",
+    "sector": "Fintech",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 8.1,
+    "equity_mark": 8.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 8.1,
+    "booked_mark": 8.1,
+    "override": null,
+    "ownership_before": 0.132,
+    "ownership_after": 0.132,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 61.3,
+    "staleness_anchor": "2024-07-05",
+    "fv_level": 3,
+    "arr": 5.1,
+    "arr_growth": 1.08,
+    "runway_months_aged": 4.96,
+    "implied_multiple": 12.02,
+    "moic_after": 1.35,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 8.1,
+       "ownership": 0.132,
+       "latest_post_money": 61.3
+      },
+      "prior_value": 8.1,
+      "new_value": 8.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 26 months ago (2024-07-05) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 26,
+       "anchor": "2024-07-05"
+      }
+     },
+     {
+      "rule_id": "X-304",
+      "family": "liquidity",
+      "severity": "REVIEW",
+      "message": "About 5.0 months of cash left ($3.1M against $0.52M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+      "action": "Confirm the mark reflects a company with 5.0 months of cash.",
+      "evidence": {
+       "runway_months_aged": 4.96
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Cindral",
+    "fund": "Fund I",
+    "sector": "Developer Tools",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Acquired",
+    "listed": false,
+    "prior_mark": 18.2,
+    "equity_mark": 0.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.0,
+    "booked_mark": 0.0,
+    "override": null,
+    "ownership_before": 0.087,
+    "ownership_after": 0.087,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 28.2,
+    "realized_cumulative": 28.2,
+    "latest_post_money": 209.5,
+    "staleness_anchor": "2021-07-06",
+    "fv_level": null,
+    "arr": 27.3,
+    "arr_growth": 0.93,
+    "runway_months_aged": 32.47,
+    "implied_multiple": null,
+    "moic_after": 2.82,
+    "steps": [
+     {
+      "rule_id": "M-020",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "deal_value": 324.0,
+       "proceeds": 28.2,
+       "ownership": 0.087,
+       "implied_from_deal_value": 28.188,
+       "detail": "All-cash acquisition"
+      },
+      "prior_value": 18.2,
+      "new_value": 0.0,
+      "rationale": "Acquisition closed at $324.0M; $28.2M received against a $18.2M carrying value. Position realized; mark to zero.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 7,
+       "event_type": "Acquisition (Closed)",
+       "date": "2026-08-12"
+      }
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Dovelane Systems",
+    "fund": "Fund II",
+    "sector": "Fintech",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 4.1,
+    "equity_mark": 5.709,
+    "note_at_cost": 0.0,
+    "proposed_mark": 5.709,
+    "booked_mark": 5.709,
+    "override": null,
+    "ownership_before": 0.076,
+    "ownership_after": 0.055,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 103.8,
+    "staleness_anchor": "2026-07-06",
+    "fv_level": 3,
+    "arr": 2.5,
+    "arr_growth": 1.86,
+    "runway_months_aged": 24.62,
+    "implied_multiple": 41.52,
+    "moic_after": 1.4272,
+    "steps": [
+     {
+      "rule_id": "M-010",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 103.8,
+       "prior_post_money": 53.9,
+       "ownership_before": 0.076,
+       "ownership_after": 0.055,
+       "hc_investment": 0.0,
+       "detail": "Series B"
+      },
+      "prior_value": 4.1,
+      "new_value": 5.709,
+      "rationale": "Priced round at $103.8M post (Series B). Mark = 5.5% \u00d7 $103.8M. An arm's-length transaction in the subject security is the strongest Level 3 input available.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 2,
+       "event_type": "Priced Equity Round",
+       "date": "2026-07-06"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-103",
+      "family": "treatment",
+      "severity": "MONITOR",
+      "message": "HC did not follow its pro rata, so ownership fell 7.6% \u2192 5.5% (-27.6%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
+      "action": "",
+      "evidence": {
+       "ownership_before": 0.076,
+       "ownership_after": 0.055,
+       "relative_change": -0.2763
+      }
+     },
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 42\u00d7 revenue (sector comp 9.2\u00d7), growing +186%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 41.52,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Emberfold",
+    "fund": "Fund III",
+    "sector": "Cybersecurity",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.8,
+    "equity_mark": 1.8,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.8,
+    "booked_mark": 1.8,
+    "override": null,
+    "ownership_before": 0.078,
+    "ownership_after": 0.078,
+    "invested_before": 2.5,
+    "invested_after": 2.5,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 22.5,
+    "staleness_anchor": "2025-01-24",
+    "fv_level": 3,
+    "arr": 0.7,
+    "arr_growth": 2.07,
+    "runway_months_aged": 12.08,
+    "implied_multiple": 32.14,
+    "moic_after": 0.72,
+    "steps": [
+     {
+      "rule_id": "M-060",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "hc_investment": 0.0,
+       "valuation_cap": 32.0,
+       "last_round_post_money": 22.5,
+       "cap_vs_last_round": 0.4222222222222223,
+       "new_money_basis": "cost",
+       "detail": "$8.5M bridge note, $32.0M valuation cap"
+      },
+      "prior_value": 1.8,
+      "new_value": 1.8,
+      "rationale": "Bridge note ($8.5M bridge note, $32.0M valuation cap). A valuation cap is a ceiling on a future conversion price, not a price: equity mark unchanged at $1.80M. HC did not fund the note.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 9,
+       "event_type": "Convertible Note",
+       "date": "2026-08-23"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-108",
+      "family": "treatment",
+      "severity": "MONITOR",
+      "message": "The company raised a bridge note that HC did not fund (cap $32.0M, +42% vs last round). A cap is not a price, so the mark is unchanged and there is nothing to decide.",
+      "action": "",
+      "evidence": {
+       "valuation_cap": 32.0,
+       "cap_vs_last_round": 0.4222222222222223
+      }
+     },
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 32\u00d7 revenue (sector comp 13.0\u00d7), growing +207%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 32.14,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [
+     {
+      "company": "Emberfold",
+      "kind": "convertible_note",
+      "opened": "2026-08-23",
+      "opened_quarter": "Q3 2026",
+      "expected_resolution": null,
+      "amount_musd": null,
+      "detail": "$8.5M bridge note, $32.0M valuation cap (HC did not participate)",
+      "age_quarters": 0,
+      "escalated": false
+     }
+    ],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Fernwave",
+    "fund": "Fund I",
+    "sector": "Infrastructure",
+    "stage": "Series D",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 38.5,
+    "equity_mark": 73.516,
+    "note_at_cost": 0.0,
+    "proposed_mark": 73.516,
+    "booked_mark": 73.516,
+    "override": null,
+    "ownership_before": 0.049,
+    "ownership_after": 0.04,
+    "invested_before": 10.3,
+    "invested_after": 10.3,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 1837.9,
+    "staleness_anchor": "2026-08-04",
+    "fv_level": 3,
+    "arr": 80.1,
+    "arr_growth": 0.69,
+    "runway_months_aged": 31.09,
+    "implied_multiple": 22.95,
+    "moic_after": 7.1375,
+    "steps": [
+     {
+      "rule_id": "M-010",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 1837.9,
+       "prior_post_money": 785.4,
+       "ownership_before": 0.049,
+       "ownership_after": 0.04,
+       "hc_investment": 0.0,
+       "detail": "Series D"
+      },
+      "prior_value": 38.5,
+      "new_value": 73.516,
+      "rationale": "Priced round at $1837.9M post (Series D). Mark = 4.0% \u00d7 $1837.9M. An arm's-length transaction in the subject security is the strongest Level 3 input available.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 5,
+       "event_type": "Priced Equity Round",
+       "date": "2026-08-04"
+      }
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Gryphonel",
+    "fund": "Fund I",
+    "sector": "AI/ML",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 3.5,
+    "equity_mark": 4.3092,
+    "note_at_cost": 0.0,
+    "proposed_mark": 4.3092,
+    "booked_mark": 4.3092,
+    "override": null,
+    "ownership_before": 0.036,
+    "ownership_after": 0.036,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 97.0,
+    "staleness_anchor": "2020-09-07",
+    "fv_level": 3,
+    "arr": 14.0,
+    "arr_growth": 0.51,
+    "runway_months_aged": 24.0,
+    "implied_multiple": 6.93,
+    "moic_after": 1.0773,
+    "steps": [
+     {
+      "rule_id": "M-050",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "deal_value": 133.0,
+       "ownership": 0.036,
+       "treatment": "probability_weighted",
+       "close_probability": 0.9,
+       "at_full_deal_value": 4.787999999999999,
+       "probability_weighted": 4.3092,
+       "hold_prior": 3.5,
+       "detail": "Definitive agreement signed, all cash"
+      },
+      "prior_value": 3.5,
+      "new_value": 4.3092,
+      "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Treatment 'probability_weighted': 3.6% \u00d7 $133M \u00d7 0.90 = $4.31M. Alternatives: full $4.79M, hold $3.50M.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 15,
+       "event_type": "Acquisition (Announced)",
+       "date": "2026-09-08"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-101",
+      "family": "treatment",
+      "severity": "BLOCK",
+      "message": "A buyer has signed for $133M but the deal has not closed and still needs approval. Booking the full deal value ignores that contingency; holding the old mark ignores a signed agreement. Policy splits the difference at 0.90, giving $4.31M against $4.79M at full value and $3.50M if held.",
+      "action": "Ratify the 0.90 close probability, or choose full deal value or hold at prior.",
+      "evidence": {
+       "deal_value": 133.0,
+       "close_probability": 0.9,
+       "treatment": "probability_weighted"
+      }
+     },
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 72 months ago, on 2020-09-07. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 72 months ago is still fair value.",
+      "evidence": {
+       "months": 72,
+       "anchor": "2020-09-07"
+      }
+     }
+    ],
+    "disposition": "BLOCK",
+    "open_items": [
+     {
+      "company": "Gryphonel",
+      "kind": "pending_acquisition",
+      "opened": "2026-09-08",
+      "opened_quarter": "Q3 2026",
+      "expected_resolution": null,
+      "amount_musd": 133.0,
+      "detail": "Expected to close in Q4 2026, subject to regulatory approval. No cash received.",
+      "age_quarters": 0,
+      "escalated": false
+     }
+    ],
+    "alternative_marks": {
+     "at_full_deal_value": 4.788,
+     "hold_prior": 3.5,
+     "probability_weighted": 4.3092
+    }
+   },
+   {
+    "company": "Halcyra",
+    "fund": "Fund I",
+    "sector": "Cybersecurity",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.7,
+    "equity_mark": 2.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 2.7,
+    "booked_mark": 2.7,
+    "override": null,
+    "ownership_before": 0.085,
+    "ownership_after": 0.085,
+    "invested_before": 2.0,
+    "invested_after": 2.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 31.3,
+    "staleness_anchor": "2020-10-30",
+    "fv_level": 3,
+    "arr": 4.8,
+    "arr_growth": 1.7,
+    "runway_months_aged": 15.15,
+    "implied_multiple": 6.52,
+    "moic_after": 1.35,
+    "steps": [
+     {
+      "rule_id": "M-070",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "indicated_post_money": 50.0,
+       "ownership": 0.085,
+       "indicated_mark": 4.25,
+       "detail": "Series B term sheet at ~$50.0M post"
+      },
+      "prior_value": 2.7,
+      "new_value": 2.7,
+      "rationale": "Term sheet signed (Series B term sheet at ~$50.0M post); not closed. No enforceable transaction \u2014 mark unchanged; indicated value $4.25M disclosed, not booked.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 17,
+       "event_type": "Term Sheet Signed",
+       "date": "2026-09-17"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-109",
+      "family": "treatment",
+      "severity": "MONITOR",
+      "message": "A term sheet indicates ~$50.0M against the $31.3M the mark rests on. It is non-binding and diligence is open, so nothing is booked from it \u2014 this is disclosure only.",
+      "action": "",
+      "evidence": {
+       "indicated_post_money": 50.0,
+       "indicated_mark": 4.25
+      }
+     },
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 71 months ago, on 2020-10-30. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 71 months ago is still fair value.",
+      "evidence": {
+       "months": 71,
+       "anchor": "2020-10-30"
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [
+     {
+      "company": "Halcyra",
+      "kind": "term_sheet",
+      "opened": "2026-09-17",
+      "opened_quarter": "Q3 2026",
+      "expected_resolution": null,
+      "amount_musd": 50.0,
+      "detail": "Not closed; diligence underway, expected to close Q4.",
+      "age_quarters": 0,
+      "escalated": false
+     }
+    ],
+    "alternative_marks": {
+     "term_sheet_indicated": 4.25
+    }
+   },
+   {
+    "company": "Ironquill Security",
+    "fund": "Fund I",
+    "sector": "Developer Tools",
+    "stage": "Series D",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 15.8,
+    "equity_mark": 29.0396,
+    "note_at_cost": 0.0,
+    "proposed_mark": 29.0396,
+    "booked_mark": 29.0396,
+    "override": null,
+    "ownership_before": 0.052,
+    "ownership_after": 0.038,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 764.2,
+    "staleness_anchor": "2026-08-27",
+    "fv_level": 3,
+    "arr": 76.7,
+    "arr_growth": 0.28,
+    "runway_months_aged": 13.49,
+    "implied_multiple": 9.96,
+    "moic_after": 4.8399,
+    "steps": [
+     {
+      "rule_id": "M-010",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 764.2,
+       "prior_post_money": 304.6,
+       "ownership_before": 0.052,
+       "ownership_after": 0.038,
+       "hc_investment": 0.0,
+       "detail": "Series D"
+      },
+      "prior_value": 15.8,
+      "new_value": 29.0396,
+      "rationale": "Priced round at $764.2M post (Series D). Mark = 3.8% \u00d7 $764.2M. An arm's-length transaction in the subject security is the strongest Level 3 input available.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 11,
+       "event_type": "Priced Equity Round",
+       "date": "2026-08-27"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-103",
+      "family": "treatment",
+      "severity": "MONITOR",
+      "message": "HC did not follow its pro rata, so ownership fell 5.2% \u2192 3.8% (-26.9%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
+      "action": "",
+      "evidence": {
+       "ownership_before": 0.052,
+       "ownership_after": 0.038,
+       "relative_change": -0.2692
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Jettamar",
+    "fund": "Fund III",
+    "sector": "Enterprise SaaS",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.9,
+    "equity_mark": 4.773,
+    "note_at_cost": 0.0,
+    "proposed_mark": 4.773,
+    "booked_mark": 4.773,
+    "override": null,
+    "ownership_before": 0.108,
+    "ownership_after": 0.111,
+    "invested_before": 2.5,
+    "invested_after": 3.8,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 43.0,
+    "staleness_anchor": "2026-07-08",
+    "fv_level": 3,
+    "arr": 1.2,
+    "arr_growth": 2.71,
+    "runway_months_aged": 25.52,
+    "implied_multiple": 35.83,
+    "moic_after": 1.2561,
+    "steps": [
+     {
+      "rule_id": "M-010",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 43.0,
+       "prior_post_money": 27.0,
+       "ownership_before": 0.108,
+       "ownership_after": 0.111,
+       "hc_investment": 1.3,
+       "detail": "Series A"
+      },
+      "prior_value": 2.9,
+      "new_value": 4.773,
+      "rationale": "Priced round at $43.0M post (Series A). Mark = 11.1% \u00d7 $43.0M. An arm's-length transaction in the subject security is the strongest Level 3 input available.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 3,
+       "event_type": "Priced Equity Round",
+       "date": "2026-07-08"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 36\u00d7 revenue (sector comp 10.6\u00d7), growing +271%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 35.83,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Kolvani Health",
+    "fund": "Fund II",
+    "sector": "Developer Tools",
+    "stage": "Series B",
+    "status_before": "Acquired",
+    "status_after": "Acquired",
+    "listed": false,
+    "prior_mark": 0.0,
+    "equity_mark": 0.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.0,
+    "booked_mark": 0.0,
+    "override": null,
+    "ownership_before": 0.071,
+    "ownership_after": 0.071,
+    "invested_before": 5.8,
+    "invested_after": 5.8,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 15.9,
+    "latest_post_money": 112.1,
+    "staleness_anchor": "2024-12-27",
+    "fv_level": null,
+    "arr": null,
+    "arr_growth": null,
+    "runway_months_aged": null,
+    "implied_multiple": null,
+    "moic_after": 2.7414,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "status": "Acquired",
+       "realized": 15.9
+      },
+      "prior_value": 0.0,
+      "new_value": 0.0,
+      "rationale": "Already Acquired at the prior close; carried at zero with $15.9M cumulative realized.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Lumetra",
+    "fund": "Fund III",
+    "sector": "AI/ML",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 0.4,
+    "equity_mark": 0.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.4,
+    "booked_mark": 0.4,
+    "override": null,
+    "ownership_before": 0.099,
+    "ownership_after": 0.099,
+    "invested_before": 0.5,
+    "invested_after": 0.5,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 4.3,
+    "staleness_anchor": "2026-03-15",
+    "fv_level": 3,
+    "arr": 0.8,
+    "arr_growth": 2.86,
+    "runway_months_aged": 21.0,
+    "implied_multiple": 5.37,
+    "moic_after": 0.8,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 0.4,
+       "ownership": 0.099,
+       "latest_post_money": 4.3
+      },
+      "prior_value": 0.4,
+      "new_value": 0.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Marrowick Bio",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 12.9,
+    "equity_mark": 8.772,
+    "note_at_cost": 0.0,
+    "proposed_mark": 8.772,
+    "booked_mark": 8.772,
+    "override": null,
+    "ownership_before": 0.025,
+    "ownership_after": 0.017,
+    "invested_before": 10.4,
+    "invested_after": 10.4,
+    "realized_quarter": 3.9,
+    "realized_cumulative": 3.9,
+    "latest_post_money": 516.0,
+    "staleness_anchor": "2025-04-17",
+    "fv_level": 3,
+    "arr": 75.3,
+    "arr_growth": 0.46,
+    "runway_months_aged": 15.75,
+    "implied_multiple": 6.85,
+    "moic_after": 1.2185,
+    "steps": [
+     {
+      "rule_id": "M-030",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "ownership_before": 0.025,
+       "ownership_after": 0.017,
+       "ownership_sold": 0.008,
+       "proceeds": 3.9,
+       "implied_post_money": 487.5,
+       "last_round_post_money": 516.0,
+       "remainder_basis": "last_round",
+       "at_last_round": 8.772,
+       "at_secondary_price": 8.287500000000001
+      },
+      "prior_value": 12.9,
+      "new_value": 8.772,
+      "rationale": "Sold 32% of the position for $3.9M (implies $487.5M post vs $516.0M last round, -5.5%). Remainder 1.7% marked on basis 'last_round'.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 8,
+       "event_type": "Secondary Sale",
+       "date": "2026-08-19"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-104",
+      "family": "treatment",
+      "severity": "REVIEW",
+      "message": "The sale implies the company is worth $487.5M, -5.5% against the $516.0M the last round set. One buyer taking one block is real evidence but not necessarily the principal market, so policy holds the remaining stake at the round price. On the secondary price it would be $8.29M instead.",
+      "action": "Decide whether the stake HC still holds follows the last round or the secondary price.",
+      "evidence": {
+       "spread": -0.0552,
+       "implied_post_money": 487.5,
+       "basis": "last_round"
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {
+     "at_secondary_price": 8.2875
+    }
+   },
+   {
+    "company": "Nimbrel",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.2,
+    "equity_mark": 3.0668,
+    "note_at_cost": 0.0,
+    "proposed_mark": 3.0668,
+    "booked_mark": 3.0668,
+    "override": null,
+    "ownership_before": 0.065,
+    "ownership_after": 0.068,
+    "invested_before": 0.8,
+    "invested_after": 1.7,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 45.1,
+    "staleness_anchor": "2026-07-27",
+    "fv_level": 3,
+    "arr": 0.9,
+    "arr_growth": 1.25,
+    "runway_months_aged": 13.83,
+    "implied_multiple": 50.11,
+    "moic_after": 1.804,
+    "steps": [
+     {
+      "rule_id": "M-010",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 45.1,
+       "prior_post_money": 18.1,
+       "ownership_before": 0.065,
+       "ownership_after": 0.068,
+       "hc_investment": 0.9,
+       "detail": "Series A"
+      },
+      "prior_value": 1.2,
+      "new_value": 3.0668,
+      "rationale": "Priced round at $45.1M post (Series A). Mark = 6.8% \u00d7 $45.1M. An arm's-length transaction in the subject security is the strongest Level 3 input available.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 4,
+       "event_type": "Priced Equity Round",
+       "date": "2026-07-27"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 50\u00d7 revenue (sector comp 22.7\u00d7), growing +125%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 50.11,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Ostrella",
+    "fund": "Fund I",
+    "sector": "Space & Defense",
+    "stage": "Series D+",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 13.9,
+    "equity_mark": 13.9,
+    "note_at_cost": 0.0,
+    "proposed_mark": 13.9,
+    "booked_mark": 13.9,
+    "override": null,
+    "ownership_before": 0.012,
+    "ownership_after": 0.012,
+    "invested_before": 8.0,
+    "invested_after": 8.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 1157.1,
+    "staleness_anchor": "2021-08-18",
+    "fv_level": 3,
+    "arr": 121.2,
+    "arr_growth": 0.27,
+    "runway_months_aged": 15.13,
+    "implied_multiple": 9.55,
+    "moic_after": 1.7375,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 13.9,
+       "ownership": 0.012,
+       "latest_post_money": 1157.1
+      },
+      "prior_value": 13.9,
+      "new_value": 13.9,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 61 months ago, on 2021-08-18. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 61 months ago is still fair value.",
+      "evidence": {
+       "months": 61,
+       "anchor": "2021-08-18"
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Pellagrin",
+    "fund": "Fund I",
+    "sector": "Climate & Energy",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 13.0,
+    "equity_mark": 13.9277,
+    "note_at_cost": 0.0,
+    "proposed_mark": 13.9277,
+    "booked_mark": 13.9277,
+    "override": null,
+    "ownership_before": 0.074,
+    "ownership_after": 0.079,
+    "invested_before": 4.0,
+    "invested_after": 5.1,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 176.3,
+    "staleness_anchor": "2021-10-08",
+    "fv_level": 3,
+    "arr": 25.5,
+    "arr_growth": 1.01,
+    "runway_months_aged": 19.2,
+    "implied_multiple": 6.91,
+    "moic_after": 2.7309,
+    "steps": [
+     {
+      "rule_id": "M-011",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 176.3,
+       "prior_post_money": 176.3,
+       "ownership_before": 0.074,
+       "ownership_after": 0.079,
+       "hc_investment": 1.1,
+       "detail": "Series B extension (same terms)"
+      },
+      "prior_value": 13.0,
+      "new_value": 13.9277,
+      "rationale": "Same-terms extension at $176.3M post. Ownership 7.4% \u2192 7.9% reprices the position mechanically, but no new price discovery occurred: the staleness clock is NOT reset (still runs from 2021-10-08).",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 6,
+       "event_type": "Priced Equity Round",
+       "date": "2026-08-11"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-106",
+      "family": "treatment",
+      "severity": "REVIEW",
+      "message": "The extension raised money at the same $176.3M price, so ownership moved but nobody re-tested what the company is worth. The last real price discovery was 59 months ago, on 2021-10-08.",
+      "action": "Confirm the mark should still rest on a price nobody has re-tested since 2021-10-08.",
+      "evidence": {
+       "post_money": 176.3,
+       "anchor": "2021-10-08"
+      }
+     },
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 59 months ago, on 2021-10-08. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 59 months ago is still fair value.",
+      "evidence": {
+       "months": 59,
+       "anchor": "2021-10-08"
+      }
+     }
+    ],
+    "disposition": "BLOCK",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Quindle",
+    "fund": "Fund II",
+    "sector": "Infrastructure",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 7.4,
+    "equity_mark": 7.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 7.4,
+    "booked_mark": 7.4,
+    "override": null,
+    "ownership_before": 0.121,
+    "ownership_after": 0.121,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 61.1,
+    "staleness_anchor": "2023-11-09",
+    "fv_level": 3,
+    "arr": 2.9,
+    "arr_growth": 1.26,
+    "runway_months_aged": 13.82,
+    "implied_multiple": 21.07,
+    "moic_after": 1.2333,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 7.4,
+       "ownership": 0.121,
+       "latest_post_money": 61.1
+      },
+      "prior_value": 7.4,
+      "new_value": 7.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 34 months ago (2023-11-09) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 34,
+       "anchor": "2023-11-09"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Rivenmark",
+    "fund": "Fund III",
+    "sector": "Developer Tools",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.9,
+    "equity_mark": 2.9,
+    "note_at_cost": 0.0,
+    "proposed_mark": 2.9,
+    "booked_mark": 2.9,
+    "override": null,
+    "ownership_before": 0.12,
+    "ownership_after": 0.12,
+    "invested_before": 2.2,
+    "invested_after": 2.2,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 23.9,
+    "staleness_anchor": "2025-07-25",
+    "fv_level": 3,
+    "arr": 1.3,
+    "arr_growth": 2.44,
+    "runway_months_aged": 15.4,
+    "implied_multiple": 18.38,
+    "moic_after": 1.3182,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 2.9,
+       "ownership": 0.12,
+       "latest_post_money": 23.9
+      },
+      "prior_value": 2.9,
+      "new_value": 2.9,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Solvantra",
+    "fund": "Fund II",
+    "sector": "Fintech",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 8.9,
+    "equity_mark": 8.9,
+    "note_at_cost": 0.0,
+    "proposed_mark": 8.9,
+    "booked_mark": 8.9,
+    "override": null,
+    "ownership_before": 0.118,
+    "ownership_after": 0.118,
+    "invested_before": 5.1,
+    "invested_after": 5.1,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 75.5,
+    "staleness_anchor": "2025-11-24",
+    "fv_level": 3,
+    "arr": 3.6,
+    "arr_growth": 1.07,
+    "runway_months_aged": 22.88,
+    "implied_multiple": 20.97,
+    "moic_after": 1.7451,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 8.9,
+       "ownership": 0.118,
+       "latest_post_money": 75.5
+      },
+      "prior_value": 8.9,
+      "new_value": 8.9,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Tarnwick Aerospace",
+    "fund": "Fund II",
+    "sector": "Enterprise SaaS",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.0,
+    "equity_mark": 1.136,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.136,
+    "booked_mark": 1.136,
+    "override": null,
+    "ownership_before": 0.083,
+    "ownership_after": 0.08,
+    "invested_before": 1.0,
+    "invested_after": 1.3,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 14.2,
+    "staleness_anchor": "2026-09-06",
+    "fv_level": 3,
+    "arr": 1.4,
+    "arr_growth": -0.16,
+    "runway_months_aged": 32.45,
+    "implied_multiple": 10.14,
+    "moic_after": 0.8738,
+    "steps": [
+     {
+      "rule_id": "M-012",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 14.2,
+       "prior_post_money": 23.9,
+       "ownership_before": 0.083,
+       "ownership_after": 0.08,
+       "hc_investment": 0.3,
+       "detail": "Series A (recap)"
+      },
+      "prior_value": 2.0,
+      "new_value": 1.136,
+      "rationale": "Recap at $14.2M post vs $23.9M prior. Priced mechanically at 8.0% \u00d7 $14.2M; treated as an UPPER BOUND on junior-equity value because the headline post-money ignores preference and pay-to-play structure the schema cannot see.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 14,
+       "event_type": "Priced Equity Round",
+       "date": "2026-09-06"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-102",
+      "family": "treatment",
+      "severity": "BLOCK",
+      "message": "Recap: the round priced at $14.2M against $23.9M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook.",
+      "action": "Read the round documents and confirm the preference stack before booking this mark.",
+      "evidence": {
+       "prior_post_money": 23.9,
+       "post_money": 14.2,
+       "insider_led": true
+      }
+     },
+     {
+      "rule_id": "X-302",
+      "family": "growth",
+      "severity": "REVIEW",
+      "message": "Revenue is shrinking -16% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+      "action": "Confirm the mark survives a 16% revenue decline.",
+      "evidence": {
+       "arr_growth": -0.16
+      }
+     }
+    ],
+    "disposition": "BLOCK",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Umberly",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 24.1,
+    "equity_mark": 24.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 24.1,
+    "booked_mark": 24.1,
+    "override": null,
+    "ownership_before": 0.086,
+    "ownership_after": 0.086,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 279.8,
+    "staleness_anchor": "2023-10-09",
+    "fv_level": 3,
+    "arr": 31.7,
+    "arr_growth": 0.45,
+    "runway_months_aged": 3.12,
+    "implied_multiple": 8.83,
+    "moic_after": 2.41,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 24.1,
+       "ownership": 0.086,
+       "latest_post_money": 279.8
+      },
+      "prior_value": 24.1,
+      "new_value": 24.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 35 months ago (2023-10-09) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 35,
+       "anchor": "2023-10-09"
+      }
+     },
+     {
+      "rule_id": "X-304",
+      "family": "liquidity",
+      "severity": "REVIEW",
+      "message": "About 3.1 months of cash left ($5.6M against $1.36M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+      "action": "Confirm the mark reflects a company with 3.1 months of cash.",
+      "evidence": {
+       "runway_months_aged": 3.12
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Vexmoor",
+    "fund": "Fund I",
+    "sector": "Space & Defense",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 22.7,
+    "equity_mark": 22.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 22.7,
+    "booked_mark": 22.7,
+    "override": null,
+    "ownership_before": 0.057,
+    "ownership_after": 0.057,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 398.1,
+    "staleness_anchor": "2025-05-05",
+    "fv_level": 3,
+    "arr": 71.8,
+    "arr_growth": 0.29,
+    "runway_months_aged": 17.86,
+    "implied_multiple": 5.54,
+    "moic_after": 3.7833,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 22.7,
+       "ownership": 0.057,
+       "latest_post_money": 398.1
+      },
+      "prior_value": 22.7,
+      "new_value": 22.7,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Wrenfield Data",
+    "fund": "Fund I",
+    "sector": "Fintech",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 12.4,
+    "equity_mark": 12.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 12.4,
+    "booked_mark": 12.4,
+    "override": null,
+    "ownership_before": 0.022,
+    "ownership_after": 0.022,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 562.1,
+    "staleness_anchor": "2023-02-23",
+    "fv_level": 3,
+    "arr": 78.7,
+    "arr_growth": 0.75,
+    "runway_months_aged": 15.97,
+    "implied_multiple": 7.14,
+    "moic_after": 2.0667,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 12.4,
+       "ownership": 0.022,
+       "latest_post_money": 562.1
+      },
+      "prior_value": 12.4,
+      "new_value": 12.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 43 months ago (2023-02-23) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 43,
+       "anchor": "2023-02-23"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Xalorin",
+    "fund": "Fund II",
+    "sector": "Infrastructure",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 6.1,
+    "equity_mark": 6.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 6.1,
+    "booked_mark": 6.1,
+    "override": null,
+    "ownership_before": 0.063,
+    "ownership_after": 0.063,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 97.6,
+    "staleness_anchor": "2023-08-13",
+    "fv_level": 3,
+    "arr": 12.2,
+    "arr_growth": 1.08,
+    "runway_months_aged": 25.54,
+    "implied_multiple": 8.0,
+    "moic_after": 1.525,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 6.1,
+       "ownership": 0.063,
+       "latest_post_money": 97.6
+      },
+      "prior_value": 6.1,
+      "new_value": 6.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 37 months ago (2023-08-13) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 37,
+       "anchor": "2023-08-13"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Yondermist",
+    "fund": "Fund III",
+    "sector": "Healthcare",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.3,
+    "equity_mark": 1.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.3,
+    "booked_mark": 1.3,
+    "override": null,
+    "ownership_before": 0.091,
+    "ownership_after": 0.091,
+    "invested_before": 1.2,
+    "invested_after": 1.2,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 14.2,
+    "staleness_anchor": "2024-06-23",
+    "fv_level": 3,
+    "arr": 0.8,
+    "arr_growth": 1.49,
+    "runway_months_aged": 14.62,
+    "implied_multiple": 17.75,
+    "moic_after": 1.0833,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.3,
+       "ownership": 0.091,
+       "latest_post_money": 14.2
+      },
+      "prior_value": 1.3,
+      "new_value": 1.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 27 months ago (2024-06-23) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 27,
+       "anchor": "2024-06-23"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Zephrine",
+    "fund": "Fund III",
+    "sector": "Enterprise SaaS",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.1,
+    "equity_mark": 1.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.1,
+    "booked_mark": 1.1,
+    "override": null,
+    "ownership_before": 0.116,
+    "ownership_after": 0.116,
+    "invested_before": 2.5,
+    "invested_after": 2.5,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 9.3,
+    "staleness_anchor": "2024-02-14",
+    "fv_level": 3,
+    "arr": 1.5,
+    "arr_growth": 1.02,
+    "runway_months_aged": 31.86,
+    "implied_multiple": 6.2,
+    "moic_after": 0.44,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.1,
+       "ownership": 0.116,
+       "latest_post_money": 9.3
+      },
+      "prior_value": 1.1,
+      "new_value": 1.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 31 months ago (2024-02-14) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 31,
+       "anchor": "2024-02-14"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Arcfoundry",
+    "fund": "Fund III",
+    "sector": "Developer Tools",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.4,
+    "equity_mark": 1.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.4,
+    "booked_mark": 1.4,
+    "override": null,
+    "ownership_before": 0.064,
+    "ownership_after": 0.064,
+    "invested_before": 1.5,
+    "invested_after": 1.5,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 21.2,
+    "staleness_anchor": "2023-11-10",
+    "fv_level": 3,
+    "arr": 0.7,
+    "arr_growth": 2.7,
+    "runway_months_aged": 28.0,
+    "implied_multiple": 30.29,
+    "moic_after": 0.9333,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.4,
+       "ownership": 0.064,
+       "latest_post_money": 21.2
+      },
+      "prior_value": 1.4,
+      "new_value": 1.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 34,
+       "anchor": "2023-11-10"
+      }
+     },
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 30\u00d7 revenue (sector comp 11.3\u00d7), growing +270%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 30.29,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Brumewell",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 18.5,
+    "equity_mark": 18.5,
+    "note_at_cost": 0.0,
+    "proposed_mark": 18.5,
+    "booked_mark": 18.5,
+    "override": null,
+    "ownership_before": 0.075,
+    "ownership_after": 0.075,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 246.7,
+    "staleness_anchor": "2024-06-24",
+    "fv_level": 3,
+    "arr": 12.0,
+    "arr_growth": -0.21,
+    "runway_months_aged": 24.11,
+    "implied_multiple": 20.56,
+    "moic_after": 1.85,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 18.5,
+       "ownership": 0.075,
+       "latest_post_money": 246.7
+      },
+      "prior_value": 18.5,
+      "new_value": 18.5,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 27 months ago (2024-06-24) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 27,
+       "anchor": "2024-06-24"
+      }
+     },
+     {
+      "rule_id": "X-302",
+      "family": "growth",
+      "severity": "REVIEW",
+      "message": "Revenue is shrinking -21% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+      "action": "Confirm the mark survives a 21% revenue decline.",
+      "evidence": {
+       "arr_growth": -0.21
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Cascabel Labs",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 6.2,
+    "equity_mark": 6.2,
+    "note_at_cost": 0.0,
+    "proposed_mark": 6.2,
+    "booked_mark": 6.2,
+    "override": null,
+    "ownership_before": 0.072,
+    "ownership_after": 0.072,
+    "invested_before": 4.1,
+    "invested_after": 4.1,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 86.2,
+    "staleness_anchor": "2024-12-22",
+    "fv_level": 3,
+    "arr": 1.6,
+    "arr_growth": 1.94,
+    "runway_months_aged": 17.31,
+    "implied_multiple": 53.88,
+    "moic_after": 1.5122,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 6.2,
+       "ownership": 0.072,
+       "latest_post_money": 86.2
+      },
+      "prior_value": 6.2,
+      "new_value": 6.2,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 54\u00d7 revenue (sector comp 22.7\u00d7), growing +194%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 53.88,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Drayvenn",
+    "fund": "Fund I",
+    "sector": "Space & Defense",
+    "stage": "Public",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": true,
+    "prior_mark": 80.3,
+    "equity_mark": 110.068,
+    "note_at_cost": 0.0,
+    "proposed_mark": 110.068,
+    "booked_mark": 110.068,
+    "override": null,
+    "ownership_before": 0.034,
+    "ownership_after": 0.028,
+    "invested_before": 20.0,
+    "invested_after": 20.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 3931.0,
+    "staleness_anchor": "2026-09-20",
+    "fv_level": 1,
+    "arr": 148.9,
+    "arr_growth": 0.43,
+    "runway_months_aged": 25.69,
+    "implied_multiple": 26.4,
+    "moic_after": 5.5034,
+    "steps": [
+     {
+      "rule_id": "M-040",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "ipo_market_cap": 3931.0,
+       "measurement_date_market_cap": 3931.0,
+       "price_source": "stub:seeded_to_ipo_print",
+       "ownership_before": 0.034,
+       "ownership_after": 0.028,
+       "lockup_discount_pct": 0.0,
+       "lockup_end": "2027-03-19"
+      },
+      "prior_value": 80.3,
+      "new_value": 110.068,
+      "rationale": "Listed (Listed on Nasdaq). Mark = 2.8% \u00d7 $3,931M market cap at measurement date (source: stub:seeded_to_ipo_print) with no lock-up discount (ASC 820 disfavors blockage factors for Level 1). Fair value hierarchy: Level 3 \u2192 Level 1.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 18,
+       "event_type": "IPO",
+       "date": "2026-09-20"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-101",
+      "family": "treatment",
+      "severity": "BLOCK",
+      "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round, and it should be the closing price on 2026-09-30 \u2014 not the $3,931M the shares priced at on listing day. HC also cannot sell until 2027-03-19. ASC 820 disfavours blockage discounts for a Level 1 holding, so policy applies 0%, but that is a committee call rather than an arithmetic one.",
+      "action": "Confirm the 30 Sep closing price, then ratify or change the 0% lock-up discount.",
+      "evidence": {
+       "price_source": "stub:seeded_to_ipo_print",
+       "price_source_note": "Synthetic ticker; no live feed can price it. Seeded to the IPO print \u2014 replace with the measurement-date close.",
+       "lockup_end": "2027-03-19",
+       "ipo_print_mark": 110.068
+      }
+     }
+    ],
+    "disposition": "BLOCK",
+    "open_items": [
+     {
+      "company": "Drayvenn",
+      "kind": "ipo_lockup",
+      "opened": "2026-09-20",
+      "opened_quarter": "Q3 2026",
+      "expected_resolution": "2027-03-19",
+      "amount_musd": null,
+      "detail": "180-day lock-up; 2.8% of listed equity",
+      "age_quarters": 0,
+      "escalated": false
+     }
+    ],
+    "alternative_marks": {
+     "at_ipo_print": 110.068
+    }
+   },
+   {
+    "company": "Eastport Compute",
+    "fund": "Fund III",
+    "sector": "Enterprise SaaS",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.7,
+    "equity_mark": 1.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.7,
+    "booked_mark": 1.7,
+    "override": null,
+    "ownership_before": 0.122,
+    "ownership_after": 0.122,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 14.2,
+    "staleness_anchor": "2025-08-29",
+    "fv_level": 3,
+    "arr": 6.1,
+    "arr_growth": 0.42,
+    "runway_months_aged": 20.09,
+    "implied_multiple": 2.33,
+    "moic_after": 0.2833,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.7,
+       "ownership": 0.122,
+       "latest_post_money": 14.2
+      },
+      "prior_value": 1.7,
+      "new_value": 1.7,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-402",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 2.3\u00d7 revenue (sector comp 10.6\u00d7), growing +42%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 2.33,
+       "threshold": 3.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Fallowmere",
+    "fund": "Fund I",
+    "sector": "Data & Analytics",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 10.3,
+    "equity_mark": 10.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 10.3,
+    "booked_mark": 10.3,
+    "override": null,
+    "ownership_before": 0.04,
+    "ownership_after": 0.04,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 258.1,
+    "staleness_anchor": "2024-02-20",
+    "fv_level": 3,
+    "arr": 21.4,
+    "arr_growth": 1.14,
+    "runway_months_aged": 24.85,
+    "implied_multiple": 12.06,
+    "moic_after": 2.575,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 10.3,
+       "ownership": 0.04,
+       "latest_post_money": 258.1
+      },
+      "prior_value": 10.3,
+      "new_value": 10.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 31 months ago (2024-02-20) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 31,
+       "anchor": "2024-02-20"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Glintworks",
+    "fund": "Fund I",
+    "sector": "Fintech",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 14.3,
+    "equity_mark": 14.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 14.3,
+    "booked_mark": 14.3,
+    "override": null,
+    "ownership_before": 0.044,
+    "ownership_after": 0.044,
+    "invested_before": 14.0,
+    "invested_after": 14.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 326.0,
+    "staleness_anchor": "2023-07-09",
+    "fv_level": 3,
+    "arr": 39.1,
+    "arr_growth": 0.73,
+    "runway_months_aged": 27.52,
+    "implied_multiple": 8.34,
+    "moic_after": 1.0214,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 14.3,
+       "ownership": 0.044,
+       "latest_post_money": 326.0
+      },
+      "prior_value": 14.3,
+      "new_value": 14.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 38 months ago (2023-07-09) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 38,
+       "anchor": "2023-07-09"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Hollowpine Robotics",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 30.4,
+    "equity_mark": 30.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 30.4,
+    "booked_mark": 30.4,
+    "override": null,
+    "ownership_before": 0.039,
+    "ownership_after": 0.039,
+    "invested_before": 11.9,
+    "invested_after": 11.9,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 780.4,
+    "staleness_anchor": "2023-12-12",
+    "fv_level": 3,
+    "arr": 74.7,
+    "arr_growth": 0.62,
+    "runway_months_aged": 23.35,
+    "implied_multiple": 10.45,
+    "moic_after": 2.5546,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 30.4,
+       "ownership": 0.039,
+       "latest_post_money": 780.4
+      },
+      "prior_value": 30.4,
+      "new_value": 30.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 33 months ago (2023-12-12) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 33,
+       "anchor": "2023-12-12"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Isoquill",
+    "fund": "Fund I",
+    "sector": "AI/ML",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 14.6,
+    "equity_mark": 14.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 14.6,
+    "booked_mark": 14.6,
+    "override": null,
+    "ownership_before": 0.056,
+    "ownership_after": 0.056,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 261.2,
+    "staleness_anchor": "2022-10-22",
+    "fv_level": 3,
+    "arr": 26.1,
+    "arr_growth": 0.78,
+    "runway_months_aged": 19.4,
+    "implied_multiple": 10.01,
+    "moic_after": 1.46,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 14.6,
+       "ownership": 0.056,
+       "latest_post_money": 261.2
+      },
+      "prior_value": 14.6,
+      "new_value": 14.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 47 months ago (2022-10-22) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 47,
+       "anchor": "2022-10-22"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Jupelan",
+    "fund": "Fund II",
+    "sector": "Cybersecurity",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 14.3,
+    "equity_mark": 14.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 14.3,
+    "booked_mark": 14.3,
+    "override": null,
+    "ownership_before": 0.074,
+    "ownership_after": 0.074,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 192.9,
+    "staleness_anchor": "2024-03-03",
+    "fv_level": 3,
+    "arr": 28.6,
+    "arr_growth": 0.84,
+    "runway_months_aged": 3.4,
+    "implied_multiple": 6.74,
+    "moic_after": 1.43,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 14.3,
+       "ownership": 0.074,
+       "latest_post_money": 192.9
+      },
+      "prior_value": 14.3,
+      "new_value": 14.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 30 months ago (2024-03-03) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 30,
+       "anchor": "2024-03-03"
+      }
+     },
+     {
+      "rule_id": "X-304",
+      "family": "liquidity",
+      "severity": "REVIEW",
+      "message": "About 3.4 months of cash left ($6.6M against $1.50M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+      "action": "Confirm the mark reflects a company with 3.4 months of cash.",
+      "evidence": {
+       "runway_months_aged": 3.4
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Kestwick",
+    "fund": "Fund III",
+    "sector": "Fintech",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 0.9,
+    "equity_mark": 0.9,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.9,
+    "booked_mark": 0.9,
+    "override": null,
+    "ownership_before": 0.078,
+    "ownership_after": 0.078,
+    "invested_before": 1.1,
+    "invested_after": 1.1,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 12.0,
+    "staleness_anchor": "2024-06-08",
+    "fv_level": 3,
+    "arr": 0.6,
+    "arr_growth": 3.0,
+    "runway_months_aged": 19.5,
+    "implied_multiple": 20.0,
+    "moic_after": 0.8182,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 0.9,
+       "ownership": 0.078,
+       "latest_post_money": 12.0
+      },
+      "prior_value": 0.9,
+      "new_value": 0.9,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 27 months ago (2024-06-08) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 27,
+       "anchor": "2024-06-08"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Larkspell",
+    "fund": "Fund II",
+    "sector": "Consumer",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Shut Down",
+    "listed": false,
+    "prior_mark": 11.4,
+    "equity_mark": 0.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.0,
+    "booked_mark": 0.0,
+    "override": null,
+    "ownership_before": 0.131,
+    "ownership_after": 0.131,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.4,
+    "realized_cumulative": 0.4,
+    "latest_post_money": 86.9,
+    "staleness_anchor": "2024-11-11",
+    "fv_level": null,
+    "arr": 2.9,
+    "arr_growth": 1.82,
+    "runway_months_aged": 4.71,
+    "implied_multiple": null,
+    "moic_after": 0.0667,
+    "steps": [
+     {
+      "rule_id": "M-021",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "proceeds": 0.4,
+       "prior_mark": 11.4,
+       "detail": "Ceased operations"
+      },
+      "prior_value": 11.4,
+      "new_value": 0.0,
+      "rationale": "Company ceased operations. $11.4M written off; $0.4M residual cash distributed.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 16,
+       "event_type": "Shutdown",
+       "date": "2026-09-14"
+      }
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Mossbriar Bio",
+    "fund": "Fund II",
+    "sector": "Developer Tools",
+    "stage": "Series D+",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 30.2,
+    "equity_mark": 30.2,
+    "note_at_cost": 0.0,
+    "proposed_mark": 30.2,
+    "booked_mark": 30.2,
+    "override": null,
+    "ownership_before": 0.015,
+    "ownership_after": 0.015,
+    "invested_before": 16.0,
+    "invested_after": 16.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 2012.1,
+    "staleness_anchor": "2024-07-24",
+    "fv_level": 3,
+    "arr": 227.3,
+    "arr_growth": 0.48,
+    "runway_months_aged": 21.05,
+    "implied_multiple": 8.85,
+    "moic_after": 1.8875,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 30.2,
+       "ownership": 0.015,
+       "latest_post_money": 2012.1
+      },
+      "prior_value": 30.2,
+      "new_value": 30.2,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 26 months ago (2024-07-24) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 26,
+       "anchor": "2024-07-24"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Nightloom Security",
+    "fund": "Fund II",
+    "sector": "Enterprise SaaS",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 0.8,
+    "equity_mark": 0.8,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.8,
+    "booked_mark": 0.8,
+    "override": null,
+    "ownership_before": 0.079,
+    "ownership_after": 0.079,
+    "invested_before": 1.1,
+    "invested_after": 1.1,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 9.8,
+    "staleness_anchor": "2023-05-09",
+    "fv_level": 3,
+    "arr": 1.2,
+    "arr_growth": 0.64,
+    "runway_months_aged": 21.0,
+    "implied_multiple": 8.17,
+    "moic_after": 0.7273,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 0.8,
+       "ownership": 0.079,
+       "latest_post_money": 9.8
+      },
+      "prior_value": 0.8,
+      "new_value": 0.8,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 40 months ago (2023-05-09) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 40,
+       "anchor": "2023-05-09"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Oakenvale",
+    "fund": "Fund III",
+    "sector": "Healthcare",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 5.7,
+    "equity_mark": 2.331,
+    "note_at_cost": 0.0,
+    "proposed_mark": 2.331,
+    "booked_mark": 2.331,
+    "override": null,
+    "ownership_before": 0.08,
+    "ownership_after": 0.063,
+    "invested_before": 5.9,
+    "invested_after": 5.9,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 37.0,
+    "staleness_anchor": "2026-09-01",
+    "fv_level": 3,
+    "arr": 3.6,
+    "arr_growth": -0.08,
+    "runway_months_aged": 22.57,
+    "implied_multiple": 10.28,
+    "moic_after": 0.3951,
+    "steps": [
+     {
+      "rule_id": "M-012",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "post_money": 37.0,
+       "prior_post_money": 71.0,
+       "ownership_before": 0.08,
+       "ownership_after": 0.063,
+       "hc_investment": 0.0,
+       "detail": "Series B (recap)"
+      },
+      "prior_value": 5.7,
+      "new_value": 2.331,
+      "rationale": "Recap at $37.0M post vs $71.0M prior. Priced mechanically at 6.3% \u00d7 $37.0M; treated as an UPPER BOUND on junior-equity value because the headline post-money ignores preference and pay-to-play structure the schema cannot see.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 13,
+       "event_type": "Priced Equity Round",
+       "date": "2026-09-01"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-102",
+      "family": "treatment",
+      "severity": "BLOCK",
+      "message": "Recap: the round priced at $37.0M against $71.0M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook.",
+      "action": "Read the round documents and confirm the preference stack before booking this mark.",
+      "evidence": {
+       "prior_post_money": 71.0,
+       "post_money": 37.0,
+       "insider_led": true
+      }
+     },
+     {
+      "rule_id": "X-103",
+      "family": "treatment",
+      "severity": "MONITOR",
+      "message": "HC did not follow its pro rata, so ownership fell 8.0% \u2192 6.3% (-21.3%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
+      "action": "",
+      "evidence": {
+       "ownership_before": 0.08,
+       "ownership_after": 0.063,
+       "relative_change": -0.2125
+      }
+     },
+     {
+      "rule_id": "X-301",
+      "family": "growth",
+      "severity": "MONITOR",
+      "message": "Revenue is down -8% year on year \u2014 mild, but the wrong direction.",
+      "action": "",
+      "evidence": {
+       "arr_growth": -0.08
+      }
+     }
+    ],
+    "disposition": "BLOCK",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Pinwhistle",
+    "fund": "Fund II",
+    "sector": "Cybersecurity",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 7.3,
+    "equity_mark": 7.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 7.3,
+    "booked_mark": 7.3,
+    "override": null,
+    "ownership_before": 0.083,
+    "ownership_after": 0.083,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 87.7,
+    "staleness_anchor": "2023-12-18",
+    "fv_level": 3,
+    "arr": 2.8,
+    "arr_growth": 0.51,
+    "runway_months_aged": 26.73,
+    "implied_multiple": 31.32,
+    "moic_after": 1.2167,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 7.3,
+       "ownership": 0.083,
+       "latest_post_money": 87.7
+      },
+      "prior_value": 7.3,
+      "new_value": 7.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 33 months ago (2023-12-18) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 33,
+       "anchor": "2023-12-18"
+      }
+     },
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 31\u00d7 revenue (sector comp 13.0\u00d7), growing +51%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 31.32,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Quarrystone AI",
+    "fund": "Fund III",
+    "sector": "AI/ML",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.6,
+    "equity_mark": 1.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.6,
+    "booked_mark": 1.6,
+    "override": null,
+    "ownership_before": 0.106,
+    "ownership_after": 0.106,
+    "invested_before": 1.8,
+    "invested_after": 1.8,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 15.1,
+    "staleness_anchor": "2025-12-18",
+    "fv_level": 3,
+    "arr": 1.4,
+    "arr_growth": -0.32,
+    "runway_months_aged": 27.28,
+    "implied_multiple": 10.79,
+    "moic_after": 0.8889,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.6,
+       "ownership": 0.106,
+       "latest_post_money": 15.1
+      },
+      "prior_value": 1.6,
+      "new_value": 1.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-302",
+      "family": "growth",
+      "severity": "REVIEW",
+      "message": "Revenue is shrinking -32% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+      "action": "Confirm the mark survives a 32% revenue decline.",
+      "evidence": {
+       "arr_growth": -0.32
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Redgrove Health",
+    "fund": "Fund II",
+    "sector": "Robotics",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.2,
+    "equity_mark": 2.2,
+    "note_at_cost": 0.0,
+    "proposed_mark": 2.2,
+    "booked_mark": 2.2,
+    "override": null,
+    "ownership_before": 0.095,
+    "ownership_after": 0.095,
+    "invested_before": 3.9,
+    "invested_after": 3.9,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 22.8,
+    "staleness_anchor": "2023-08-28",
+    "fv_level": 3,
+    "arr": 2.0,
+    "arr_growth": 1.11,
+    "runway_months_aged": 14.0,
+    "implied_multiple": 11.4,
+    "moic_after": 0.5641,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 2.2,
+       "ownership": 0.095,
+       "latest_post_money": 22.8
+      },
+      "prior_value": 2.2,
+      "new_value": 2.2,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 37 months ago (2023-08-28) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 37,
+       "anchor": "2023-08-28"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Saltmarsh Analytics",
+    "fund": "Fund III",
+    "sector": "Infrastructure",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 5.4,
+    "equity_mark": 5.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 5.4,
+    "booked_mark": 5.4,
+    "override": null,
+    "ownership_before": 0.062,
+    "ownership_after": 0.062,
+    "invested_before": 5.8,
+    "invested_after": 5.8,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 87.7,
+    "staleness_anchor": "2026-05-26",
+    "fv_level": 3,
+    "arr": 2.2,
+    "arr_growth": 1.16,
+    "runway_months_aged": 14.45,
+    "implied_multiple": 39.86,
+    "moic_after": 0.931,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 5.4,
+       "ownership": 0.062,
+       "latest_post_money": 87.7
+      },
+      "prior_value": 5.4,
+      "new_value": 5.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 40\u00d7 revenue (sector comp 11.3\u00d7), growing +116%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 39.86,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Thistledown Energy",
+    "fund": "Fund III",
+    "sector": "Healthcare",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.2,
+    "equity_mark": 1.2,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.2,
+    "booked_mark": 1.2,
+    "override": null,
+    "ownership_before": 0.097,
+    "ownership_after": 0.097,
+    "invested_before": 1.0,
+    "invested_after": 1.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 12.0,
+    "staleness_anchor": "2024-12-08",
+    "fv_level": 3,
+    "arr": 0.6,
+    "arr_growth": 2.54,
+    "runway_months_aged": 30.52,
+    "implied_multiple": 20.0,
+    "moic_after": 1.2,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.2,
+       "ownership": 0.097,
+       "latest_post_money": 12.0
+      },
+      "prior_value": 1.2,
+      "new_value": 1.2,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Underbough",
+    "fund": "Fund III",
+    "sector": "Healthcare",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.0,
+    "equity_mark": 1.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.0,
+    "booked_mark": 1.0,
+    "override": null,
+    "ownership_before": 0.096,
+    "ownership_after": 0.096,
+    "invested_before": 1.8,
+    "invested_after": 1.8,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 10.3,
+    "staleness_anchor": "2025-08-01",
+    "fv_level": 3,
+    "arr": 0.3,
+    "arr_growth": 2.88,
+    "runway_months_aged": 18.09,
+    "implied_multiple": null,
+    "moic_after": 0.5556,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.0,
+       "ownership": 0.096,
+       "latest_post_money": 10.3
+      },
+      "prior_value": 1.0,
+      "new_value": 1.0,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-403",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "At $0.3M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
+      "action": "",
+      "evidence": {
+       "arr": 0.3
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Vellichor Systems",
+    "fund": "Fund III",
+    "sector": "Developer Tools",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 11.8,
+    "equity_mark": 11.8,
+    "note_at_cost": 0.0,
+    "proposed_mark": 11.8,
+    "booked_mark": 11.8,
+    "override": null,
+    "ownership_before": 0.139,
+    "ownership_after": 0.139,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 84.9,
+    "staleness_anchor": "2026-03-10",
+    "fv_level": 3,
+    "arr": 5.7,
+    "arr_growth": -0.11,
+    "runway_months_aged": 24.4,
+    "implied_multiple": 14.89,
+    "moic_after": 1.9667,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 11.8,
+       "ownership": 0.139,
+       "latest_post_money": 84.9
+      },
+      "prior_value": 11.8,
+      "new_value": 11.8,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-301",
+      "family": "growth",
+      "severity": "MONITOR",
+      "message": "Revenue is down -11% year on year \u2014 mild, but the wrong direction.",
+      "action": "",
+      "evidence": {
+       "arr_growth": -0.11
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Westwilder",
+    "fund": "Fund I",
+    "sector": "Enterprise SaaS",
+    "stage": "Series D+",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 20.6,
+    "equity_mark": 20.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 20.6,
+    "booked_mark": 20.6,
+    "override": null,
+    "ownership_before": 0.01,
+    "ownership_after": 0.01,
+    "invested_before": 20.0,
+    "invested_after": 20.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 2055.3,
+    "staleness_anchor": "2023-03-06",
+    "fv_level": 3,
+    "arr": 201.8,
+    "arr_growth": 0.32,
+    "runway_months_aged": 18.41,
+    "implied_multiple": 10.18,
+    "moic_after": 1.03,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 20.6,
+       "ownership": 0.01,
+       "latest_post_money": 2055.3
+      },
+      "prior_value": 20.6,
+      "new_value": 20.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 42 months ago (2023-03-06) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 42,
+       "anchor": "2023-03-06"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Yarrowbank",
+    "fund": "Fund II",
+    "sector": "Consumer",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 0.6,
+    "equity_mark": 0.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.6,
+    "booked_mark": 0.6,
+    "override": null,
+    "ownership_before": 0.084,
+    "ownership_after": 0.084,
+    "invested_before": 2.0,
+    "invested_after": 2.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 7.7,
+    "staleness_anchor": "2024-01-03",
+    "fv_level": 3,
+    "arr": 7.5,
+    "arr_growth": 0.85,
+    "runway_months_aged": 29.87,
+    "implied_multiple": 1.03,
+    "moic_after": 0.3,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 0.6,
+       "ownership": 0.084,
+       "latest_post_money": 7.7
+      },
+      "prior_value": 0.6,
+      "new_value": 0.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 32 months ago (2024-01-03) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 32,
+       "anchor": "2024-01-03"
+      }
+     },
+     {
+      "rule_id": "X-402",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 1.0\u00d7 revenue (sector comp 5.8\u00d7), growing +85%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 1.03,
+       "threshold": 3.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Zinniafold",
+    "fund": "Fund II",
+    "sector": "Healthcare",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 3.7,
+    "equity_mark": 3.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 3.7,
+    "booked_mark": 3.7,
+    "override": null,
+    "ownership_before": 0.123,
+    "ownership_after": 0.123,
+    "invested_before": 5.2,
+    "invested_after": 5.2,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 30.2,
+    "staleness_anchor": "2024-02-02",
+    "fv_level": 3,
+    "arr": 2.0,
+    "arr_growth": 1.68,
+    "runway_months_aged": 16.69,
+    "implied_multiple": 15.1,
+    "moic_after": 0.7115,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 3.7,
+       "ownership": 0.123,
+       "latest_post_money": 30.2
+      },
+      "prior_value": 3.7,
+      "new_value": 3.7,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 31 months ago (2024-02-02) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 31,
+       "anchor": "2024-02-02"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Ambercrest",
+    "fund": "Fund II",
+    "sector": "Data & Analytics",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 10.6,
+    "equity_mark": 10.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 10.6,
+    "booked_mark": 10.6,
+    "override": null,
+    "ownership_before": 0.042,
+    "ownership_after": 0.042,
+    "invested_before": 5.6,
+    "invested_after": 5.6,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 251.6,
+    "staleness_anchor": "2025-12-04",
+    "fv_level": 3,
+    "arr": 10.8,
+    "arr_growth": 0.79,
+    "runway_months_aged": 29.53,
+    "implied_multiple": 23.3,
+    "moic_after": 1.8929,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 10.6,
+       "ownership": 0.042,
+       "latest_post_money": 251.6
+      },
+      "prior_value": 10.6,
+      "new_value": 10.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Birchhollow",
+    "fund": "Fund I",
+    "sector": "Cybersecurity",
+    "stage": "Series D+",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 43.3,
+    "equity_mark": 43.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 43.3,
+    "booked_mark": 43.3,
+    "override": null,
+    "ownership_before": 0.029,
+    "ownership_after": 0.029,
+    "invested_before": 15.6,
+    "invested_after": 15.6,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 1494.5,
+    "staleness_anchor": "2021-05-11",
+    "fv_level": 3,
+    "arr": 129.4,
+    "arr_growth": -0.2,
+    "runway_months_aged": 17.45,
+    "implied_multiple": 11.55,
+    "moic_after": 2.7756,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 43.3,
+       "ownership": 0.029,
+       "latest_post_money": 1494.5
+      },
+      "prior_value": 43.3,
+      "new_value": 43.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 64 months ago, on 2021-05-11. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 64 months ago is still fair value.",
+      "evidence": {
+       "months": 64,
+       "anchor": "2021-05-11"
+      }
+     },
+     {
+      "rule_id": "X-302",
+      "family": "growth",
+      "severity": "REVIEW",
+      "message": "Revenue is shrinking -20% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+      "action": "Confirm the mark survives a 20% revenue decline.",
+      "evidence": {
+       "arr_growth": -0.2
+      }
+     }
+    ],
+    "disposition": "BLOCK",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Covebright",
+    "fund": "Fund I",
+    "sector": "Fintech",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 14.6,
+    "equity_mark": 14.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 14.6,
+    "booked_mark": 14.6,
+    "override": null,
+    "ownership_before": 0.056,
+    "ownership_after": 0.056,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 260.3,
+    "staleness_anchor": "2026-03-08",
+    "fv_level": 3,
+    "arr": 24.8,
+    "arr_growth": 0.68,
+    "runway_months_aged": 26.78,
+    "implied_multiple": 10.5,
+    "moic_after": 3.65,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 14.6,
+       "ownership": 0.056,
+       "latest_post_money": 260.3
+      },
+      "prior_value": 14.6,
+      "new_value": 14.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Duskfern",
+    "fund": "Fund II",
+    "sector": "Data & Analytics",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 6.1,
+    "equity_mark": 6.1,
+    "note_at_cost": 0.5,
+    "proposed_mark": 6.6,
+    "booked_mark": 6.6,
+    "override": null,
+    "ownership_before": 0.082,
+    "ownership_after": 0.082,
+    "invested_before": 5.6,
+    "invested_after": 6.1,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 73.8,
+    "staleness_anchor": "2023-05-14",
+    "fv_level": 3,
+    "arr": 7.0,
+    "arr_growth": 1.12,
+    "runway_months_aged": 4.11,
+    "implied_multiple": 10.54,
+    "moic_after": 1.082,
+    "steps": [
+     {
+      "rule_id": "M-060",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "hc_investment": 0.5,
+       "valuation_cap": 133.0,
+       "last_round_post_money": 73.8,
+       "cap_vs_last_round": 0.802168021680217,
+       "new_money_basis": "cost",
+       "detail": "$4.7M bridge note, $133.0M valuation cap"
+      },
+      "prior_value": 6.1,
+      "new_value": 6.6,
+      "rationale": "Bridge note ($4.7M bridge note, $133.0M valuation cap). A valuation cap is a ceiling on a future conversion price, not a price: equity mark unchanged at $6.10M. HC's $0.50M new money carried at cost as a separate note leg.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 12,
+       "event_type": "Convertible Note",
+       "date": "2026-08-28"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-107",
+      "family": "treatment",
+      "severity": "REVIEW",
+      "message": "HC put $0.50M into a bridge note (cap $133.0M, +80% vs last round). The equity mark cannot move \u2014 a cap is a ceiling on a future conversion price, not a price \u2014 so the new money is carried separately at cost until the note converts.",
+      "action": "Confirm the $0.50M is carried at cost, and whether the bridge signals distress.",
+      "evidence": {
+       "hc_investment": 0.5,
+       "valuation_cap": 133.0,
+       "cap_vs_last_round": 0.802168021680217
+      }
+     },
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 40 months ago (2023-05-14) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 40,
+       "anchor": "2023-05-14"
+      }
+     },
+     {
+      "rule_id": "X-304",
+      "family": "liquidity",
+      "severity": "REVIEW",
+      "message": "About 4.1 months of cash left ($2.3M against $0.45M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+      "action": "Confirm the mark reflects a company with 4.1 months of cash.",
+      "evidence": {
+       "runway_months_aged": 4.11
+      }
+     }
+    ],
+    "disposition": "BLOCK",
+    "open_items": [
+     {
+      "company": "Duskfern",
+      "kind": "convertible_note",
+      "opened": "2026-08-28",
+      "opened_quarter": "Q3 2026",
+      "expected_resolution": null,
+      "amount_musd": 0.5,
+      "detail": "$4.7M bridge note, $133.0M valuation cap",
+      "age_quarters": 0,
+      "escalated": false
+     }
+    ],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Elmsworth Data",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 23.8,
+    "equity_mark": 23.8,
+    "note_at_cost": 0.0,
+    "proposed_mark": 23.8,
+    "booked_mark": 23.8,
+    "override": null,
+    "ownership_before": 0.038,
+    "ownership_after": 0.038,
+    "invested_before": 5.0,
+    "invested_after": 5.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 626.9,
+    "staleness_anchor": "2024-12-07",
+    "fv_level": 3,
+    "arr": 13.1,
+    "arr_growth": 0.98,
+    "runway_months_aged": 23.62,
+    "implied_multiple": 47.85,
+    "moic_after": 4.76,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 23.8,
+       "ownership": 0.038,
+       "latest_post_money": 626.9
+      },
+      "prior_value": 23.8,
+      "new_value": 23.8,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 48\u00d7 revenue (sector comp 22.7\u00d7), growing +98%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 47.85,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Foxtrellis",
+    "fund": "Fund I",
+    "sector": "Climate & Energy",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 26.5,
+    "equity_mark": 26.5,
+    "note_at_cost": 0.0,
+    "proposed_mark": 26.5,
+    "booked_mark": 26.5,
+    "override": null,
+    "ownership_before": 0.042,
+    "ownership_after": 0.042,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 631.7,
+    "staleness_anchor": "2023-10-14",
+    "fv_level": 3,
+    "arr": 19.4,
+    "arr_growth": 1.03,
+    "runway_months_aged": 30.08,
+    "implied_multiple": 32.56,
+    "moic_after": 6.625,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 26.5,
+       "ownership": 0.042,
+       "latest_post_money": 631.7
+      },
+      "prior_value": 26.5,
+      "new_value": 26.5,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 35 months ago (2023-10-14) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 35,
+       "anchor": "2023-10-14"
+      }
+     },
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 33\u00d7 revenue (sector comp 7.1\u00d7), growing +103%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 32.56,
+       "threshold": 30.0
+      }
+     },
+     {
+      "rule_id": "X-404",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carrying a 6.6\u00d7 return on a price set 35 months ago \u2014 a large unrealised gain resting on an old mark.",
+      "action": "",
+      "evidence": {
+       "moic": 6.62,
+       "months": 35
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Gorseline",
+    "fund": "Fund III",
+    "sector": "AI/ML",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 3.1,
+    "equity_mark": 3.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 3.1,
+    "booked_mark": 3.1,
+    "override": null,
+    "ownership_before": 0.102,
+    "ownership_after": 0.102,
+    "invested_before": 2.1,
+    "invested_after": 2.1,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 30.3,
+    "staleness_anchor": "2026-02-17",
+    "fv_level": 3,
+    "arr": 6.3,
+    "arr_growth": 0.52,
+    "runway_months_aged": 21.31,
+    "implied_multiple": 4.81,
+    "moic_after": 1.4762,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 3.1,
+       "ownership": 0.102,
+       "latest_post_money": 30.3
+      },
+      "prior_value": 3.1,
+      "new_value": 3.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Hearthwick",
+    "fund": "Fund III",
+    "sector": "Fintech",
+    "stage": "Seed",
+    "status_before": "Acquired",
+    "status_after": "Acquired",
+    "listed": false,
+    "prior_mark": 0.0,
+    "equity_mark": 0.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.0,
+    "booked_mark": 0.0,
+    "override": null,
+    "ownership_before": 0.084,
+    "ownership_after": 0.084,
+    "invested_before": 0.7,
+    "invested_after": 0.7,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 1.2,
+    "latest_post_money": 8.9,
+    "staleness_anchor": "2026-06-22",
+    "fv_level": null,
+    "arr": null,
+    "arr_growth": null,
+    "runway_months_aged": null,
+    "implied_multiple": null,
+    "moic_after": 1.7143,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "status": "Acquired",
+       "realized": 1.2
+      },
+      "prior_value": 0.0,
+      "new_value": 0.0,
+      "rationale": "Already Acquired at the prior close; carried at zero with $1.2M cumulative realized.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Inkmoor",
+    "fund": "Fund II",
+    "sector": "Developer Tools",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 3.0,
+    "equity_mark": 3.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 3.0,
+    "booked_mark": 3.0,
+    "override": null,
+    "ownership_before": 0.12,
+    "ownership_after": 0.12,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 24.7,
+    "staleness_anchor": "2024-09-03",
+    "fv_level": 3,
+    "arr": 6.6,
+    "arr_growth": 1.28,
+    "runway_months_aged": 21.7,
+    "implied_multiple": 3.74,
+    "moic_after": 0.5,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 3.0,
+       "ownership": 0.12,
+       "latest_post_money": 24.7
+      },
+      "prior_value": 3.0,
+      "new_value": 3.0,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Jadewell Payments",
+    "fund": "Fund III",
+    "sector": "Robotics",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 5.6,
+    "equity_mark": 5.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 5.6,
+    "booked_mark": 5.6,
+    "override": null,
+    "ownership_before": 0.071,
+    "ownership_after": 0.071,
+    "invested_before": 4.6,
+    "invested_after": 4.6,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 79.0,
+    "staleness_anchor": "2025-09-06",
+    "fv_level": 3,
+    "arr": 6.1,
+    "arr_growth": 1.04,
+    "runway_months_aged": 23.08,
+    "implied_multiple": 12.95,
+    "moic_after": 1.2174,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 5.6,
+       "ownership": 0.071,
+       "latest_post_money": 79.0
+      },
+      "prior_value": 5.6,
+      "new_value": 5.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Kilnbrook",
+    "fund": "Fund II",
+    "sector": "Fintech",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 4.4,
+    "equity_mark": 4.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 4.4,
+    "booked_mark": 4.4,
+    "override": null,
+    "ownership_before": 0.069,
+    "ownership_after": 0.069,
+    "invested_before": 2.0,
+    "invested_after": 2.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 63.6,
+    "staleness_anchor": "2025-05-22",
+    "fv_level": 3,
+    "arr": 7.5,
+    "arr_growth": 0.56,
+    "runway_months_aged": 29.83,
+    "implied_multiple": 8.48,
+    "moic_after": 2.2,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 4.4,
+       "ownership": 0.069,
+       "latest_post_money": 63.6
+      },
+      "prior_value": 4.4,
+      "new_value": 4.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Loamfield Robotics",
+    "fund": "Fund III",
+    "sector": "Data & Analytics",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.1,
+    "equity_mark": 1.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.1,
+    "booked_mark": 1.1,
+    "override": null,
+    "ownership_before": 0.072,
+    "ownership_after": 0.072,
+    "invested_before": 1.5,
+    "invested_after": 1.5,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 15.3,
+    "staleness_anchor": "2026-04-01",
+    "fv_level": 3,
+    "arr": 1.4,
+    "arr_growth": 0.68,
+    "runway_months_aged": 22.81,
+    "implied_multiple": 10.93,
+    "moic_after": 0.7333,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.1,
+       "ownership": 0.072,
+       "latest_post_money": 15.3
+      },
+      "prior_value": 1.1,
+      "new_value": 1.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Mirthstone",
+    "fund": "Fund I",
+    "sector": "Climate & Energy",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 6.6,
+    "equity_mark": 6.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 6.6,
+    "booked_mark": 6.6,
+    "override": null,
+    "ownership_before": 0.054,
+    "ownership_after": 0.054,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 122.5,
+    "staleness_anchor": "2023-11-10",
+    "fv_level": 3,
+    "arr": 26.0,
+    "arr_growth": -0.05,
+    "runway_months_aged": 28.07,
+    "implied_multiple": 4.71,
+    "moic_after": 1.65,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 6.6,
+       "ownership": 0.054,
+       "latest_post_money": 122.5
+      },
+      "prior_value": 6.6,
+      "new_value": 6.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 34,
+       "anchor": "2023-11-10"
+      }
+     },
+     {
+      "rule_id": "X-301",
+      "family": "growth",
+      "severity": "MONITOR",
+      "message": "Revenue is down -5% year on year \u2014 mild, but the wrong direction.",
+      "action": "",
+      "evidence": {
+       "arr_growth": -0.05
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Nettlebay",
+    "fund": "Fund II",
+    "sector": "Robotics",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 21.3,
+    "equity_mark": 21.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 21.3,
+    "booked_mark": 21.3,
+    "override": null,
+    "ownership_before": 0.026,
+    "ownership_after": 0.026,
+    "invested_before": 15.0,
+    "invested_after": 15.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 820.2,
+    "staleness_anchor": "2022-08-28",
+    "fv_level": 3,
+    "arr": 65.7,
+    "arr_growth": 0.53,
+    "runway_months_aged": 17.32,
+    "implied_multiple": 12.48,
+    "moic_after": 1.42,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 21.3,
+       "ownership": 0.026,
+       "latest_post_money": 820.2
+      },
+      "prior_value": 21.3,
+      "new_value": 21.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 49 months ago, on 2022-08-28. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 49 months ago is still fair value.",
+      "evidence": {
+       "months": 49,
+       "anchor": "2022-08-28"
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Orchardline",
+    "fund": "Fund I",
+    "sector": "Data & Analytics",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 7.3,
+    "equity_mark": 7.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 7.3,
+    "booked_mark": 7.3,
+    "override": null,
+    "ownership_before": 0.061,
+    "ownership_after": 0.061,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 119.9,
+    "staleness_anchor": "2025-07-19",
+    "fv_level": 3,
+    "arr": 22.1,
+    "arr_growth": 0.59,
+    "runway_months_aged": 2.5,
+    "implied_multiple": 5.43,
+    "moic_after": 1.825,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 7.3,
+       "ownership": 0.061,
+       "latest_post_money": 119.9
+      },
+      "prior_value": 7.3,
+      "new_value": 7.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-304",
+      "family": "liquidity",
+      "severity": "REVIEW",
+      "message": "About 2.5 months of cash left ($3.5M against $1.00M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+      "action": "Confirm the mark reflects a company with 2.5 months of cash.",
+      "evidence": {
+       "runway_months_aged": 2.5
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Palefire Labs",
+    "fund": "Fund III",
+    "sector": "Consumer",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 6.5,
+    "equity_mark": 6.5,
+    "note_at_cost": 0.0,
+    "proposed_mark": 6.5,
+    "booked_mark": 6.5,
+    "override": null,
+    "ownership_before": 0.12,
+    "ownership_after": 0.12,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 54.3,
+    "staleness_anchor": "2026-06-09",
+    "fv_level": 3,
+    "arr": 7.2,
+    "arr_growth": 1.87,
+    "runway_months_aged": 16.53,
+    "implied_multiple": 7.54,
+    "moic_after": 1.0833,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 6.5,
+       "ownership": 0.12,
+       "latest_post_money": 54.3
+      },
+      "prior_value": 6.5,
+      "new_value": 6.5,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Quillshade",
+    "fund": "Fund III",
+    "sector": "Climate & Energy",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 8.9,
+    "equity_mark": 8.9,
+    "note_at_cost": 0.0,
+    "proposed_mark": 8.9,
+    "booked_mark": 8.9,
+    "override": null,
+    "ownership_before": 0.135,
+    "ownership_after": 0.135,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 66.1,
+    "staleness_anchor": "2026-06-11",
+    "fv_level": 3,
+    "arr": 6.0,
+    "arr_growth": 1.16,
+    "runway_months_aged": 26.39,
+    "implied_multiple": 11.02,
+    "moic_after": 1.4833,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 8.9,
+       "ownership": 0.135,
+       "latest_post_money": 66.1
+      },
+      "prior_value": 8.9,
+      "new_value": 8.9,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Rushlight AI",
+    "fund": "Fund II",
+    "sector": "Developer Tools",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 12.2,
+    "equity_mark": 12.2,
+    "note_at_cost": 0.0,
+    "proposed_mark": 12.2,
+    "booked_mark": 12.2,
+    "override": null,
+    "ownership_before": 0.041,
+    "ownership_after": 0.041,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 298.3,
+    "staleness_anchor": "2023-01-12",
+    "fv_level": 3,
+    "arr": 16.0,
+    "arr_growth": 1.15,
+    "runway_months_aged": 24.43,
+    "implied_multiple": 18.64,
+    "moic_after": 1.22,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 12.2,
+       "ownership": 0.041,
+       "latest_post_money": 298.3
+      },
+      "prior_value": 12.2,
+      "new_value": 12.2,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 44 months ago (2023-01-12) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 44,
+       "anchor": "2023-01-12"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Stonegather",
+    "fund": "Fund III",
+    "sector": "Data & Analytics",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.7,
+    "equity_mark": 1.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.7,
+    "booked_mark": 1.7,
+    "override": null,
+    "ownership_before": 0.094,
+    "ownership_after": 0.094,
+    "invested_before": 1.4,
+    "invested_after": 1.4,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 18.1,
+    "staleness_anchor": "2023-12-07",
+    "fv_level": 3,
+    "arr": 1.0,
+    "arr_growth": 2.99,
+    "runway_months_aged": 3.67,
+    "implied_multiple": 18.1,
+    "moic_after": 1.2143,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.7,
+       "ownership": 0.094,
+       "latest_post_money": 18.1
+      },
+      "prior_value": 1.7,
+      "new_value": 1.7,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 33 months ago (2023-12-07) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 33,
+       "anchor": "2023-12-07"
+      }
+     },
+     {
+      "rule_id": "X-304",
+      "family": "liquidity",
+      "severity": "REVIEW",
+      "message": "About 3.7 months of cash left ($1.4M against $0.30M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+      "action": "Confirm the mark reflects a company with 3.7 months of cash.",
+      "evidence": {
+       "runway_months_aged": 3.67
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Tidewell Health",
+    "fund": "Fund III",
+    "sector": "Healthcare",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.2,
+    "equity_mark": 1.2,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.2,
+    "booked_mark": 1.2,
+    "override": null,
+    "ownership_before": 0.087,
+    "ownership_after": 0.087,
+    "invested_before": 1.4,
+    "invested_after": 1.4,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 13.9,
+    "staleness_anchor": "2026-06-14",
+    "fv_level": 3,
+    "arr": 1.4,
+    "arr_growth": 1.43,
+    "runway_months_aged": 19.0,
+    "implied_multiple": 9.93,
+    "moic_after": 0.8571,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.2,
+       "ownership": 0.087,
+       "latest_post_money": 13.9
+      },
+      "prior_value": 1.2,
+      "new_value": 1.2,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Umbrelight",
+    "fund": "Fund III",
+    "sector": "AI/ML",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.5,
+    "equity_mark": 1.5,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.5,
+    "booked_mark": 1.5,
+    "override": null,
+    "ownership_before": 0.083,
+    "ownership_after": 0.083,
+    "invested_before": 1.3,
+    "invested_after": 1.3,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 17.9,
+    "staleness_anchor": "2024-05-06",
+    "fv_level": 3,
+    "arr": 0.2,
+    "arr_growth": 0.65,
+    "runway_months_aged": 25.96,
+    "implied_multiple": null,
+    "moic_after": 1.1538,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.5,
+       "ownership": 0.083,
+       "latest_post_money": 17.9
+      },
+      "prior_value": 1.5,
+      "new_value": 1.5,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 28 months ago (2024-05-06) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 28,
+       "anchor": "2024-05-06"
+      }
+     },
+     {
+      "rule_id": "X-403",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "At $0.2M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
+      "action": "",
+      "evidence": {
+       "arr": 0.2
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Vinecroft",
+    "fund": "Fund I",
+    "sector": "AI/ML",
+    "stage": "Series D+",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 22.3,
+    "equity_mark": 22.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 22.3,
+    "booked_mark": 22.3,
+    "override": null,
+    "ownership_before": 0.016,
+    "ownership_after": 0.016,
+    "invested_before": 13.5,
+    "invested_after": 13.5,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 1390.7,
+    "staleness_anchor": "2025-04-30",
+    "fv_level": 3,
+    "arr": 127.7,
+    "arr_growth": 0.45,
+    "runway_months_aged": 25.07,
+    "implied_multiple": 10.89,
+    "moic_after": 1.6519,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 22.3,
+       "ownership": 0.016,
+       "latest_post_money": 1390.7
+      },
+      "prior_value": 22.3,
+      "new_value": 22.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Willowmere Compute",
+    "fund": "Fund III",
+    "sector": "Cybersecurity",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 4.7,
+    "equity_mark": 4.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 4.7,
+    "booked_mark": 4.7,
+    "override": null,
+    "ownership_before": 0.121,
+    "ownership_after": 0.121,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 38.7,
+    "staleness_anchor": "2025-03-28",
+    "fv_level": 3,
+    "arr": 5.5,
+    "arr_growth": 0.45,
+    "runway_months_aged": 16.46,
+    "implied_multiple": 7.04,
+    "moic_after": 0.7833,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 4.7,
+       "ownership": 0.121,
+       "latest_post_money": 38.7
+      },
+      "prior_value": 4.7,
+      "new_value": 4.7,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Xylotta",
+    "fund": "Fund I",
+    "sector": "Cybersecurity",
+    "stage": "Series D+",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 57.1,
+    "equity_mark": 57.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 57.1,
+    "booked_mark": 57.1,
+    "override": null,
+    "ownership_before": 0.025,
+    "ownership_after": 0.025,
+    "invested_before": 20.0,
+    "invested_after": 20.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 2282.4,
+    "staleness_anchor": "2023-01-30",
+    "fv_level": 3,
+    "arr": 204.3,
+    "arr_growth": 0.18,
+    "runway_months_aged": 16.58,
+    "implied_multiple": 11.17,
+    "moic_after": 2.855,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 57.1,
+       "ownership": 0.025,
+       "latest_post_money": 2282.4
+      },
+      "prior_value": 57.1,
+      "new_value": 57.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 44 months ago (2023-01-30) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 44,
+       "anchor": "2023-01-30"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Yewbranch Security",
+    "fund": "Fund III",
+    "sector": "Robotics",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.5,
+    "equity_mark": 2.5,
+    "note_at_cost": 0.0,
+    "proposed_mark": 2.5,
+    "booked_mark": 2.5,
+    "override": null,
+    "ownership_before": 0.119,
+    "ownership_after": 0.119,
+    "invested_before": 2.5,
+    "invested_after": 2.5,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 21.3,
+    "staleness_anchor": "2025-10-31",
+    "fv_level": 3,
+    "arr": 0.1,
+    "arr_growth": null,
+    "runway_months_aged": 18.26,
+    "implied_multiple": null,
+    "moic_after": 1.0,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 2.5,
+       "ownership": 0.119,
+       "latest_post_money": 21.3
+      },
+      "prior_value": 2.5,
+      "new_value": 2.5,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-403",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "At $0.1M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
+      "action": "",
+      "evidence": {
+       "arr": 0.1
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Zealwick",
+    "fund": "Fund II",
+    "sector": "Robotics",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 3.4,
+    "equity_mark": 3.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 3.4,
+    "booked_mark": 3.4,
+    "override": null,
+    "ownership_before": 0.037,
+    "ownership_after": 0.037,
+    "invested_before": 4.0,
+    "invested_after": 4.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 91.0,
+    "staleness_anchor": "2024-05-23",
+    "fv_level": 3,
+    "arr": 9.8,
+    "arr_growth": 0.52,
+    "runway_months_aged": 11.62,
+    "implied_multiple": 9.29,
+    "moic_after": 0.85,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 3.4,
+       "ownership": 0.037,
+       "latest_post_money": 91.0
+      },
+      "prior_value": 3.4,
+      "new_value": 3.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 28 months ago (2024-05-23) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 28,
+       "anchor": "2024-05-23"
+      }
+     },
+     {
+      "rule_id": "X-303",
+      "family": "liquidity",
+      "severity": "MONITOR",
+      "message": "About 11.6 months of cash left \u2014 enough to reach a raise, worth watching.",
+      "action": "",
+      "evidence": {
+       "runway_months_aged": 11.62
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Alderpoint",
+    "fund": "Fund II",
+    "sector": "AI/ML",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.3,
+    "equity_mark": 1.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.3,
+    "booked_mark": 1.3,
+    "override": null,
+    "ownership_before": 0.103,
+    "ownership_after": 0.103,
+    "invested_before": 1.0,
+    "invested_after": 1.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 12.5,
+    "staleness_anchor": "2023-08-01",
+    "fv_level": 3,
+    "arr": 0.4,
+    "arr_growth": 2.9,
+    "runway_months_aged": 13.0,
+    "implied_multiple": null,
+    "moic_after": 1.3,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.3,
+       "ownership": 0.103,
+       "latest_post_money": 12.5
+      },
+      "prior_value": 1.3,
+      "new_value": 1.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 37 months ago (2023-08-01) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 37,
+       "anchor": "2023-08-01"
+      }
+     },
+     {
+      "rule_id": "X-403",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "At $0.4M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
+      "action": "",
+      "evidence": {
+       "arr": 0.4
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Brackenvale",
+    "fund": "Fund I",
+    "sector": "Healthcare",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 8.7,
+    "equity_mark": 8.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 8.7,
+    "booked_mark": 8.7,
+    "override": null,
+    "ownership_before": 0.021,
+    "ownership_after": 0.021,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 415.9,
+    "staleness_anchor": "2022-12-30",
+    "fv_level": 3,
+    "arr": 64.1,
+    "arr_growth": 0.31,
+    "runway_months_aged": 18.36,
+    "implied_multiple": 6.49,
+    "moic_after": 1.45,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 8.7,
+       "ownership": 0.021,
+       "latest_post_money": 415.9
+      },
+      "prior_value": 8.7,
+      "new_value": 8.7,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 45 months ago (2022-12-30) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 45,
+       "anchor": "2022-12-30"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Coppermoss Energy",
+    "fund": "Fund III",
+    "sector": "Enterprise SaaS",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.6,
+    "equity_mark": 2.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 2.6,
+    "booked_mark": 2.6,
+    "override": null,
+    "ownership_before": 0.101,
+    "ownership_after": 0.101,
+    "invested_before": 2.4,
+    "invested_after": 2.4,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 25.5,
+    "staleness_anchor": "2025-03-09",
+    "fv_level": 3,
+    "arr": 0.9,
+    "arr_growth": 0.75,
+    "runway_months_aged": 31.5,
+    "implied_multiple": 28.33,
+    "moic_after": 1.0833,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 2.6,
+       "ownership": 0.101,
+       "latest_post_money": 25.5
+      },
+      "prior_value": 2.6,
+      "new_value": 2.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Dellforge",
+    "fund": "Fund I",
+    "sector": "Developer Tools",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 27.8,
+    "equity_mark": 27.8,
+    "note_at_cost": 0.0,
+    "proposed_mark": 27.8,
+    "booked_mark": 27.8,
+    "override": null,
+    "ownership_before": 0.041,
+    "ownership_after": 0.041,
+    "invested_before": 14.4,
+    "invested_after": 14.4,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 677.3,
+    "staleness_anchor": "2025-07-28",
+    "fv_level": 3,
+    "arr": 78.8,
+    "arr_growth": 0.29,
+    "runway_months_aged": 28.92,
+    "implied_multiple": 8.6,
+    "moic_after": 1.9306,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 27.8,
+       "ownership": 0.041,
+       "latest_post_money": 677.3
+      },
+      "prior_value": 27.8,
+      "new_value": 27.8,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Everbrook Analytics",
+    "fund": "Fund II",
+    "sector": "Enterprise SaaS",
+    "stage": "Series B",
+    "status_before": "Shut Down",
+    "status_after": "Shut Down",
+    "listed": false,
+    "prior_mark": 0.0,
+    "equity_mark": 0.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.0,
+    "booked_mark": 0.0,
+    "override": null,
+    "ownership_before": 0.037,
+    "ownership_after": 0.037,
+    "invested_before": 5.3,
+    "invested_after": 5.3,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 130.7,
+    "staleness_anchor": "2024-07-09",
+    "fv_level": null,
+    "arr": null,
+    "arr_growth": null,
+    "runway_months_aged": null,
+    "implied_multiple": null,
+    "moic_after": 0.0,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "status": "Shut Down",
+       "realized": 0.0
+      },
+      "prior_value": 0.0,
+      "new_value": 0.0,
+      "rationale": "Already Shut Down at the prior close; carried at zero with $0.0M cumulative realized.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Fenwright",
+    "fund": "Fund I",
+    "sector": "Enterprise SaaS",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 10.8,
+    "equity_mark": 10.8,
+    "note_at_cost": 0.0,
+    "proposed_mark": 10.8,
+    "booked_mark": 10.8,
+    "override": null,
+    "ownership_before": 0.038,
+    "ownership_after": 0.038,
+    "invested_before": 12.4,
+    "invested_after": 12.4,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 285.1,
+    "staleness_anchor": "2023-07-20",
+    "fv_level": 3,
+    "arr": 68.6,
+    "arr_growth": 0.53,
+    "runway_months_aged": 17.98,
+    "implied_multiple": 4.16,
+    "moic_after": 0.871,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 10.8,
+       "ownership": 0.038,
+       "latest_post_money": 285.1
+      },
+      "prior_value": 10.8,
+      "new_value": 10.8,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 38 months ago (2023-07-20) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 38,
+       "anchor": "2023-07-20"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Gablewood",
+    "fund": "Fund III",
+    "sector": "AI/ML",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 0.6,
+    "equity_mark": 0.6,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.6,
+    "booked_mark": 0.6,
+    "override": null,
+    "ownership_before": 0.063,
+    "ownership_after": 0.063,
+    "invested_before": 1.0,
+    "invested_after": 1.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 10.1,
+    "staleness_anchor": "2025-09-10",
+    "fv_level": 3,
+    "arr": 0.9,
+    "arr_growth": 0.64,
+    "runway_months_aged": 20.36,
+    "implied_multiple": 11.22,
+    "moic_after": 0.6,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 0.6,
+       "ownership": 0.063,
+       "latest_post_money": 10.1
+      },
+      "prior_value": 0.6,
+      "new_value": 0.6,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Harrowgate Bio",
+    "fund": "Fund III",
+    "sector": "Infrastructure",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 6.1,
+    "equity_mark": 6.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 6.1,
+    "booked_mark": 6.1,
+    "override": null,
+    "ownership_before": 0.07,
+    "ownership_after": 0.07,
+    "invested_before": 5.4,
+    "invested_after": 5.4,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 86.9,
+    "staleness_anchor": "2026-04-13",
+    "fv_level": 3,
+    "arr": 3.9,
+    "arr_growth": 1.73,
+    "runway_months_aged": 23.86,
+    "implied_multiple": 22.28,
+    "moic_after": 1.1296,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 6.1,
+       "ownership": 0.07,
+       "latest_post_money": 86.9
+      },
+      "prior_value": 6.1,
+      "new_value": 6.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Islewind",
+    "fund": "Fund II",
+    "sector": "Infrastructure",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Shut Down",
+    "listed": false,
+    "prior_mark": 10.0,
+    "equity_mark": 0.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.0,
+    "booked_mark": 0.0,
+    "override": null,
+    "ownership_before": 0.036,
+    "ownership_after": 0.036,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 278.1,
+    "staleness_anchor": "2023-03-10",
+    "fv_level": null,
+    "arr": 12.7,
+    "arr_growth": 0.75,
+    "runway_months_aged": 7.02,
+    "implied_multiple": null,
+    "moic_after": 0.0,
+    "steps": [
+     {
+      "rule_id": "M-021",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "proceeds": 0.0,
+       "prior_mark": 10.0,
+       "detail": "Ceased operations"
+      },
+      "prior_value": 10.0,
+      "new_value": 0.0,
+      "rationale": "Company ceased operations. $10.0M written off; no recovery expected.",
+      "evidence": {
+       "sheet": "Q3 2026 Activity",
+       "row_index": 19,
+       "event_type": "Shutdown",
+       "date": "2026-09-22"
+      }
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Juttermill",
+    "fund": "Fund I",
+    "sector": "Enterprise SaaS",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 0.7,
+    "equity_mark": 0.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.7,
+    "booked_mark": 0.7,
+    "override": null,
+    "ownership_before": 0.08,
+    "ownership_after": 0.08,
+    "invested_before": 2.0,
+    "invested_after": 2.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 8.2,
+    "staleness_anchor": "2021-09-16",
+    "fv_level": 3,
+    "arr": 4.8,
+    "arr_growth": 1.01,
+    "runway_months_aged": 25.59,
+    "implied_multiple": 1.71,
+    "moic_after": 0.35,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 0.7,
+       "ownership": 0.08,
+       "latest_post_money": 8.2
+      },
+      "prior_value": 0.7,
+      "new_value": 0.7,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 60 months ago, on 2021-09-16. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 60 months ago is still fair value.",
+      "evidence": {
+       "months": 60,
+       "anchor": "2021-09-16"
+      }
+     },
+     {
+      "rule_id": "X-402",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 1.7\u00d7 revenue (sector comp 10.6\u00d7), growing +101%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 1.71,
+       "threshold": 3.0
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Knollward",
+    "fund": "Fund I",
+    "sector": "AI/ML",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 48.8,
+    "equity_mark": 48.8,
+    "note_at_cost": 0.0,
+    "proposed_mark": 48.8,
+    "booked_mark": 48.8,
+    "override": null,
+    "ownership_before": 0.058,
+    "ownership_after": 0.058,
+    "invested_before": 14.0,
+    "invested_after": 14.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 842.1,
+    "staleness_anchor": "2022-09-02",
+    "fv_level": 3,
+    "arr": 54.5,
+    "arr_growth": 0.72,
+    "runway_months_aged": 17.32,
+    "implied_multiple": 15.45,
+    "moic_after": 3.4857,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 48.8,
+       "ownership": 0.058,
+       "latest_post_money": 842.1
+      },
+      "prior_value": 48.8,
+      "new_value": 48.8,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 48 months ago (2022-09-02) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 48,
+       "anchor": "2022-09-02"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Lanternfell Space",
+    "fund": "Fund II",
+    "sector": "Enterprise SaaS",
+    "stage": "Series C",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 37.3,
+    "equity_mark": 37.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 37.3,
+    "booked_mark": 37.3,
+    "override": null,
+    "ownership_before": 0.057,
+    "ownership_after": 0.057,
+    "invested_before": 15.0,
+    "invested_after": 15.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 653.6,
+    "staleness_anchor": "2025-06-18",
+    "fv_level": 3,
+    "arr": 74.0,
+    "arr_growth": 0.55,
+    "runway_months_aged": 12.54,
+    "implied_multiple": 8.83,
+    "moic_after": 2.4867,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 37.3,
+       "ownership": 0.057,
+       "latest_post_money": 653.6
+      },
+      "prior_value": 37.3,
+      "new_value": 37.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Mardellan",
+    "fund": "Fund I",
+    "sector": "Robotics",
+    "stage": "Series D+",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 68.4,
+    "equity_mark": 68.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 68.4,
+    "booked_mark": 68.4,
+    "override": null,
+    "ownership_before": 0.012,
+    "ownership_after": 0.012,
+    "invested_before": 10.9,
+    "invested_after": 10.9,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 5699.4,
+    "staleness_anchor": "2022-05-21",
+    "fv_level": 3,
+    "arr": 252.8,
+    "arr_growth": 0.54,
+    "runway_months_aged": 14.92,
+    "implied_multiple": 22.55,
+    "moic_after": 6.2752,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 68.4,
+       "ownership": 0.012,
+       "latest_post_money": 5699.4
+      },
+      "prior_value": 68.4,
+      "new_value": 68.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 52 months ago, on 2022-05-21. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 52 months ago is still fair value.",
+      "evidence": {
+       "months": 52,
+       "anchor": "2022-05-21"
+      }
+     },
+     {
+      "rule_id": "X-404",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carrying a 6.3\u00d7 return on a price set 52 months ago \u2014 a large unrealised gain resting on an old mark.",
+      "action": "",
+      "evidence": {
+       "moic": 6.28,
+       "months": 52
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Northquill",
+    "fund": "Fund I",
+    "sector": "Cybersecurity",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 24.1,
+    "equity_mark": 24.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 24.1,
+    "booked_mark": 24.1,
+    "override": null,
+    "ownership_before": 0.083,
+    "ownership_after": 0.083,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 289.9,
+    "staleness_anchor": "2023-12-06",
+    "fv_level": 3,
+    "arr": 12.8,
+    "arr_growth": 0.79,
+    "runway_months_aged": 7.12,
+    "implied_multiple": 22.65,
+    "moic_after": 2.41,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 24.1,
+       "ownership": 0.083,
+       "latest_post_money": 289.9
+      },
+      "prior_value": 24.1,
+      "new_value": 24.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 33 months ago (2023-12-06) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "evidence": {
+       "months": 33,
+       "anchor": "2023-12-06"
+      }
+     },
+     {
+      "rule_id": "X-303",
+      "family": "liquidity",
+      "severity": "MONITOR",
+      "message": "About 7.1 months of cash left \u2014 enough to reach a raise, worth watching.",
+      "action": "",
+      "evidence": {
+       "runway_months_aged": 7.12
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Oxbowlane",
+    "fund": "Fund II",
+    "sector": "Developer Tools",
+    "stage": "Series B",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 13.0,
+    "equity_mark": 13.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 13.0,
+    "booked_mark": 13.0,
+    "override": null,
+    "ownership_before": 0.043,
+    "ownership_after": 0.043,
+    "invested_before": 10.0,
+    "invested_after": 10.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 302.2,
+    "staleness_anchor": "2025-08-29",
+    "fv_level": 3,
+    "arr": 14.3,
+    "arr_growth": 0.46,
+    "runway_months_aged": 20.39,
+    "implied_multiple": 21.13,
+    "moic_after": 1.3,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 13.0,
+       "ownership": 0.043,
+       "latest_post_money": 302.2
+      },
+      "prior_value": 13.0,
+      "new_value": 13.0,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Petrelbay",
+    "fund": "Fund III",
+    "sector": "Infrastructure",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.7,
+    "equity_mark": 1.7,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.7,
+    "booked_mark": 1.7,
+    "override": null,
+    "ownership_before": 0.077,
+    "ownership_after": 0.077,
+    "invested_before": 1.8,
+    "invested_after": 1.8,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 22.6,
+    "staleness_anchor": "2024-12-04",
+    "fv_level": 3,
+    "arr": 0.7,
+    "arr_growth": -0.3,
+    "runway_months_aged": 18.26,
+    "implied_multiple": 32.29,
+    "moic_after": 0.9444,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.7,
+       "ownership": 0.077,
+       "latest_post_money": 22.6
+      },
+      "prior_value": 1.7,
+      "new_value": 1.7,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-302",
+      "family": "growth",
+      "severity": "REVIEW",
+      "message": "Revenue is shrinking -30% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+      "action": "Confirm the mark survives a 30% revenue decline.",
+      "evidence": {
+       "arr_growth": -0.3
+      }
+     },
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 32\u00d7 revenue (sector comp 11.3\u00d7), growing -30%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 32.29,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Quenchpoint Energy",
+    "fund": "Fund II",
+    "sector": "Fintech",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 7.8,
+    "equity_mark": 7.8,
+    "note_at_cost": 0.0,
+    "proposed_mark": 7.8,
+    "booked_mark": 7.8,
+    "override": null,
+    "ownership_before": 0.13,
+    "ownership_after": 0.13,
+    "invested_before": 6.0,
+    "invested_after": 6.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 60.3,
+    "staleness_anchor": "2025-03-11",
+    "fv_level": 3,
+    "arr": 1.7,
+    "arr_growth": 0.62,
+    "runway_months_aged": 17.52,
+    "implied_multiple": 35.47,
+    "moic_after": 1.3,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 7.8,
+       "ownership": 0.13,
+       "latest_post_money": 60.3
+      },
+      "prior_value": 7.8,
+      "new_value": 7.8,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 35\u00d7 revenue (sector comp 9.2\u00d7), growing +62%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 35.47,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Saffronwell",
+    "fund": "Fund II",
+    "sector": "Data & Analytics",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 1.1,
+    "equity_mark": 1.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 1.1,
+    "booked_mark": 1.1,
+    "override": null,
+    "ownership_before": 0.073,
+    "ownership_after": 0.073,
+    "invested_before": 2.9,
+    "invested_after": 2.9,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 15.6,
+    "staleness_anchor": "2026-05-09",
+    "fv_level": 3,
+    "arr": 1.6,
+    "arr_growth": 1.16,
+    "runway_months_aged": 13.35,
+    "implied_multiple": 9.75,
+    "moic_after": 0.3793,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 1.1,
+       "ownership": 0.073,
+       "latest_post_money": 15.6
+      },
+      "prior_value": 1.1,
+      "new_value": 1.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Thornmill Systems",
+    "fund": "Fund II",
+    "sector": "Space & Defense",
+    "stage": "Series D+",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 28.2,
+    "equity_mark": 28.2,
+    "note_at_cost": 0.0,
+    "proposed_mark": 28.2,
+    "booked_mark": 28.2,
+    "override": null,
+    "ownership_before": 0.013,
+    "ownership_after": 0.013,
+    "invested_before": 20.0,
+    "invested_after": 20.0,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 2170.9,
+    "staleness_anchor": "2025-04-04",
+    "fv_level": 3,
+    "arr": 189.6,
+    "arr_growth": 0.32,
+    "runway_months_aged": 22.18,
+    "implied_multiple": 11.45,
+    "moic_after": 1.41,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 28.2,
+       "ownership": 0.013,
+       "latest_post_money": 2170.9
+      },
+      "prior_value": 28.2,
+      "new_value": 28.2,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Uplandreach",
+    "fund": "Fund I",
+    "sector": "Data & Analytics",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.1,
+    "equity_mark": 2.1,
+    "note_at_cost": 0.0,
+    "proposed_mark": 2.1,
+    "booked_mark": 2.1,
+    "override": null,
+    "ownership_before": 0.121,
+    "ownership_after": 0.121,
+    "invested_before": 2.7,
+    "invested_after": 2.7,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 17.4,
+    "staleness_anchor": "2022-01-03",
+    "fv_level": 3,
+    "arr": 2.8,
+    "arr_growth": 1.99,
+    "runway_months_aged": 19.94,
+    "implied_multiple": 6.21,
+    "moic_after": 0.7778,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 2.1,
+       "ownership": 0.121,
+       "latest_post_money": 17.4
+      },
+      "prior_value": 2.1,
+      "new_value": 2.1,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-202",
+      "family": "staleness",
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 56 months ago, on 2022-01-03. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 56 months ago is still fair value.",
+      "evidence": {
+       "months": 56,
+       "anchor": "2022-01-03"
+      }
+     }
+    ],
+    "disposition": "REVIEW",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Ventabrook",
+    "fund": "Fund III",
+    "sector": "Developer Tools",
+    "stage": "Seed",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 2.3,
+    "equity_mark": 2.3,
+    "note_at_cost": 0.0,
+    "proposed_mark": 2.3,
+    "booked_mark": 2.3,
+    "override": null,
+    "ownership_before": 0.103,
+    "ownership_after": 0.103,
+    "invested_before": 2.1,
+    "invested_after": 2.1,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 22.1,
+    "staleness_anchor": "2025-11-21",
+    "fv_level": 3,
+    "arr": 1.3,
+    "arr_growth": 1.67,
+    "runway_months_aged": 30.87,
+    "implied_multiple": 17.0,
+    "moic_after": 1.0952,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 2.3,
+       "ownership": 0.103,
+       "latest_post_money": 22.1
+      },
+      "prior_value": 2.3,
+      "new_value": 2.3,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Wildebrook",
+    "fund": "Fund II",
+    "sector": "Enterprise SaaS",
+    "stage": "Series A",
+    "status_before": "Active",
+    "status_after": "Active",
+    "listed": false,
+    "prior_mark": 7.4,
+    "equity_mark": 7.4,
+    "note_at_cost": 0.0,
+    "proposed_mark": 7.4,
+    "booked_mark": 7.4,
+    "override": null,
+    "ownership_before": 0.135,
+    "ownership_after": 0.135,
+    "invested_before": 3.7,
+    "invested_after": 3.7,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 54.6,
+    "staleness_anchor": "2025-09-23",
+    "fv_level": 3,
+    "arr": 1.2,
+    "arr_growth": 1.99,
+    "runway_months_aged": 21.67,
+    "implied_multiple": 45.5,
+    "moic_after": 2.0,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "prior_mark": 7.4,
+       "ownership": 0.135,
+       "latest_post_money": 54.6
+      },
+      "prior_value": 7.4,
+      "new_value": 7.4,
+      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+      "evidence": null
+     }
+    ],
+    "flags": [
+     {
+      "rule_id": "X-401",
+      "family": "valuation",
+      "severity": "MONITOR",
+      "message": "Carried at 46\u00d7 revenue (sector comp 10.6\u00d7), growing +199%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+      "action": "",
+      "evidence": {
+       "implied_multiple": 45.5,
+       "threshold": 30.0
+      }
+     }
+    ],
+    "disposition": "MONITOR",
+    "open_items": [],
+    "alternative_marks": {}
+   },
+   {
+    "company": "Zerocrest",
+    "fund": "Fund III",
+    "sector": "AI/ML",
+    "stage": "Seed",
+    "status_before": "Shut Down",
+    "status_after": "Shut Down",
+    "listed": false,
+    "prior_mark": 0.0,
+    "equity_mark": 0.0,
+    "note_at_cost": 0.0,
+    "proposed_mark": 0.0,
+    "booked_mark": 0.0,
+    "override": null,
+    "ownership_before": 0.082,
+    "ownership_after": 0.082,
+    "invested_before": 0.7,
+    "invested_after": 0.7,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 0.0,
+    "latest_post_money": 12.1,
+    "staleness_anchor": "2024-08-02",
+    "fv_level": null,
+    "arr": null,
+    "arr_growth": null,
+    "runway_months_aged": null,
+    "implied_multiple": null,
+    "moic_after": 0.0,
+    "steps": [
+     {
+      "rule_id": "M-000",
+      "rule_version": "2026Q3.1",
+      "sequence": 1,
+      "inputs": {
+       "status": "Shut Down",
+       "realized": 0.0
+      },
+      "prior_value": 0.0,
+      "new_value": 0.0,
+      "rationale": "Already Shut Down at the prior close; carried at zero with $0.0M cumulative realized.",
+      "evidence": null
+     }
+    ],
+    "flags": [],
+    "disposition": "CLEAR",
+    "open_items": [],
+    "alternative_marks": {}
+   }
+  ],
+  "rollups": [
+   {
+    "fund": "Fund I",
+    "companies": 30,
+    "active": 29,
+    "invested": 268.9,
+    "prior_nav": 656.8,
+    "proposed_nav": 725.3385,
+    "booked_nav": 725.3385,
+    "realized_quarter": 28.2,
+    "realized_cumulative": 28.2,
+    "tvpi": 2.8023,
+    "dpi": 0.1049,
+    "rvpi": 2.6974,
+    "top_positions": [
+     [
+      "Drayvenn",
+      0.1517
+     ],
+     [
+      "Fernwave",
+      0.1014
+     ],
+     [
+      "Mardellan",
+      0.0943
+     ],
+     [
+      "Xylotta",
+      0.0787
+     ],
+     [
+      "Knollward",
+      0.0673
+     ]
+    ]
+   },
+   {
+    "fund": "Fund II",
+    "companies": 38,
+    "active": 34,
+    "invested": 258.1,
+    "prior_nav": 391.3,
+    "proposed_nav": 368.8838,
+    "booked_nav": 368.8838,
+    "realized_quarter": 4.3,
+    "realized_cumulative": 20.2,
+    "tvpi": 1.5075,
+    "dpi": 0.0783,
+    "rvpi": 1.4292,
+    "top_positions": [
+     [
+      "Lanternfell Space",
+      0.1011
+     ],
+     [
+      "Hollowpine Robotics",
+      0.0824
+     ],
+     [
+      "Mossbriar Bio",
+      0.0819
+     ],
+     [
+      "Thornmill Systems",
+      0.0764
+     ],
+     [
+      "Umberly",
+      0.0653
+     ]
+    ]
+   },
+   {
+    "fund": "Fund III",
+    "companies": 32,
+    "active": 30,
+    "invested": 90.5,
+    "prior_nav": 91.2,
+    "proposed_nav": 89.704,
+    "booked_nav": 89.704,
+    "realized_quarter": 0.0,
+    "realized_cumulative": 1.2,
+    "tvpi": 1.0045,
+    "dpi": 0.0133,
+    "rvpi": 0.9912,
+    "top_positions": [
+     [
+      "Vellichor Systems",
+      0.1315
+     ],
+     [
+      "Quillshade",
+      0.0992
+     ],
+     [
+      "Palefire Labs",
+      0.0725
+     ],
+     [
+      "Harrowgate Bio",
+      0.068
+     ],
+     [
+      "Jadewell Payments",
+      0.0624
+     ]
+    ]
+   }
+  ],
+  "validation": [],
+  "totals": {
+   "positions": 100,
+   "active_after": 93,
+   "prior_nav": 1139.3,
+   "proposed_nav": 1183.9263,
+   "booked_nav": 1183.9263,
+   "net_movement": 44.6263,
+   "realized_quarter": 32.5,
+   "realized_cumulative": 49.6,
+   "written_off": 21.4,
+   "exited_at_prior_mark": 18.2,
+   "dispositions": {
+    "BLOCK": 7,
+    "REVIEW": 15,
+    "MONITOR": 44,
+    "CLEAR": 34
+   },
+   "level1_positions": 1,
+   "top10_concentration": 0.4461
+  },
+  "open_items": [
+   {
+    "company": "Emberfold",
+    "kind": "convertible_note",
+    "opened": "2026-08-23",
+    "opened_quarter": "Q3 2026",
+    "expected_resolution": null,
+    "amount_musd": null,
+    "detail": "$8.5M bridge note, $32.0M valuation cap (HC did not participate)",
+    "age_quarters": 0,
+    "escalated": false
+   },
+   {
+    "company": "Gryphonel",
+    "kind": "pending_acquisition",
+    "opened": "2026-09-08",
+    "opened_quarter": "Q3 2026",
+    "expected_resolution": null,
+    "amount_musd": 133.0,
+    "detail": "Expected to close in Q4 2026, subject to regulatory approval. No cash received.",
+    "age_quarters": 0,
+    "escalated": false
+   },
+   {
+    "company": "Halcyra",
+    "kind": "term_sheet",
+    "opened": "2026-09-17",
+    "opened_quarter": "Q3 2026",
+    "expected_resolution": null,
+    "amount_musd": 50.0,
+    "detail": "Not closed; diligence underway, expected to close Q4.",
+    "age_quarters": 0,
+    "escalated": false
+   },
+   {
+    "company": "Drayvenn",
+    "kind": "ipo_lockup",
+    "opened": "2026-09-20",
+    "opened_quarter": "Q3 2026",
+    "expected_resolution": "2027-03-19",
+    "amount_musd": null,
+    "detail": "180-day lock-up; 2.8% of listed equity",
+    "age_quarters": 0,
+    "escalated": false
+   },
+   {
+    "company": "Duskfern",
+    "kind": "convertible_note",
+    "opened": "2026-08-28",
+    "opened_quarter": "Q3 2026",
+    "expected_resolution": null,
+    "amount_musd": 0.5,
+    "detail": "$4.7M bridge note, $133.0M valuation cap",
+    "age_quarters": 0,
+    "escalated": false
+   }
+  ],
+  "sensitivity": {
+   "base_nav": 1183.9263,
+   "multiple_exposed_nav": 1067.5583,
+   "nav_if_multiples_-20pct": 970.41464,
+   "nav_if_multiples_+20pct": 1397.43796
+  }
+ }
+}

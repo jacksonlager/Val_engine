@@ -1,0 +1,29 @@
+name: 19_big_book
+description: >
+  1,000 synthetic companies (seeded, coherent: prior mark = ownership × post, so X-904 ties) and
+  120 events cycling the eight original types on distinct companies. Must finish in under 15
+  seconds and produce a manifest. Every company without an event is CLEAR by construction, so the
+  disposition totals are exact: 30 BLOCK (15 IPOs + 15 announced deals), 15 REVIEW (funded
+  notes), 15 MONITOR (term sheets), 940 CLEAR.
+synthesize: { companies: 1000, events: 120, seed: 19 }
+policy: 2026Q3
+expect:
+  ingest_ok: true
+  no_crash: true
+  max_seconds: 15
+  validation_ids: { must: [], must_not: [X-901, X-909, X-902, X-903, X-904, X-906, X-914] }
+  validation_blocking: false
+  manifest: { quarter_label: "Q3 2026", policy_version: "2026Q3-0.1" }
+  totals: { events: 120, positions: 1000, dispositions: { BLOCK: 30, REVIEW: 15, MONITOR: 15, CLEAR: 940 } }
+  # spot checks: the first company of each event type, values computed from the synthesiser's own rows
+  companies:
+    "Synth-0701": { disposition: CLEAR,   rules: [M-010], proposed: 10.2465 }      # 2.25% × $455.4M
+    "Synth-0045": { disposition: REVIEW,  rules: [M-060], proposed: 12.58225, note_at_cost: 0.3, flags_must: [X-107] }
+    "Synth-0812": { disposition: BLOCK,   rules: [M-040], proposed: 63.0928, fv_level: 1 }   # 9.4% × $671.2M
+    "Synth-0926": { disposition: CLEAR,   rules: [M-020], proposed: 0.0, realized_quarter: 58.59054, status: Acquired }
+    "Synth-0538": { disposition: BLOCK,   rules: [M-050], proposed: 31.966974 }    # 7.06% × $503.1M × 0.90
+    "Synth-0125": { disposition: CLEAR,   rules: [M-021], proposed: 0.0, status: "Shut Down" }
+    "Synth-0529": { disposition: CLEAR,   rules: [M-030], proposed: 9.075405, realized_quarter: 9.075405, flags_must_not: [X-104] }
+    "Synth-0207": { disposition: MONITOR, rules: [M-070], proposed: 30.60169, flags_must: [X-109] }
+    "Synth-0001": { disposition: CLEAR,   rules: [M-000] }
+    "Synth-1000": { disposition: CLEAR,   rules: [M-000] }

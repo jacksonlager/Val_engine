@@ -1,0 +1,23 @@
+name: 09e_sheet_names_ambiguous
+description: >
+  Two activity-like tabs ("Q3-2026 Activity" and "Activity Q3 2026"), neither matching the policy
+  regex exactly. The relaxed sheet discovery finds two candidates and must X-914 (BLOCK, naming
+  both) rather than pick one. The file still opens: this is a validation block, not a crash.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+sheet_names: { portfolio: Portfolio, activity: "Q3-2026 Activity" }
+extra_sheets:
+  - { name: "Activity Q3 2026", copy_of: activity }
+activity:
+  - { date: 2026-07-10, company: Solvantra, event: "Priced Equity Round", detail: "Series B", value: 100.0, hc_investment: 1.0, ownership_after: 0.11,
+      notes: "$24.0M round led by a new investor. HC participated." }
+  - { date: 2026-07-28, company: Ambercrest, event: "Acquisition (Closed)", detail: "All-cash acquisition", value: 400.0, proceeds: 16.8,
+      notes: "Transaction closed and cash received during the quarter." }
+expect:
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-914] }
+  validation_must:
+    - { id: X-914, contains: "Q3-2026 Activity", blocking: true }
+    - { id: X-914, contains: "Activity Q3 2026" }
+  validation_blocking: true

@@ -1,0 +1,258 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Palette. Neutrals are green-biased on a cool paper ground; the accent is used only
+   for focus, links and the active tab. Semantic disposition colors are separate from
+   the accent and were validated with the dataviz palette validator in both modes
+   (light: #b91c1c #b8860b #6d4fc2 #2f7d4f; dark: #d84e62 #ad9200 #8a7ad8 #3a9a5e). */
+:root {
+  color-scheme: light;
+  --ground: #f3f6f2;
+  --surface: #fbfcfa;
+  --raised: #ffffff;
+  --ink: #16211b;
+  --ink-2: #4d5c53;
+  --muted: #7d8b83;
+  --hairline: #e3e9e4;
+  --border: #cfd8d1;
+  --accent: #2456c9;
+  --accent-ink: #ffffff;
+
+  --block: #b91c1c;
+  --review: #b8860b;
+  --monitor: #6d4fc2;
+  --clear: #2f7d4f;
+  --block-text: #a11a1a;
+  --review-text: #8a6408;
+  --monitor-text: #5b3fb0;
+  --clear-text: #256a42;
+  --block-wash: rgba(185, 28, 28, 0.10);
+  --review-wash: rgba(184, 134, 11, 0.13);
+  --monitor-wash: rgba(109, 79, 194, 0.11);
+  --clear-wash: rgba(47, 125, 79, 0.11);
+
+  --up: #256a42;
+  --down: #b91c1c;
+  --up-mark: #2f7d4f;
+  --down-mark: #b91c1c;
+  --neutral-mark: #8b978f;
+  --series-1: #2f6ecf;
+  --series-1-soft: #a9c4ee;
+  --grid: #e3e9e4;
+  --axis: #cfd8d1;
+  --tooltip-bg: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #121614;
+    --surface: #181e1a;
+    --raised: #1f2622;
+    --ink: #eef2ee;
+    --ink-2: #b3bfb6;
+    --muted: #7f8c84;
+    --hairline: #2a332d;
+    --border: #35403a;
+    --accent: #7aa2f0;
+    --accent-ink: #0d1424;
+
+    --block: #d84e62;
+    --review: #ad9200;
+    --monitor: #8a7ad8;
+    --clear: #3a9a5e;
+    --block-text: #f08a97;
+    --review-text: #d9bd3c;
+    --monitor-text: #b3a6f2;
+    --clear-text: #6cc48c;
+    --block-wash: rgba(216, 78, 98, 0.18);
+    --review-wash: rgba(173, 146, 0, 0.18);
+    --monitor-wash: rgba(138, 122, 216, 0.18);
+    --clear-wash: rgba(58, 154, 94, 0.18);
+
+    --up: #6cc48c;
+    --down: #f08a97;
+    --up-mark: #3a9a5e;
+    --down-mark: #d84e62;
+    --neutral-mark: #6f7b74;
+    --series-1: #5b8fe0;
+    --series-1-soft: #2d4a78;
+    --grid: #2a332d;
+    --axis: #35403a;
+    --tooltip-bg: #1f2622;
+  }
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-variant-numeric: tabular-nums; }
+
+/* semantic helpers */
+.disp-BLOCK { --c: var(--block); --ct: var(--block-text); --cw: var(--block-wash); }
+.disp-REVIEW { --c: var(--review); --ct: var(--review-text); --cw: var(--review-wash); }
+.disp-MONITOR { --c: var(--monitor); --ct: var(--monitor-text); --cw: var(--monitor-wash); }
+.disp-CLEAR { --c: var(--clear); --ct: var(--clear-text); --cw: var(--clear-wash); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 7px; border-radius: 4px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.02em;
+  background: var(--cw); color: var(--ct);
+  white-space: nowrap; line-height: 1.5;
+}
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--c); flex: none; }
+.chip.no-dot::before { display: none; }
+
+.stripe { box-shadow: inset 3px 0 0 var(--c); }
+
+/* ---- queue card: the reviewer's to-do list -------------------------------- */
+/* The disposition wash carries the severity; the eyebrow names what the panel is
+   for. Both take their color from the --c/--ct/--cw set the .disp-* class sets. */
+.qcard { transition: border-color 120ms ease; }
+.qcard:hover { border-color: color-mix(in srgb, var(--c) 40%, var(--border)); }
+.qcard > button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+
+.actions {
+  background: var(--cw);
+  border-radius: 6px;
+  padding: 9px 11px 10px;
+  /* the block ends near its text rather than bleeding across an empty card */
+  max-width: min(100%, 820px);
+}
+.eyebrow {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--ct);
+}
+/* rule id beside an action: traceability, not decoration — quiet, never a severity blob */
+.rule-tag {
+  display: inline-flex; align-items: center;
+  padding: 1px 5px; border-radius: 4px;
+  font-size: 10.5px; line-height: 1.5; letter-spacing: 0.01em;
+  background: var(--raised); border: 1px solid var(--hairline); color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* ---- copy-to-clipboard reference chip ------------------------------------- */
+.copyref {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 1px 5px; border-radius: 4px;
+  font-size: 11px; line-height: 1.5;
+  background: var(--raised); border: 1px solid var(--hairline); color: var(--ink-2);
+  cursor: pointer; white-space: nowrap;
+}
+.copyref:hover { border-color: var(--border); color: var(--ink); }
+.copyref:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.copyref svg { opacity: 0.55; }
+.copyref:hover svg { opacity: 0.9; }
+.copyref[data-copied="true"] { color: var(--clear-text); border-color: color-mix(in srgb, var(--clear) 45%, var(--hairline)); }
+/* floats above the chip: confirming a copy must not reflow or overlap the row */
+.copyref .copied {
+  position: absolute; bottom: calc(100% + 4px); left: 0; z-index: 5;
+  padding: 0 5px; border-radius: 3px;
+  background: var(--raised); border: 1px solid color-mix(in srgb, var(--clear) 45%, var(--hairline));
+  font-size: 10px; letter-spacing: 0.04em; color: var(--clear-text);
+  pointer-events: none; white-space: nowrap;
+}
+
+/* ---- audit-chain inputs ---------------------------------------------------- */
+.inputs {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 3px 12px;
+  align-items: baseline;
+  background: var(--ground);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 7px 9px;
+  max-width: min(100%, 720px);
+}
+/* name / value / cell reference — the reference chip hugs its text, it is not a bar */
+.inputs > *:nth-child(3n + 2) { justify-self: end; }
+.inputs > *:nth-child(3n) { justify-self: start; }
+
+.card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 8px; }
+.raised { background: var(--raised); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--raised); color: var(--ink);
+  cursor: pointer; white-space: nowrap;
+}
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+/* a disabled link cannot be :disabled; the wrapper span carries the tooltip */
+a.btn[aria-disabled="true"] { pointer-events: none; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+.btn-ghost:hover:not(:disabled) { background: var(--hairline); border-color: transparent; }
+.btn-danger { color: var(--block-text); }
+
+.input, .select, .textarea {
+  background: var(--raised); color: var(--ink); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 8px; font-size: 12px; font-family: inherit;
+}
+.input:focus, .select:focus, .textarea:focus, .btn:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+
+table.dtable { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+table.dtable th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--surface); color: var(--ink-2);
+  font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 7px 7px; border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left;
+  user-select: none;
+}
+table.dtable th.sortable { cursor: pointer; }
+table.dtable th.sortable:hover { color: var(--ink); }
+table.dtable td { padding: 6px 7px; border-bottom: 1px solid var(--hairline); vertical-align: middle; white-space: nowrap; }
+table.dtable tr.row:hover td { background: color-mix(in srgb, var(--hairline) 50%, transparent); }
+table.dtable tr.row { cursor: pointer; }
+table.dtable tr.expanded td { background: color-mix(in srgb, var(--hairline) 60%, transparent); }
+th.r, td.r { text-align: right; }
+/* first column stays put while the wide grid scrolls horizontally */
+table.dtable td.sticky-col, table.dtable th.sticky-col { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+table.dtable th.sticky-col { z-index: 3; }
+table.dtable tr.row:hover td.sticky-col, table.dtable tr.expanded td.sticky-col { background: color-mix(in srgb, var(--hairline) 60%, var(--surface)); }
+
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+.tile { border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface); padding: 10px 14px; cursor: pointer; text-align: left; }
+.tile.active { border-color: var(--c); background: var(--cw); }
+.tile:hover { border-color: var(--c); }
+
+.tooltip-box { background: var(--tooltip-bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+
+details > summary { cursor: pointer; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+
+pre.json { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; white-space: pre-wrap; word-break: break-word; background: var(--ground); border: 1px solid var(--hairline); border-radius: 6px; padding: 8px; margin: 0; color: var(--ink-2); }
+
+.drawer { position: fixed; right: 0; top: 0; bottom: 0; width: min(520px, 100vw); background: var(--surface); border-left: 1px solid var(--border); z-index: 40; box-shadow: -8px 0 32px rgba(0,0,0,0.15); overflow: auto; }
+.modal-back { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 50; display: flex; align-items: center; justify-content: center; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; width: min(460px, 94vw); padding: 16px; }
+
+.hint[title] { cursor: help; }
+
+/* brief confirmation after a publish; takes its hue from the .disp-* class */
+.toast {
+  position: fixed; right: 16px; bottom: 16px; z-index: 60;
+  padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  background: var(--raised); color: var(--ct);
+  border: 1px solid color-mix(in srgb, var(--c) 45%, var(--border));
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}

@@ -1,0 +1,10 @@
+name: 20c_garbage_headers_only
+description: >
+  Both tabs carry only their header row. Zero activity rows is a legal empty quarter, but zero portfolio rows is not a book: must raise IngestError naming the empty Portfolio tab.
+garbage: headers_only
+workbook: 20c_garbage_headers_only.xlsx
+policy: 2026Q3
+expect:
+  ingest_ok: false
+  error_contains: ['zero', 'no portfolio rows', 'no rows', 'empty', '0 rows', 'no positions', 'no data']
+  no_crash: true

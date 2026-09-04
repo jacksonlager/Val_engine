@@ -1,0 +1,14 @@
+name: 27b_portfolio_unknown_status
+description: >
+  A Status the engine does not know ("Exited" — is that Acquired? Shut Down? still carrying
+  proceeds?) cannot be marked, so the reader refuses the whole file with a message that names
+  the row, the company and the value (SPEC §2.5: a hard failure must say what was found). Case
+  and whitespace variants ("active ", "SHUT DOWN") are folded and recorded (27); a new word is not.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+portfolio_mutations:
+  Kilnbrook: { Status: "Exited" }
+activity: []
+expect:
+  ingest_ok: false
+  error_contains: ["Exited"]

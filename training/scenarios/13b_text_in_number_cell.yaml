@@ -1,0 +1,21 @@
+name: 13b_text_in_number_cell
+description: >
+  Prose in a number cell ("approx fifty" in Post-Money / Deal Value). SPEC §2.3 says an
+  uncoercible value is an X-902-style BLOCK naming the cell; §2.5 lists it as a hard IngestError.
+  Either is accepted here — what is not accepted is silently reading it as blank and marking the
+  term sheet as if the value were simply missing. If the file ingests, the row must block and the
+  issue must name the company; if it raises, the message must name the cell or the company.
+base: HC_Mock_Portfolio_Data.xlsx
+policy: 2026Q3
+activity:
+  - { date: 2026-08-14, company: "Willowmere Compute", event: "Term Sheet Signed", detail: "Series B term sheet", value: "approx fifty",
+      notes: "Not closed; diligence underway, expected to close Q4." }
+expect:
+  ingest_ok: any
+  error_contains: ["approx fifty", "Willowmere", "Post-Money", "E2"]
+  no_crash: true
+  validation_must:
+    - { company: "Willowmere Compute", blocking: true, contains: "approx fifty" }
+  validation_blocking: true
+  companies:
+    Willowmere Compute:   { disposition: BLOCK }
