@@ -1,0 +1,43 @@
+{
+ "cash": [],
+ "cik": "0001639920",
+ "debt": [],
+ "name": "Spotify Technology S.A.",
+ "revenue_concept": null,
+ "revenue_quarterly": {},
+ "shares": [
+  {
+   "end": "2018-12-31",
+   "value": 180.856
+  },
+  {
+   "end": "2019-12-31",
+   "value": 184.326
+  },
+  {
+   "end": "2020-12-31",
+   "value": 190.213
+  },
+  {
+   "end": "2021-12-31",
+   "value": 192.152
+  },
+  {
+   "end": "2022-12-31",
+   "value": 193.293
+  },
+  {
+   "end": "2023-12-31",
+   "value": 197.143
+  },
+  {
+   "end": "2024-12-31",
+   "value": 203.844
+  },
+  {
+   "end": "2025-12-31",
+   "value": 205.833
+  }
+ ],
+ "shares_concept": "dei:EntityCommonStockSharesOutstanding"
+}

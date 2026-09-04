@@ -1,0 +1,27 @@
+version: 1
+note: >
+  Public companies whose EV/revenue multiple stands in for each workbook Sector. Chosen for
+  business-model similarity, US filers (10-K/10-Q, so EDGAR carries their facts), and a
+  liquid US listing the price source can quote. Changing a basket is a policy change: record
+  why in the commit message — including a ticker swap forced by the market rather than by
+  policy (a delisting, a take-private, a rename such as SQ -> XYZ), so a reviewer can tell a
+  mechanical fix from a change of view.
+defaults:
+  months_of_history: 36
+  min_constituents: 3          # fewer than this with data -> sector falls back to the fixture
+  price_source: yahoo          # yahoo | stooq  (--price-source / HC_PRICE_SOURCE override per run)
+  price_max_per_s: 2           # polite request rate against the price source
+sectors:
+  "AI/ML":            [PLTR, AI, SOUN, BBAI, NVDA]
+  "Developer Tools":  [GTLB, DDOG, MDB, NET, TEAM]
+  "Enterprise SaaS":  [CRM, NOW, WDAY, HUBS, ADBE]
+  "Fintech":          [XYZ, PYPL, AFRM, TOST, SOFI]
+  "Cybersecurity":    [CRWD, PANW, ZS, FTNT, OKTA]
+  "Data & Analytics": [SNOW, TDC, ESTC, DDOG, PLTR]
+  "Infrastructure":   [DOCN, NTNX, ANET, SMCI, NET]
+  "Healthcare":       [VEEV, DOCS, TDOC, HIMS, ISRG]
+  "Robotics":         [SYM, ISRG, TER, KTOS, AVAV]
+  "Climate & Energy": [ENPH, FSLR, TSLA, RUN, BE]
+  "Space & Defense":  [RKLB, PL, IRDM, KTOS, AVAV]
+  "Consumer":         [ABNB, DASH, UBER, DUOL, SPOT]
+overrides: {}                  # optional per-ticker fixes, e.g. T: { cik: 123, name: "..." }; CIK is normally resolved from company_tickers.json

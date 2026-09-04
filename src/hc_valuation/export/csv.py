@@ -33,3 +33,17 @@ def write_csvs(run: ValuationRun, directory: str | Path) -> list[Path]:
         _write(builder(run), p)
         written.append(p)
     return written
+
+
+def write_history_csv(history: dict, path: str | Path) -> Path:
+    """`mark_history.csv` — the per-company quarter-over-quarter archive (`api.history`)."""
+    from ..api.history import history_rows
+    headers, rows = history_rows(history)
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with p.open("w", newline="", encoding="utf-8") as fh:
+        w = _csv.writer(fh)
+        w.writerow(headers)
+        for row in rows:
+            w.writerow(["" if v is None else v for v in row])
+    return p

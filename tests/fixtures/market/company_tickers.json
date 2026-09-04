@@ -1,0 +1,22 @@
+{
+ "0": {
+  "cik_str": 1000001,
+  "ticker": "AAA",
+  "title": "Alpha Analytics Corp"
+ },
+ "1": {
+  "cik_str": 1000002,
+  "ticker": "BBB",
+  "title": "Beta Bio Holdings, Inc."
+ },
+ "2": {
+  "cik_str": 1000003,
+  "ticker": "CCC",
+  "title": "Gamma Global plc"
+ },
+ "3": {
+  "cik_str": 320193,
+  "ticker": "AAPL",
+  "title": "Apple Inc."
+ }
+}

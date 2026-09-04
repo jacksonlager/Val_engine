@@ -265,10 +265,103 @@ export interface Sources {
   companies: Record<string, SourceCompany>;
 }
 
+// ---------------------------------------------------------------- market feed (GET /api/market)
+// docs/market-feed.md §3 — the sector comps behind X-401/X-402 and M-080, with where they
+// came from. `provider` is what was asked for; `source` is what actually answered. In the
+// stub case `fetched_at` and `cache` are null and every constituent is a `fixture` with
+// numeric fields null.
+
+export type MarketProvider = "live" | "stub" | string;
+export type ConstituentStatus = "ok" | "error" | "fixture";
+
+export interface MarketConstituent {
+  ticker: string;
+  name: string | null;
+  cik: string | null;
+  status: ConstituentStatus;
+  price: number | null;
+  price_month: string | null; // "YYYY-MM"
+  shares_m: number | null;
+  market_cap_musd: number | null;
+  net_cash_musd: number | null;
+  ttm_revenue_musd: number | null;
+  revenue_through: string | null; // ISO date
+  ev_to_revenue: number | null;
+  error: string | null;
+}
+
+export interface MarketSector {
+  sector: string;
+  positions: number; // portfolio companies in this sector
+  ev_to_revenue: number; // the value in force at as_of
+  as_of_month: string; // "YYYY-MM"
+  source: string; // "live:edgar+yahoo@2026-09" (live:edgar+<price source>) | "fixture:pitchbook@2026-09"
+  live: boolean;
+  prior_quarter: number | null; // three months earlier
+  qoq_pct: number | null; // fraction, e.g. 0.076
+  history: Record<string, number>; // ≤ 36 months, ascending "YYYY-MM" keys
+  constituents: MarketConstituent[];
+}
+
+export interface MarketCacheInfo {
+  dir: string;
+  hit: boolean;
+  refreshable: boolean;
+}
+
+export interface MarketReport {
+  provider: MarketProvider;
+  source: string; // manifest label, e.g. "live:edgar+yahoo" (live:edgar+<price source>) or "stub"
+  reached_live: boolean;
+  as_of: string; // ISO date
+  fetched_at: string | null; // ISO datetime; null when the fixture answered
+  cache: MarketCacheInfo | null;
+  used_by: { multiple_mode: string; calibration_enabled: boolean; note: string };
+  baskets_file: string;
+  errors: string[];
+  sectors: MarketSector[];
+}
+
+// ---------------------------------------------------------------- mark history (api/history.py)
+
+/** Where a point in a company's quarter-over-quarter archive came from.
+    backfill  — data/mark_history.yaml, HC's own records for quarters before the engine
+    published — the publish ledger (data/published/<slug>.json): the mark executives were shown
+    prior     — this run's workbook Prior Mark, i.e. the previous quarter's close as carried in
+    live      — this run's booked mark, not (or no longer) matching a published snapshot */
+export type MarkHistorySource = "backfill" | "published" | "prior" | "live";
+
+export interface MarkHistoryPoint {
+  quarter: string; // "Q3 2026"
+  slug: string; // "2026Q3"
+  mark: number; // booked mark, $M (after any override)
+  invested: number | null; // cumulative invested, $M
+  realized: number | null; // cumulative realized, $M
+  moic: number | null; // (mark + realized) / invested
+  status: string | null;
+  disposition: Disposition | null;
+  source: MarkHistorySource;
+  overridden: boolean;
+  run_id: string | null;
+  published_at: string | null; // ISO datetime
+  note: string | null; // a disagreement between sources, or the backfill entry's own note
+}
+
+export interface MarkHistory {
+  as_of_quarter: string;
+  quarters: string[]; // every quarter any company has a point for, ascending
+  counts: Record<MarkHistorySource, number>;
+  backfill_file: string | null; // set only when the backfill file contributed points
+  errors: string[];
+  companies: Record<string, MarkHistoryPoint[]>; // ascending by quarter
+}
+
 declare global {
   interface Window {
     __HC_RUN__?: ValuationRun;
     __HC_PROPOSALS__?: TreatmentProposal[];
     __HC_SOURCES__?: Sources;
+    __HC_MARKET__?: MarketReport;
+    __HC_HISTORY__?: MarkHistory;
   }
 }

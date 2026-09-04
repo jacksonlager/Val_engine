@@ -139,6 +139,11 @@ class StubCompsProvider:
             return {}
         return {k: float(v) for k, v in it.get("history", {}).get("series", {}).items()}
 
+    def sample_constituents(self, sector: str) -> list[str]:
+        """The fixture's `sampleConstituents` tickers — shown, never priced, by the market report."""
+        it = self._items.get(sector)
+        return [str(t) for t in (it or {}).get("sampleConstituents", [])]
+
     def sector_multiples(self, as_of: date) -> dict[str, SectorComp]:
         out: dict[str, SectorComp] = {}
         for sector in self._items:

@@ -1,0 +1,218 @@
+{
+ "ABNB": {
+  "cik": 1559720,
+  "title": "Airbnb, Inc."
+ },
+ "ADBE": {
+  "cik": 796343,
+  "title": "ADOBE INC."
+ },
+ "AFRM": {
+  "cik": 1820953,
+  "title": "Affirm Holdings, Inc."
+ },
+ "AI": {
+  "cik": 1577526,
+  "title": "C3.ai, Inc."
+ },
+ "ANET": {
+  "cik": 1596532,
+  "title": "Arista Networks, Inc."
+ },
+ "AVAV": {
+  "cik": 1368622,
+  "title": "AeroVironment Inc"
+ },
+ "BBAI": {
+  "cik": 1836981,
+  "title": "BigBear.ai Holdings, Inc."
+ },
+ "BE": {
+  "cik": 1664703,
+  "title": "Bloom Energy Corp"
+ },
+ "CFLT": {
+  "cik": null,
+  "title": null
+ },
+ "CRM": {
+  "cik": 1108524,
+  "title": "Salesforce, Inc."
+ },
+ "CRWD": {
+  "cik": 1535527,
+  "title": "CrowdStrike Holdings, Inc."
+ },
+ "DASH": {
+  "cik": 1792789,
+  "title": "DoorDash, Inc."
+ },
+ "DDOG": {
+  "cik": 1561550,
+  "title": "Datadog, Inc."
+ },
+ "DOCN": {
+  "cik": 1582961,
+  "title": "DigitalOcean Holdings, Inc."
+ },
+ "DOCS": {
+  "cik": 1516513,
+  "title": "Doximity, Inc."
+ },
+ "DUOL": {
+  "cik": 1562088,
+  "title": "Duolingo, Inc."
+ },
+ "ENPH": {
+  "cik": 1463101,
+  "title": "Enphase Energy, Inc."
+ },
+ "ESTC": {
+  "cik": 1707753,
+  "title": "Elastic N.V."
+ },
+ "FSLR": {
+  "cik": 1274494,
+  "title": "FIRST SOLAR, INC."
+ },
+ "FTNT": {
+  "cik": 1262039,
+  "title": "Fortinet, Inc."
+ },
+ "GTLB": {
+  "cik": 1653482,
+  "title": "Gitlab Inc."
+ },
+ "HIMS": {
+  "cik": 1773751,
+  "title": "Hims & Hers Health, Inc."
+ },
+ "HUBS": {
+  "cik": 1404655,
+  "title": "HUBSPOT INC"
+ },
+ "IRDM": {
+  "cik": 1418819,
+  "title": "Iridium Communications Inc."
+ },
+ "ISRG": {
+  "cik": 1035267,
+  "title": "INTUITIVE SURGICAL INC"
+ },
+ "KTOS": {
+  "cik": 1069258,
+  "title": "KRATOS DEFENSE & SECURITY SOLUTIONS, INC."
+ },
+ "MDB": {
+  "cik": 1441816,
+  "title": "MongoDB, Inc."
+ },
+ "NET": {
+  "cik": 1477333,
+  "title": "Cloudflare, Inc."
+ },
+ "NOW": {
+  "cik": 1373715,
+  "title": "ServiceNow, Inc."
+ },
+ "NTNX": {
+  "cik": 1618732,
+  "title": "Nutanix, Inc."
+ },
+ "NVDA": {
+  "cik": 1045810,
+  "title": "NVIDIA CORP"
+ },
+ "OKTA": {
+  "cik": 1660134,
+  "title": "Okta, Inc."
+ },
+ "PANW": {
+  "cik": 1327567,
+  "title": "Palo Alto Networks Inc"
+ },
+ "PL": {
+  "cik": 1836833,
+  "title": "Planet Labs PBC"
+ },
+ "PLTR": {
+  "cik": 1321655,
+  "title": "Palantir Technologies Inc."
+ },
+ "PYPL": {
+  "cik": 1633917,
+  "title": "PayPal Holdings, Inc."
+ },
+ "RKLB": {
+  "cik": 1819994,
+  "title": "Rocket Lab Corp"
+ },
+ "RUN": {
+  "cik": 1469367,
+  "title": "Sunrun Inc."
+ },
+ "SMCI": {
+  "cik": 1375365,
+  "title": "Super Micro Computer, Inc."
+ },
+ "SNOW": {
+  "cik": 1640147,
+  "title": "Snowflake Inc."
+ },
+ "SOFI": {
+  "cik": 1818874,
+  "title": "SoFi Technologies, Inc."
+ },
+ "SOUN": {
+  "cik": 1840856,
+  "title": "SOUNDHOUND AI, INC."
+ },
+ "SPOT": {
+  "cik": 1639920,
+  "title": "Spotify Technology S.A."
+ },
+ "SQ": {
+  "cik": 1512673,
+  "title": "Block, Inc."
+ },
+ "SYM": {
+  "cik": 1837240,
+  "title": "Symbotic Inc."
+ },
+ "TDOC": {
+  "cik": 1477449,
+  "title": "Teladoc Health, Inc."
+ },
+ "TEAM": {
+  "cik": 1650372,
+  "title": "Atlassian Corp"
+ },
+ "TER": {
+  "cik": 97210,
+  "title": "TERADYNE, INC"
+ },
+ "TOST": {
+  "cik": 1650164,
+  "title": "Toast, Inc."
+ },
+ "TSLA": {
+  "cik": 1318605,
+  "title": "Tesla, Inc."
+ },
+ "UBER": {
+  "cik": 1543151,
+  "title": "Uber Technologies, Inc"
+ },
+ "VEEV": {
+  "cik": 1393052,
+  "title": "VEEVA SYSTEMS INC"
+ },
+ "WDAY": {
+  "cik": 1327811,
+  "title": "Workday, Inc."
+ },
+ "ZS": {
+  "cik": 1713683,
+  "title": "Zscaler, Inc."
+ }
+}

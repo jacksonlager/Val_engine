@@ -1,0 +1,507 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table";
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import type { ConstituentStatus, MarketConstituent, MarketReport, MarketSector } from "../types";
+import { loadMarket, type Mode } from "../lib/api";
+import { isoDateTime, mult, musd, pct, signClass } from "../lib/format";
+import { useChartTheme } from "../lib/theme";
+import { SectionTitle, useAsync } from "../components/ui";
+
+const MONO = "IBM Plex Mono, ui-monospace, monospace";
+
+// ---------------------------------------------------------------- chips
+
+/** "live:edgar+yahoo" (or "live:edgar+yahoo@2026-09") -> ["EDGAR", "Yahoo"]: the parts of a live label, for display. */
+function liveParts(source: string | undefined): string[] {
+  const body = (source ?? "").replace(/^live:/, "").replace(/@.*$/, "");
+  const parts = body ? body.split("+") : [];
+  return parts.map((p) => (p.toLowerCase() === "edgar" ? "EDGAR" : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()));
+}
+
+/** Where a number came from. Green only when a live source actually answered; the label names the sources in `source`. */
+function SourceChip({ live, long = false, source }: { live: boolean; long?: boolean; source?: string }) {
+  const parts = liveParts(source);
+  const names = parts.length ? parts.join(" + ") : "EDGAR + prices";
+  const prices = parts.length > 1 ? parts.slice(1).join(" + ") : "the price source";
+  return live ? (
+    <span className="chip disp-CLEAR" title={`Priced from SEC EDGAR XBRL frames and ${prices} month-end closes`}>
+      {long ? `LIVE · ${names}` : "LIVE"}
+    </span>
+  ) : (
+    <span className="chip disp-NONE" title="Fixture: the PitchBook-shaped stub shipped with the engine (data/market_multiples.json)">
+      {long ? "FIXTURE · PitchBook-shaped stub" : "FIXTURE"}
+    </span>
+  );
+}
+
+function StatusChip({ s }: { s: ConstituentStatus }) {
+  const cls = s === "ok" ? "disp-CLEAR" : s === "error" ? "disp-BLOCK" : "disp-NONE";
+  return <span className={`chip ${cls}`}>{s}</span>;
+}
+
+// ---------------------------------------------------------------- header strip
+
+function Meta({ k, children }: { k: string; children: React.ReactNode }) {
+  return (
+    <span className="text-[11px] text-muted whitespace-nowrap">
+      {k} <span className="mono text-ink2">{children}</span>
+    </span>
+  );
+}
+
+function HeaderStrip({ rep }: { rep: MarketReport }) {
+  const [showErrors, setShowErrors] = useState(false);
+  const n = rep.errors.length;
+  return (
+    <div className="card p-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <SourceChip live={rep.reached_live} long source={rep.source} />
+        <Meta k="asked">{rep.provider}</Meta>
+        <Meta k="answered">{rep.source}</Meta>
+        <span className="border-l border-line h-4" aria-hidden />
+        <Meta k="as-of">{rep.as_of}</Meta>
+        <Meta k="fetched">{rep.fetched_at ? isoDateTime(rep.fetched_at) : "no fetch — fixture"}</Meta>
+        <Meta k="cache">
+          {rep.cache ? (
+            <>
+              {rep.cache.dir} <span className={rep.cache.hit ? "text-[var(--clear-text)]" : "text-[var(--review-text)]"}>{rep.cache.hit ? "hit" : "miss"}</span>
+            </>
+          ) : (
+            "—"
+          )}
+        </Meta>
+        <Meta k="baskets">{rep.baskets_file}</Meta>
+      </div>
+      <p className="text-[11px] text-muted mt-2">
+        {rep.used_by.note}{" "}
+        <span className="mono">
+          multiple.mode={rep.used_by.multiple_mode} · calibration={rep.used_by.calibration_enabled ? "on" : "off"}
+        </span>
+      </p>
+      {n > 0 && (
+        <div className="mt-2 text-[12px]">
+          <button
+            className="inline-flex items-center gap-1.5 text-[var(--review-text)] hover:underline"
+            onClick={() => setShowErrors((v) => !v)}
+            aria-expanded={showErrors}
+          >
+            <span className="chip disp-REVIEW no-dot">{n}</span>
+            {n === 1 ? "constituent could not be priced" : "constituents could not be priced"}
+            <span className="text-muted text-[11px]">{showErrors ? "hide" : "show"}</span>
+          </button>
+          {showErrors && (
+            <ul className="mt-1.5 ml-1 space-y-0.5 text-[11px] text-ink2 mono">
+              {rep.errors.map((e, i) => (
+                <li key={i} className="pl-2 border-l-2 border-[var(--review)]">
+                  {e}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- sector table
+
+const scol = createColumnHelper<MarketSector>();
+
+function okCount(s: MarketSector): { ok: number; total: number; sampled: boolean } {
+  const total = s.constituents.length;
+  const ok = s.constituents.filter((c) => c.status === "ok").length;
+  return { ok, total, sampled: total > 0 && s.constituents.every((c) => c.status === "fixture") };
+}
+
+function SectorTable({ sectors, selected, onSelect }: { sectors: MarketSector[]; selected: string | null; onSelect: (s: string) => void }) {
+  const [sorting, setSorting] = useState<SortingState>([{ id: "positions", desc: true }]);
+  const columns = useMemo<ColumnDef<MarketSector, any>[]>(
+    () => [
+      scol.accessor("sector", { header: "Sector", cell: (i) => <span className="font-medium">{i.getValue()}</span> }),
+      scol.accessor("positions", { header: "Positions", meta: { r: true }, cell: (i) => <span className="num">{i.getValue()}</span> }),
+      scol.accessor("ev_to_revenue", { header: "EV/Revenue", meta: { r: true }, cell: (i) => <span className="mono">{mult(i.getValue(), 1)}</span> }),
+      scol.accessor("qoq_pct", {
+        header: "QoQ",
+        meta: { r: true },
+        sortUndefined: "last",
+        cell: (i) => <span className={`num ${signClass(i.getValue())}`}>{pct(i.getValue(), 1, true)}</span>,
+      }),
+      scol.accessor("as_of_month", { header: "As-of", cell: (i) => <span className="mono">{i.getValue()}</span> }),
+      scol.accessor("live", { header: "Source", cell: (i) => <SourceChip live={i.getValue()} source={i.row.original.source} /> }),
+      scol.accessor((s) => okCount(s).ok, {
+        id: "ok",
+        header: "Constituents",
+        meta: { r: true },
+        cell: (i) => {
+          const { ok, total, sampled } = okCount(i.row.original);
+          return sampled ? (
+            <span className="num text-muted" title="Sample constituents named by the fixture; not priced">
+              {total} sample
+            </span>
+          ) : (
+            <span className="num" title={`${ok} of ${total} constituents priced`}>
+              {ok}/{total}
+            </span>
+          );
+        },
+      }),
+    ],
+    [],
+  );
+  const table = useReactTable({
+    data: sectors,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (r) => r.sector,
+  });
+  return (
+    <div className="card overflow-x-auto">
+      <table className="dtable text-[12px]">
+        <thead>
+          {table.getHeaderGroups().map((hg) => (
+            <tr key={hg.id}>
+              {hg.headers.map((h) => {
+                const r = (h.column.columnDef.meta as { r?: boolean } | undefined)?.r;
+                const sorted = h.column.getIsSorted();
+                return (
+                  <th
+                    key={h.id}
+                    className={`sortable ${r ? "r" : ""}`}
+                    onClick={h.column.getToggleSortingHandler()}
+                    aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none"}
+                  >
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                    {sorted && <span className="ml-1 text-accent">{sorted === "asc" ? "↑" : "↓"}</span>}
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row) => {
+            const s = row.original;
+            const isSel = selected === s.sector;
+            return (
+              <tr
+                key={row.id}
+                className={`row ${isSel ? "expanded" : ""}`}
+                onClick={() => onSelect(s.sector)}
+                aria-selected={isSel}
+                style={isSel ? { boxShadow: "inset 3px 0 0 var(--accent)" } : undefined}
+              >
+                {row.getVisibleCells().map((cell) => {
+                  const r = (cell.column.columnDef.meta as { r?: boolean } | undefined)?.r;
+                  return (
+                    <td key={cell.id} className={r ? "r" : ""}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- history chart
+
+interface Point {
+  month: string;
+  v: number;
+}
+
+function HistoryChart({ sector }: { sector: MarketSector }) {
+  const th = useChartTheme();
+  const data = useMemo<Point[]>(
+    () =>
+      Object.entries(sector.history)
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([month, v]) => ({ month, v })),
+    [sector],
+  );
+  const n = data.length;
+  const values = data.map((d) => d.v);
+  const lo = Math.min(...values, sector.ev_to_revenue);
+  const hi = Math.max(...values, sector.ev_to_revenue);
+  // nice y ticks: a step from the 1-2-5 series giving four to six gridlines, padded 12% each side
+  const span = Math.max(hi - lo, 0.4);
+  const step = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20].find((st) => (span * 1.24) / st <= 6) ?? 50;
+  const floor = Math.max(0, Math.floor((lo - span * 0.12) / step) * step);
+  const ceil = Math.ceil((hi + span * 0.12) / step) * step;
+  const yTicks: number[] = [];
+  for (let y = floor; y <= ceil + 1e-9; y += step) yTicks.push(Number(y.toFixed(2)));
+  const yd = step < 1 ? 1 : 0;
+  // ~6 month labels, the latest month always among them
+  const ticks = data.filter((_, i) => (n - 1 - i) % 6 === 0).map((d) => d.month);
+  const last = data[n - 1];
+
+  if (n === 0) return <div className="text-[12px] text-muted p-6 text-center">No history for this sector.</div>;
+
+  return (
+    <div style={{ height: 240 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 12, right: 32, left: 0, bottom: 4 }}>
+          <CartesianGrid vertical={false} stroke={th.grid} strokeWidth={1} />
+          <XAxis
+            dataKey="month"
+            ticks={ticks}
+            interval={0}
+            tick={{ fill: th.muted, fontSize: 11, fontFamily: MONO }}
+            axisLine={{ stroke: th.axis }}
+            tickLine={false}
+            tickMargin={6}
+          />
+          <YAxis
+            domain={[floor, ceil]}
+            ticks={yTicks}
+            allowDataOverflow
+            tick={{ fill: th.muted, fontSize: 11, fontFamily: MONO }}
+            axisLine={false}
+            tickLine={false}
+            width={48}
+            tickFormatter={(v: number) => mult(v, yd)}
+          />
+          <ReferenceLine y={sector.ev_to_revenue} stroke={th.axis} strokeWidth={1} />
+          <Tooltip
+            cursor={{ stroke: th.axis, strokeWidth: 1 }}
+            isAnimationActive={false}
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+              const p = payload[0].payload as Point;
+              return (
+                <div className="tooltip-box">
+                  <div className="mono text-muted text-[11px]">{p.month}</div>
+                  <div className="num">
+                    <strong>{mult(p.v, 2)}</strong> <span className="text-muted">EV/Revenue</span>
+                  </div>
+                </div>
+              );
+            }}
+          />
+          <Line
+            type="monotone"
+            dataKey="v"
+            stroke={th.series1}
+            strokeWidth={2}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            isAnimationActive={false}
+            dot={(p: { cx?: number; cy?: number; index?: number }) =>
+              p.index === n - 1 && p.cx !== undefined && p.cy !== undefined ? (
+                <circle key="end" cx={p.cx} cy={p.cy} r={4} fill={th.series1} stroke={th.surface} strokeWidth={2} />
+              ) : (
+                <g key={p.index} />
+              )
+            }
+            activeDot={{ r: 4, fill: th.series1, stroke: th.surface, strokeWidth: 2 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+      <span className="sr-only">
+        {sector.sector} EV/Revenue, {data[0].month} to {last.month}, currently {mult(sector.ev_to_revenue, 1)}
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- constituents
+
+const ccol = createColumnHelper<MarketConstituent>();
+
+function Num({ v, d = 1, x = false }: { v: number | null; d?: number; x?: boolean }) {
+  return <span className={x ? "mono" : "num"}>{x ? mult(v, d) : musd(v, d)}</span>;
+}
+
+function ConstituentsTable({ sector }: { sector: MarketSector }) {
+  const columns = useMemo<ColumnDef<MarketConstituent, any>[]>(
+    () => [
+      ccol.accessor("ticker", { header: "Ticker", cell: (i) => <span className="mono font-medium">{i.getValue()}</span> }),
+      ccol.accessor("name", {
+        header: "Name",
+        cell: (i) => {
+          const c = i.row.original;
+          return (
+            <span className="block max-w-[420px]">
+              <span className="block truncate max-w-[260px]" title={c.name ?? undefined}>
+                {c.name ?? <span className="text-muted">—</span>}
+              </span>
+              {c.error && <span className="block text-[11px] text-muted whitespace-normal">{c.error}</span>}
+            </span>
+          );
+        },
+      }),
+      ccol.accessor("status", { header: "Status", cell: (i) => <StatusChip s={i.getValue()} /> }),
+      ccol.accessor("price", { header: "Price", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={2} /> }),
+      ccol.accessor("shares_m", { header: "Shares (M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} /> }),
+      ccol.accessor("market_cap_musd", { header: "Market cap ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
+      ccol.accessor("net_cash_musd", { header: "Net cash ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
+      ccol.accessor("ttm_revenue_musd", { header: "TTM revenue ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
+      ccol.accessor("revenue_through", { header: "Revenue through", cell: (i) => <span className="mono">{i.getValue() ?? "—"}</span> }),
+      ccol.accessor("ev_to_revenue", { header: "EV/Rev", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} x /> }),
+    ],
+    [],
+  );
+  const table = useReactTable({
+    data: sector.constituents,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: (r, i) => `${r.ticker}-${i}`,
+  });
+  return (
+    <div className="overflow-x-auto -mx-4 px-4">
+      <table className="dtable text-[12px]">
+        <thead>
+          {table.getHeaderGroups().map((hg) => (
+            <tr key={hg.id}>
+              {hg.headers.map((h) => {
+                const r = (h.column.columnDef.meta as { r?: boolean } | undefined)?.r;
+                return (
+                  <th key={h.id} className={r ? "r" : ""}>
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.length === 0 && (
+            <tr>
+              <td colSpan={columns.length} className="text-muted text-center py-4">
+                No constituents listed for this sector.
+              </td>
+            </tr>
+          )}
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => {
+                const r = (cell.column.columnDef.meta as { r?: boolean } | undefined)?.r;
+                return (
+                  <td key={cell.id} className={`${r ? "r" : ""} ${row.original.status === "error" ? "text-ink2" : ""}`} style={{ verticalAlign: "top" }}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- view
+
+export function MarketView({ mode }: { mode: Mode }) {
+  const { data: rep, error, loading } = useAsync(() => loadMarket(mode), [mode]);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  // default to the sector with the most portfolio positions (the API's first row)
+  useEffect(() => {
+    if (rep && (selected === null || !rep.sectors.some((s) => s.sector === selected))) setSelected(rep.sectors[0]?.sector ?? null);
+  }, [rep, selected]);
+
+  if (error)
+    return (
+      <div className="p-8 max-w-[640px] mx-auto">
+        <h1 className="font-semibold text-[16px] mb-2">Could not load the market feed</h1>
+        <p className="text-ink2 mono text-[12px] mb-4">{error}</p>
+        <p className="text-[12px] text-muted">
+          {mode === "static" ? (
+            <>
+              This export predates the market feed. Rebuild it with <span className="mono">hc-valuation build</span> on an engine that inlines{" "}
+              <span className="mono">window.__HC_MARKET__</span>, or serve the dashboard with <span className="mono">hc-valuation run</span>.
+            </>
+          ) : (
+            <>
+              The server did not answer <span className="mono">GET /api/market</span>. It may predate the market feed; restart it with{" "}
+              <span className="mono">hc-valuation run --provider live</span> (or <span className="mono">stub</span>) to expose the sector comps.
+            </>
+          )}
+        </p>
+      </div>
+    );
+  if (loading || !rep) return <div className="p-8 text-muted">Loading market feed…</div>;
+
+  const sector = rep.sectors.find((s) => s.sector === selected) ?? rep.sectors[0];
+  const liveCount = rep.sectors.filter((s) => s.live).length;
+
+  return (
+    <div className="space-y-4">
+      <HeaderStrip rep={rep} />
+
+      {rep.sectors.length === 0 ? (
+        <div className="card p-6 text-center text-muted text-[12px]">No sectors in the market report.</div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+          <div>
+            <SectionTitle
+              right={
+                <>
+                  {liveCount}/{rep.sectors.length} sectors live · EV / TTM revenue at {rep.as_of}
+                </>
+              }
+            >
+              Sector comps
+            </SectionTitle>
+            <SectorTable sectors={rep.sectors} selected={sector?.sector ?? null} onSelect={setSelected} />
+          </div>
+
+          {sector && (
+            <div className="min-w-0">
+              <div className="card p-4">
+                <SectionTitle
+                  right={
+                    <span className="num">
+                      now <span className="mono text-ink2">{mult(sector.ev_to_revenue, 1)}</span> · prior quarter{" "}
+                      <span className="mono text-ink2">{mult(sector.prior_quarter, 1)}</span> ·{" "}
+                      <span className={signClass(sector.qoq_pct)}>{pct(sector.qoq_pct, 1, true)}</span>
+                    </span>
+                  }
+                >
+                  <span className="flex items-center gap-2">
+                    {sector.sector} · EV/Revenue history
+                    <SourceChip live={sector.live} source={sector.source} />
+                  </span>
+                </SectionTitle>
+                <p className="text-[11px] text-muted mb-1 num">
+                  {Object.keys(sector.history).length} months through {sector.as_of_month} · source <span className="mono">{sector.source}</span>.
+                  Hairline marks the value in force at as-of.
+                </p>
+                <HistoryChart sector={sector} />
+              </div>
+            </div>
+          )}
+
+          {sector && (
+            <div className="card p-4 xl:col-span-2 min-w-0">
+              <SectionTitle right={<>{okCount(sector).sampled ? "sample basket · not priced" : `${okCount(sector).ok}/${okCount(sector).total} priced`}</>}>
+                Constituents · {sector.sector}
+              </SectionTitle>
+              <ConstituentsTable sector={sector} />
+              <p className="text-[11px] text-muted mt-2">
+                EV = price × shares − net cash; EV/Revenue = EV / trailing-twelve-month revenue (SEC XBRL frames).
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

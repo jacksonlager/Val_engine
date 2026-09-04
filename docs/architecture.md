@@ -22,7 +22,7 @@ flowchart TB
 
     subgraph MKT["Market data connectors (impure)"]
         STUB["stubs<br/>data/mock_responses/*"]
-        LIVE["live<br/>Stooq, free, no key"]
+        LIVE["live<br/>EDGAR + Yahoo/Stooq, free, no key"]
         ASM["connectors.assemble_market_data()<br/>→ MarketData value object + source label"]
         STUB --> ASM
         LIVE --> ASM
@@ -52,7 +52,7 @@ flowchart TB
     end
 
     subgraph REV["Review surface"]
-        API["api/app.py  FastAPI<br/>GET /api/run · /api/companies/{name} · /api/rules · /api/proposals<br/>POST /api/overrides · /api/proposals/{id}/decision · /api/rerun"]
+        API["api/app.py  FastAPI<br/>GET /api/run · /api/companies/{name} · /api/rules · /api/proposals · /api/history<br/>POST /api/overrides · /api/proposals/{id}/decision · /api/rerun"]
         UI["frontend/ (React, built into api/static)<br/>Queue · Companies · Movement · Funds · Open items · Proposals"]
         STATIC["export/static_report<br/>single file, window.__HC_RUN__, no server"]
         API --> UI
@@ -107,7 +107,7 @@ flowchart TB
 
 Read it left to right as a quarter: the workbook lands, it is read and checked, market data is assembled into a value object, the pure engine turns snapshot + feed + market + ledger + policy into a `ValuationRun`, anything the engine could not recognise goes to the adjudicator for a draft, the review surface shows the queue, the committee decides, and the decisions become inputs to the next run (the ledger) or the next quarter (a promoted rule, the emitted Portfolio tab, the carried open items). Nothing is booked on the path from engine to output without passing the gate.
 
-Status of this checkout: every module in the diagram is present — `config.py`, `ingest/`, `engine/`, `pipeline.py`, `connectors/` (protocols, vendor-shaped stubs, one live Stooq feed with fall-back), `adjudication/` (schema, DSL check, proposer, promotion), `export/` (workbook, next-quarter snapshot, single-file static report), `api/app.py`, `cli.py`, the frontend and its built bundle in `api/static/`. Each work package landed behind its own tests (`tests/test_ingest.py`, `test_golden.py`, `test_determinism.py`, `test_rules.py`, `test_edge_cases.py`, `test_coverage.py`, `test_connectors.py`, `test_adjudication.py`, `test_export.py`, `test_api.py`, `test_cli.py`).
+Status of this checkout: every module in the diagram is present — `config.py`, `ingest/`, `engine/`, `pipeline.py`, `connectors/` (protocols, vendor-shaped stubs, one live EDGAR + Yahoo/Stooq feed with fall-back), `adjudication/` (schema, DSL check, proposer, promotion), `export/` (workbook, next-quarter snapshot, single-file static report), `api/app.py`, `cli.py`, the frontend and its built bundle in `api/static/`. Each work package landed behind its own tests (`tests/test_ingest.py`, `test_golden.py`, `test_determinism.py`, `test_rules.py`, `test_edge_cases.py`, `test_coverage.py`, `test_connectors.py`, `test_adjudication.py`, `test_export.py`, `test_api.py`, `test_cli.py`).
 
 ---
 
@@ -117,6 +117,7 @@ Status of this checkout: every module in the diagram is present — `config.py`,
 |---|---|---|
 | A new workbook landing | `pipeline.execute(RunPaths.default(workbook=...))` | The default path is `data/HC_Mock_Portfolio_Data.xlsx`; the activity sheet is located by the regex in `schema.activity_sheet_pattern` (`^Q[1-4] \d{4} Activity$`), so a Q4 tab loads with no code change. |
 | CLI | `hc-valuation run \| build \| validate \| export \| rules \| version` | `run` serves the dashboard on the API; `build` writes the static report and the export set; `validate` runs ingest + X-9xx and exits non-zero on a blocking issue; `export` writes the review workbook and CSVs; `rules` lists the registry. The console script is declared in `pyproject.toml`. |
+| Mark history | `GET /api/history`, `hc-valuation history`, `mark_history.csv` | `api/history.py` assembles each company's quarter-over-quarter booked marks from the publish ledger (`data/published/`), the optional backfill file (`data/mark_history.yaml`) and the current run (workbook `Prior Mark` + live booked mark), tagging every point with its source and noting disagreements; the review tool's detail panel charts it. |
 | API rerun | `POST /api/rerun` | Re-executes the pipeline against the current ledger and policy — this is how an override recorded through the UI becomes a new `booked_nav`. |
 
 `pipeline.execute()` is the one impure orchestrator: load policy → read workbook → validate → assemble market data → load ledger and carried open items → `run_valuation(...)` → adjudicate M-999 halts if `adjudication.enabled`. It returns `PipelineResult(run, config, paths, market, proposals)`. The `generated_at` timestamp is passed *in* (the engine never reads the clock), and the run id is `sha256(input_sha256 | policy_version | engine_version)[:12]`, so the same workbook under the same policy always names the same run.
@@ -133,9 +134,9 @@ The engine consumes one `MarketData` value object (`engine/models.py`): `quotes`
 | S&P Capital IQ | Public index multiples as a cross-check on sector comps; listed-company market caps (`quotes`) for M-040 | M-040 (9/30 close), X-401/402 | Fixture in `data/mock_responses/sp_capiq/index_multiples.json`; the IPO quote is currently seeded to the IPO print by the stub and says so in `MarketQuote.source` |
 | Foresight | Company operating metrics as a time series (ARR, growth, burn, headcount, margin) | Would replace the workbook's single-point ARR/runway columns for X-3xx and enable the rules deliberately not written (margin trend, headcount change) | Fixture in `data/mock_responses/foresight/company_metrics.json`; not read by the engine — the workbook columns are the source today |
 | AlphaSense | News and filing signals per company | Would feed X-105-style screens with external text; never a number | Fixture in `data/mock_responses/alphasense/news_signals.json`; not read by the engine |
-| Stooq (live) | Free daily closes, no API key | M-040 price source when `provider=live` | `connectors/live.py`, with fall-back to the stub on network failure |
+| EDGAR + Yahoo/Stooq (live, free) | Sector EV/TTM-revenue multiples now and by month (`comps`, `comp_history`) computed from SEC XBRL fundamentals (revenue, shares, net cash) and daily closes from a pluggable price source — Yahoo Finance's chart API by default, Stooq as the alternative (`--price-source` / `HC_PRICE_SOURCE`) — for the public baskets in `rules/comps_baskets.yaml` | The same slots as PitchBook: X-401/402 in `relative_to_comps` mode, M-080 calibration | `connectors/edgar.py`, `prices.py`, `stooq.py`, `cache.py`, `live.py` (`PublicCompsProvider`); cached under `data/market_cache/<as_of>/` (`prices/` keyed by `meta.price_source`); per-constituent fall-back to the fixture below `min_constituents`; a browser-verification page from a source is reported, never bypassed; the report behind `GET /api/market` and `hc-valuation market` — see `docs/market-feed.md` |
 
-Provider selection is an explicit argument, else the `HC_MARKET_PROVIDER` environment variable, else `stub`; `live` tries Stooq and falls back to the stub on any failure, and the manifest label then says `stub` rather than pretending. Swapping stub → live changes no line in `engine/`.
+Provider selection is an explicit argument (`--provider`), else the `HC_MARKET_PROVIDER` environment variable, else `stub`. `live` (alias `stooq`) reads `data/market_cache/<measurement date>/` and makes no network call when the cache is complete (the manifest label is `live:edgar+<price source>`, e.g. `live:edgar+yahoo`); otherwise it fetches what is missing (`--refresh-market` refetches everything). Every failure is caught per constituent and listed in the report; a sector with fewer than `min_constituents` priced names keeps the fixture value, and if no sector reaches live the manifest label says `stub` rather than pretending — a live label never sits over fixture numbers. `pitchbook` is reserved for the vendor connector and reports "not configured" until keys exist. `assemble_market_data` returns the `MarketData`, the manifest label and the market report together (`MarketAssembly`); swapping stub → live changes no line in `engine/`.
 
 ---
 

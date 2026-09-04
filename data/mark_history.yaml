@@ -1,0 +1,25 @@
+# Optional backfill of quarterly marks from BEFORE the engine's first run.
+#
+# The review tool's per-company history chart is assembled from three places, in rising
+# authority: this file (tagged "backfill"), the publish ledger in data/published/ (tagged
+# "published" — one point per company per released quarter, extended automatically every
+# time a quarter is published), and the current run (the workbook's Prior Mark for the
+# previous quarter, the booked mark for this one). Nothing here is read by the engine
+# itself; it only lengthens the chart's history for quarters that predate the tool.
+#
+# Every entry is shown tagged "backfill" in the review tool. Leave `companies: {}` empty
+# rather than inventing numbers.
+#
+# Shape (one list per company, one entry per quarter; `mark` is the booked mark in $M):
+#
+#   companies:
+#     Aravine:
+#       - quarter: Q4 2025          # required, 'Qn YYYY'
+#         mark: 5.2                 # required, booked mark ($M)
+#         invested: 6.0             # optional, cumulative invested ($M) — enables the cost line and MOIC
+#         realized: 0.0             # optional, cumulative realized ($M)
+#         status: Active            # optional
+#         note: "Q4 2025 IC book"   # optional, shown in the chart tooltip
+#
+# Company names must match the workbook's `Company` column exactly.
+companies: {}

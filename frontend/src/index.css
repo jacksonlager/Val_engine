@@ -103,6 +103,8 @@ body {
 .disp-REVIEW { --c: var(--review); --ct: var(--review-text); --cw: var(--review-wash); }
 .disp-MONITOR { --c: var(--monitor); --ct: var(--monitor-text); --cw: var(--monitor-wash); }
 .disp-CLEAR { --c: var(--clear); --ct: var(--clear-text); --cw: var(--clear-wash); }
+/* no severity: a fixture source, a sample constituent — grey, never a disposition hue */
+.disp-NONE { --c: var(--neutral-mark); --ct: var(--ink-2); --cw: color-mix(in srgb, var(--hairline) 75%, transparent); }
 
 .chip {
   display: inline-flex; align-items: center; gap: 4px;

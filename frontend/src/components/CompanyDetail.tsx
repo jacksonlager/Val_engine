@@ -3,6 +3,7 @@ import type { CompanyResult, MarkStep } from "../types";
 import { altLabel, isoDate, KIND_LABEL, musd, shortSha, signed, signClass } from "../lib/format";
 import { postOverride } from "../lib/api";
 import { eventRowRef, inputRef, portfolioRowRef, useSources } from "../lib/sources";
+import { MarkHistoryCard } from "./MarkHistoryChart";
 import { CopyRef, DispChip, Field, KV, Label, MarkTriple, Modal, WriteButton } from "./ui";
 
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 });
@@ -242,6 +243,7 @@ export function CompanyDetail({
       </section>
 
       <aside className="space-y-4">
+        <MarkHistoryCard company={c.company} />
         <SourceCard c={c} />
 
         <div className="card p-3">

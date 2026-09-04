@@ -23,6 +23,7 @@ from ..engine.run import build_registry
 from ..export.exec_report import EXEC_STATIC_DIR, render_exec_report
 from ..export.static_report import render_report
 from ..pipeline import PipelineResult, RunPaths, execute
+from .history import build_history
 from .publish import exec_payload, list_published, publish_run
 from .sources import build_sources
 
@@ -78,7 +79,8 @@ def rule_catalogue(result: PipelineResult) -> list[dict[str, Any]]:
     ]
 
 
-def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None) -> FastAPI:
+def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None,
+               refresh_market: bool = False) -> FastAPI:
     paths = paths or RunPaths.default()
     static_dir = Path(static_dir) if static_dir is not None else STATIC_DIR
     app = FastAPI(title="HC valuation engine", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
@@ -89,15 +91,15 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     )
     lock = threading.Lock()
 
-    def recompute() -> PipelineResult:
+    def recompute(refresh: bool = False) -> PipelineResult:
         with lock:
-            app.state.result = execute(paths, provider=provider)
+            app.state.result = execute(paths, provider=provider, refresh_market=refresh)
         return app.state.result
 
     app.state.paths = paths
     app.state.provider = provider
     app.state.static_dir = static_dir
-    recompute()
+    recompute(refresh=refresh_market)   # a forced refetch applies to the first run only; reruns read the cache
 
     def result() -> PipelineResult:
         return app.state.result
@@ -130,6 +132,16 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     @app.get("/api/rules")
     def get_rules() -> list[dict[str, Any]]:
         return rule_catalogue(result())
+
+    @app.get("/api/market")
+    def get_market() -> JSONResponse:
+        """The sector comps behind X-401/X-402 and M-080, with where they came from (docs/market-feed.md §3)."""
+        return JSONResponse(result().market_report)
+
+    @app.get("/api/history")
+    def get_history() -> JSONResponse:
+        """Quarter-over-quarter booked marks per company: backfill + publish ledger + this run (api/history.py)."""
+        return JSONResponse(build_history(result().run, paths.root))
 
     @app.get("/api/proposals")
     def get_proposals() -> JSONResponse:
@@ -233,6 +245,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     else:
         @app.get("/", include_in_schema=False)
         def index() -> HTMLResponse:
-            return HTMLResponse(render_report(result().run, None))
+            return HTMLResponse(render_report(result().run, None, market=result().market_report,
+                                              history=build_history(result().run, paths.root)))
 
     return app

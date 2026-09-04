@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T06:08:40",
+  "generated_at": "2026-09-04T07:40:28",
   "scenarios": 44,
   "passed": 44,
   "checks": 1785,
@@ -8,7 +8,7 @@
     {
       "name": "01_all_events_clean",
       "ok": true,
-      "seconds": 0.066,
+      "seconds": 0.072,
       "crashed": null,
       "checks": [
         {
@@ -916,7 +916,7 @@
     {
       "name": "02_event_type_typos",
       "ok": true,
-      "seconds": 0.14,
+      "seconds": 0.136,
       "crashed": null,
       "checks": [
         {
@@ -1393,7 +1393,7 @@
     {
       "name": "03_event_type_synonyms",
       "ok": true,
-      "seconds": 0.057,
+      "seconds": 0.062,
       "crashed": null,
       "checks": [
         {
@@ -1887,7 +1887,7 @@
     {
       "name": "04_company_name_variants",
       "ok": true,
-      "seconds": 0.088,
+      "seconds": 0.089,
       "crashed": null,
       "checks": [
         {
@@ -2273,7 +2273,7 @@
     {
       "name": "05_header_variants",
       "ok": true,
-      "seconds": 0.079,
+      "seconds": 0.106,
       "crashed": null,
       "checks": [
         {
@@ -2563,7 +2563,7 @@
     {
       "name": "06_value_formats",
       "ok": true,
-      "seconds": 0.063,
+      "seconds": 0.064,
       "crashed": null,
       "checks": [
         {
@@ -3043,7 +3043,7 @@
     {
       "name": "07_units",
       "ok": true,
-      "seconds": 0.056,
+      "seconds": 0.06,
       "crashed": null,
       "checks": [
         {
@@ -3377,7 +3377,7 @@
     {
       "name": "08_structure",
       "ok": true,
-      "seconds": 0.107,
+      "seconds": 0.103,
       "crashed": null,
       "checks": [
         {
@@ -3647,7 +3647,7 @@
     {
       "name": "09_sheet_names",
       "ok": true,
-      "seconds": 0.06,
+      "seconds": 0.059,
       "crashed": null,
       "checks": [
         {
@@ -3787,7 +3787,7 @@
     {
       "name": "09b_sheet_names_4q26",
       "ok": true,
-      "seconds": 0.054,
+      "seconds": 0.059,
       "crashed": null,
       "checks": [
         {
@@ -3927,7 +3927,7 @@
     {
       "name": "09c_sheet_names_events",
       "ok": true,
-      "seconds": 0.078,
+      "seconds": 0.077,
       "crashed": null,
       "checks": [
         {
@@ -4067,7 +4067,7 @@
     {
       "name": "09d_sheet_names_bare",
       "ok": true,
-      "seconds": 0.055,
+      "seconds": 0.057,
       "crashed": null,
       "checks": [
         {
@@ -4255,7 +4255,7 @@
     {
       "name": "09f_sheet_names_activity_first",
       "ok": true,
-      "seconds": 0.06,
+      "seconds": 0.058,
       "crashed": null,
       "checks": [
         {
@@ -4395,7 +4395,7 @@
     {
       "name": "10_multi_event",
       "ok": true,
-      "seconds": 0.059,
+      "seconds": 0.061,
       "crashed": null,
       "checks": [
         {
@@ -4759,7 +4759,7 @@
     {
       "name": "11_new_events",
       "ok": true,
-      "seconds": 0.068,
+      "seconds": 0.069,
       "crashed": null,
       "checks": [
         {
@@ -5821,7 +5821,7 @@
     {
       "name": "12b_listed_carry_no_quote",
       "ok": true,
-      "seconds": 0.065,
+      "seconds": 0.069,
       "crashed": null,
       "checks": [
         {
@@ -5903,7 +5903,7 @@
     {
       "name": "13_numeric_edges",
       "ok": true,
-      "seconds": 0.056,
+      "seconds": 0.058,
       "crashed": null,
       "checks": [
         {
@@ -6136,7 +6136,7 @@
     {
       "name": "13b_text_in_number_cell",
       "ok": true,
-      "seconds": 0.055,
+      "seconds": 0.056,
       "crashed": null,
       "checks": [
         {
@@ -6170,7 +6170,7 @@
     {
       "name": "14_missing_required",
       "ok": true,
-      "seconds": 0.055,
+      "seconds": 0.058,
       "crashed": null,
       "checks": [
         {
@@ -6368,7 +6368,7 @@
     {
       "name": "15_terminal_activity",
       "ok": true,
-      "seconds": 0.054,
+      "seconds": 0.057,
       "crashed": null,
       "checks": [
         {
@@ -6617,7 +6617,7 @@
     {
       "name": "16_duplicates_and_dates",
       "ok": true,
-      "seconds": 0.055,
+      "seconds": 0.059,
       "crashed": null,
       "checks": [
         {
@@ -6844,7 +6844,7 @@
     {
       "name": "16b_unparseable_date",
       "ok": true,
-      "seconds": 0.076,
+      "seconds": 0.045,
       "crashed": null,
       "checks": [
         {
@@ -6863,7 +6863,7 @@
     {
       "name": "17_notes_language",
       "ok": true,
-      "seconds": 0.06,
+      "seconds": 0.063,
       "crashed": null,
       "checks": [
         {
@@ -7875,7 +7875,7 @@
     {
       "name": "18_quarter_rollforward",
       "ok": true,
-      "seconds": 0.064,
+      "seconds": 0.068,
       "crashed": null,
       "checks": [
         {
@@ -8316,7 +8316,7 @@
     {
       "name": "19_big_book",
       "ok": true,
-      "seconds": 0.366,
+      "seconds": 0.361,
       "crashed": null,
       "checks": [
         {
@@ -8328,7 +8328,7 @@
         {
           "name": "max_seconds",
           "expected": "< 15s",
-          "actual": 0.37,
+          "actual": 0.36,
           "ok": true
         },
         {
@@ -8729,7 +8729,7 @@
     {
       "name": "20b_garbage_no_portfolio",
       "ok": true,
-      "seconds": 0.021,
+      "seconds": 0.02,
       "crashed": null,
       "checks": [
         {
@@ -8757,7 +8757,7 @@
     {
       "name": "20c_garbage_headers_only",
       "ok": true,
-      "seconds": 0.021,
+      "seconds": 0.042,
       "crashed": null,
       "checks": [
         {
@@ -8824,7 +8824,7 @@
     {
       "name": "21_refused_and_applied",
       "ok": true,
-      "seconds": 0.082,
+      "seconds": 0.059,
       "crashed": null,
       "checks": [
         {
@@ -9267,7 +9267,7 @@
     {
       "name": "22_listed_refused",
       "ok": true,
-      "seconds": 0.055,
+      "seconds": 0.058,
       "crashed": null,
       "checks": [
         {
@@ -9672,7 +9672,7 @@
     {
       "name": "23_new_investment_refused",
       "ok": true,
-      "seconds": 0.095,
+      "seconds": 0.098,
       "crashed": null,
       "checks": [
         {
@@ -10174,7 +10174,7 @@
     {
       "name": "24_terminal_refused",
       "ok": true,
-      "seconds": 0.061,
+      "seconds": 0.06,
       "crashed": null,
       "checks": [
         {
@@ -10585,7 +10585,7 @@
     {
       "name": "25_unknown_type_with_currency",
       "ok": true,
-      "seconds": 0.071,
+      "seconds": 0.065,
       "crashed": null,
       "checks": [
         {
@@ -10963,7 +10963,7 @@
     {
       "name": "26_announced_then_refused_close",
       "ok": true,
-      "seconds": 0.066,
+      "seconds": 0.08,
       "crashed": null,
       "checks": [
         {
@@ -11319,7 +11319,7 @@
     {
       "name": "27_portfolio_edges",
       "ok": true,
-      "seconds": 0.084,
+      "seconds": 0.059,
       "crashed": null,
       "checks": [
         {
@@ -11758,7 +11758,7 @@
     {
       "name": "27b_portfolio_unknown_status",
       "ok": true,
-      "seconds": 0.046,
+      "seconds": 0.043,
       "crashed": null,
       "checks": [
         {
@@ -12255,7 +12255,7 @@
     {
       "name": "28b_date_serial_1900",
       "ok": true,
-      "seconds": 0.05,
+      "seconds": 0.044,
       "crashed": null,
       "checks": [
         {
@@ -12283,7 +12283,7 @@
     {
       "name": "29_big_book_500",
       "ok": true,
-      "seconds": 0.184,
+      "seconds": 0.178,
       "crashed": null,
       "checks": [
         {
@@ -12693,7 +12693,7 @@
     {
       "name": "30_long_notes",
       "ok": true,
-      "seconds": 0.063,
+      "seconds": 0.059,
       "crashed": null,
       "checks": [
         {
@@ -12987,7 +12987,7 @@
     {
       "name": "31_custom_rule_missing_field",
       "ok": true,
-      "seconds": 0.106,
+      "seconds": 0.103,
       "crashed": null,
       "checks": [
         {

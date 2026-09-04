@@ -150,9 +150,11 @@ class _MarketPatch:
         drop = self.drop
 
         def patched(cfg, root, snapshot, feed, provider=None, **kw):
-            md, label = orig(cfg, root, snapshot, feed, provider=provider, **kw)
+            assembled = orig(cfg, root, snapshot, feed, provider=provider, **kw)
+            md, label = assembled
             quotes = {k: v for k, v in md.quotes.items() if k not in drop}
-            return md.model_copy(update={"quotes": quotes}), label
+            return connectors.MarketAssembly(market=md.model_copy(update={"quotes": quotes}), label=label,
+                                             report=dict(getattr(assembled, "report", None) or {}))
 
         connectors.assemble_market_data = patched
         return self

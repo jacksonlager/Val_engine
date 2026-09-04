@@ -2,7 +2,7 @@
 //   served  — the FastAPI app serves this bundle at '/' and exposes /api/*
 //   static  — the run is inlined as window.__HC_RUN__ (hc-valuation build); no API,
 //             so every write action is disabled with an explanation.
-import type { OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun } from "../types";
+import type { MarkHistory, MarketReport, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun } from "../types";
 
 export type Mode = "served" | "static";
 
@@ -56,6 +56,34 @@ export async function loadRun(): Promise<Loaded> {
   if (window.__HC_RUN__) return { run: window.__HC_RUN__, mode: "static", sources: window.__HC_SOURCES__ };
   const [run, sources] = await Promise.all([getJson<ValuationRun>("/api/run"), loadSources()]);
   return { run, mode: "served", sources };
+}
+
+export const NO_MARKET_REASON =
+  "No market data: neither /api/market answered nor was window.__HC_MARKET__ inlined into this file.";
+
+/** The sector comps report (docs/market-feed.md §3). Served: GET /api/market; static: the
+    object `hc-valuation build` inlines as window.__HC_MARKET__. An export made before the
+    market feed existed has neither, which the view explains rather than rendering blank. */
+export async function loadMarket(mode: Mode): Promise<MarketReport> {
+  if (mode === "static" || window.__HC_RUN__) {
+    if (window.__HC_MARKET__) return window.__HC_MARKET__;
+    throw new Error(NO_MARKET_REASON);
+  }
+  return getJson<MarketReport>("/api/market");
+}
+
+export const NO_HISTORY_REASON =
+  "No mark history: neither /api/history answered nor was window.__HC_HISTORY__ inlined into this file.";
+
+/** The per-company quarter-over-quarter archive (api/history.py). Served: GET /api/history;
+    static: the object `hc-valuation build` inlines as window.__HC_HISTORY__. Reloaded with the
+    run, because an override moves this quarter's live point. */
+export async function loadHistory(mode: Mode): Promise<MarkHistory> {
+  if (mode === "static" || window.__HC_RUN__) {
+    if (window.__HC_HISTORY__) return window.__HC_HISTORY__;
+    throw new Error(NO_HISTORY_REASON);
+  }
+  return getJson<MarkHistory>("/api/history");
 }
 
 export async function loadProposals(mode: Mode): Promise<TreatmentProposal[]> {

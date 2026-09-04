@@ -39,12 +39,13 @@ open dist/report.html                                  # single self-contained f
 
 `build` writes `report.html`, `valuation_Q3_2026.xlsx` (Summary, Marks, Exceptions, Audit
 Trail, Fund Rollup, Open Items, Validation, Alternatives), the same tables as CSV,
-`run.json` (the full run), `manifest.json`, and the next-quarter input workbook
-`portfolio_Q4_2026.xlsx` with its `open_items_carry.yaml` sidecar.
+`mark_history.csv` (the per-company quarter-over-quarter archive), `run.json` (the full run),
+`manifest.json`, and the next-quarter input workbook `portfolio_Q4_2026.xlsx` with its
+`open_items_carry.yaml` sidecar.
 
 Other commands: `validate` (ingest + integrity checks only; exit 1 if anything blocks),
-`export` (workbook + CSVs only), `rules` (the rule catalogue), `next-policy` (the next quarter's
-rules file), `version`. Every command
+`export` (workbook + CSVs only), `rules` (the rule catalogue), `history` (the mark archive
+per company, `--company` for one), `next-policy` (the next quarter's rules file), `version`. Every command
 accepts `--input <workbook>` and `--policy <rules file>`; `hc-valuation --help` lists the rest.
 
 ## What you are looking at
@@ -100,21 +101,26 @@ self-contained file for the IC pack.
 
 ```
 rules/2026Q3.yaml            the policy: every threshold, the quarter window, the schema pattern
-data/                        input workbook, override ledger, proposals, vendor-shaped mock responses
+rules/comps_baskets.yaml     which public companies stand for each workbook sector (the live comps feed)
+data/                        input workbook, override ledger, proposals, vendor-shaped mock responses,
+                             market_cache/<as_of>/ (trimmed live-feed extracts after a real run)
 src/hc_valuation/
   config.py                  rules.yaml -> RuleConfig (strict; unknown keys raise; `inherits` supported)
   ingest/                    workbook -> snapshot + feed (activity tab found by pattern), normalize.py
                              (typos, synonyms, units, headers — every correction recorded), X-9xx checks
   engine/                    PURE: registry, marking rules M-0xx, exception screens X-1xx..4xx,
                              overrides, open items, rollup, sensitivity, run_valuation()
-  connectors/                market data: protocols, vendor stubs, one optional live feed
+  connectors/                market data: protocols, vendor stubs, the live EDGAR + Yahoo/Stooq comps feed
+                             (edgar.py, prices.py, stooq.py, cache.py, live.py) — docs/market-feed.md
   adjudication/              E-09 proposals for novel cases (runs after the engine, never inside it)
   export/                    review workbook, CSVs, next-quarter snapshot, single-file HTML report
   api/app.py                 FastAPI over the pipeline; api/static/ is the built review tool,
                              api/static_exec/ the built executive dashboard (served at /exec/)
   api/publish.py             the publish gate: freezes a run into data/published/ under a named approver
+  api/history.py             the mark archive: booked marks per company per quarter, assembled from the
+                             publish ledger, data/mark_history.yaml (backfill) and the current run
   api/exec_view.py           the executive view-model (bridge, movers, funds, decisions, risk watch)
-  cli.py                     hc-valuation run | build | publish | validate | export | rules | next-policy | version
+  cli.py                     hc-valuation run | build | publish | validate | export | rules | market | history | next-policy | version
 frontend/                    React + Vite source for the review tool (builds into api/static)
 frontend-exec/               React + Vite source for the executive dashboard (builds into api/static_exec)
 tests/                       golden file, determinism, rules, ingest, edge cases, export, api, cli, gauntlet
@@ -136,7 +142,7 @@ quarter's file can `inherits: 2026Q3` and override only what moved; rules carry 
 
 ```bash
 pip install -e ".[dev]"
-pytest                              # 671 tests
+pytest                              # 695 tests
 python training/run_gauntlet.py     # 44 dirty-workbook scenarios, 1,785 checks -> training/report.md
 ```
 
@@ -173,14 +179,81 @@ fails the build.
    only for thresholds that moved, and bump `policy_version` when you do.
 5. `hc-valuation validate --input <file> --policy rules/2026Q4.yaml`, then `run` or `build`.
 
+## Mark history
+
+Clicking a company in the review tool opens its detail panel, whose first card is a line
+chart of the booked mark quarter over quarter (with the cost basis dashed underneath). The
+engine itself never looks back — the archive is assembled at read time by `api/history.py`
+from three places, and nothing on the chart is interpolated or invented:
+
+- the **publish ledger** (`data/published/<quarter>.json`): one point per company for every
+  quarter released to executives. Publishing a quarter is what extends the archive; nobody
+  maintains it by hand;
+- the **current run**: the workbook's `Prior Mark` fills the previous quarter when the ledger
+  has no point for it, and this quarter is always the live booked mark (drawn hollow until a
+  matching snapshot has been published);
+- an optional **backfill file** (`data/mark_history.yaml`, shipped empty and documented
+  inline) for the quarters before the engine's first run.
+
+Every point says which of these it came from, and a disagreement between them (a published
+mark that differs from the `Prior Mark` the next run started from; a live run that moved
+after publishing) is noted on the point rather than hidden. `GET /api/history` serves the
+archive, `build` inlines it into `report.html` and writes it as `mark_history.csv`, and
+`hc-valuation history [--company X]` prints it.
+
+## Live market data
+
+The one external *market* input the engine reads is the sector public-comparable multiple
+(`MarketData.comps`, with a monthly history) behind the X-401/X-402 screens in
+`relative_to_comps` mode and the M-080 calibration alternative. By default it comes from
+the PitchBook-shaped fixture and the manifest says `stub`. A free, keyless live source
+fills the same slot honestly:
+
+- **SEC EDGAR** (`companyfacts` XBRL API) for quarterly revenue, shares outstanding and
+  net cash of the public companies in `rules/comps_baskets.yaml`, and **Yahoo Finance's
+  public chart API** for their daily closes (keyless; undocumented but stable — it is what
+  `yfinance` reads). Per constituent, per month: `EV = close × shares − net cash`,
+  `EV / TTM revenue`; per sector, the median of the basket. The full contract — what is
+  read, how a missing quarter or a multi-class filer is handled, and the exact JSON the
+  review tool renders — is `docs/market-feed.md`.
+- Run with `--provider live` (`hc-valuation run --provider live`, `build --provider live`)
+  or `HC_MARKET_PROVIDER=live`. Requires the `live` extra: `pip install -e ".[live]"`.
+- **Price source.** The price half is pluggable: `--price-source yahoo|stooq` on
+  `hc-valuation market`, or `HC_PRICE_SOURCE` for every command, over
+  `defaults.price_source` in the baskets file. Stooq is retained as the alternative, but it
+  currently answers non-browser clients with a JavaScript browser-verification page (with
+  HTTP 404), which the feed reports as such and does not attempt to bypass.
+- **The cache.** Trimmed extracts land in `data/market_cache/<measurement date>/`; with a
+  complete cache a run makes no network call and is deterministic offline, so the
+  directory is committed after a real run. `--refresh-market` (or `market --refresh`)
+  refetches; a partial cache fetches only what is missing.
+- **`hc-valuation market [--provider live|stub] [--price-source yahoo|stooq] [--refresh] [--json]`**
+  prints one line per sector (multiple, source, month, constituents ok/total) and the
+  errors — a source-wide outage is one line, not one per ticker; `--json` dumps the
+  `GET /api/market` payload. It exits 0 when the fixture answered — the fall-back is a
+  reported condition, not a failure.
+- **Honesty.** Every failure is caught per constituent and listed; a sector with fewer than
+  `min_constituents` priced names keeps the fixture value and says so; if no sector reaches
+  live the manifest says `stub`. Multiples are labelled `live:edgar+yahoo@YYYY-MM` (or
+  `+stooq`) or `fixture:pitchbook@YYYY-MM` down to the sector.
+- **SEC contact.** SEC's fair-access policy requires a `User-Agent` naming the app and a
+  real contact e-mail: set `HC_SEC_CONTACT=you@yourfirm.com` before a live run (the default
+  `valuation@example.com` is a placeholder SEC may block).
+- **Replacing it with PitchBook.** A vendor connector is one class implementing
+  `CompsProvider` and one branch in `assemble_market_data`; `--provider pitchbook` is
+  reserved and reports "not configured" until `PITCHBOOK_API_KEY` and
+  `connectors/pitchbook.py` exist. The engine, the policy, the golden test and the review
+  tool do not change.
+
 ## Boundaries
 
 - **Synthetic tickers.** The IPO'd company is invented, so no live feed can price it. Its
   quote is seeded to the IPO print and labelled as such in the audit chain; the position
   blocks until a real measurement-date close is confirmed.
 - **Live market data is optional.** The stub connectors are the default and the golden
-  test runs against them. A live feed can be selected with `--provider` without touching
-  the engine.
+  test runs against them. The live EDGAR + Yahoo feed is selected with `--provider live`
+  without touching the engine, and falls back to the stub — labelled as such — whenever
+  it cannot answer.
 - **Adjudication is optional and never books a number.** It can be disabled in the policy
   file and the engine produces identical marks either way; an unhandled event stays
   blocked until a human decides.

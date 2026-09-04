@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Disposition, Sources, ValuationRun } from "./types";
 import { DISPOSITIONS } from "./types";
-import { loadRun, STATIC_REASON, type Mode } from "./lib/api";
+import { loadHistory, loadRun, STATIC_REASON, type Mode } from "./lib/api";
+import { HistoryProvider, type HistoryState } from "./lib/history";
 import { SourcesProvider } from "./lib/sources";
 import { isoDateTime, shortSha } from "./lib/format";
 import { DispChip } from "./components/ui";
@@ -12,13 +13,15 @@ import { MovementView } from "./views/Movement";
 import { FundsView } from "./views/Funds";
 import { OpenItemsView } from "./views/OpenItems";
 import { ProposalsView } from "./views/Proposals";
+import { MarketView } from "./views/Market";
 
-type View = "queue" | "companies" | "movement" | "funds" | "open" | "proposals";
+type View = "queue" | "companies" | "movement" | "funds" | "market" | "open" | "proposals";
 const VIEWS: { id: View; label: string }[] = [
   { id: "queue", label: "Queue" },
   { id: "companies", label: "Companies" },
   { id: "movement", label: "Movement" },
   { id: "funds", label: "Funds" },
+  { id: "market", label: "Market" },
   { id: "open", label: "Open items" },
   { id: "proposals", label: "Proposals" },
 ];
@@ -30,6 +33,8 @@ function viewFromHash(): View {
 
 export default function App() {
   const [state, setState] = useState<{ run?: ValuationRun; mode?: Mode; sources?: Sources; error?: string; stale?: boolean }>({});
+  // the per-company mark archive; refetched with the run because an override moves the live point
+  const [history, setHistory] = useState<HistoryState>({});
   const [view, setView] = useState<View>(viewFromHash);
   const [filter, setFilter] = useState<Disposition | "ALL">("ALL");
   const [focus, setFocus] = useState<string | null>(null);
@@ -43,6 +48,10 @@ export default function App() {
       ({ run, mode, sources }) => {
         setState({ run, mode, sources });
         setReloads((n) => n + 1);
+        loadHistory(mode).then(
+          (data) => setHistory({ data }),
+          (e) => setHistory({ error: String(e?.message ?? e) }),
+        );
       },
       (e) => setState((s) => ({ ...s, error: String(e?.message ?? e), stale: false })),
     );
@@ -85,6 +94,7 @@ export default function App() {
 
   return (
     <SourcesProvider value={state.sources}>
+    <HistoryProvider value={history}>
     <div className={`min-h-full flex flex-col ${state.stale ? "opacity-70 transition-opacity" : ""}`}>
       <header className="sticky top-0 z-30 bg-surface border-b border-line">
         <div className="px-4 py-2 flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -95,6 +105,17 @@ export default function App() {
             <span className="text-[11px] text-muted mono" title={`input sha256 ${m.input_sha256}`}>
               run {m.run_id}
             </span>
+            <a
+              href="#market"
+              className="text-[11px] text-muted mono hover:underline hover:text-ink2"
+              title="Where the sector comps came from — open the Market view"
+              onClick={(e) => {
+                e.preventDefault();
+                go("market");
+              }}
+            >
+              market {m.market_data_source}
+            </a>
           </div>
           <nav className="flex gap-1 ml-2" aria-label="Views">
             {VIEWS.map((v) => (
@@ -149,6 +170,7 @@ export default function App() {
         {view === "companies" && <CompaniesView run={run} filter={filter} writeDisabled={writeDisabled} onChanged={reload} focus={focus} />}
         {view === "movement" && <MovementView run={run} />}
         {view === "funds" && <FundsView run={run} gotoCompany={gotoCompany} />}
+        {view === "market" && <MarketView mode={mode} />}
         {view === "open" && <OpenItemsView run={run} gotoCompany={gotoCompany} />}
         {view === "proposals" && <ProposalsView run={run} mode={mode} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />}
       </main>
@@ -224,6 +246,7 @@ export default function App() {
         </>
       )}
     </div>
+    </HistoryProvider>
     </SourcesProvider>
   );
 }

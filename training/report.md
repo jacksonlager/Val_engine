@@ -1,6 +1,6 @@
 # Gauntlet report
 
-Run at 2026-09-04T06:08:40 — **44/44 scenarios green**, 1785/1785 checks passed.
+Run at 2026-09-04T07:40:28 — **44/44 scenarios green**, 1785/1785 checks passed.
 
 | Scenario | Status | Checks | Time |
 |---|---|---:|---:|
@@ -8,12 +8,12 @@ Run at 2026-09-04T06:08:40 — **44/44 scenarios green**, 1785/1785 checks passe
 | [02_event_type_typos](#02-event-type-typos) | ✓ pass | 65/65 | 0.14s |
 | [03_event_type_synonyms](#03-event-type-synonyms) | ✓ pass | 66/66 | 0.06s |
 | [04_company_name_variants](#04-company-name-variants) | ✓ pass | 53/53 | 0.09s |
-| [05_header_variants](#05-header-variants) | ✓ pass | 39/39 | 0.08s |
+| [05_header_variants](#05-header-variants) | ✓ pass | 39/39 | 0.11s |
 | [06_value_formats](#06-value-formats) | ✓ pass | 66/66 | 0.06s |
 | [07_units](#07-units) | ✓ pass | 48/48 | 0.06s |
-| [08_structure](#08-structure) | ✓ pass | 37/37 | 0.11s |
+| [08_structure](#08-structure) | ✓ pass | 37/37 | 0.10s |
 | [09_sheet_names](#09-sheet-names) | ✓ pass | 19/19 | 0.06s |
-| [09b_sheet_names_4q26](#09b-sheet-names-4q26) | ✓ pass | 19/19 | 0.05s |
+| [09b_sheet_names_4q26](#09b-sheet-names-4q26) | ✓ pass | 19/19 | 0.06s |
 | [09c_sheet_names_events](#09c-sheet-names-events) | ✓ pass | 19/19 | 0.08s |
 | [09d_sheet_names_bare](#09d-sheet-names-bare) | ✓ pass | 19/19 | 0.06s |
 | [09e_sheet_names_ambiguous](#09e-sheet-names-ambiguous) | ✓ pass | 6/6 | 0.06s |
@@ -21,33 +21,33 @@ Run at 2026-09-04T06:08:40 — **44/44 scenarios green**, 1785/1785 checks passe
 | [10_multi_event](#10-multi-event) | ✓ pass | 53/53 | 0.06s |
 | [11_new_events](#11-new-events) | ✓ pass | 114/114 | 0.07s |
 | [12_listed_carry](#12-listed-carry) | ✓ pass | 30/30 | 0.09s |
-| [12b_listed_carry_no_quote](#12b-listed-carry-no-quote) | ✓ pass | 11/11 | 0.06s |
+| [12b_listed_carry_no_quote](#12b-listed-carry-no-quote) | ✓ pass | 11/11 | 0.07s |
 | [13_numeric_edges](#13-numeric-edges) | ✓ pass | 32/32 | 0.06s |
-| [13b_text_in_number_cell](#13b-text-in-number-cell) | ✓ pass | 4/4 | 0.05s |
+| [13b_text_in_number_cell](#13b-text-in-number-cell) | ✓ pass | 4/4 | 0.06s |
 | [14_missing_required](#14-missing-required) | ✓ pass | 27/27 | 0.06s |
-| [15_terminal_activity](#15-terminal-activity) | ✓ pass | 35/35 | 0.05s |
+| [15_terminal_activity](#15-terminal-activity) | ✓ pass | 35/35 | 0.06s |
 | [16_duplicates_and_dates](#16-duplicates-and-dates) | ✓ pass | 30/30 | 0.06s |
-| [16b_unparseable_date](#16b-unparseable-date) | ✓ pass | 1/1 | 0.08s |
+| [16b_unparseable_date](#16b-unparseable-date) | ✓ pass | 1/1 | 0.04s |
 | [17_notes_language](#17-notes-language) | ✓ pass | 128/128 | 0.06s |
-| [18_quarter_rollforward](#18-quarter-rollforward) | ✓ pass | 59/59 | 0.06s |
-| [19_big_book](#19-big-book) | ✓ pass | 53/53 | 0.37s |
+| [18_quarter_rollforward](#18-quarter-rollforward) | ✓ pass | 59/59 | 0.07s |
+| [19_big_book](#19-big-book) | ✓ pass | 53/53 | 0.36s |
 | [20_garbage_csv](#20-garbage-csv) | ✓ pass | 3/3 | 0.02s |
 | [20b_garbage_no_portfolio](#20b-garbage-no-portfolio) | ✓ pass | 3/3 | 0.02s |
-| [20c_garbage_headers_only](#20c-garbage-headers-only) | ✓ pass | 3/3 | 0.02s |
+| [20c_garbage_headers_only](#20c-garbage-headers-only) | ✓ pass | 3/3 | 0.04s |
 | [20d_garbage_empty](#20d-garbage-empty) | ✓ pass | 3/3 | 0.02s |
-| [21_refused_and_applied](#21-refused-and-applied) | ✓ pass | 60/60 | 0.08s |
-| [22_listed_refused](#22-listed-refused) | ✓ pass | 53/53 | 0.05s |
-| [23_new_investment_refused](#23-new-investment-refused) | ✓ pass | 67/67 | 0.09s |
+| [21_refused_and_applied](#21-refused-and-applied) | ✓ pass | 60/60 | 0.06s |
+| [22_listed_refused](#22-listed-refused) | ✓ pass | 53/53 | 0.06s |
+| [23_new_investment_refused](#23-new-investment-refused) | ✓ pass | 67/67 | 0.10s |
 | [24_terminal_refused](#24-terminal-refused) | ✓ pass | 53/53 | 0.06s |
 | [25_unknown_type_with_currency](#25-unknown-type-with-currency) | ✓ pass | 49/49 | 0.07s |
-| [26_announced_then_refused_close](#26-announced-then-refused-close) | ✓ pass | 46/46 | 0.07s |
-| [27_portfolio_edges](#27-portfolio-edges) | ✓ pass | 54/54 | 0.08s |
-| [27b_portfolio_unknown_status](#27b-portfolio-unknown-status) | ✓ pass | 3/3 | 0.05s |
+| [26_announced_then_refused_close](#26-announced-then-refused-close) | ✓ pass | 46/46 | 0.08s |
+| [27_portfolio_edges](#27-portfolio-edges) | ✓ pass | 54/54 | 0.06s |
+| [27b_portfolio_unknown_status](#27b-portfolio-unknown-status) | ✓ pass | 3/3 | 0.04s |
 | [28_date_edges](#28-date-edges) | ✓ pass | 65/65 | 0.06s |
-| [28b_date_serial_1900](#28b-date-serial-1900) | ✓ pass | 3/3 | 0.05s |
+| [28b_date_serial_1900](#28b-date-serial-1900) | ✓ pass | 3/3 | 0.04s |
 | [29_big_book_500](#29-big-book-500) | ✓ pass | 58/58 | 0.18s |
 | [30_long_notes](#30-long-notes) | ✓ pass | 41/41 | 0.06s |
-| [31_custom_rule_missing_field](#31-custom-rule-missing-field) | ✓ pass | 42/42 | 0.11s |
+| [31_custom_rule_missing_field](#31-custom-rule-missing-field) | ✓ pass | 42/42 | 0.10s |
 
 ## Failures
 
@@ -1368,7 +1368,7 @@ The emitted Q4 book run under policy 2026Q4 with the open_items_carry.yaml sidec
 | Check | Expected | Actual | |
 |---|---|---|:-:|
 | ingest_ok | True | True | ✓ |
-| max_seconds | < 15s | 0.3700 | ✓ |
+| max_seconds | < 15s | 0.3600 | ✓ |
 | no_crash | no exception | no exception | ✓ |
 | validation must not include X-901 | no X-901 | [] | ✓ |
 | validation must not include X-909 | no X-909 | [] | ✓ |

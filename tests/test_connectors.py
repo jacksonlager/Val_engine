@@ -13,9 +13,11 @@ import yaml
 from hc_valuation.config import load_config, repo_root
 from hc_valuation.connectors import resolve_provider
 from hc_valuation.connectors.base import CompanyMetricsProvider, CompsProvider, MarketDataProvider, NewsSignalProvider
-from hc_valuation.connectors.live import BASKET, LiveFeedError, StooqCompsProvider, ev_to_revenue, month_end_closes
+from hc_valuation.connectors import fetch as fetch_mod
+from hc_valuation.connectors.fetch import FetchError
+from hc_valuation.connectors.live import PublicCompsProvider, month_end_closes
 from hc_valuation.connectors.stubs import (
-    StubCompanyMetricsProvider, StubCompsProvider, StubIndexProvider, StubMarketDataProvider, StubNewsSignalProvider,
+    StubCompanyMetricsProvider, StubCompsProvider, StubMarketDataProvider, StubNewsSignalProvider,
 )
 from hc_valuation.engine.inputs import EventType
 from hc_valuation.pipeline import RunPaths, execute
@@ -163,55 +165,23 @@ def test_temp_root_without_fixtures_still_gets_comps(tmp_path):
     assert r.market.comps and r.run.totals.dispositions == BASELINE
 
 
-# ---------------------------------------------------------------- live path
+# ---------------------------------------------------------------- live path (the detail is in test_market_feed.py)
 
 def test_live_helpers():
     closes = {"2026-08-03": 100.0, "2026-08-28": 110.0, "2026-09-01": 120.0}
     assert month_end_closes(closes) == {"2026-08": 110.0, "2026-09": 120.0}
-    sym = next(iter(BASKET))
-    shares, net_cash, revenue = BASKET[sym]
-    assert ev_to_revenue(10.0, sym) == pytest.approx((10.0 * shares - net_cash) / revenue)
+    assert month_end_closes(closes, date(2026, 8, 31)) == {"2026-08": 110.0}
 
 
-def test_live_falls_back_to_stub_on_network_failure(monkeypatch, caplog):
-    import hc_valuation.connectors.live as live
-
-    def boom(symbol, timeout_s=5.0):
-        raise LiveFeedError(f"{symbol}: simulated outage")
-    monkeypatch.setattr(live, "fetch_daily_closes", boom)
-    stub = StubCompsProvider(ROOT)
+def test_live_falls_back_to_stub_on_network_failure(monkeypatch, caplog, tmp_path):
+    def boom(url, headers=None, timeout_s=8.0):
+        raise FetchError("simulated outage")
+    monkeypatch.setattr(fetch_mod, "fetch_text", boom)
+    paths = RunPaths.default(ROOT)
+    paths.root = tmp_path                     # an empty cache: every fetch is attempted and fails
     with caplog.at_level("WARNING"):
-        p = StooqCompsProvider(stub, StubIndexProvider(ROOT))
-    assert not p.reached_live and p.source == stub.source and "falling back" in caplog.text
-    assert p.sector_multiples(date(2026, 9, 30)) == stub.sector_multiples(date(2026, 9, 30))
-
-    r = execute(adjudicate=False, provider="live")
-    assert r.run.manifest.market_data_source == "stub"
+        r = execute(paths, adjudicate=False, provider="live")
+    assert r.run.manifest.market_data_source == "stub" and "falling back" in caplog.text
     assert r.run.totals.dispositions == BASELINE
-
-
-def test_live_rebases_sector_spreads_when_reached(monkeypatch):
-    import hc_valuation.connectors.live as live
-
-    def fake(symbol, timeout_s=5.0):
-        shares, net_cash, revenue = BASKET[symbol]
-        # price each name so its EV/Revenue is exactly 12x in every month -> index 12x
-        px = (12.0 * revenue + net_cash) / shares
-        return {"2026-08-31": px, "2026-09-15": px}
-    monkeypatch.setattr(live, "fetch_daily_closes", fake)
-    stub, index = StubCompsProvider(ROOT), StubIndexProvider(ROOT)
-    p = StooqCompsProvider(stub, index)
-    assert p.reached_live and p.source == "live:stooq" and p.live_index["2026-09"] == pytest.approx(12.0)
-    ref = index.series["2026-09"]
-    assert p.history("AI/ML")["2026-09"] == pytest.approx(stub.history("AI/ML")["2026-09"] * 12.0 / ref, rel=1e-3)
-    assert p.history("AI/ML")["2019-01"] == stub.history("AI/ML")["2019-01"]     # untouched where no live data
-    comps = p.sector_multiples(date(2026, 9, 30))
-    assert comps["AI/ML"].source.startswith("live:stooq@")
-
-
-def test_real_stooq_either_reaches_or_falls_back_cleanly():
-    """Whatever the sandbox's egress, the live provider must construct and answer."""
-    stub = StubCompsProvider(ROOT)
-    p = StooqCompsProvider(stub, StubIndexProvider(ROOT), timeout_s=5.0)
-    assert p.source in ("live:stooq", stub.source)
-    assert set(p.sector_multiples(date(2026, 9, 30))) == set(stub.sectors)
+    assert not r.market_report["reached_live"] and r.market_report["errors"]
+    assert isinstance(PublicCompsProvider, type)

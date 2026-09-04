@@ -7,7 +7,7 @@ Everything with I/O lives here or below; nothing in `engine/` imports this modul
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -87,17 +87,20 @@ class PipelineResult:
     paths: RunPaths
     market: MarketData
     proposals: list  # list[TreatmentProposal] from adjudication, may be empty
+    market_report: dict = field(default_factory=dict)   # docs/market-feed.md §3, served at /api/market
 
 
 def execute(paths: RunPaths | None = None, *, provider: str | None = None, generated_at: datetime | None = None,
-            adjudicate: bool = True) -> PipelineResult:
+            adjudicate: bool = True, refresh_market: bool = False) -> PipelineResult:
     from .connectors import assemble_market_data   # local import: connectors may pull optional deps
 
     paths = paths or RunPaths.default()
     cfg = load_config(paths.policy)
     snapshot, feed = read_workbook(paths.workbook, cfg)
     issues = validate(snapshot, feed, cfg, explained_departures=load_mark_basis(paths.open_items_carry))
-    market, source = assemble_market_data(cfg, paths.root, snapshot, feed, provider=provider)
+    assembled = assemble_market_data(cfg, paths.root, snapshot, feed, provider=provider, refresh=refresh_market)
+    market, source = assembled
+    market_report = dict(getattr(assembled, "report", None) or {})
     ledger = load_overrides(paths.overrides)
     prior_items = load_prior_open_items(paths.open_items_carry)
 
@@ -113,4 +116,4 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
     if adjudicate and cfg.adjudication.enabled:
         from .adjudication import adjudicate_run
         proposals = adjudicate_run(run, feed, cfg, paths)
-    return PipelineResult(run=run, config=cfg, paths=paths, market=market, proposals=proposals)
+    return PipelineResult(run=run, config=cfg, paths=paths, market=market, proposals=proposals, market_report=market_report)

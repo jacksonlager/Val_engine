@@ -5,6 +5,8 @@
     validate  ingest + integrity checks only
     export    workbook + CSVs only
     rules     print the rule catalogue
+    market    show the sector comps feed (live EDGAR + Yahoo/Stooq closes, or the fixture) and where it came from
+    history   the quarter-over-quarter booked-mark archive per company (backfill + publish ledger + this run)
     next-policy  write rules/<next quarter>.yaml inheriting from the current policy
     version   engine and policy versions
 
@@ -44,7 +46,8 @@ app = typer.Typer(
 
 InputOpt = typer.Option(None, "--input", "-i", help="Portfolio workbook (.xlsx). Default: data/HC_Mock_Portfolio_Data.xlsx")
 PolicyOpt = typer.Option(None, "--policy", "-p", help="Policy file. Default: rules/2026Q3.yaml (the base policy)")
-ProviderOpt = typer.Option(None, "--provider", help="Market-data provider override (stub | live), passed to the connectors")
+ProviderOpt = typer.Option(None, "--provider", help="Market-data provider override (stub | live | pitchbook), passed to the connectors")
+RefreshMarketOpt = typer.Option(False, "--refresh-market", help="Refetch the live market feed over its cache (provider live)")
 
 
 def _paths(input_path: Optional[Path], policy: Optional[Path]):
@@ -181,14 +184,16 @@ def export(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Polic
 @app.command()
 def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
           out: Path = typer.Option(Path("dist"), "--out", "-o", help="Output folder"),
-          provider: Optional[str] = ProviderOpt) -> None:
+          provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt) -> None:
     """Produce every deliverable: report.html, workbook, CSVs, next-quarter input file, run.json, manifest.json."""
     from .api.app import STATIC_DIR
-    from .export import next_quarter_label, write_csvs, write_next_quarter_workbook, write_static_report, write_workbook
+    from .api.history import build_history
+    from .export import (next_quarter_label, write_csvs, write_history_csv, write_next_quarter_workbook,
+                         write_static_report, write_workbook)
     from .pipeline import execute
 
     paths = _paths(input_path, policy)
-    r = execute(paths, provider=provider)
+    r = execute(paths, provider=provider, refresh_market=refresh_market)
     run = r.run
     out.mkdir(parents=True, exist_ok=True)
     q = _slug(run.manifest.quarter_label)
@@ -197,10 +202,12 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
         sources = build_sources(r)     # cell provenance, inlined as window.__HC_SOURCES__
     except Exception:
         sources = None                 # optional everywhere: the report just shows no cell refs
+    history = build_history(run, paths.root)   # the per-company archive, inlined as window.__HC_HISTORY__
     written = [
-        write_static_report(run, out / "report.html", STATIC_DIR, sources),
+        write_static_report(run, out / "report.html", STATIC_DIR, sources, r.market_report, history),
         write_workbook(run, out / f"valuation_{q}.xlsx"),
         *write_csvs(run, out),
+        write_history_csv(history, out / "mark_history.csv"),
         write_next_quarter_workbook(run, paths.workbook, out / f"portfolio_{_slug(next_quarter_label(r.config.quarter.label))}.xlsx", r.config),
         out / "open_items_carry.yaml",
     ]
@@ -237,6 +244,84 @@ def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
         typer.echo(f"wrote {p}")
 
 
+@app.command()
+def market(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+           provider: Optional[str] = typer.Option(None, "--provider", help="stub | live | pitchbook (default: HC_MARKET_PROVIDER, else stub)"),
+           refresh: bool = typer.Option(False, "--refresh", help="Refetch over the cache (provider live)"),
+           price_source: Optional[str] = typer.Option(None, "--price-source", help="yahoo | stooq — the price half of the live feed (default: HC_PRICE_SOURCE, else rules/comps_baskets.yaml defaults.price_source)"),
+           as_json: bool = typer.Option(False, "--json", help="Print the /api/market payload as JSON")) -> None:
+    """Show the sector comps feed: one line per sector, then errors (a source-wide outage is one
+    line, not one per ticker). Exits 0 even when the fixture answered."""
+    from .connectors import assemble_market_data
+    from .ingest.reader import read_workbook
+
+    paths = _paths(input_path, policy)
+    cfg = load_config(paths.policy)
+    snapshot, feed = read_workbook(paths.workbook, cfg)
+    rep = assemble_market_data(cfg, paths.root, snapshot, feed, provider=provider, refresh=refresh,
+                               price_source=price_source).report
+    if as_json:
+        typer.echo(json.dumps(rep, indent=2))
+        return
+    cache = rep.get("cache") or {}
+    cache_txt = f"{cache['dir']} ({'hit' if cache.get('hit') else 'miss'})" if cache else "-"
+    typer.echo(f"provider {rep['provider']}  source {rep['source']}  as_of {rep['as_of']}  "
+               f"fetched {rep.get('fetched_at') or '-'}  cache {cache_txt}")
+    typer.echo(f"used by: {rep['used_by']['note']}")
+    rows = []
+    for s in rep["sectors"]:
+        cons = s["constituents"]
+        ok = sum(1 for c in cons if c["status"] == "ok")
+        mult = f"{s['ev_to_revenue']:.2f}x" if s["ev_to_revenue"] is not None else "-"
+        qoq = f"{s['qoq_pct']:+.1%}" if s.get("qoq_pct") is not None else "-"
+        rows.append([s["sector"], str(s["positions"]), mult, qoq, s["source"], s["as_of_month"] or "-",
+                     f"{ok}/{len(cons)}" if cons else "-"])
+    typer.echo(_table(["sector", "positions", "EV/revenue", "qoq", "source", "month", "constituents ok"], rows))
+    if rep["errors"]:
+        typer.echo(f"\nerrors ({len(rep['errors'])})")
+        for e in rep["errors"]:
+            typer.echo(f"  {e}")
+
+
+@app.command()
+def history(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+            company: Optional[str] = typer.Option(None, "--company", "-c", help="One company only"),
+            as_json: bool = typer.Option(False, "--json", help="Print the /api/history payload as JSON")) -> None:
+    """The booked-mark archive the review tool charts: one row per company per quarter, with
+    where each point came from (backfill file, publish ledger, workbook Prior Mark, live run)."""
+    from .api.history import build_history, history_rows
+    from .pipeline import execute
+
+    paths = _paths(input_path, policy)
+    r = execute(paths)
+    hist = build_history(r.run, paths.root)
+    if company is not None:
+        if company not in hist["companies"]:
+            raise typer.BadParameter(f"no company named {company!r}; known: {', '.join(hist['companies'])}")
+        hist["companies"] = {company: hist["companies"][company]}
+    if as_json:
+        typer.echo(json.dumps(hist, indent=2))
+        return
+    counts = ", ".join(f"{k} {v}" for k, v in hist["counts"].items() if v)
+    typer.echo(f"as of {hist['as_of_quarter']}  quarters {', '.join(hist['quarters'])}  points: {counts}")
+    if hist["backfill_file"]:
+        typer.echo(f"backfill: {hist['backfill_file']}")
+    headers, rows = history_rows(hist)
+    keep = [0, 1, 2, 3, 4, 5, 6, 8, 9]
+    fmt = lambda v: "-" if v is None else (f"{v:.3f}" if isinstance(v, float) else str(v))  # noqa: E731
+    typer.echo(_table([headers[i].replace(" ($M)", "").replace(" (x)", "") for i in keep],
+                      [[fmt(row[i]) for i in keep] for row in rows]))
+    notes = [(row[0], row[1], row[12]) for row in rows if row[12]]
+    if notes:
+        typer.echo(f"\nnotes ({len(notes)})")
+        for c, q, n in notes:
+            typer.echo(f"  {c} {q}: {n}")
+    if hist["errors"]:
+        typer.echo(f"\nerrors ({len(hist['errors'])})")
+        for e in hist["errors"]:
+            typer.echo(f"  {e}")
+
+
 def _open_when_up(url: str, health: str, timeout: float = 30.0) -> None:
     """Poll /api/health from a thread, then open the browser. Never raises into the server."""
     import urllib.request
@@ -260,13 +345,13 @@ def _open_when_up(url: str, health: str, timeout: float = 30.0) -> None:
 def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
         port: int = typer.Option(8765, "--port"), host: str = typer.Option("127.0.0.1", "--host"),
         no_browser: bool = typer.Option(False, "--no-browser", help="Do not open a browser tab"),
-        provider: Optional[str] = ProviderOpt) -> None:
+        provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt) -> None:
     """Compute the run, serve the dashboard and API, open a browser."""
     import uvicorn
 
     from .api.app import STATIC_DIR, create_app
 
-    application = create_app(_paths(input_path, policy), provider=provider)
+    application = create_app(_paths(input_path, policy), provider=provider, refresh_market=refresh_market)
     typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")

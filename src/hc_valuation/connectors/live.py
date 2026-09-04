@@ -1,157 +1,464 @@
-"""One free, keyless live source: Stooq daily CSV.
+"""The live public-comps feed: EDGAR fundamentals × daily closes (Yahoo by default, Stooq as
+the alternative — `prices.py`) → a sector EV/TTM-revenue multiple with a monthly history
+(docs/market-feed.md).
 
-    https://stooq.com/q/d/l/?s=<symbol>&i=d   ->   Date,Open,High,Low,Close,Volume
+Per constituent, per month: `EV = close × shares outstanding − net cash`,
+`EV/Revenue = EV / TTM revenue`, every input being the latest filed value at or before the
+month end (and never after the measurement date). Per sector: the median across the basket
+in `rules/comps_baskets.yaml`. Below `min_constituents` with data the sector keeps the
+fixture value and says so.
 
-A small basket of listed software names is turned into an EV / revenue-style index for
-each month: `EV = close × shares − net cash`, `EV/Revenue = EV / NTM revenue`, then the
-basket median. Shares, net cash and revenue are a static table in this module and are
-APPROXIMATE (mid-2026 order of magnitude, USD millions). Because only the price moves,
-the resulting history reflects *price* movement, not fundamentals — it is a proxy for
-the level of public software multiples, good enough to re-base the fixture's sector
-spreads, and labelled `live:stooq` so nobody mistakes it for PitchBook.
-
-Degrades gracefully by design: any network, parse or arithmetic problem logs one
-warning and the fixture-backed provider answers instead. A live failure never breaks a
-run and never reaches `engine/`.
+Degrades by design: every network, parse or arithmetic problem is caught per constituent,
+recorded in `report()`, logged once, and never raised past the provider. `reached_live` and
+`source` (`live:edgar+<price source>`) tell the assembler which label to write to the
+manifest — a live label never sits over fixture numbers. A source-wide outage (every ticker
+failing the same way) is collapsed to one finding in the report rather than one per ticker.
+Nothing here is imported by `engine/`.
 """
 from __future__ import annotations
 
+import calendar
 import logging
+import re
 import statistics
+from dataclasses import asdict, dataclass, field
 from datetime import date
-from typing import Any
+from typing import Any, Mapping
 
 from ..engine.models import SectorComp
-from .stubs import StubCompsProvider, StubIndexProvider, latest_at_or_before
+from .baskets import BASKETS_FILE, Baskets
+from .cache import MarketCache
+from .edgar import (
+    MAX_REQUESTS_PER_S, EdgarClient, ExtractionError, fetch_extract, frame_end, net_cash_at, resolve_ciks, ttm_at, value_at,
+)
+from .fetch import DEFAULT_TIMEOUT_S, FetchError, FetchText, LiveFeedError
+from .prices import PriceProvider, month_end_closes, price_provider
+from .stubs import StubCompsProvider, latest_at_or_before
 
 log = logging.getLogger(__name__)
 
-STOOQ_URL = "https://stooq.com/q/d/l/?s={symbol}&i=d"
-DEFAULT_TIMEOUT_S = 5.0
-
-# symbol: (shares outstanding, millions; net cash, USD millions (negative = net debt); NTM revenue, USD millions)
-# Approximate, static, mid-2026. Documented as such; a real deployment would pull these from filings.
-BASKET: dict[str, tuple[float, float, float]] = {
-    "crm.us": (960.0, 5000.0, 41000.0),    # Salesforce
-    "now.us": (207.0, 6000.0, 13000.0),    # ServiceNow
-    "adbe.us": (425.0, 1000.0, 23500.0),   # Adobe
-    "ddog.us": (345.0, 3000.0, 3300.0),    # Datadog
-    "snow.us": (335.0, 3500.0, 4400.0),    # Snowflake
-}
+LIVE_SOURCE_PREFIX = "live:edgar+"
+FIXTURE_SOURCE_PREFIX = "fixture:pitchbook"
+PRICE_SOURCE_ENV = "HC_PRICE_SOURCE"
+COLLAPSE_AT = 3                       # ≥ this many tickers with the same message -> one report line
+_TICKER_HEAD = re.compile(r"^([A-Z][A-Z0-9.\-]{0,9}): (.+)$", re.S)
 
 
-class LiveFeedError(RuntimeError):
-    """Anything that stops the live path — wrapped so the caller has one thing to catch."""
+def live_source(price_name: str) -> str:
+    """The manifest / sector label for a live month: `live:edgar+yahoo`."""
+    return f"{LIVE_SOURCE_PREFIX}{price_name}"
 
 
-def fetch_daily_closes(symbol: str, timeout_s: float = DEFAULT_TIMEOUT_S) -> dict[str, float]:
-    """`YYYY-MM-DD -> close` for one Stooq symbol. Raises LiveFeedError on any failure."""
-    try:
-        import httpx  # optional dependency: the `live` extra
-    except ImportError as ex:  # pragma: no cover
-        raise LiveFeedError("httpx is not installed (pip install 'hc-valuation[live]')") from ex
-    try:
-        r = httpx.get(STOOQ_URL.format(symbol=symbol), timeout=timeout_s, follow_redirects=True)
-        r.raise_for_status()
-    except Exception as ex:  # noqa: BLE001 — every transport failure means "fall back"
-        raise LiveFeedError(f"{symbol}: {type(ex).__name__}: {ex}") from ex
-    lines = r.text.strip().splitlines()
-    if not lines or not lines[0].lower().startswith("date,"):
-        raise LiveFeedError(f"{symbol}: response is not a Stooq CSV ({lines[0][:60] if lines else 'empty'!r})")
-    out: dict[str, float] = {}
-    for line in lines[1:]:
-        parts = line.split(",")
-        if len(parts) < 5:
+def collapse_errors(errors: list[str], at: int = COLLAPSE_AT) -> list[str]:
+    """Merge `TICKER: <message>` lines that share a message once `at` or more tickers carry
+    it: `"<n> tickers: <message> [T1, T2, ...]"`, placed where the first of them was. Sector
+    notes and anything not shaped like a ticker line pass through untouched."""
+    groups: dict[str, list[str]] = {}
+    for e in errors:
+        m = _TICKER_HEAD.match(e)
+        if m:
+            groups.setdefault(m.group(2), []).append(m.group(1))
+    big = {msg for msg, ts in groups.items() if len(ts) >= at}
+    out, done = [], set()
+    for e in errors:
+        m = _TICKER_HEAD.match(e)
+        if not m or m.group(2) not in big:
+            out.append(e)
             continue
-        try:
-            out[parts[0]] = float(parts[4])
-        except ValueError:
-            continue
-    if not out:
-        raise LiveFeedError(f"{symbol}: CSV carried no closes")
+        msg = m.group(2)
+        if msg not in done:
+            done.add(msg)
+            out.append(f"{len(groups[msg])} tickers: {msg} [{', '.join(groups[msg])}]")
     return out
 
 
-def month_end_closes(daily: dict[str, float]) -> dict[str, float]:
-    """Last available close in each `YYYY-MM`."""
-    out: dict[str, float] = {}
-    for d in sorted(daily):
-        out[d[:7]] = daily[d]
-    return out
+# ---------------------------------------------------------------- calendar helpers
+
+def month_key(d: date) -> str:
+    return d.strftime("%Y-%m")
 
 
-def ev_to_revenue(close: float, symbol: str) -> float:
-    shares, net_cash, revenue = BASKET[symbol]
-    return (close * shares - net_cash) / revenue
+def month_end(key: str) -> date:
+    y, m = int(key[:4]), int(key[5:7])
+    return date(y, m, calendar.monthrange(y, m)[1])
 
 
-class StooqCompsProvider:
-    """CompsProvider re-basing the fixture's sector spreads on a Stooq-derived software index.
+def months_back(as_of: date, n: int) -> list[str]:
+    """The `n` `YYYY-MM` keys ending at `as_of`'s month, ascending."""
+    y, m = as_of.year, as_of.month
+    out = []
+    for _ in range(n):
+        out.append(f"{y:04d}-{m:02d}")
+        m -= 1
+        if m == 0:
+            y, m = y - 1, 12
+    return list(reversed(out))
 
-    For month m: `sector(m) = fixture_sector(m) × live_index(m) / fixture_index(m)`. Months the
-    live basket cannot cover fall back to the fixture value. `reached_live` tells the
-    assembler which label to write to the manifest.
-    """
 
-    def __init__(self, fallback: StubCompsProvider, index: StubIndexProvider, timeout_s: float = DEFAULT_TIMEOUT_S,
-                 symbols: tuple[str, ...] = tuple(BASKET)) -> None:
+def shift_months(key: str, delta: int) -> str:
+    y, m = int(key[:4]), int(key[5:7])
+    idx = y * 12 + (m - 1) + delta
+    return f"{idx // 12:04d}-{idx % 12 + 1:02d}"
+
+
+def trim_history(history: Mapping[str, float], as_of: date, n: int | None) -> dict[str, float]:
+    """The last `n` months at or before `as_of`, ascending keys."""
+    key = month_key(as_of)
+    keys = sorted(k for k in history if k <= key)
+    if n is not None:
+        keys = keys[-n:]
+    return {k: float(history[k]) for k in keys}
+
+
+def qoq(history: Mapping[str, float], month: str) -> tuple[float | None, float | None]:
+    """(value three months earlier, quarter-on-quarter change) — both None when unknown."""
+    cur, prior = history.get(month), history.get(shift_months(month, -3))
+    if cur is None or prior is None or not prior:
+        return prior, None
+    return prior, round(cur / prior - 1, 3)
+
+
+# ---------------------------------------------------------------- constituent
+
+@dataclass
+class Constituent:
+    ticker: str
+    name: str | None = None
+    cik: str | None = None
+    status: str = "error"
+    price: float | None = None
+    price_month: str | None = None
+    shares_m: float | None = None
+    market_cap_musd: float | None = None
+    net_cash_musd: float | None = None
+    ttm_revenue_musd: float | None = None
+    revenue_through: str | None = None
+    ev_to_revenue: float | None = None
+    error: str | None = None
+    monthly: dict[str, float] = field(default_factory=dict)   # YYYY-MM -> EV/TTM revenue; not exported
+
+    def as_json(self) -> dict[str, Any]:
+        d = asdict(self)
+        d.pop("monthly")
+        return d
+
+
+def fixture_constituent(ticker: str) -> dict[str, Any]:
+    return Constituent(ticker=ticker, status="fixture").as_json()
+
+
+# ---------------------------------------------------------------- provider
+
+class PublicCompsProvider:
+    """Implements `CompsProvider` (base.py) over the baskets, the cache and the two clients."""
+
+    def __init__(self, baskets: Baskets, fallback: StubCompsProvider, cache: MarketCache, as_of: date, *,
+                 refresh: bool = False, timeout_s: float = DEFAULT_TIMEOUT_S,
+                 fetch_text: FetchText | None = None, contact: str | None = None,
+                 max_per_s: float = MAX_REQUESTS_PER_S, price_source: str | None = None,
+                 price_max_per_s: float | None = None) -> None:
+        self.baskets = baskets
         self._fallback = fallback
-        self._index = index
+        self._cache = cache
+        self.as_of = as_of
         self._timeout = timeout_s
-        self._symbols = symbols
-        self.reached_live = False
-        self.live_index: dict[str, float] = {}
-        self.error: str | None = None
-        self._load()
+        self._fetch = fetch_text
+        self._edgar = EdgarClient(contact=contact, timeout_s=timeout_s, fetch_text=fetch_text, max_per_s=max_per_s)
+        # the price half is pluggable: the kwarg (CLI flag / env) overrides the baskets default
+        rate = baskets.defaults.price_max_per_s if price_max_per_s is None else price_max_per_s
+        self._prices: PriceProvider = price_provider(price_source or baskets.defaults.price_source,
+                                                     fetch_text=fetch_text, timeout_s=timeout_s, max_per_s=rate)
+        self.price_source = self._prices.name
+        self.live_source = live_source(self.price_source)
+        self._months = months_back(as_of, baskets.defaults.months_of_history)
 
-    def _load(self) -> None:
-        per_symbol: dict[str, dict[str, float]] = {}
-        try:
-            for sym in self._symbols:
-                per_symbol[sym] = month_end_closes(fetch_daily_closes(sym, self._timeout))
-        except LiveFeedError as ex:
-            self.error = str(ex)
-            log.warning("live comps unavailable (%s); falling back to the fixture", ex)
-            return
-        months = set.intersection(*(set(m) for m in per_symbol.values())) if per_symbol else set()
-        for m in sorted(months):
-            vals = [ev_to_revenue(per_symbol[s][m], s) for s in per_symbol]
-            self.live_index[m] = round(statistics.median(vals), 4)
-        self.reached_live = bool(self.live_index)
+        self.errors: list[str] = []
+        self.cache_hit = False
+        self.fetched_at: str | None = None
+        self._ticker_errors: dict[str, str] = {}
+        self._names: dict[str, dict[str, Any]] = {}
+        self._constituents: dict[str, Constituent] = {}
+        self._live_history: dict[str, dict[str, float]] = {}
+        self._report: dict[str, Any] | None = None
+
+        self._load(refresh)
+        self._value_constituents()
+        self._aggregate()
+        self.reached_live = bool(self._live_history)
         if not self.reached_live:
-            self.error = "live basket returned no overlapping months"
-            log.warning("live comps unavailable (%s); falling back to the fixture", self.error)
+            log.warning("live comps unavailable (%s); falling back to the fixture",
+                        self.errors[0] if self.errors else "no sector reached min_constituents")
 
+    # ---------------------------------------------------------------- loading
+    def _record(self, ticker: str, message: str) -> None:
+        self._ticker_errors[ticker] = message
+        self.errors.append(f"{ticker}: {message}")
+
+    def _load(self, refresh: bool) -> None:
+        cache, baskets = self._cache, self.baskets
+        if refresh:
+            cache.clear()
+        self._names = cache.read_tickers()
+        fetched = False
+
+        # Resolve CIKs first: a ticker SEC does not know (cached as `cik: null`) is skipped on both
+        # sides — it cannot be priced without fundamentals — and does not count as missing.
+        unresolved = [t for t in baskets.tickers if t not in self._names]
+        if unresolved:
+            try:
+                table = self._edgar.company_tickers()
+                fetched = True
+                resolved = resolve_ciks(unresolved, table, baskets.overrides)
+                cache.write_tickers(resolved)
+                self._names.update(resolved)
+            except FetchError as ex:
+                self.errors.append(f"company_tickers.json: {ex}")
+                log.warning("EDGAR ticker table unavailable (%s)", ex)
+                for t in unresolved:                      # an override still resolves without the table
+                    ov = baskets.overrides.get(t)
+                    if ov is not None and ov.cik is not None:
+                        self._names[t] = {"cik": ov.cik, "title": ov.name}
+        for t in baskets.tickers:
+            row = self._names.get(t)
+            if row is None:
+                self._record(t, "EDGAR ticker table unavailable; cannot resolve CIK")
+            elif row.get("cik") is None:
+                self._record(t, "EDGAR cannot resolve ticker (not in company_tickers.json)")
+        fetchable = [t for t in baskets.tickers if t not in self._ticker_errors]
+
+        missing_edgar, missing_prices = cache.missing(fetchable)
+        stale_prices = not cache.prices_match(self.price_source)
+        if stale_prices:                                   # closes written by another provider: the price half is a miss
+            log.warning("market cache %s holds %s closes; refetching prices from %s",
+                        cache.rel_dir, cache.price_source(), self.price_source)
+            missing_prices = list(fetchable)
+        self.cache_hit = cache.exists() and not unresolved and not missing_edgar and not missing_prices
+        for t in missing_edgar:
+            try:
+                cache.write_edgar(t, fetch_extract(self._edgar, int(self._names[t]["cik"])))
+                fetched = True
+            except FetchError as ex:
+                self._record(t, f"EDGAR fetch failed: {ex}")
+
+        priced_now: set[str] = set()
+        for t in missing_prices:
+            try:
+                cache.write_prices(t, month_end_closes(self._prices.daily_closes(t), self.as_of))
+                fetched = True
+                priced_now.add(t)
+            except LiveFeedError as ex:
+                # the line already starts with the ticker: drop the provider's symbol prefix so a
+                # source-wide failure reads identically on every ticker and collapses to one finding
+                msg, sym = str(ex), self._prices.symbol_for(t)
+                if msg.startswith(f"{sym}: "):
+                    msg = msg[len(sym) + 2:]
+                msg = f"price fetch failed ({self.price_source}): {msg}"
+                # do not overwrite an EDGAR-side message for the same ticker; keep the first
+                if t not in self._ticker_errors:
+                    self._record(t, msg)
+                else:
+                    self.errors.append(f"{t}: {msg}")
+
+        price_source_written = self.price_source
+        if stale_prices:
+            if priced_now:                                  # the new source answered: nothing of the old one survives
+                cache.prune_prices(priced_now)
+            else:                                           # it answered for nobody: the old half stays as it was
+                price_source_written = cache.price_source() or self.price_source
+        if fetched:
+            meta = cache.write_meta(user_agent=self._edgar.user_agent, baskets_sha256=baskets.sha256,
+                                    price_source=price_source_written)
+            self.fetched_at = meta["fetched_at"]
+        else:
+            meta = cache.read_meta()
+            self.fetched_at = meta.get("fetched_at") if meta else None
+
+    # ---------------------------------------------------------------- per constituent
+    def _value_constituents(self) -> None:
+        for t in self.baskets.tickers:
+            self._constituents[t] = self._value_one(t)
+
+    def _value_one(self, t: str) -> Constituent:
+        ext = self._cache.read_edgar(t)
+        closes = self._cache.read_prices(t)
+        row = self._names.get(t) or {}
+        c = Constituent(ticker=t, name=(ext or {}).get("name") or row.get("title"), cik=(ext or {}).get("cik"))
+        if t in self._ticker_errors:
+            c.error = self._ticker_errors[t]
+            return c
+        if ext is None:
+            c.error = "no EDGAR extract in the cache"
+            return c
+        if closes is None:
+            c.error = f"no closes in the cache ({self.price_source})"
+            return c
+        quarterly: dict[str, float] = ext.get("revenue_quarterly") or {}
+        shares, cash, debt = ext.get("shares") or [], ext.get("cash") or [], ext.get("debt") or []
+        if not quarterly:
+            return self._fail(c, "EDGAR has no quarterly revenue frames (foreign private issuer?)")
+        if not shares:
+            return self._fail(c, "EDGAR has no shares-outstanding facts")
+
+        for m in self._months:
+            on = min(month_end(m), self.as_of)
+            px, sh = closes.get(m), value_at(shares, on)
+            if px is None or not sh:
+                continue
+            try:
+                ttm, _through = ttm_at(quarterly, on)
+            except ExtractionError:
+                continue
+            if ttm <= 0:
+                continue
+            c.monthly[m] = round((px * sh - net_cash_at(cash, debt, on)) / ttm, 4)
+
+        m0 = month_key(self.as_of)
+        px = closes.get(m0)
+        if px is None:
+            return self._fail(c, f"no close in {m0} ({self.price_source})")
+        sh = value_at(shares, self.as_of)
+        if not sh:
+            return self._fail(c, f"no shares outstanding on or before {self.as_of.isoformat()}")
+        try:
+            ttm, through = ttm_at(quarterly, self.as_of)
+        except ExtractionError as ex:
+            return self._fail(c, str(ex))
+        if ttm <= 0:
+            return self._fail(c, f"TTM revenue through {through} is not positive ({ttm})")
+        nc = net_cash_at(cash, debt, self.as_of)
+        c.status, c.error = "ok", None
+        c.price, c.price_month, c.shares_m = px, m0, sh
+        c.market_cap_musd = round(px * sh, 3)
+        c.net_cash_musd, c.ttm_revenue_musd = nc, ttm
+        c.revenue_through = frame_end(through).isoformat()
+        c.ev_to_revenue = round((c.market_cap_musd - nc) / ttm, 2)
+        return c
+
+    def _fail(self, c: Constituent, message: str) -> Constituent:
+        c.status, c.error = "error", message
+        self.errors.append(f"{c.ticker}: {message}")
+        return c
+
+    # ---------------------------------------------------------------- per sector
+    def _aggregate(self) -> None:
+        min_c = self.baskets.defaults.min_constituents
+        for sector, tickers in self.baskets.sectors.items():
+            cons = [self._constituents[t] for t in tickers]
+            ok = [c for c in cons if c.status == "ok"]
+            if len(ok) < min_c:
+                note = (f"{sector}: only {len(ok)} of {len(tickers)} constituents have data "
+                        f"(min_constituents {min_c}); fixture value kept")
+                self.errors.append(note)
+                continue
+            history: dict[str, float] = {}
+            for m in self._months:
+                vals = [c.monthly[m] for c in cons if m in c.monthly]
+                if len(vals) >= min_c:
+                    history[m] = round(statistics.median(vals), 2)
+            if month_key(self.as_of) not in history:   # cannot happen when `ok` all priced as_of; be safe
+                self.errors.append(f"{sector}: no basket value for {month_key(self.as_of)}; fixture value kept")
+                continue
+            self._live_history[sector] = history
+
+    # ---------------------------------------------------------------- CompsProvider
     @property
     def source(self) -> str:
-        return "live:stooq" if self.reached_live else self._fallback.source
+        return self.live_source if self.reached_live else self._fallback.source
 
-    def _rebase(self, sector: str) -> dict[str, float]:
-        base = self._fallback.history(sector)
-        if not self.reached_live:
-            return base
-        out = dict(base)
-        for m, v in base.items():
-            live = self.live_index.get(m)
-            ref = self._index.series.get(m)
-            if live and ref:
-                out[m] = round(v * live / ref, 4)
-        return out
+    @property
+    def sectors(self) -> list[str]:
+        return sorted(set(self._fallback.sectors) | set(self.baskets.sectors))
+
+    def is_live(self, sector: str) -> bool:
+        return sector in self._live_history
 
     def history(self, sector: str) -> dict[str, float]:
-        return self._rebase(sector)
+        if sector in self._live_history:
+            return dict(self._live_history[sector])
+        return self._fallback.history(sector)
 
     def sector_multiples(self, as_of: date) -> dict[str, SectorComp]:
         out: dict[str, SectorComp] = {}
-        for sector in self._fallback.sectors:
+        for sector in self.sectors:
             obs = latest_at_or_before(self.history(sector), as_of)
             if obs is None:
                 continue
-            live_month = obs[0] in self.live_index and self.reached_live
-            src = f"{'live:stooq' if live_month else self._fallback.source}@{obs[0]}"
-            out[sector] = SectorComp(sector=sector, ev_to_arr=obs[1], as_of=as_of, source=src)
+            src = self.live_source if sector in self._live_history else self._fallback.source
+            out[sector] = SectorComp(sector=sector, ev_to_arr=obs[1], as_of=as_of, source=f"{src}@{obs[0]}")
         return out
 
+    # ---------------------------------------------------------------- report
+    def _sector_report(self, sector: str) -> dict[str, Any]:
+        n = self.baskets.defaults.months_of_history
+        live = sector in self._live_history
+        history = trim_history(self.history(sector), self.as_of, n)
+        obs = latest_at_or_before(history, self.as_of)
+        month = obs[0] if obs else None
+        prior, change = qoq(history, month) if month else (None, None)
+        if sector in self.baskets.sectors:
+            cons = [self._constituents[t].as_json() for t in self.baskets.sectors[sector]]
+        else:
+            cons = [fixture_constituent(t) for t in self._fallback.sample_constituents(sector)]
+        src = self.live_source if live else FIXTURE_SOURCE_PREFIX
+        return {
+            "sector": sector, "positions": 0,
+            "ev_to_revenue": obs[1] if obs else None, "as_of_month": month,
+            "source": f"{src}@{month}" if month else src, "live": live,
+            "prior_quarter": prior, "qoq_pct": change,
+            "history": history, "constituents": cons,
+        }
+
+    def report(self, *, positions: Mapping[str, int] | None = None, used_by: Mapping[str, Any] | None = None,
+               provider: str = "live") -> dict[str, Any]:
+        """The `/api/market` body (docs/market-feed.md §3). The sector detail is built once;
+        `positions` (from the snapshot) and `used_by` (from the policy) decorate it."""
+        if self._report is None:
+            self._report = {
+                "provider": provider, "source": self.live_source if self.reached_live else "stub",   # the manifest label
+                "reached_live": self.reached_live,
+                "as_of": self.as_of.isoformat(), "fetched_at": self.fetched_at,
+                "cache": {"dir": self._cache.rel_dir, "hit": self.cache_hit, "refreshable": True},
+                "used_by": dict(used_by or {}), "baskets_file": BASKETS_FILE.as_posix(),
+                "errors": collapse_errors(self.errors), "sectors": [self._sector_report(s) for s in self.sectors],
+            }
+        rep = dict(self._report)
+        rep["provider"] = provider
+        rep["used_by"] = dict(used_by or rep["used_by"])
+        sectors = [dict(s, positions=int((positions or {}).get(s["sector"], 0))) for s in rep["sectors"]]
+        rep["sectors"] = sorted(sectors, key=lambda s: (-s["positions"], s["sector"]))
+        return rep
+
     def diagnostics(self) -> dict[str, Any]:
-        return {"reached_live": self.reached_live, "error": self.error, "months": len(self.live_index),
-                "basket": list(self._symbols)}
+        return {"reached_live": self.reached_live, "cache_hit": self.cache_hit, "errors": list(self.errors),
+                "live_sectors": sorted(self._live_history)}
+
+
+# ---------------------------------------------------------------- the stub-shaped report
+
+def stub_market_report(stub: StubCompsProvider, as_of: date, *, positions: Mapping[str, int] | None = None,
+                       used_by: Mapping[str, Any] | None = None, provider: str = "stub",
+                       errors: list[str] | None = None, months_of_history: int | None = None) -> dict[str, Any]:
+    """The same §3 shape when the fixture answers: `reached_live` false, no cache, every sector
+    `live: false` with the fixture's `sampleConstituents` as status-`fixture` rows."""
+    sectors = []
+    for sector in stub.sectors:
+        history = trim_history(stub.history(sector), as_of, months_of_history)
+        obs = latest_at_or_before(history, as_of)
+        month = obs[0] if obs else None
+        prior, change = qoq(history, month) if month else (None, None)
+        sectors.append({
+            "sector": sector, "positions": int((positions or {}).get(sector, 0)),
+            "ev_to_revenue": obs[1] if obs else None, "as_of_month": month,
+            "source": f"{FIXTURE_SOURCE_PREFIX}@{month}" if month else FIXTURE_SOURCE_PREFIX, "live": False,
+            "prior_quarter": prior, "qoq_pct": change, "history": history,
+            "constituents": [fixture_constituent(t) for t in stub.sample_constituents(sector)],
+        })
+    return {
+        "provider": provider, "source": "stub", "reached_live": False, "as_of": as_of.isoformat(),
+        "fetched_at": None, "cache": None, "used_by": dict(used_by or {}), "baskets_file": BASKETS_FILE.as_posix(),
+        "errors": list(errors or []), "sectors": sorted(sectors, key=lambda s: (-s["positions"], s["sector"])),
+    }
+
+
+__all__ = ["COLLAPSE_AT", "LIVE_SOURCE_PREFIX", "PRICE_SOURCE_ENV", "LiveFeedError", "PublicCompsProvider",
+           "collapse_errors", "live_source", "month_end_closes", "months_back", "stub_market_report", "trim_history"]
