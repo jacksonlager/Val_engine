@@ -31,10 +31,6 @@
   "cik": 1664703,
   "title": "Bloom Energy Corp"
  },
- "CFLT": {
-  "cik": null,
-  "title": null
- },
  "CRM": {
   "cik": 1108524,
   "title": "Salesforce, Inc."
@@ -143,6 +139,10 @@
   "cik": 1633917,
   "title": "PayPal Holdings, Inc."
  },
+ "RBLX": {
+  "cik": 1315098,
+  "title": "Roblox Corp"
+ },
  "RKLB": {
   "cik": 1819994,
   "title": "Rocket Lab Corp"
@@ -167,17 +167,13 @@
   "cik": 1840856,
   "title": "SOUNDHOUND AI, INC."
  },
- "SPOT": {
-  "cik": 1639920,
-  "title": "Spotify Technology S.A."
- },
- "SQ": {
-  "cik": 1512673,
-  "title": "Block, Inc."
- },
  "SYM": {
   "cik": 1837240,
   "title": "Symbotic Inc."
+ },
+ "TDC": {
+  "cik": 816761,
+  "title": "TERADATA CORP /DE/"
  },
  "TDOC": {
   "cik": 1477449,
@@ -210,6 +206,10 @@
  "WDAY": {
   "cik": 1327811,
   "title": "Workday, Inc."
+ },
+ "XYZ": {
+  "cik": 1512673,
+  "title": "Block, Inc."
  },
  "ZS": {
   "cik": 1713683,

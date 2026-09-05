@@ -4,6 +4,8 @@
         meta.json               {"fetched_at", "as_of", "user_agent", "baskets_sha256", "price_source"}
         company_tickers.json    TICKER -> {"cik", "title"}     (only the baskets' tickers; cik null = unknown to SEC)
         edgar/<TICKER>.json     the `edgar.extract` of one filer
+        edgar_raw/<TICKER>.json the `edgar.slim` companyfacts it was derived from (git-ignored: a few
+                                hundred KB each; lets a changed extraction re-derive offline)
         prices/<TICKER>.json    {"YYYY-MM": close}            (month-end closes at or before as_of)
 
 Rules (docs/market-feed.md §2.5): a complete cache means **no network call** — a re-run is
@@ -105,11 +107,30 @@ class MarketCache:
     def edgar_path(self, ticker: str) -> Path:
         return self.dir / "edgar" / f"{ticker.upper()}.json"
 
+    def edgar_raw_path(self, ticker: str) -> Path:
+        return self.dir / "edgar_raw" / f"{ticker.upper()}.json"
+
+    def read_edgar_raw(self, ticker: str) -> dict[str, Any] | None:
+        raw = _read_json(self.edgar_raw_path(ticker))
+        return raw if isinstance(raw, dict) and "facts" in raw else None
+
+    def write_edgar_raw(self, ticker: str, slim_facts: dict[str, Any]) -> None:
+        _write_json(self.edgar_raw_path(ticker), slim_facts)
+
     def prices_path(self, ticker: str) -> Path:
         return self.dir / "prices" / f"{ticker.upper()}.json"
 
     def read_edgar(self, ticker: str) -> dict[str, Any] | None:
-        return _read_json(self.edgar_path(ticker))
+        ext = _read_json(self.edgar_path(ticker))
+        return ext if self._extract_current(ext) else None
+
+    @staticmethod
+    def _extract_current(ext: Any) -> bool:
+        """An extract written by an earlier extraction (frame-keyed `revenue_quarterly`, or an
+        older `extract_version`) is treated as missing so it is re-derived from the slim facts
+        or refetched."""
+        from .edgar import EXTRACT_VERSION
+        return isinstance(ext, dict) and ext.get("extract_version") == EXTRACT_VERSION
 
     def write_edgar(self, ticker: str, extract: dict[str, Any]) -> None:
         _write_json(self.edgar_path(ticker), extract)
@@ -123,5 +144,5 @@ class MarketCache:
 
     def missing(self, tickers: list[str]) -> tuple[list[str], list[str]]:
         """(tickers with no EDGAR extract, tickers with no cached closes)."""
-        return ([t for t in tickers if not self.edgar_path(t).is_file()],
+        return ([t for t in tickers if not self._extract_current(_read_json(self.edgar_path(t)))],
                 [t for t in tickers if not self.prices_path(t).is_file()])

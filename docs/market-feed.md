@@ -17,9 +17,9 @@ EDGAR for fundamentals and a pluggable price source (Yahoo Finance's chart API b
 
 | Piece | Source | What it gives | Terms |
 |---|---|---|---|
-| Fundamentals | **SEC EDGAR XBRL API** `https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json` | every reported value of every US-GAAP concept for one filer, with period, fiscal year/period, form and a `frame` (`CY2026Q1`) that de-duplicates restatements | free, no key; requires a `User-Agent` naming the app and a contact e-mail; ≤ 10 requests/s |
+| Fundamentals | **SEC EDGAR XBRL API** `https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json` | every reported value of every US-GAAP concept for one filer, with period (`start`/`end`), fiscal year/period, form and filing date; the calendar `frame` SEC adds is not used here | free, no key; requires a `User-Agent` naming the app and a contact e-mail; ≤ 10 requests/s |
 | Ticker → CIK | `https://www.sec.gov/files/company_tickers.json` | `{ "0": {"cik_str": 1321655, "ticker": "PLTR", "title": "Palantir Technologies Inc."}, … }` | same |
-| Prices (default) | **Yahoo Finance chart API** `https://query1.finance.yahoo.com/v8/finance/chart/<symbol>?range=4y&interval=1d` | JSON: `chart.result[0].timestamp[]` (unix) + `indicators.quote[0].close[]` (null on holidays), `chart.error` on an unknown/delisted symbol. Undocumented but stable for years — it is what `yfinance` reads | free, no key; browser-like `User-Agent`, ≤ 2 requests/s |
+| Prices (default) | **Yahoo Finance chart API** `https://query1.finance.yahoo.com/v8/finance/chart/<symbol>?range=10y&interval=1d` | JSON: `chart.result[0].timestamp[]` (unix) + `indicators.quote[0].close[]` (null on holidays), `chart.error` on an unknown/delisted symbol. Undocumented but stable for years — it is what `yfinance` reads | free, no key; browser-like `User-Agent`, ≤ 2 requests/s |
 | Prices (alternative) | **Stooq** `https://stooq.com/q/d/l/?s=<ticker>.us&i=d` | daily `Date,Open,High,Low,Close,Volume` CSV, full history, no envelope | free, no key. **Currently serves a JavaScript browser-verification page (HTTP 404) to non-browser clients**; the feed detects and reports that, and does not try to bypass it |
 
 Per constituent, per month-end: `EV = close × shares_outstanding − net_cash`,
@@ -53,7 +53,7 @@ note: >
   why in the commit message — including a ticker swap forced by the market rather than by
   policy (a delisting, a take-private, a rename such as SQ -> XYZ).
 defaults:
-  months_of_history: 36
+  months_of_history: 96         # 8 years: reaches the round months of the book's stale positions (M-080)
   min_constituents: 3          # fewer than this with data -> sector falls back to the fixture
   price_source: yahoo          # yahoo | stooq  (--price-source / HC_PRICE_SOURCE override per run)
   price_max_per_s: 2           # polite request rate against the price source
@@ -69,7 +69,7 @@ sectors:
   "Robotics":         [SYM, ISRG, TER, KTOS, AVAV]
   "Climate & Energy": [ENPH, FSLR, TSLA, RUN, BE]
   "Space & Defense":  [RKLB, PL, IRDM, KTOS, AVAV]
-  "Consumer":         [ABNB, DASH, UBER, DUOL, SPOT]
+  "Consumer":         [ABNB, DASH, UBER, DUOL, RBLX]   # RBLX replaced SPOT: Spotify files 20-F under IFRS
 overrides: {}                  # optional per-ticker fixes, e.g. T: { cik: 123, name: "..." }
 ```
 
@@ -83,14 +83,26 @@ a CIK for EDGAR, but no price source answers for a ticker that no longer trades.
 
 ### 2.2 Fundamentals extraction (`edgar.py`, pure functions, fully unit-tested on recorded JSON)
 
-* **Revenue, quarterly**: the first concept, in order, that yields at least one quarterly
-  value (a concept that is present but carries only annual frames is skipped) —
+* **Revenue periods** (`revenue_periods`): every `units.USD` entry of **every** revenue concept —
   `RevenueFromContractWithCustomerExcludingAssessedTax`, `Revenues`, `SalesRevenueNet`,
-  `RevenueFromContractWithCustomerIncludingAssessedTax`. Take `units.USD` entries whose
-  `frame` matches `CY\d{4}Q[1-4]` (quarterly, de-duplicated by SEC). A calendar Q4 that has
-  no quarterly frame is derived as annual frame `CY\d{4}` minus the three quarterly frames
-  of that year when all three exist. **TTM at a quarter end** = sum of the last four
-  quarterly values; undefined (constituent `status: error`) if any of the four is missing.
+  `RevenueFromContractWithCustomerIncludingAssessedTax` — read by its own `start`/`end`, never
+  by SEC's calendar `frame`. Two things the first version got wrong and this one does not:
+  (1) filers switch concepts (NVIDIA and SoundHound moved from `Revenues` to the ASC 606 tag
+  in 2018–2020), so reading one concept left a history that stopped in 2019 and a 505× multiple;
+  the concepts are merged, the one whose history runs latest winning any period both report;
+  (2) `frame` is calendar-aligned, so a fiscal year ending in January (NVIDIA, Salesforce,
+  Snowflake, CrowdStrike) or April (C3.ai, Elastic, AeroVironment) had quarters mis-assigned or
+  dropped, hence "TTM undefined: missing CY2025Q1". Only period lengths that mean something
+  are kept (a quarter 80–100 days, a half, nine months, a year); the latest `filed` value per
+  period wins (restatements).
+* **Point in time.** Every month of the history is valued on what had been *filed* by that month's end: `revenue_periods` keeps one row per distinct value a period was reported at (a restatement is a second row with a later `filed`), the instant series do the same per `end`, and `RevenueHistory(filed_by=…)` / `value_at(filed_by=…)` read the figure as filed. The as-of valuation is the same read at the measurement date. So a round-month multiple is the one the market saw then; a 10-K that restates a quarter changes only the months after it was filed.
+* **TTM at a date** (`RevenueHistory.ttm_at`): quarters are the reported quarter-length
+  periods plus quarters derived by differencing year-to-date periods that share a start
+  (fiscal Q4 = year − nine months). Route 1: the latest quarter ended on or before the date
+  with three consecutive predecessors (each 80–100 days apart) → their sum. Route 2, when a
+  quarter is missing: latest fiscal year + year-to-date since it − the same year-to-date a year
+  earlier (a year with no later filing is the year). `revenue_through` is the period end the
+  TTM runs to. Undefined only when neither route can be built.
 * **Shares outstanding**: `dei.EntityCommonStockSharesOutstanding` (`units.shares`), the
   latest entry whose `end` ≤ the month being valued; fallback
   `us-gaap.CommonStockSharesOutstanding`, then `WeightedAverageNumberOfDilutedSharesOutstanding`.
@@ -113,7 +125,7 @@ class PriceProvider(Protocol):
 price_provider(name, *, fetch_text=None, timeout_s=8.0, max_per_s=None) -> PriceProvider
 ```
 
-* **`YahooPrices`** (default): `GET .../v8/finance/chart/<symbol>?range=4y&interval=1d` with
+* **`YahooPrices`** (default): `GET .../v8/finance/chart/<symbol>?range=10y&interval=1d` with
   `User-Agent: Mozilla/5.0 (compatible; hc-valuation/<version>)` and `Accept: application/json`.
   Reads `chart.result[0]`: `timestamp[i]` (unix, converted to an ISO date in UTC — Yahoo
   stamps the session open, so the UTC date is the trading date for a US listing) paired with
@@ -165,12 +177,16 @@ outage reads as one finding. Sector notes and lone ticker lines pass through unc
 
 ### 2.5 Cache (`cache.py`)
 
-`data/market_cache/<as_of ISO date>/` holds **trimmed extracts, not raw payloads**:
+`data/market_cache/<as_of ISO date>/` holds **trimmed extracts, not raw payloads** — plus,
+git-ignored, the slim companyfacts each extract was derived from:
 
 ```
 meta.json                        {"fetched_at": iso, "as_of": "...", "user_agent": "...", "baskets_sha256": "...", "price_source": "yahoo"}
 company_tickers.json             ticker -> {cik, title}, only the tickers in the baskets
-edgar/<TICKER>.json              {"cik", "name", "revenue_quarterly": {"CY2026Q2": musd, ...}, "shares": [{"end", "value"}], "cash": [...], "debt": [...]}
+edgar/<TICKER>.json              {"cik", "name", "revenue_concepts": [...], "revenue_periods": [{"start", "end", "value", "days"}], "shares": [{"end", "value"}], "cash": [...], "debt": [...]}
+edgar_raw/<TICKER>.json          `edgar.slim(companyfacts)`: only the concepts read, only the fields read (~100–400 KB; git-ignored).
+                                 A changed extraction re-derives edgar/ from here with no SEC call; an extract in the old
+                                 frame-keyed shape is treated as missing and re-derived.
 prices/<TICKER>.json             {"YYYY-MM": close}  (month-end closes only, ≤ as_of; written by meta.price_source)
 ```
 
@@ -217,10 +233,10 @@ every test uses `tests/fixtures/market/` recordings or a temp cache.
   "as_of": "2026-09-30",                       // measurement date
   "fetched_at": "2026-09-04T06:12:40Z",        // null when the fixture answered
   "cache": { "dir": "data/market_cache/2026-09-30", "hit": true, "refreshable": true },
-  "used_by": { "multiple_mode": "absolute", "calibration_enabled": false,
+  "used_by": { "multiple_mode": "absolute", "calibration_enabled": true,
                "note": "Screens X-401/X-402 use absolute thresholds under this policy; set exceptions.multiple.mode: relative_to_comps to screen against these multiples." },
   "baskets_file": "rules/comps_baskets.yaml",
-  "errors": [ "TEAM: EDGAR has no quarterly revenue frames (foreign private issuer?)",
+  "errors": [ "SPOT: EDGAR has no revenue periods under any known concept (foreign private issuer?)",
               "3 tickers: price fetch failed (yahoo): HTTP 429 for … [AI, BBAI, SOUN]" ],   // ≥ 3 identical ticker failures collapse
   "sectors": [
     {
@@ -232,7 +248,8 @@ every test uses `tests/fixtures/market/` recordings or a temp cache.
       "live": true,
       "prior_quarter": 21.10,                  // value three months earlier, null if unknown
       "qoq_pct": 0.076,                        // null if unknown
-      "history": { "2023-10": 18.2, "...": 0, "2026-09": 22.71 },   // ≤ 36 months, ascending keys
+      "history": { "2023-10": 18.2, "...": 0, "2026-09": 22.71 },   // ≤ 96 months, ascending keys
+      "counts":  { "2023-10": 3, "...": 0, "2026-09": 5 },           // constituents behind each month (live sectors only)
       "constituents": [
         { "ticker": "PLTR", "name": "Palantir Technologies Inc.", "cik": "0001321655", "status": "ok",
           "price": 41.20, "price_month": "2026-09", "shares_m": 2270.0, "market_cap_musd": 93524.0,
@@ -241,7 +258,7 @@ every test uses `tests/fixtures/market/` recordings or a temp cache.
         { "ticker": "TEAM", "name": "Atlassian Corp", "cik": "0001650372", "status": "error",
           "price": null, "price_month": null, "shares_m": null, "market_cap_musd": null,
           "net_cash_musd": null, "ttm_revenue_musd": null, "revenue_through": null,
-          "ev_to_revenue": null, "error": "no quarterly revenue frames" }
+          "ev_to_revenue": null, "error": "EDGAR has no revenue periods under any known concept (foreign private issuer?)" }
       ]
     }
   ]

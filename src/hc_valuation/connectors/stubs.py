@@ -122,7 +122,7 @@ class StubMarketDataProvider:
 class StubCompsProvider:
     """PitchBook-shaped public comps from `pitchbook/comps_software.json`."""
 
-    source = "stub:pitchbook_fixture"
+    source = "fixture:pitchbook"        # the one fixture label, shared with the market report (live.py)
 
     def __init__(self, root: Path | None = None) -> None:
         payload = _load(root, "pitchbook/comps_software.json")

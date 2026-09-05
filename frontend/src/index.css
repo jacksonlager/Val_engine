@@ -385,6 +385,30 @@ pre.json { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11p
 
 .hint[title] { cursor: help; }
 
+/* the sensitivity view: a slider from −20% to +20% over the multiple-exposed book */
+.view-switch { display: inline-flex; gap: 4px; padding: 3px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); }
+.sens-slider { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--raised); }
+.sens-slider input[type="range"] { flex: 1 1 240px; min-width: 200px; accent-color: var(--ink); height: 22px; cursor: pointer; }
+.sens-readout { font-family: var(--mono); font-size: 20px; font-weight: 600; min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+.sens-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 12px; }
+.sens-tile { border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); padding: 10px 12px; }
+.sens-tile .k { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.sens-tile .v { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.sens-tile .d { font-size: 11.5px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+/* the publish lock: the button stays clickable so the popup can say what is left */
+.btn-locked { background: var(--raised); color: var(--ink-2); border-color: var(--border); box-shadow: none; }
+.btn-locked:hover { background: var(--raised); color: var(--ink); }
+.lock-count { font-family: var(--mono); font-size: 10px; padding: 0 5px; border-radius: 999px; background: var(--review-text); color: var(--surface); line-height: 1.5; }
+.gate-summary { display: flex; gap: 6px; margin-bottom: 8px; }
+.gate-list { list-style: none; margin: 0; padding: 0; max-height: min(46vh, 380px); overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
+.gate-row { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 6px 8px; border-top: 1px solid var(--border); font-size: 12px; }
+.gate-row:first-child { border-top: 0; }
+.gate-disp { justify-self: start; font-size: 9.5px; }
+.gate-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gate-open { padding: 1px 6px; font-size: 11px; }
+.modal.modal-wide { width: min(560px, 94vw); }
+
 /* brief confirmation after a publish; takes its hue from the .disp-* class */
 .toast {
   position: fixed; right: 16px; bottom: 16px; z-index: 60;

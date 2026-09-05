@@ -29,7 +29,7 @@ from ..engine.models import SectorComp
 from .baskets import BASKETS_FILE, Baskets
 from .cache import MarketCache
 from .edgar import (
-    MAX_REQUESTS_PER_S, EdgarClient, ExtractionError, fetch_extract, frame_end, net_cash_at, resolve_ciks, ttm_at, value_at,
+    MAX_REQUESTS_PER_S, EdgarClient, ExtractionError, RevenueHistory, extract, net_cash_at, resolve_ciks, slim, value_at,
 )
 from .fetch import DEFAULT_TIMEOUT_S, FetchError, FetchText, LiveFeedError
 from .prices import PriceProvider, month_end_closes, price_provider
@@ -179,6 +179,7 @@ class PublicCompsProvider:
         self._names: dict[str, dict[str, Any]] = {}
         self._constituents: dict[str, Constituent] = {}
         self._live_history: dict[str, dict[str, float]] = {}
+        self._live_counts: dict[str, dict[str, int]] = {}
         self._report: dict[str, Any] | None = None
 
         self._load(refresh)
@@ -234,8 +235,14 @@ class PublicCompsProvider:
             missing_prices = list(fetchable)
         self.cache_hit = cache.exists() and not unresolved and not missing_edgar and not missing_prices
         for t in missing_edgar:
+            raw = cache.read_edgar_raw(t)
+            if raw is not None:                            # the slim companyfacts is still here: re-derive, no call
+                cache.write_edgar(t, extract(raw))
+                continue
             try:
-                cache.write_edgar(t, fetch_extract(self._edgar, int(self._names[t]["cik"])))
+                facts = self._edgar.company_facts(int(self._names[t]["cik"]))
+                cache.write_edgar_raw(t, slim(facts))
+                cache.write_edgar(t, extract(facts))
                 fetched = True
             except FetchError as ex:
                 self._record(t, f"EDGAR fetch failed: {ex}")
@@ -292,45 +299,48 @@ class PublicCompsProvider:
         if closes is None:
             c.error = f"no closes in the cache ({self.price_source})"
             return c
-        quarterly: dict[str, float] = ext.get("revenue_quarterly") or {}
+        periods = ext.get("revenue_periods") or []
         shares, cash, debt = ext.get("shares") or [], ext.get("cash") or [], ext.get("debt") or []
-        if not quarterly:
-            return self._fail(c, "EDGAR has no quarterly revenue frames (foreign private issuer?)")
+        if not periods:
+            return self._fail(c, "EDGAR has no revenue periods under any known concept (foreign private issuer?)")
         if not shares:
             return self._fail(c, "EDGAR has no shares-outstanding facts")
 
+        # Point in time: every month is valued on what had been *filed* by that month's end — the
+        # revenue, share count and balance sheet a reader of the market had then — so the multiple
+        # in a round month is the one the market saw when the round was priced.
         for m in self._months:
             on = min(month_end(m), self.as_of)
-            px, sh = closes.get(m), value_at(shares, on)
+            px, sh = closes.get(m), value_at(shares, on, filed_by=on)
             if px is None or not sh:
                 continue
             try:
-                ttm, _through = ttm_at(quarterly, on)
+                ttm, _through = RevenueHistory(periods, filed_by=on).ttm_at(on)
             except ExtractionError:
                 continue
             if ttm <= 0:
                 continue
-            c.monthly[m] = round((px * sh - net_cash_at(cash, debt, on)) / ttm, 4)
+            c.monthly[m] = round((px * sh - net_cash_at(cash, debt, on, filed_by=on)) / ttm, 4)
 
         m0 = month_key(self.as_of)
         px = closes.get(m0)
         if px is None:
             return self._fail(c, f"no close in {m0} ({self.price_source})")
-        sh = value_at(shares, self.as_of)
+        sh = value_at(shares, self.as_of, filed_by=self.as_of)
         if not sh:
-            return self._fail(c, f"no shares outstanding on or before {self.as_of.isoformat()}")
+            return self._fail(c, f"no shares outstanding filed on or before {self.as_of.isoformat()}")
         try:
-            ttm, through = ttm_at(quarterly, self.as_of)
+            ttm, through = RevenueHistory(periods, filed_by=self.as_of).ttm_at(self.as_of)
         except ExtractionError as ex:
             return self._fail(c, str(ex))
         if ttm <= 0:
             return self._fail(c, f"TTM revenue through {through} is not positive ({ttm})")
-        nc = net_cash_at(cash, debt, self.as_of)
+        nc = net_cash_at(cash, debt, self.as_of, filed_by=self.as_of)
         c.status, c.error = "ok", None
         c.price, c.price_month, c.shares_m = px, m0, sh
         c.market_cap_musd = round(px * sh, 3)
         c.net_cash_musd, c.ttm_revenue_musd = nc, ttm
-        c.revenue_through = frame_end(through).isoformat()
+        c.revenue_through = through
         c.ev_to_revenue = round((c.market_cap_musd - nc) / ttm, 2)
         return c
 
@@ -351,14 +361,17 @@ class PublicCompsProvider:
                 self.errors.append(note)
                 continue
             history: dict[str, float] = {}
+            counts: dict[str, int] = {}
             for m in self._months:
                 vals = [c.monthly[m] for c in cons if m in c.monthly]
                 if len(vals) >= min_c:
                     history[m] = round(statistics.median(vals), 2)
+                    counts[m] = len(vals)
             if month_key(self.as_of) not in history:   # cannot happen when `ok` all priced as_of; be safe
                 self.errors.append(f"{sector}: no basket value for {month_key(self.as_of)}; fixture value kept")
                 continue
             self._live_history[sector] = history
+            self._live_counts[sector] = counts
 
     # ---------------------------------------------------------------- CompsProvider
     @property
@@ -376,6 +389,10 @@ class PublicCompsProvider:
         if sector in self._live_history:
             return dict(self._live_history[sector])
         return self._fallback.history(sector)
+
+    def counts(self, sector: str) -> dict[str, int]:
+        """How many constituents stood behind each month's basket value (empty for a fixture sector)."""
+        return dict(self._live_counts.get(sector, {}))
 
     def sector_multiples(self, as_of: date) -> dict[str, SectorComp]:
         out: dict[str, SectorComp] = {}
@@ -405,7 +422,8 @@ class PublicCompsProvider:
             "ev_to_revenue": obs[1] if obs else None, "as_of_month": month,
             "source": f"{src}@{month}" if month else src, "live": live,
             "prior_quarter": prior, "qoq_pct": change,
-            "history": history, "constituents": cons,
+            "history": history, "counts": {m: n for m, n in self._live_counts.get(sector, {}).items() if m in history},
+            "constituents": cons,
         }
 
     def report(self, *, positions: Mapping[str, int] | None = None, used_by: Mapping[str, Any] | None = None,
@@ -450,7 +468,7 @@ def stub_market_report(stub: StubCompsProvider, as_of: date, *, positions: Mappi
             "sector": sector, "positions": int((positions or {}).get(sector, 0)),
             "ev_to_revenue": obs[1] if obs else None, "as_of_month": month,
             "source": f"{FIXTURE_SOURCE_PREFIX}@{month}" if month else FIXTURE_SOURCE_PREFIX, "live": False,
-            "prior_quarter": prior, "qoq_pct": change, "history": history,
+            "prior_quarter": prior, "qoq_pct": change, "history": history, "counts": {},
             "constituents": [fixture_constituent(t) for t in stub.sample_constituents(sector)],
         })
     return {

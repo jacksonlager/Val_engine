@@ -9,7 +9,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { ConstituentStatus, MarketConstituent, MarketReport, MarketSector } from "../types";
+import type { CompanyResult, ConstituentStatus, MarketConstituent, MarketReport, MarketSector, ValuationRun } from "../types";
 import { loadMarket, type Mode } from "../lib/api";
 import { isoDateTime, mult, musd, pct, signClass } from "../lib/format";
 import { useChartTheme } from "../lib/theme";
@@ -42,9 +42,11 @@ function SourceChip({ live, long = false, source }: { live: boolean; long?: bool
   );
 }
 
+/** `ok` priced; `error` is shown as "unpriced" in the watch hue — a constituent the feed could not
+    price is left out of the median, which is a gap to know about, not a fault in the book. */
 function StatusChip({ s }: { s: ConstituentStatus }) {
-  const cls = s === "ok" ? "disp-CLEAR" : s === "error" ? "disp-BLOCK" : "disp-NONE";
-  return <span className={`chip ${cls}`}>{s}</span>;
+  const cls = s === "ok" ? "disp-CLEAR" : s === "error" ? "disp-MONITOR" : "disp-NONE";
+  return <span className={`chip ${cls}`}>{s === "error" ? "unpriced" : s}</span>;
 }
 
 // ---------------------------------------------------------------- header strip
@@ -254,8 +256,9 @@ function HistoryChart({ sector }: { sector: MarketSector }) {
   const yTicks: number[] = [];
   for (let y = floor; y <= ceil + 1e-9; y += step) yTicks.push(Number(y.toFixed(2)));
   const yd = step < 1 ? 1 : 0;
-  // ~6 month labels, the latest month always among them
-  const ticks = data.filter((_, i) => (n - 1 - i) % 6 === 0).map((d) => d.month);
+  // about eight labels whatever the span (36 or 96 months), the latest month always among them
+  const every = Math.max(1, Math.ceil(n / 8));
+  const ticks = data.filter((_, i) => (n - 1 - i) % every === 0).map((d) => d.month);
   const last = data[n - 1];
 
   if (n === 0) return <div className="text-[12px] text-muted p-6 text-center">No history for this sector.</div>;
@@ -415,7 +418,160 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
 
 // ---------------------------------------------------------------- view
 
-export function MarketView({ mode }: { mode: Mode }) {
+// ---------------------------------------------------------------- M-080 calibration
+
+type CalRow = {
+  c: CompanyResult;
+  age: number;
+  then: number;
+  now: number;
+  monthUsed: string;
+  roundMonth: string;
+  raw: number;
+  factor: number;
+  bounded: boolean;
+  equity: number;
+  calibrated: number;
+};
+
+function calibrationRows(run: ValuationRun): { rows: CalRow[]; stale: number } {
+  const rows: CalRow[] = [];
+  let stale = 0;
+  for (const c of run.companies) {
+    const step = c.steps.find((s) => s.rule_id === "M-080");
+    const alt = c.alternative_marks?.calibrated_to_comps;
+    if (!step || alt === undefined) {
+      const md = new Date(run.manifest.measurement_date), an = new Date(c.staleness_anchor);
+      const months = (md.getFullYear() - an.getFullYear()) * 12 + (md.getMonth() - an.getMonth());
+      if (months >= 24 && !c.listed && c.arr !== null && c.fv_level === 3) stale += 1;
+      continue;
+    }
+    const i = step.inputs as Record<string, any>;
+    const factor = Number(i.factor_bounded);
+    rows.push({
+      c,
+      age: Number(i.age_months),
+      then: Number(i.comp_multiple_at_round),
+      now: Number(i.comp_multiple_now),
+      monthUsed: String(i.comp_month_used ?? ""),
+      roundMonth: String(i.round_month ?? ""),
+      raw: Number(i.factor_raw ?? factor),
+      factor,
+      bounded: Boolean(i.bound_hit),
+      equity: c.equity_mark,
+      calibrated: alt,
+    });
+  }
+  rows.sort((a, b) => Math.abs(b.calibrated - b.equity) - Math.abs(a.calibrated - a.equity));
+  return { rows, stale };
+}
+
+/** The stretch item from the brief: a defensible adjustment for stale rounds, calibrated to the
+    movement in public comparable multiples since the round closed. Alternatives only. */
+function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketReport; onGoto?: (name: string) => void }) {
+  const { rows, stale } = useMemo(() => calibrationRows(run), [run]);
+  const total = rows.reduce((a, r) => a + (r.calibrated - r.equity), 0);
+  const base = rows.reduce((a, r) => a + r.equity, 0);
+  const pinned = rows.filter((r) => r.bounded).length;
+  return (
+    <div className="card p-4 xl:col-span-2 min-w-0">
+      <SectionTitle
+        right={
+          rows.length ? (
+            <span className="num">
+              {rows.length} calibrated · {pinned} at the ±35% bound · net{" "}
+              <span className={signClass(total)}>
+                {total >= 0 ? "+" : ""}
+                {musd(total, 1)}
+              </span>{" "}
+              on {musd(base, 1)}
+            </span>
+          ) : (
+            <span className="num">{stale} stale positions · none calibrated</span>
+          )
+        }
+      >
+        Stale-round calibration · M-080
+      </SectionTitle>
+      <p className="text-[11px] text-muted mb-2">
+        For a Level 3 position whose price anchor is 24+ months old: calibrated = equity mark × (sector comps now ÷ sector comps in the round
+        month), bounded ±35%. Written as the <span className="mono">calibrated_to_comps</span> alternative — the base mark never moves; a
+        reviewer books it through the "Calibrate to public comps" resolution on X-202 / X-106 / X-405.
+        {!rep.reached_live && (
+          <>
+            {" "}
+            <span className="chip disp-MONITOR no-dot">gated</span> Only an observed comps history calibrates; the fixture never does. Run with{" "}
+            <span className="mono">--provider live</span>.
+          </>
+        )}
+      </p>
+      {rows.length > 0 && (
+        <div className="overflow-x-auto -mx-4 px-4">
+          <table className="dtable text-[12px]">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Sector</th>
+                <th className="r">Round</th>
+                <th className="r">Age</th>
+                <th className="r">Comps then → now</th>
+                <th className="r">Factor</th>
+                <th className="r">Equity mark</th>
+                <th className="r">Calibrated</th>
+                <th className="r">Δ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const d = r.calibrated - r.equity;
+                return (
+                  <tr key={r.c.company}>
+                    <td>
+                      {onGoto ? (
+                        <button className="btn btn-ghost font-medium" style={{ padding: "0 4px" }} onClick={() => onGoto(r.c.company)}>
+                          {r.c.company}
+                        </button>
+                      ) : (
+                        <span className="font-medium">{r.c.company}</span>
+                      )}{" "}
+                      <span className={`chip disp-${r.c.disposition} no-dot`} style={{ fontSize: 9 }}>
+                        {r.c.disposition}
+                      </span>
+                    </td>
+                    <td className="text-ink2">{r.c.sector}</td>
+                    <td className="r mono" title={r.monthUsed !== r.roundMonth ? `no basket value in ${r.roundMonth}; read at ${r.monthUsed}` : undefined}>
+                      {r.roundMonth}
+                      {r.monthUsed !== r.roundMonth && <span className="text-muted"> ≈{r.monthUsed}</span>}
+                    </td>
+                    <td className="r num">{r.age} mo</td>
+                    <td className="r num">
+                      {r.then.toFixed(1)}× → {r.now.toFixed(1)}×
+                    </td>
+                    <td className="r num" title={r.bounded ? `raw ${r.raw.toFixed(3)}, pinned at the bound` : undefined}>
+                      {r.factor.toFixed(3)}
+                      {r.bounded && <span className="text-muted"> ⌐</span>}
+                    </td>
+                    <td className="r num">{musd(r.equity, 2)}</td>
+                    <td className="r num font-medium">{musd(r.calibrated, 2)}</td>
+                    <td className={`r num ${signClass(d)}`}>
+                      {d >= 0 ? "+" : ""}
+                      {musd(d, 2)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {pinned > 0 && (
+            <p className="text-[11px] text-muted mt-1">⌐ factor pinned at the ±35% bound (the raw ratio is in the tooltip).</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationRun; onGoto?: (name: string) => void }) {
   const { data: rep, error, loading } = useAsync(() => loadMarket(mode), [mode]);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -511,10 +667,13 @@ export function MarketView({ mode }: { mode: Mode }) {
               )}
               <ConstituentsTable sector={sector} />
               <p className="text-[11px] text-muted mt-2">
-                EV = price × shares − net cash; EV/Revenue = EV / trailing-twelve-month revenue (SEC XBRL frames).
+                EV = price × shares − net cash; EV/Revenue = EV / trailing-twelve-month revenue, built from each filer's own reported
+                periods (SEC XBRL companyfacts) so a January or April fiscal year reads like a calendar one.
               </p>
             </div>
           )}
+
+          {run && <CalibrationCard run={run} rep={rep} onGoto={onGoto} />}
         </div>
       )}
     </div>

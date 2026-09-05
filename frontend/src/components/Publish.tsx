@@ -2,11 +2,29 @@
 // "Publish" freezes the current booked marks as the quarter's executive snapshot under a
 // named approver; the quiet status line beside it says what executives are looking at now
 // and whether the live run has moved on since.
-import { useEffect, useState } from "react";
-import type { PublishRecord, ValuationRun } from "../types";
+import { useEffect, useMemo, useState } from "react";
+import type { CompanyResult, PublishRecord, ValuationRun } from "../types";
 import { fetchPublished, publishRun, type Mode } from "../lib/api";
-import { relativeTime } from "../lib/format";
+import { musd, relativeTime } from "../lib/format";
 import { Field, Modal, useAsync, WriteButton } from "./ui";
+
+/** The decision gate. A position that is still BLOCK ("decision required before booking") or REVIEW
+    ("check required to confirm the mark") holds the whole book back: nothing is released to executives
+    until a person has decided or confirmed every one. Mirrors `outstanding()` on the server, which
+    refuses the publish (409) regardless of what the browser thinks. */
+export type Outstanding = { c: CompanyResult; rules: string[] };
+
+export function outstanding(run: ValuationRun): Outstanding[] {
+  const out: Outstanding[] = [];
+  for (const c of run.companies) {
+    if (c.disposition !== "BLOCK" && c.disposition !== "REVIEW") continue;
+    const addressed = new Set(c.override?.rule_ids_addressed ?? []);
+    const rules = c.flags.filter((f) => (f.severity === "BLOCK" || f.severity === "REVIEW") && !addressed.has(f.rule_id)).map((f) => f.rule_id);
+    out.push({ c, rules });
+  }
+  // decisions first, then confirmations; alphabetical within each
+  return out.sort((a, b) => (a.c.disposition === b.c.disposition ? a.c.company.localeCompare(b.c.company) : a.c.disposition === "BLOCK" ? -1 : 1));
+}
 
 const EXEC_STATIC_REASON = "Available when served";
 
@@ -18,16 +36,22 @@ export function PublishControls({
   mode,
   writeDisabled,
   refreshKey,
+  onGoto,
 }: {
   run: ValuationRun;
   mode: Mode;
   writeDisabled: string | null;
   /** bumped by the app on every reload so the status line refetches after a rerun */
   refreshKey: number;
+  /** jump to a company's expanded row so the reviewer can decide it */
+  onGoto?: (company: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [gate, setGate] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const served = mode === "served";
+  const waiting = useMemo(() => outstanding(run), [run]);
+  const locked = waiting.length > 0;
   const published = useAsync<PublishRecord[]>(() => (served ? fetchPublished() : Promise.resolve([])), [served, refreshKey]);
 
   useEffect(() => {
@@ -65,8 +89,19 @@ export function PublishControls({
           )}
         </span>
       )}
-      <WriteButton disabledReason={writeDisabled ? EXEC_STATIC_REASON : null} className="btn btn-primary" onClick={() => setOpen(true)}>
-        Publish
+      <WriteButton
+        disabledReason={writeDisabled ? EXEC_STATIC_REASON : null}
+        className={`btn btn-primary${locked ? " btn-locked" : ""}`}
+        onClick={() => (locked ? setGate(true) : setOpen(true))}
+        title={locked ? `${waiting.length} position(s) still need a decision or confirmation before publishing` : "Release the booked marks to executives"}
+      >
+        {locked ? (
+          <>
+            <span aria-hidden>🔒</span> Publish <span className="lock-count">{waiting.length}</span>
+          </>
+        ) : (
+          "Publish"
+        )}
       </WriteButton>
       <span title={writeDisabled ? EXEC_STATIC_REASON : "Open the executive dashboard (published snapshots only)"} className="inline-block">
         {writeDisabled ? (
@@ -80,6 +115,17 @@ export function PublishControls({
         )}
       </span>
 
+      {gate && (
+        <GateModal
+          run={run}
+          items={waiting}
+          onClose={() => setGate(false)}
+          onGoto={(name) => {
+            setGate(false);
+            onGoto?.(name);
+          }}
+        />
+      )}
       {open && (
         <PublishModal
           run={run}
@@ -105,9 +151,9 @@ function PublishModal({ run, onClose, onDone }: { run: ValuationRun; onClose: ()
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const blocks = run.totals.dispositions.BLOCK ?? 0;
   const valid = approver.trim().length > 0;
   const quarter = run.manifest.quarter_label;
+  const decided = run.companies.filter((c) => c.override).length;
 
   const submit = async () => {
     if (!valid || busy) return;
@@ -140,16 +186,10 @@ function PublishModal({ run, onClose, onDone }: { run: ValuationRun; onClose: ()
         <Field label="Note (optional, shown on the executive page)">
           <input className="input w-full" value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
-        {blocks > 0 ? (
-          <div className="text-[12px] text-[var(--review-text)] mb-3">
-            This will publish as <span className="font-semibold">PROPOSED</span> — {blocks} {blocks === 1 ? "position" : "positions"} still{" "}
-            {blocks === 1 ? "awaits" : "await"} a committee decision.
-          </div>
-        ) : (
-          <div className="text-[12px] text-[var(--clear-text)] mb-3">
-            This will publish as <span className="font-semibold">FINAL</span>.
-          </div>
-        )}
+        <div className="text-[12px] text-[var(--clear-text)] mb-3">
+          Every BLOCK and REVIEW position has been decided or confirmed ({decided} committee {decided === 1 ? "decision" : "decisions"} on the
+          ledger). This will publish as <span className="font-semibold">FINAL</span>.
+        </div>
         {err && <div className="text-[12px] down mb-2">{err}</div>}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn" onClick={onClose}>
@@ -160,6 +200,67 @@ function PublishModal({ run, onClose, onDone }: { run: ValuationRun; onClose: ()
           </button>
         </div>
       </form>
+    </Modal>
+  );
+}
+
+
+/** The lock. Opens instead of the publish form while any position is still waiting on a person,
+    lists exactly what is left, and can only be closed — there is no "publish anyway". */
+function GateModal({
+  run,
+  items,
+  onClose,
+  onGoto,
+}: {
+  run: ValuationRun;
+  items: Outstanding[];
+  onClose: () => void;
+  onGoto: (company: string) => void;
+}) {
+  const blocks = items.filter((i) => i.c.disposition === "BLOCK").length;
+  const reviews = items.length - blocks;
+  const quarter = run.manifest.quarter_label;
+  return (
+    <Modal title={`Publish is locked · ${quarter}`} onClose={onClose} className="modal-wide">
+      <p className="text-[12px] text-ink2 mb-2">
+        Nothing is released to executives until every position has been decided or confirmed. This keeps a mark from being published
+        on a row nobody looked at.
+      </p>
+      <div className="gate-summary">
+        <span className="chip disp-BLOCK">
+          {blocks} {blocks === 1 ? "decision" : "decisions"} required
+        </span>
+        <span className="chip disp-REVIEW">
+          {reviews} {reviews === 1 ? "check" : "checks"} to confirm
+        </span>
+      </div>
+      <ul className="gate-list" aria-label="Positions still waiting">
+        {items.map(({ c, rules }) => (
+          <li key={c.company} className="gate-row">
+            <span className={`chip disp-${c.disposition} no-dot gate-disp`}>{c.disposition}</span>
+            <span className="gate-name">
+              <span className="font-semibold">{c.company}</span>
+              <span className="mono text-[10.5px] text-muted"> {rules.join(" · ")}</span>
+            </span>
+            <span className="num text-[11.5px] text-ink2 whitespace-nowrap" title="proposed mark">
+              {musd(c.proposed_mark)}
+            </span>
+            <button type="button" className="btn btn-ghost gate-open" onClick={() => onGoto(c.company)}>
+              {c.disposition === "BLOCK" ? "Decide" : "Confirm"} →
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[11px] text-muted mt-2 mb-3">
+        Choosing a resolution on a flag, or confirming the mark as proposed, records a committee override under your name and clears
+        that row. The button unlocks on its own once the list is empty.
+      </p>
+      <div className="flex justify-end">
+        <button type="button" className="btn btn-primary" onClick={onClose} autoFocus>
+          Close
+        </button>
+      </div>
     </Modal>
   );
 }

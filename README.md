@@ -122,9 +122,13 @@ chain, overrides, proposals. It changes every time someone records a decision.
 **`/exec/` — the executive dashboard** is what the partners and the investment committee
 open. It never reads the live run. It reads only a **published snapshot**, frozen by a named
 person from the review tool's *Publish* button (or `hc-valuation publish --approver "…"`).
-A run with open BLOCK positions publishes as **PROPOSED** and the page says how many
-decisions are still owed; it becomes **FINAL** only when every block has been resolved.
-Re-publishing replaces the snapshot and keeps the previous one under
+**Publish is locked until every BLOCK and REVIEW position has been decided or
+confirmed.** The button opens a popup listing exactly what is left — each company, the
+flags waiting on it, and a *Decide* / *Confirm* link to its row — and can only be closed;
+the server refuses the request (409) as well, so an undecided book cannot reach executives
+by any path. Once the list is empty the same button publishes the quarter as **FINAL**.
+(`hc-valuation publish --proposed` is the one deliberate bypass, for a preview from the
+command line; the dashboard never uses it.) Re-publishing replaces the snapshot and keeps the previous one under
 `data/published/history/`, so what executives were shown is itself auditable.
 
 The executive page covers the September 30 marks, the quarter-over-quarter bridge by
@@ -185,7 +189,7 @@ quarter's file can `inherits: 2026Q3` and override only what moved; rules carry 
 
 ```bash
 pip install -e ".[dev]"             # adds pytest and httpx to the install above
-pytest                              # 740+ tests (743 at the time of writing), ~25 s, no network
+pytest                              # 750+ tests (756 at the time of writing), ~25 s, no network
 python training/run_gauntlet.py     # 44 dirty-workbook scenarios, 1,785 checks -> training/report.md
 ```
 
@@ -265,15 +269,34 @@ The one external *market* input the engine reads is the sector public-comparable
 the PitchBook-shaped fixture and the manifest says `stub`. A free, keyless live source
 fills the same slot honestly:
 
-- **SEC EDGAR** (`companyfacts` XBRL API) for quarterly revenue, shares outstanding and
-  net cash of the public companies in `rules/comps_baskets.yaml`, and **Yahoo Finance's
-  public chart API** for their daily closes (keyless; undocumented but stable — it is what
+- **SEC EDGAR** (`companyfacts` XBRL API) for revenue, shares outstanding and net cash of
+  the public companies in `rules/comps_baskets.yaml`, and **Yahoo Finance's public chart
+  API** for ten years of daily closes (keyless; undocumented but stable — it is what
   `yfinance` reads). Per constituent, per month: `EV = close × shares − net cash`,
-  `EV / TTM revenue`; per sector, the median of the basket. The full contract — what is
-  read, how a missing quarter or a multi-class filer is handled, and the exact JSON the
-  review tool renders — is `docs/market-feed.md`.
+  `EV / TTM revenue`; per sector, the median of the basket. Revenue is read from each
+  filer's own reported periods across every revenue concept it has ever used, so a
+  January or April fiscal year (NVIDIA, Salesforce, C3.ai) and a concept switch under
+  ASC 606 price correctly. The full contract — what is read, how a multi-class filer is
+  handled, and the exact JSON the review tool renders — is `docs/market-feed.md`.
+- **What the live history buys.** Two of the brief's stretch items run on it. **M-080**
+  calibrates every stale Level 3 mark to the movement in its sector's public multiple since
+  the round month (bounded ±35%, alternative only, on by default but gated to an observed
+  history so the fixture never calibrates); the Market page lists each one with the two
+  multiples and the factor. **`comps_move`** puts the observed quarter beside the ±20% shock
+  on the Movement page: what NAV would be had each sector's multiple-exposed marks moved
+  with its comps this quarter. Every month of the live history is point-in-time (only what
+  had been filed by that month's end), and each basket value carries the number of names
+  behind it, so both are reproducible in a workpaper.
+- **The sensitivity view.** "What the portfolio looks like if software multiples move 20
+  percent" is `run.sensitivity` (the ±20% points, on all multiple-exposed marks and on the
+  software sectors alone) and, on the Movement page, a *Sensitivity view* with a slider from
+  −20% to +20% — NAV at the chosen move, by sector, by fund and by position, with a scope
+  switch. Nothing in it changes a mark.
 - Run with `--provider live` (`hc-valuation run --provider live`, `build --provider live`)
-  or `HC_MARKET_PROVIDER=live`. Requires the `live` extra: `pip install -e ".[live]"`.
+  or `HC_MARKET_PROVIDER=live`. Requires the `live` extra: `pip install -e ".[live]"`. When
+  the checkout carries a committed cache for the measurement date
+  (`data/market_cache/2026-09-30/`), `run` and `build` read it with no flag and no network
+  and say so; `--provider stub` asks for the fixture, `--refresh-market` refetches.
 - **Price source.** The price half is pluggable: `--price-source yahoo|stooq` on
   `hc-valuation market`, or `HC_PRICE_SOURCE` for every command, over
   `defaults.price_source` in the baskets file. Stooq is retained as the alternative, but it

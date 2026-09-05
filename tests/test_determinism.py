@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 import yaml
 
 from conftest import GOLDEN_PATH, POLICY_PATH, canonical, diff_runs, execute_real
@@ -53,3 +55,20 @@ def test_generated_at_does_not_leak_into_run_id(run_real):
     assert other.manifest.run_id == run_real.manifest.run_id
     assert other.manifest.generated_at != run_real.manifest.generated_at
     assert canonical(other)["companies"] == canonical(run_real)["companies"]
+
+
+def test_a_decision_changes_the_run_id(run_real):
+    """The ledger is an input: an override recorded after a publish must give the live run a new
+    identity, or the review tool cannot tell executives are looking at an older book."""
+    from hc_valuation.engine.models import OverrideLedger, OverrideRecord
+    from hc_valuation.engine.run import run_valuation
+    from conftest import execute_real
+    r = execute_real()
+    rec = OverrideRecord(company="Gryphonel", quarter=r.config.quarter.label, proposed=4.3092, booked=4.0,
+                         reason="test", approver="t", created_at=r.config.quarter.measurement_date, rule_ids_addressed=("X-101",))
+    from hc_valuation.ingest.reader import read_workbook
+    snapshot, feed = read_workbook(r.paths.workbook, r.config)
+    with_override = run_valuation(snapshot, feed, r.market, OverrideLedger(records=(rec,)), r.config,
+                                  input_sha256=r.run.manifest.input_sha256, generated_at=r.run.manifest.generated_at)
+    assert with_override.manifest.run_id != run_real.manifest.run_id
+    assert with_override.by_company()["Gryphonel"].booked_mark == pytest.approx(4.0)

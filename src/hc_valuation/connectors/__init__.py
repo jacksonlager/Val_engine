@@ -214,7 +214,10 @@ def assemble_market_data(cfg: RuleConfig, root: Path, snapshot: PortfolioSnapsho
 
     sector_comps = comps.sector_multiples(md)
     history = {sector: comps.history(sector) for sector in sector_comps}
-    market = MarketData(quotes=quotes, comps=sector_comps, comp_history=history, as_of=md)
+    counts_of = getattr(comps, "counts", None)                     # live providers know how many names priced each month
+    counts = {sector: counts_of(sector) for sector in sector_comps if counts_of is not None} if counts_of else {}
+    counts = {k: v for k, v in counts.items() if v}
+    market = MarketData(quotes=quotes, comps=sector_comps, comp_history=history, comp_counts=counts, as_of=md)
     return MarketAssembly(market=market, label=label, report=report)
 
 

@@ -61,6 +61,7 @@ class Working:
     latest_post: float = 0.0
     latest_round: date = date.min
     staleness_anchor: date = date.min
+    carried_anchor: date | None = None   # a staleness anchor restored from the prior quarter's sidecar
     status: Status = Status.ACTIVE
     listed: bool = False
     fv_level: int | None = 3
@@ -164,7 +165,8 @@ class Working:
                 elif sg.basis == "alternative":
                     if sg.value not in self.alternative_marks:
                         continue
-                    booked = self.alternative_marks[str(sg.value)]
+                    # alternatives are equity-basis marks; the position's note leg rides on top, as in the proposal
+                    booked = self.alternative_marks[str(sg.value)] + self.note_at_cost
                 else:
                     booked = float(sg.value)  # type: ignore[arg-type]
                 booked = round(max(0.0, float(booked)), 6)

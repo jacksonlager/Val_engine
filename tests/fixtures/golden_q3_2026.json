@@ -47,6 +47,7 @@
    "latest_post_money": 128.5,
    "listed": false,
    "moic_after": 2.313,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -100,10 +101,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-07-05",
-      "months": 26
+      "months": 26.8
      },
      "family": "staleness",
-     "message": "Last priced 26 months ago (2024-07-05) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 26.8 months ago (2024-07-05) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -168,6 +169,7 @@
    "latest_post_money": 61.3,
    "listed": false,
    "moic_after": 1.35,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -217,6 +219,7 @@
    "latest_post_money": 209.5,
    "listed": false,
    "moic_after": 2.82,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -303,6 +306,7 @@
    "latest_post_money": 103.8,
    "listed": false,
    "moic_after": 1.4272,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -389,6 +393,7 @@
    "latest_post_money": 22.5,
    "listed": false,
    "moic_after": 0.72,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -458,6 +463,7 @@
    "latest_post_money": 1837.9,
    "listed": false,
    "moic_after": 7.1375,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -572,15 +578,15 @@
      ]
     },
     {
-     "action": "Decide whether a price set 72 months ago is still fair value.",
+     "action": "Decide whether a price set 72.7 months ago is still fair value.",
      "evidence": {
       "anchor": "2020-09-07",
-      "months": 72
+      "months": 72.7
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 72 months ago, on 2020-09-07. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 72.7 months ago, on 2020-09-07. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **72 months old** (2020-09-07).",
+      "The mark rests on a round **72.7 months old** (2020-09-07).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -621,6 +627,7 @@
    "latest_post_money": 97.0,
    "listed": false,
    "moic_after": 1.0773,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -701,15 +708,15 @@
      "suggestions": []
     },
     {
-     "action": "Decide whether a price set 71 months ago is still fair value.",
+     "action": "Decide whether a price set 71.0 months ago is still fair value.",
      "evidence": {
       "anchor": "2020-10-30",
-      "months": 71
+      "months": 71.0
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 71 months ago, on 2020-10-30. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 71.0 months ago, on 2020-10-30. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **71 months old** (2020-10-30).",
+      "The mark rests on a round **71.0 months old** (2020-10-30).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -750,6 +757,7 @@
    "latest_post_money": 31.3,
    "listed": false,
    "moic_after": 1.35,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -833,6 +841,7 @@
    "latest_post_money": 764.2,
    "listed": false,
    "moic_after": 4.8399,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -905,6 +914,7 @@
    "latest_post_money": 43.0,
    "listed": false,
    "moic_after": 1.2561,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -962,6 +972,7 @@
    "latest_post_money": 112.1,
    "listed": false,
    "moic_after": 2.7414,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1010,6 +1021,7 @@
    "latest_post_money": 4.3,
    "listed": false,
    "moic_after": 0.8,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1044,67 +1056,15 @@
   },
   {
    "alternative_marks": {
-    "at_secondary_price": 8.2875
+    "at_secondary_price": 8.772
    },
    "arr": 75.3,
    "arr_growth": 0.46,
    "booked_mark": 8.772,
    "company": "Marrowick Bio",
-   "disposition": "REVIEW",
+   "disposition": "CLEAR",
    "equity_mark": 8.772,
-   "flags": [
-    {
-     "action": "Decide whether the stake HC still holds follows the last round or the secondary price.",
-     "evidence": {
-      "basis": "last_round",
-      "implied_post_money": 487.5,
-      "spread": -0.0552
-     },
-     "family": "treatment",
-     "message": "The sale implies the company is worth $487.5M, -5.5% against the $516.0M the last round set. One buyer taking one block is real evidence but not necessarily the principal market, so policy holds the remaining stake at the round price. On the secondary price it would be $8.29M instead.",
-     "points": [
-      "Secondary implies **$487.5M**, **-5.5%** against the $516.0M round price.",
-      "One buyer taking one block is real evidence but **may not be the principal market**.",
-      "On the secondary price the remaining stake would be **$8.29M** instead."
-     ],
-     "recommendation": {
-      "booked": 8.772,
-      "confidence": null,
-      "key": "as_proposed",
-      "label": "Keep the remaining stake at the last-round price.",
-      "model": null,
-      "note": null,
-      "rationale": null,
-      "reasons": [
-       "The round is the principal market; one block sale is weaker evidence.",
-       "Policy default \u2014 the secondary is recorded as an alternative mark."
-      ],
-      "source": "policy"
-     },
-     "rule_id": "X-104",
-     "severity": "REVIEW",
-     "suggestions": [
-      {
-       "booked": 8.772,
-       "key": "as_proposed",
-       "label": "Keep the remaining stake at the last-round price.",
-       "reasons": [
-        "The round is the principal market; one block sale is weaker evidence.",
-        "Policy default \u2014 the secondary is recorded as an alternative mark."
-       ]
-      },
-      {
-       "booked": 8.2875,
-       "key": "at_secondary",
-       "label": "Mark the remaining stake at the secondary price (-5.5%).",
-       "reasons": [
-        "The secondary is the most recent transaction in this security.",
-        "Right if the buyer was informed and the block was meaningful."
-       ]
-      }
-     ]
-    }
-   ],
+   "flags": [],
    "fund": "Fund II",
    "fv_level": 3,
    "implied_multiple": 6.85,
@@ -1113,6 +1073,7 @@
    "latest_post_money": 516.0,
    "listed": false,
    "moic_after": 1.2185,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1138,8 +1099,10 @@
      },
      "inputs": {
       "at_last_round": 8.772,
-      "at_secondary_price": 8.287500000000001,
-      "implied_post_money": 487.5,
+      "at_secondary_price": 8.772,
+      "implied_from_ownership": 487.5,
+      "implied_post_money": 516.0,
+      "implied_price_source": "row value (implied valuation for secondaries)",
       "last_round_post_money": 516.0,
       "ownership_after": 0.017,
       "ownership_before": 0.025,
@@ -1149,7 +1112,7 @@
      },
      "new_value": 8.772,
      "prior_value": 12.9,
-     "rationale": "Sold 32% of the position for $3.9M (implies $487.5M post vs $516.0M last round, -5.5%). Remainder 1.7% marked on basis 'last_round'.",
+     "rationale": "Sold 32% of the position for $3.9M at $516.0M post (row value (implied valuation for secondaries)) vs $516.0M last round, +0.0%; proceeds \u00f7 stake sold gives $487.5M (-5.5%), rounding of a 3-dp ownership figure. Remainder 1.7% marked on basis 'last_round'.",
      "rule_id": "M-030",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -1188,6 +1151,7 @@
    "latest_post_money": 45.1,
    "listed": false,
    "moic_after": 1.804,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1238,15 +1202,15 @@
    "equity_mark": 13.9,
    "flags": [
     {
-     "action": "Decide whether a price set 61 months ago is still fair value.",
+     "action": "Decide whether a price set 61.4 months ago is still fair value.",
      "evidence": {
       "anchor": "2021-08-18",
-      "months": 61
+      "months": 61.4
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 61 months ago, on 2021-08-18. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 61.4 months ago, on 2021-08-18. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **61 months old** (2021-08-18).",
+      "The mark rests on a round **61.4 months old** (2021-08-18).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -1287,6 +1251,7 @@
    "latest_post_money": 1157.1,
    "listed": false,
    "moic_after": 1.7375,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1335,11 +1300,11 @@
       "post_money": 176.3
      },
      "family": "treatment",
-     "message": "The extension raised money at the same $176.3M price, so ownership moved but nobody re-tested what the company is worth. The last real price discovery was 59 months ago, on 2021-10-08.",
+     "message": "The extension raised money at the same $176.3M price, so ownership moved but nobody re-tested what the company is worth. The last real price discovery was 59.7 months ago, on 2021-10-08.",
      "points": [
       "Extension at the **same $176.3M price** \u2014 ownership moved, valuation did not.",
       "**No price discovery**: nobody re-tested what the company is worth.",
-      "Last real price was **59 months ago** (2021-10-08)."
+      "Last real price was **59.7 months ago** (2021-10-08)."
      ],
      "recommendation": {
       "booked": 13.9277,
@@ -1370,15 +1335,15 @@
      ]
     },
     {
-     "action": "Decide whether a price set 59 months ago is still fair value.",
+     "action": "Decide whether a price set 59.7 months ago is still fair value.",
      "evidence": {
       "anchor": "2021-10-08",
-      "months": 59
+      "months": 59.7
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 59 months ago, on 2021-10-08. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 59.7 months ago, on 2021-10-08. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **59 months old** (2021-10-08).",
+      "The mark rests on a round **59.7 months old** (2021-10-08).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -1419,6 +1384,7 @@
    "latest_post_money": 176.3,
    "listed": false,
    "moic_after": 2.7309,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1472,10 +1438,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-11-09",
-      "months": 34
+      "months": 34.7
      },
      "family": "staleness",
-     "message": "Last priced 34 months ago (2023-11-09) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 34.7 months ago (2023-11-09) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -1491,6 +1457,7 @@
    "latest_post_money": 61.1,
    "listed": false,
    "moic_after": 1.2333,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1540,6 +1507,7 @@
    "latest_post_money": 23.9,
    "listed": false,
    "moic_after": 1.3182,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1589,6 +1557,7 @@
    "latest_post_money": 75.5,
    "listed": false,
    "moic_after": 1.7451,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1744,6 +1713,7 @@
    "latest_post_money": 14.2,
    "listed": false,
    "moic_after": 0.8738,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1797,10 +1767,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-10-09",
-      "months": 35
+      "months": 35.7
      },
      "family": "staleness",
-     "message": "Last priced 35 months ago (2023-10-09) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 35.7 months ago (2023-10-09) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -1865,6 +1835,7 @@
    "latest_post_money": 279.8,
    "listed": false,
    "moic_after": 2.41,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1914,6 +1885,7 @@
    "latest_post_money": 398.1,
    "listed": false,
    "moic_after": 3.7833,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1959,10 +1931,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-02-23",
-      "months": 43
+      "months": 43.2
      },
      "family": "staleness",
-     "message": "Last priced 43 months ago (2023-02-23) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 43.2 months ago (2023-02-23) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -1978,6 +1950,7 @@
    "latest_post_money": 562.1,
    "listed": false,
    "moic_after": 2.0667,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2023,10 +1996,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-08-13",
-      "months": 37
+      "months": 37.6
      },
      "family": "staleness",
-     "message": "Last priced 37 months ago (2023-08-13) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 37.6 months ago (2023-08-13) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2042,6 +2015,7 @@
    "latest_post_money": 97.6,
    "listed": false,
    "moic_after": 1.525,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2087,10 +2061,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-06-23",
-      "months": 27
+      "months": 27.2
      },
      "family": "staleness",
-     "message": "Last priced 27 months ago (2024-06-23) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 27.2 months ago (2024-06-23) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2106,6 +2080,7 @@
    "latest_post_money": 14.2,
    "listed": false,
    "moic_after": 1.0833,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2151,10 +2126,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-02-14",
-      "months": 31
+      "months": 31.5
      },
      "family": "staleness",
-     "message": "Last priced 31 months ago (2024-02-14) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 31.5 months ago (2024-02-14) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2170,6 +2145,7 @@
    "latest_post_money": 9.3,
    "listed": false,
    "moic_after": 0.44,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2215,10 +2191,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-11-10",
-      "months": 34
+      "months": 34.7
      },
      "family": "staleness",
-     "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 34.7 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2242,15 +2218,15 @@
     {
      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
      "evidence": {
-      "months": 34,
+      "months": 34.7,
       "screens": [
        "X-401"
       ]
      },
      "family": "valuation",
-     "message": "The price behind this mark is 34 months old, and the current numbers disagree with it: carried above the multiple screen (30\u00d7 revenue, growing +270%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "message": "The price behind this mark is 34.7 months old, and the current numbers disagree with it: carried above the multiple screen (30\u00d7 revenue, growing +270%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
      "points": [
-      "Price is **34 months old** \u2014 and today's numbers **argue with it**.",
+      "Price is **34.7 months old** \u2014 and today's numbers **argue with it**.",
       "Screen: **carried above the multiple screen** (30\u00d7 revenue, growing +270%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
@@ -2291,6 +2267,7 @@
    "latest_post_money": 21.2,
    "listed": false,
    "moic_after": 0.9333,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2336,10 +2313,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-06-24",
-      "months": 27
+      "months": 27.2
      },
      "family": "staleness",
-     "message": "Last priced 27 months ago (2024-06-24) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 27.2 months ago (2024-06-24) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2404,6 +2381,7 @@
    "latest_post_money": 246.7,
    "listed": false,
    "moic_after": 1.85,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2468,6 +2446,7 @@
    "latest_post_money": 86.2,
    "listed": false,
    "moic_after": 1.5122,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2563,6 +2542,7 @@
    "latest_post_money": 3931.0,
    "listed": true,
    "moic_after": 5.5034,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -2648,6 +2628,7 @@
    "latest_post_money": 14.2,
    "listed": false,
    "moic_after": 0.2833,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2693,10 +2674,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-02-20",
-      "months": 31
+      "months": 31.3
      },
      "family": "staleness",
-     "message": "Last priced 31 months ago (2024-02-20) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 31.3 months ago (2024-02-20) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2712,6 +2693,7 @@
    "latest_post_money": 258.1,
    "listed": false,
    "moic_after": 2.575,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2757,10 +2739,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-07-09",
-      "months": 38
+      "months": 38.7
      },
      "family": "staleness",
-     "message": "Last priced 38 months ago (2023-07-09) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 38.7 months ago (2023-07-09) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2776,6 +2758,7 @@
    "latest_post_money": 326.0,
    "listed": false,
    "moic_after": 1.0214,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2821,10 +2804,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-12-12",
-      "months": 33
+      "months": 33.6
      },
      "family": "staleness",
-     "message": "Last priced 33 months ago (2023-12-12) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 33.6 months ago (2023-12-12) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2840,6 +2823,7 @@
    "latest_post_money": 780.4,
    "listed": false,
    "moic_after": 2.5546,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2885,10 +2869,10 @@
      "action": "",
      "evidence": {
       "anchor": "2022-10-22",
-      "months": 47
+      "months": 47.3
      },
      "family": "staleness",
-     "message": "Last priced 47 months ago (2022-10-22) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 47.3 months ago (2022-10-22) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -2904,6 +2888,7 @@
    "latest_post_money": 261.2,
    "listed": false,
    "moic_after": 1.46,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2949,10 +2934,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-03-03",
-      "months": 30
+      "months": 30.9
      },
      "family": "staleness",
-     "message": "Last priced 30 months ago (2024-03-03) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 30.9 months ago (2024-03-03) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -3017,6 +3002,7 @@
    "latest_post_money": 192.9,
    "listed": false,
    "moic_after": 1.43,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3062,10 +3048,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-06-08",
-      "months": 27
+      "months": 27.7
      },
      "family": "staleness",
-     "message": "Last priced 27 months ago (2024-06-08) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 27.7 months ago (2024-06-08) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -3081,6 +3067,7 @@
    "latest_post_money": 12.0,
    "listed": false,
    "moic_after": 0.8182,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3130,6 +3117,7 @@
    "latest_post_money": 86.9,
    "listed": false,
    "moic_after": 0.0667,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3180,10 +3168,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-07-24",
-      "months": 26
+      "months": 26.2
      },
      "family": "staleness",
-     "message": "Last priced 26 months ago (2024-07-24) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 26.2 months ago (2024-07-24) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -3199,6 +3187,7 @@
    "latest_post_money": 2012.1,
    "listed": false,
    "moic_after": 1.8875,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3244,10 +3233,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-05-09",
-      "months": 40
+      "months": 40.7
      },
      "family": "staleness",
-     "message": "Last priced 40 months ago (2023-05-09) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 40.7 months ago (2023-05-09) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -3263,6 +3252,7 @@
    "latest_post_money": 9.8,
    "listed": false,
    "moic_after": 0.7273,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3406,6 +3396,7 @@
    "latest_post_money": 37.0,
    "listed": false,
    "moic_after": 0.3951,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3459,10 +3450,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-12-18",
-      "months": 33
+      "months": 33.4
      },
      "family": "staleness",
-     "message": "Last priced 33 months ago (2023-12-18) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 33.4 months ago (2023-12-18) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -3486,15 +3477,15 @@
     {
      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
      "evidence": {
-      "months": 33,
+      "months": 33.4,
       "screens": [
        "X-401"
       ]
      },
      "family": "valuation",
-     "message": "The price behind this mark is 33 months old, and the current numbers disagree with it: carried above the multiple screen (31\u00d7 revenue, growing +51%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "message": "The price behind this mark is 33.4 months old, and the current numbers disagree with it: carried above the multiple screen (31\u00d7 revenue, growing +51%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
      "points": [
-      "Price is **33 months old** \u2014 and today's numbers **argue with it**.",
+      "Price is **33.4 months old** \u2014 and today's numbers **argue with it**.",
       "Screen: **carried above the multiple screen** (31\u00d7 revenue, growing +51%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
@@ -3544,6 +3535,7 @@
    "latest_post_money": 87.7,
    "listed": false,
    "moic_after": 1.2167,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3634,6 +3626,7 @@
    "latest_post_money": 15.1,
    "listed": false,
    "moic_after": 0.8889,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3679,10 +3672,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-08-28",
-      "months": 37
+      "months": 37.1
      },
      "family": "staleness",
-     "message": "Last priced 37 months ago (2023-08-28) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 37.1 months ago (2023-08-28) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -3698,6 +3691,7 @@
    "latest_post_money": 22.8,
    "listed": false,
    "moic_after": 0.5641,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3762,6 +3756,7 @@
    "latest_post_money": 87.7,
    "listed": false,
    "moic_after": 0.931,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3811,6 +3806,7 @@
    "latest_post_money": 12.0,
    "listed": false,
    "moic_after": 1.2,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3874,6 +3870,7 @@
    "latest_post_money": 10.3,
    "listed": false,
    "moic_after": 0.5556,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3937,6 +3934,7 @@
    "latest_post_money": 84.9,
    "listed": false,
    "moic_after": 1.9667,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3982,10 +3980,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-03-06",
-      "months": 42
+      "months": 42.8
      },
      "family": "staleness",
-     "message": "Last priced 42 months ago (2023-03-06) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 42.8 months ago (2023-03-06) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -4001,6 +3999,7 @@
    "latest_post_money": 2055.3,
    "listed": false,
    "moic_after": 1.03,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4046,10 +4045,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-01-03",
-      "months": 32
+      "months": 32.9
      },
      "family": "staleness",
-     "message": "Last priced 32 months ago (2024-01-03) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 32.9 months ago (2024-01-03) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -4073,15 +4072,15 @@
     {
      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
      "evidence": {
-      "months": 32,
+      "months": 32.9,
       "screens": [
        "X-402"
       ]
      },
      "family": "valuation",
-     "message": "The price behind this mark is 32 months old, and the current numbers disagree with it: carried below the multiple screen (1\u00d7 revenue, growing +85%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "message": "The price behind this mark is 32.9 months old, and the current numbers disagree with it: carried below the multiple screen (1\u00d7 revenue, growing +85%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
      "points": [
-      "Price is **32 months old** \u2014 and today's numbers **argue with it**.",
+      "Price is **32.9 months old** \u2014 and today's numbers **argue with it**.",
       "Screen: **carried below the multiple screen** (1\u00d7 revenue, growing +85%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
@@ -4122,6 +4121,7 @@
    "latest_post_money": 7.7,
    "listed": false,
    "moic_after": 0.3,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4167,10 +4167,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-02-02",
-      "months": 31
+      "months": 31.9
      },
      "family": "staleness",
-     "message": "Last priced 31 months ago (2024-02-02) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 31.9 months ago (2024-02-02) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -4186,6 +4186,7 @@
    "latest_post_money": 30.2,
    "listed": false,
    "moic_after": 0.7115,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4235,6 +4236,7 @@
    "latest_post_money": 251.6,
    "listed": false,
    "moic_after": 1.8929,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4277,15 +4279,15 @@
    "equity_mark": 43.3,
    "flags": [
     {
-     "action": "Decide whether a price set 64 months ago is still fair value.",
+     "action": "Decide whether a price set 64.7 months ago is still fair value.",
      "evidence": {
       "anchor": "2021-05-11",
-      "months": 64
+      "months": 64.7
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 64 months ago, on 2021-05-11. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 64.7 months ago, on 2021-05-11. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **64 months old** (2021-05-11).",
+      "The mark rests on a round **64.7 months old** (2021-05-11).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -4375,6 +4377,7 @@
    "latest_post_money": 1494.5,
    "listed": false,
    "moic_after": 2.7756,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4424,6 +4427,7 @@
    "latest_post_money": 260.3,
    "listed": false,
    "moic_after": 3.65,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4520,10 +4524,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-05-14",
-      "months": 40
+      "months": 40.6
      },
      "family": "staleness",
-     "message": "Last priced 40 months ago (2023-05-14) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 40.6 months ago (2023-05-14) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -4588,6 +4592,7 @@
    "latest_post_money": 73.8,
    "listed": false,
    "moic_after": 1.082,
+   "multiple_exposed": true,
    "note_at_cost": 0.5,
    "open_items": [
     {
@@ -4672,6 +4677,7 @@
    "latest_post_money": 626.9,
    "listed": false,
    "moic_after": 4.76,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4717,10 +4723,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-10-14",
-      "months": 35
+      "months": 35.5
      },
      "family": "staleness",
-     "message": "Last priced 35 months ago (2023-10-14) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 35.5 months ago (2023-10-14) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -4745,10 +4751,10 @@
      "action": "",
      "evidence": {
       "moic": 6.62,
-      "months": 35
+      "months": 35.5
      },
      "family": "valuation",
-     "message": "Carrying a 6.6\u00d7 return on a price set 35 months ago \u2014 a large unrealised gain resting on an old mark.",
+     "message": "Carrying a 6.6\u00d7 return on a price set 35.5 months ago \u2014 a large unrealised gain resting on an old mark.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-404",
@@ -4758,16 +4764,16 @@
     {
      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
      "evidence": {
-      "months": 35,
+      "months": 35.5,
       "screens": [
        "X-401",
        "X-404"
       ]
      },
      "family": "valuation",
-     "message": "The price behind this mark is 35 months old, and the current numbers disagree with it: carried above the multiple screen; an outsized unrealised gain (33\u00d7 revenue, growing +103%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "message": "The price behind this mark is 35.5 months old, and the current numbers disagree with it: carried above the multiple screen; an outsized unrealised gain (33\u00d7 revenue, growing +103%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
      "points": [
-      "Price is **35 months old** \u2014 and today's numbers **argue with it**.",
+      "Price is **35.5 months old** \u2014 and today's numbers **argue with it**.",
       "Screen: **carried above the multiple screen; an outsized unrealised gain** (33\u00d7 revenue, growing +103%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
@@ -4817,6 +4823,7 @@
    "latest_post_money": 631.7,
    "listed": false,
    "moic_after": 6.625,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4866,6 +4873,7 @@
    "latest_post_money": 30.3,
    "listed": false,
    "moic_after": 1.4762,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4915,6 +4923,7 @@
    "latest_post_money": 8.9,
    "listed": false,
    "moic_after": 1.7143,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4952,9 +4961,24 @@
    "arr_growth": 1.28,
    "booked_mark": 3.0,
    "company": "Inkmoor",
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "equity_mark": 3.0,
-   "flags": [],
+   "flags": [
+    {
+     "action": "",
+     "evidence": {
+      "anchor": "2024-09-03",
+      "months": 24.9
+     },
+     "family": "staleness",
+     "message": "Last priced 24.9 months ago (2024-09-03) \u2014 normal at this stage, worth watching.",
+     "points": [],
+     "recommendation": null,
+     "rule_id": "X-201",
+     "severity": "MONITOR",
+     "suggestions": []
+    }
+   ],
    "fund": "Fund II",
    "fv_level": 3,
    "implied_multiple": 3.74,
@@ -4963,6 +4987,7 @@
    "latest_post_money": 24.7,
    "listed": false,
    "moic_after": 0.5,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5012,6 +5037,7 @@
    "latest_post_money": 79.0,
    "listed": false,
    "moic_after": 1.2174,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5061,6 +5087,7 @@
    "latest_post_money": 63.6,
    "listed": false,
    "moic_after": 2.2,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5110,6 +5137,7 @@
    "latest_post_money": 15.3,
    "listed": false,
    "moic_after": 0.7333,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5155,10 +5183,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-11-10",
-      "months": 34
+      "months": 34.7
      },
      "family": "staleness",
-     "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 34.7 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -5181,15 +5209,15 @@
     {
      "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
      "evidence": {
-      "months": 34,
+      "months": 34.7,
       "screens": [
        "X-301"
       ]
      },
      "family": "valuation",
-     "message": "The price behind this mark is 34 months old, and the current numbers disagree with it: revenue now shrinking (5\u00d7 revenue, growing -5%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "message": "The price behind this mark is 34.7 months old, and the current numbers disagree with it: revenue now shrinking (5\u00d7 revenue, growing -5%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
      "points": [
-      "Price is **34 months old** \u2014 and today's numbers **argue with it**.",
+      "Price is **34.7 months old** \u2014 and today's numbers **argue with it**.",
       "Screen: **revenue now shrinking** (5\u00d7 revenue, growing -5%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
@@ -5239,6 +5267,7 @@
    "latest_post_money": 122.5,
    "listed": false,
    "moic_after": 1.65,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5281,15 +5310,15 @@
    "equity_mark": 21.3,
    "flags": [
     {
-     "action": "Decide whether a price set 49 months ago is still fair value.",
+     "action": "Decide whether a price set 49.1 months ago is still fair value.",
      "evidence": {
       "anchor": "2022-08-28",
-      "months": 49
+      "months": 49.1
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 49 months ago, on 2022-08-28. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 49.1 months ago, on 2022-08-28. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **49 months old** (2022-08-28).",
+      "The mark rests on a round **49.1 months old** (2022-08-28).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -5330,6 +5359,7 @@
    "latest_post_money": 820.2,
    "listed": false,
    "moic_after": 1.42,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5429,6 +5459,7 @@
    "latest_post_money": 119.9,
    "listed": false,
    "moic_after": 1.825,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5478,6 +5509,7 @@
    "latest_post_money": 54.3,
    "listed": false,
    "moic_after": 1.0833,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5527,6 +5559,7 @@
    "latest_post_money": 66.1,
    "listed": false,
    "moic_after": 1.4833,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5572,10 +5605,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-01-12",
-      "months": 44
+      "months": 44.6
      },
      "family": "staleness",
-     "message": "Last priced 44 months ago (2023-01-12) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 44.6 months ago (2023-01-12) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -5591,6 +5624,7 @@
    "latest_post_money": 298.3,
    "listed": false,
    "moic_after": 1.22,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5636,10 +5670,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-12-07",
-      "months": 33
+      "months": 33.8
      },
      "family": "staleness",
-     "message": "Last priced 33 months ago (2023-12-07) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 33.8 months ago (2023-12-07) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -5704,6 +5738,7 @@
    "latest_post_money": 18.1,
    "listed": false,
    "moic_after": 1.2143,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5753,6 +5788,7 @@
    "latest_post_money": 13.9,
    "listed": false,
    "moic_after": 0.8571,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5798,10 +5834,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-05-06",
-      "months": 28
+      "months": 28.8
      },
      "family": "staleness",
-     "message": "Last priced 28 months ago (2024-05-06) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 28.8 months ago (2024-05-06) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -5830,6 +5866,7 @@
    "latest_post_money": 17.9,
    "listed": false,
    "moic_after": 1.1538,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5879,6 +5916,7 @@
    "latest_post_money": 1390.7,
    "listed": false,
    "moic_after": 1.6519,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5928,6 +5966,7 @@
    "latest_post_money": 38.7,
    "listed": false,
    "moic_after": 0.7833,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5973,10 +6012,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-01-30",
-      "months": 44
+      "months": 44.0
      },
      "family": "staleness",
-     "message": "Last priced 44 months ago (2023-01-30) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 44.0 months ago (2023-01-30) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -5992,6 +6031,7 @@
    "latest_post_money": 2282.4,
    "listed": false,
    "moic_after": 2.855,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6055,6 +6095,7 @@
    "latest_post_money": 21.3,
    "listed": false,
    "moic_after": 1.0,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6100,10 +6141,10 @@
      "action": "",
      "evidence": {
       "anchor": "2024-05-23",
-      "months": 28
+      "months": 28.3
      },
      "family": "staleness",
-     "message": "Last priced 28 months ago (2024-05-23) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 28.3 months ago (2024-05-23) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -6132,6 +6173,7 @@
    "latest_post_money": 91.0,
    "listed": false,
    "moic_after": 0.85,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6177,10 +6219,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-08-01",
-      "months": 37
+      "months": 38.0
      },
      "family": "staleness",
-     "message": "Last priced 37 months ago (2023-08-01) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 38.0 months ago (2023-08-01) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -6209,6 +6251,7 @@
    "latest_post_money": 12.5,
    "listed": false,
    "moic_after": 1.3,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6254,10 +6297,10 @@
      "action": "",
      "evidence": {
       "anchor": "2022-12-30",
-      "months": 45
+      "months": 45.0
      },
      "family": "staleness",
-     "message": "Last priced 45 months ago (2022-12-30) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 45.0 months ago (2022-12-30) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -6273,6 +6316,7 @@
    "latest_post_money": 415.9,
    "listed": false,
    "moic_after": 1.45,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6322,6 +6366,7 @@
    "latest_post_money": 25.5,
    "listed": false,
    "moic_after": 1.0833,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6371,6 +6416,7 @@
    "latest_post_money": 677.3,
    "listed": false,
    "moic_after": 1.9306,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6420,6 +6466,7 @@
    "latest_post_money": 130.7,
    "listed": false,
    "moic_after": 0.0,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6464,10 +6511,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-07-20",
-      "months": 38
+      "months": 38.4
      },
      "family": "staleness",
-     "message": "Last priced 38 months ago (2023-07-20) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 38.4 months ago (2023-07-20) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -6483,6 +6530,7 @@
    "latest_post_money": 285.1,
    "listed": false,
    "moic_after": 0.871,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6532,6 +6580,7 @@
    "latest_post_money": 10.1,
    "listed": false,
    "moic_after": 0.6,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6581,6 +6630,7 @@
    "latest_post_money": 86.9,
    "listed": false,
    "moic_after": 1.1296,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6630,6 +6680,7 @@
    "latest_post_money": 278.1,
    "listed": false,
    "moic_after": 0.0,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6677,15 +6728,15 @@
    "equity_mark": 0.7,
    "flags": [
     {
-     "action": "Decide whether a price set 60 months ago is still fair value.",
+     "action": "Decide whether a price set 60.5 months ago is still fair value.",
      "evidence": {
       "anchor": "2021-09-16",
-      "months": 60
+      "months": 60.5
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 60 months ago, on 2021-09-16. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 60.5 months ago, on 2021-09-16. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **60 months old** (2021-09-16).",
+      "The mark rests on a round **60.5 months old** (2021-09-16).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -6740,6 +6791,7 @@
    "latest_post_money": 8.2,
    "listed": false,
    "moic_after": 0.35,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6778,22 +6830,49 @@
    "arr_growth": 0.72,
    "booked_mark": 48.8,
    "company": "Knollward",
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
    "equity_mark": 48.8,
    "flags": [
     {
-     "action": "",
+     "action": "Decide whether a price set 48.9 months ago is still fair value.",
      "evidence": {
       "anchor": "2022-09-02",
-      "months": 48
+      "months": 48.9
      },
      "family": "staleness",
-     "message": "Last priced 48 months ago (2022-09-02) \u2014 normal at this stage, worth watching.",
-     "points": [],
-     "recommendation": null,
-     "rule_id": "X-201",
-     "severity": "MONITOR",
-     "suggestions": []
+     "message": "The mark rests on a round that closed 48.9 months ago, on 2022-09-02. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "points": [
+      "The mark rests on a round **48.9 months old** (2022-09-02).",
+      "Companies at this stage normally **reprice every 18\u201324 months**.",
+      "This price **predates two funding cycles** \u2014 and probably the business it describes."
+     ],
+     "recommendation": {
+      "booked": 48.8,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
+     "rule_id": "X-202",
+     "severity": "REVIEW",
+     "suggestions": [
+      {
+       "booked": 48.8,
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ]
+      }
+     ]
     }
    ],
    "fund": "Fund I",
@@ -6804,6 +6883,7 @@
    "latest_post_money": 842.1,
    "listed": false,
    "moic_after": 3.4857,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6853,6 +6933,7 @@
    "latest_post_money": 653.6,
    "listed": false,
    "moic_after": 2.4867,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6895,15 +6976,15 @@
    "equity_mark": 68.4,
    "flags": [
     {
-     "action": "Decide whether a price set 52 months ago is still fair value.",
+     "action": "Decide whether a price set 52.3 months ago is still fair value.",
      "evidence": {
       "anchor": "2022-05-21",
-      "months": 52
+      "months": 52.3
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 52 months ago, on 2022-05-21. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 52.3 months ago, on 2022-05-21. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **52 months old** (2022-05-21).",
+      "The mark rests on a round **52.3 months old** (2022-05-21).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -6939,10 +7020,10 @@
      "action": "",
      "evidence": {
       "moic": 6.28,
-      "months": 52
+      "months": 52.3
      },
      "family": "valuation",
-     "message": "Carrying a 6.3\u00d7 return on a price set 52 months ago \u2014 a large unrealised gain resting on an old mark.",
+     "message": "Carrying a 6.3\u00d7 return on a price set 52.3 months ago \u2014 a large unrealised gain resting on an old mark.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-404",
@@ -6958,6 +7039,7 @@
    "latest_post_money": 5699.4,
    "listed": false,
    "moic_after": 6.2752,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7003,10 +7085,10 @@
      "action": "",
      "evidence": {
       "anchor": "2023-12-06",
-      "months": 33
+      "months": 33.8
      },
      "family": "staleness",
-     "message": "Last priced 33 months ago (2023-12-06) \u2014 normal at this stage, worth watching.",
+     "message": "Last priced 33.8 months ago (2023-12-06) \u2014 normal at this stage, worth watching.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-201",
@@ -7035,6 +7117,7 @@
    "latest_post_money": 289.9,
    "listed": false,
    "moic_after": 2.41,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7084,6 +7167,7 @@
    "latest_post_money": 302.2,
    "listed": false,
    "moic_after": 1.3,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7188,6 +7272,7 @@
    "latest_post_money": 22.6,
    "listed": false,
    "moic_after": 0.9444,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7252,6 +7337,7 @@
    "latest_post_money": 60.3,
    "listed": false,
    "moic_after": 1.3,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7301,6 +7387,7 @@
    "latest_post_money": 15.6,
    "listed": false,
    "moic_after": 0.3793,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7350,6 +7437,7 @@
    "latest_post_money": 2170.9,
    "listed": false,
    "moic_after": 1.41,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7392,15 +7480,15 @@
    "equity_mark": 2.1,
    "flags": [
     {
-     "action": "Decide whether a price set 56 months ago is still fair value.",
+     "action": "Decide whether a price set 56.9 months ago is still fair value.",
      "evidence": {
       "anchor": "2022-01-03",
-      "months": 56
+      "months": 56.9
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 56 months ago, on 2022-01-03. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+     "message": "The mark rests on a round that closed 56.9 months ago, on 2022-01-03. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
      "points": [
-      "The mark rests on a round **56 months old** (2022-01-03).",
+      "The mark rests on a round **56.9 months old** (2022-01-03).",
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
@@ -7441,6 +7529,7 @@
    "latest_post_money": 17.4,
    "listed": false,
    "moic_after": 0.7778,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7490,6 +7579,7 @@
    "latest_post_money": 22.1,
    "listed": false,
    "moic_after": 1.0952,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7554,6 +7644,7 @@
    "latest_post_money": 54.6,
    "listed": false,
    "moic_after": 2.0,
+   "multiple_exposed": true,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7603,6 +7694,7 @@
    "latest_post_money": 12.1,
    "listed": false,
    "moic_after": 0.0,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7635,6 +7727,174 @@
    ]
   }
  ],
+ "comps_move": {
+  "all_live": false,
+  "base_nav": 1183.9263,
+  "covered_nav": 1067.5583,
+  "delta": 1.786533,
+  "exposed_nav": 1067.5583,
+  "nav_if_marked_with_comps": 1185.712833,
+  "now_month": "2026-09",
+  "prior_month": "2026-06",
+  "sectors": [
+   {
+    "delta": -5.080446,
+    "exposed_nav": 155.3,
+    "live": false,
+    "multiple_now": 13.01,
+    "multiple_prior": 13.45,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 8,
+    "qoq_pct": -0.0327,
+    "sector": "Cybersecurity",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": 2.550953,
+    "exposed_nav": 100.216,
+    "live": false,
+    "multiple_now": 11.28,
+    "multiple_prior": 11.0,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 6,
+    "qoq_pct": 0.0255,
+    "sector": "Infrastructure",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": 2.289929,
+    "exposed_nav": 100.9,
+    "live": false,
+    "multiple_now": 7.21,
+    "multiple_prior": 7.05,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 5,
+    "qoq_pct": 0.0227,
+    "sector": "Robotics",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": -1.884705,
+    "exposed_nav": 77.109,
+    "live": false,
+    "multiple_now": 9.18,
+    "multiple_prior": 9.41,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 9,
+    "qoq_pct": -0.0244,
+    "sector": "Fintech",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": 1.588689,
+    "exposed_nav": 210.548,
+    "live": false,
+    "multiple_now": 22.7,
+    "multiple_prior": 22.53,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 15,
+    "qoq_pct": 0.0075,
+    "sector": "AI/ML",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": 1.531447,
+    "exposed_nav": 88.909,
+    "live": false,
+    "multiple_now": 10.63,
+    "multiple_prior": 10.45,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 11,
+    "qoq_pct": 0.0172,
+    "sector": "Enterprise SaaS",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": -1.406733,
+    "exposed_nav": 133.6396,
+    "live": false,
+    "multiple_now": 11.28,
+    "multiple_prior": 11.4,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 10,
+    "qoq_pct": -0.0105,
+    "sector": "Developer Tools",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": 1.165235,
+    "exposed_nav": 64.8,
+    "live": false,
+    "multiple_now": 10.19,
+    "multiple_prior": 10.01,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 3,
+    "qoq_pct": 0.018,
+    "sector": "Space & Defense",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": 0.991558,
+    "exposed_nav": 69.8057,
+    "live": false,
+    "multiple_now": 7.14,
+    "multiple_prior": 7.04,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 5,
+    "qoq_pct": 0.0142,
+    "sector": "Climate & Energy",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": -0.447812,
+    "exposed_nav": 18.431,
+    "live": false,
+    "multiple_now": 7.63,
+    "multiple_prior": 7.82,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 6,
+    "qoq_pct": -0.0243,
+    "sector": "Healthcare",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": 0.401072,
+    "exposed_nav": 40.8,
+    "live": false,
+    "multiple_now": 11.3,
+    "multiple_prior": 11.19,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 8,
+    "qoq_pct": 0.0098,
+    "sector": "Data & Analytics",
+    "source": "fixture:pitchbook@2026-09"
+   },
+   {
+    "delta": 0.087346,
+    "exposed_nav": 7.1,
+    "live": false,
+    "multiple_now": 5.76,
+    "multiple_prior": 5.69,
+    "n_now": null,
+    "n_prior": null,
+    "positions": 2,
+    "qoq_pct": 0.0123,
+    "sector": "Consumer",
+    "source": "fixture:pitchbook@2026-09"
+   }
+  ]
+ },
  "manifest": {
   "adjudication_enabled": true,
   "engine_version": "0.1.0",
@@ -7643,11 +7903,11 @@
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
   "market_data_source": "stub",
   "measurement_date": "2026-09-30",
-  "policy_version": "2026Q3-0.1",
+  "policy_version": "2026Q3-0.2",
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
   "recommender": "policy",
-  "run_id": "d8c4f428fa0b"
+  "run_id": "d8c66a873f51"
  },
  "open_items": [
   {
@@ -7820,7 +8080,26 @@
   "base_nav": 1183.9263,
   "multiple_exposed_nav": 1067.5583,
   "nav_if_multiples_+20pct": 1397.43796,
-  "nav_if_multiples_-20pct": 970.41464
+  "nav_if_multiples_-20pct": 970.41464,
+  "nav_if_software_multiples_+20pct": 1345.23062,
+  "nav_if_software_multiples_-20pct": 1022.62198,
+  "software_exposed_nav": 806.5216
+ },
+ "sensitivity_meta": {
+  "min_arr": 0.5,
+  "shock_pct": [
+   -0.2,
+   0.2
+  ],
+  "software_sectors": [
+   "AI/ML",
+   "Developer Tools",
+   "Enterprise SaaS",
+   "Fintech",
+   "Cybersecurity",
+   "Data & Analytics",
+   "Infrastructure"
+  ]
  },
  "totals": {
   "active_after": 93,

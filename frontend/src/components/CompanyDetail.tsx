@@ -37,6 +37,10 @@ function StepInputs({ s, company }: { s: MarkStep; company: string }) {
               <span />
             ) : cell ? (
               <CopyRef text={cell.ref} title={`Copy ${cell.ref} — ${cell.column}`} />
+            ) : sources.derived_inputs?.[k] ? (
+              <span className="text-[10.5px] text-muted italic" title={sources.derived_inputs[k]}>
+                {sources.derived_inputs[k].split(":")[0]}
+              </span>
             ) : (
               <span className="text-[10.5px] text-muted italic">computed</span>
             )}

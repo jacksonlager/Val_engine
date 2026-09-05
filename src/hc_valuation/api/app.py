@@ -25,7 +25,7 @@ from ..export.exec_report import EXEC_STATIC_DIR, render_exec_report
 from ..export.static_report import render_report
 from ..pipeline import PipelineResult, RunPaths, execute
 from .history import build_history
-from .publish import exec_payload, list_published, publish_run
+from .publish import PublishBlocked, exec_payload, list_published, outstanding, publish_run
 from .signals import build_signals
 from .sources import build_sources
 
@@ -228,11 +228,20 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
 
     # ------------------------------------------------------------------ write
 
+    @app.get("/api/publish/readiness")
+    def publish_readiness() -> dict[str, Any]:
+        """Is the book publishable? Lists every BLOCK / REVIEW position still waiting on a person."""
+        items = outstanding(result().run)
+        return {"ready": not items, "outstanding": items}
+
     @app.post("/api/publish")
     def post_publish(body: PublishIn) -> JSONResponse:
-        """Release the current run to the executive dashboard under a named approver."""
+        """Release the current run to the executive dashboard under a named approver. Refused (409) while
+        any position is still BLOCK or REVIEW — every one must be decided or confirmed first."""
         try:
             rec = publish_run(result().run, paths.root, approver=body.approver, note=body.note)
+        except PublishBlocked as exc:
+            raise HTTPException(409, {"message": str(exc), "outstanding": exc.items}) from exc
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
         return JSONResponse(rec)

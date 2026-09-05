@@ -147,6 +147,38 @@ def test_snapshot_reingests_with_zero_blocking_issues(result, tmp_path: Path):
     assert yaml.safe_load(carry.read_text())["quarter"] == cfg.quarter.label
 
 
+def test_extension_keeps_its_date_in_latest_round_and_its_clock_in_the_sidecar(result, tmp_path: Path):
+    """Pellagrin's same-terms extension is a priced round, so the emitted `Latest Round` is its
+    date (the column's own definition) — and the staleness clock the engine kept running from
+    the 2021 round travels in the sidecar and is restored on the next run, so X-202 survives."""
+    from hc_valuation.engine.run import run_valuation
+    from hc_valuation.engine.models import MarketData, OverrideLedger
+    from hc_valuation.pipeline import load_staleness_anchors
+    run, cfg = result.run, result.config
+    pel = run.by_company()["Pellagrin"]
+    assert pel.staleness_anchor.isoformat() == "2021-10-08" and "X-202" in {f.rule_id for f in pel.flags}
+    out = write_next_quarter_workbook(run, result.paths.workbook, tmp_path / "next.xlsx", cfg)
+    ncfg = next_quarter_cfg(cfg)
+    snapshot, feed = read_workbook(out, ncfg)
+    assert snapshot.by_company()["Pellagrin"].latest_round.isoformat() == "2026-08-11"   # the extension, as defined
+    carry = tmp_path / "open_items_carry.yaml"
+    anchors = load_staleness_anchors(carry)
+    assert anchors == {"Pellagrin": pel.staleness_anchor}
+    raw = yaml.safe_load(carry.read_text())
+    assert raw["staleness_anchors"][0]["reason"].startswith("same-terms extension on 2026-08-11")
+    assert any(r[0] == "Pellagrin" and "staleness clock" in r[1]
+               for r in openpyxl.load_workbook(out)["Snapshot Notes"].iter_rows(min_row=3, values_only=True))
+    # next quarter, with the sidecar: the clock is restored and the round is still REVIEW-stale
+    nxt = run_valuation(snapshot, feed, MarketData(as_of=ncfg.quarter.measurement_date), OverrideLedger(), ncfg,
+                        prior_open_items=load_prior_open_items(carry), prior_staleness_anchors=anchors)
+    p2 = nxt.by_company()["Pellagrin"]
+    assert p2.staleness_anchor.isoformat() == "2021-10-08" and "X-202" in {f.rule_id for f in p2.flags}
+    # without it the clock would have reset to the extension — the failure the sidecar exists to prevent
+    bare = run_valuation(snapshot, feed, MarketData(as_of=ncfg.quarter.measurement_date), OverrideLedger(), ncfg,
+                         prior_open_items=load_prior_open_items(carry))
+    assert bare.by_company()["Pellagrin"].staleness_anchor.isoformat() == "2026-08-11"
+
+
 # ------------------------------------------------------------------ static report
 
 def test_static_report_fallback_is_self_contained(result, tmp_path: Path):

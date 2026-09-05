@@ -15,3 +15,6 @@ frontend/dist/
 # the emitted next-quarter sidecar are local.
 data/published/history/
 data/open_items_carry.yaml
+
+# slim companyfacts kept beside each EDGAR extract so a changed extraction re-derives offline
+data/market_cache/*/edgar_raw/

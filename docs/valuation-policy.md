@@ -29,7 +29,7 @@ Base identity: `mark = FD ownership × post-money`.
 | **M-012** | Down round / recap | as M-010, treated as an **upper bound** | Recaps carry structure (preference, pay-to-play) the headline ignores. Always BLOCK. → Oakenvale, Tarnwick. |
 | **M-020** | Closed exit | `mark = 0`; `realized += proceeds`; status → Acquired | Schema supports escrow/holdback as a receivable; none in Q3. → Cindral. |
 | **M-021** | Shutdown | `mark = 0`; `realized += residual` | Terminal; suppresses all carry-side exceptions. → Larkspell, Islewind. |
-| **M-030** | Secondary sale | `realized += proceeds`; `remainder = ownership_after × basis` | `basis: last_round` (default) or `secondary_price`. Spread always flagged. → Marrowick Bio. |
+| **M-030** | Secondary sale | `realized += proceeds`; `remainder = ownership_after × basis` | `basis: last_round` (default) or `secondary_price`. The sale price is the row's own value column ("implied valuation for secondaries"); proceeds ÷ stake sold is the recorded cross-check. A spread beyond tolerance is X-104. → Marrowick Bio. |
 | **M-040** | IPO / direct listing | `mark = ownership_after × market_cap(measurement_date) × (1 − lockup_discount)` | **9/30 close, not the IPO print.** L3 → L1. Default lockup discount 0% (ASC 820 blockage prohibition). Always BLOCK. `Direct Listing` dispatches here too. → Drayvenn. |
 | **M-050** | Announced acquisition | `mark = ownership × deal_value × close_probability` (default 0.90) | Alternatives: `full_deal_value`, `hold_prior`. Always BLOCK. → Gryphonel. |
 | **M-060** | Convertible note / SAFE | equity mark unchanged; `note_at_cost += hc_investment` | A cap is a ceiling, not a price. Cap parsed from `$X valuation cap`, `$X post-money cap`, `$X pre-money cap`, `$X cap`, `cap of $X`, `cap $X`. A note outstanding at a later priced round or listing converts (note leg folds into equity). → Duskfern (funded), Emberfold (unfunded). |
@@ -44,7 +44,7 @@ Base identity: `mark = FD ownership × post-money`.
 | **M-051** | Deal terminated | `mark = ownership × latest_post` (back to the last-round basis); drops `pending_acquisition`; anchor unchanged | X-114 REVIEW. An announcement and its termination in one quarter: the announcement is superseded. |
 | **M-061** | Note repaid | `realized += proceeds`; `note_at_cost = max(0, note_at_cost − principal)`, principal = `hc_investment` else `proceeds`; equity unchanged | X-115 REVIEW — if the note sat inside the prior mark rather than the note leg, the reviewer reduces the carrying basis. |
 | **M-999** | Unrecognised event | mark unchanged + **validation error + BLOCK** | Never falls through to carry. An unregistered event type halts that position. |
-| **M-080** | Stale-round comps calibration | `equity_mark × comp_mult(t) / comp_mult(round_month)`, bounded ±35% | **Off by default.** Writes the `calibrated_to_comps` alternative only, never the proposal. 45 candidates on the Q3 book. Section 2b. |
+| **M-080** | Stale-round comps calibration | `equity_mark × comp_mult(t) / comp_mult(round_month)`, bounded ±35% | **On, gated to an observed comps history** (`require_live_history`): the vendor-shaped fixture never calibrates; `--provider live` does. Writes the `calibrated_to_comps` alternative only, never the proposal. Section 2b. |
 
 ### Departures from the brief's base rule
 
@@ -53,7 +53,7 @@ The brief's base rule — a priced round marks at ownership after × post-money,
 - **M-050 announced acquisition, probability-weighted.** Literal rule: nothing has closed, so Gryphonel carries at $3.50M. Engine: $4.31M = ownership × $133M × 0.90. An announced, signed deal at a known price is better evidence of value than a round from years earlier; ASC 820 asks what a market participant would pay for the position today, and that is the deal price less the risk it fails. `at_full_deal_value` ($4.79M) and `hold_prior` ($3.50M) are the alternatives; X-101 blocks until the committee ratifies the probability.
 - **M-060 funded convertible note, at cost.** Literal rule: a note is not a priced round, so Duskfern carries at $6.10M. Engine: $6.60M — the equity leg unchanged and HC's $0.50M of new money carried at cost on a separate note leg, because cash HC just put in is an asset at cost until it converts, and a cap is a ceiling, not a price. X-107 REVIEW asks whether the bridge is a distress signal that should pull the equity leg down instead.
 - **M-040 IPO, at the measurement-date market cap.** Literal rule: a listing is a priced event at the offer price. Engine: the 9/30 close, because a listed position is Level 1 and the exchange price is the fair value, not the print. In this tree the quote is seeded to the print (the ticker is synthetic) so the two numbers coincide at $110.07M; X-101 blocks until the price source is confirmed.
-- **M-030 secondary sale, remainder at the last round.** Literal rule: the print is a transaction in the security, so Marrowick's remaining 70% marks at the secondary price. Engine: the remainder stays at the last-round basis ($8.77M) because a partial, negotiated secondary is a weaker price signal than a primary round; `at_secondary_price` ($8.29M) is the alternative and X-104 REVIEW flags the 5.5% spread. `secondary.remainder_basis: secondary_price` flips the default.
+- **M-030 secondary sale, remainder at the last round.** Literal rule: the print is a transaction in the security, so Marrowick's remaining 70% marks at the secondary price. Engine: the remainder stays at the last-round basis ($8.77M) because a partial, negotiated secondary is a weaker price signal than a primary round; `at_secondary_price` is the alternative and X-104 REVIEW fires when the print departs from the round by more than 5%. Marrowick's row states the price — $516M, the round exactly — so no spread is flagged; proceeds ÷ stake sold ($3.9M ÷ 0.8%) would say $487.5M, −5.5%, but that is the rounding of a three-decimal ownership figure on a small block, and the step records it as the cross-check rather than the price. `secondary.remainder_basis: secondary_price` flips the default.
 
 ### Event precedence (multi-event quarters)
 
@@ -72,7 +72,7 @@ Within a tier, later date wins. A note outstanding at a priced round or listing 
 
 ## 2b. M-080 — stale-round comps calibration
 
-**What it computes.** After the roll, for every active Level 3 position with an ARR whose price anchor is at least `calibration.min_age_months` (24) old, and whose sector has a comp history covering both the measurement month and the round month:
+**What it computes.** After the roll, for every active Level 3 position with an ARR whose price anchor is at least `calibration.min_age_months` (24) old, and whose sector has a comp history covering the measurement month and the round month (or the nearest month with a basket value within `round_month_tolerance`, ±3 — a round closes over weeks, and the month actually used is recorded on the step):
 
 ```
 factor      = comp_multiple(measurement month) / comp_multiple(round month)
@@ -80,13 +80,19 @@ factor      = clamp(factor, 1 − bound_pct, 1 + bound_pct)          # bound_pct
 calibrated  = equity_mark × factor
 ```
 
-It writes `calibrated_to_comps` into `alternative_marks` and appends an M-080 step whose prior and new value are both the proposal. **It never writes the proposal.** The base mark stays at the last round; the calibrated figure is a labelled alternative a reviewer can choose, and choosing it is an E-01 override like any other. It has nothing to do with the ±20% multiple sensitivity in the Summary — that is `rollup.py`, a portfolio-level shock on multiple-exposed NAV, and it runs with or without M-080.
+The M-080 step records `comp_multiple_at_round`, `comp_multiple_now`, `round_month`, `comp_month_used`, `factor_raw`, `factor_bounded`, `bound_hit` and `comps_source`, so a workpaper reader sees the two multiples, the ratio, and whether the bound rather than the comps set the number.
+
+It writes `calibrated_to_comps` into `alternative_marks` and appends an M-080 step whose prior and new value are both the proposal. **It never writes the proposal.** The base mark stays at the last round; the calibrated figure is a labelled alternative a reviewer can choose, and choosing it is an E-01 override like any other. It has nothing to do with the ±20% multiple sensitivity in the Summary — that is `rollup.py`, a portfolio-level shock on multiple-exposed NAV, and it runs with or without M-080. The three share one exposure test, `multiple_exposed`: a Level 3 mark with ARR at or above `multiple.min_arr`; Level 1, pre-revenue and terminal positions are never moved by a multiple regime.
 
 **Worked example (Birchhollow, Cybersecurity, from a scratch run with `calibration.enabled: true` on the fixture).** Round anchor 2021-05, 64 months before 2026-09-30. Fixture Cybersecurity multiple 18.03× in the round month, 13.01× now. Factor 13.01 / 18.03 = 0.7216, inside the bound. Equity mark $43.30M × 0.7216 = **$31.24M** recorded as `calibrated_to_comps`; proposal unchanged at $43.30M. Halcyra (71 months, 15.54× → 13.01×, factor 0.837) calibrates to $2.26M against a $2.70M proposal. Pellagrin (Climate & Energy, 13.05× → 7.14×, raw factor 0.547) pins at the −35% floor: $13.93M × 0.65 = $9.05M.
 
 **Why ±35%.** A stale Level 3 mark moved purely by a public-comps ratio is an estimate of direction, not a valuation: the comps say what the sector re-rated by, not what this company did. The bound stops a sector that tripled from tripling a company that did not, and caps the alternative at roughly one round's worth of re-rating in either direction — enough to say "this mark is likely off by a third", which is what a reviewer needs, without producing a number the engine would have to defend on its own.
 
-**On the fixture, the bound sets the number.** The PitchBook-shaped fixture trends hard: with calibration on, **33 of the 45 candidates pin at +35% and two more at −35%**; only ten land between. So on the stub it is the bound, not the comps, that sets most alternatives — a property of the fixture, not the rule, and the reason the switch ships off. Under `--provider live` the baskets carry `months_of_history: 36`, so a round older than three years has no comp multiple for its month and cannot be calibrated at all; for those positions the M-080 step and the alternative are simply absent, and the "calibrate" suggestion below does not appear. A vendor history reaching back to 2019–2021 is what makes M-080 useful on this book, where the stale rounds are 48–71 months old.
+**On the fixture, the bound sets the number — so the fixture never calibrates.** The PitchBook-shaped fixture trends hard: with the gate waived, **33 of the 45 candidates pin at +35% and two more at −35%**; only ten land between. On the stub it is the bound, not the comps, that sets most alternatives — a property of the fixture, not the rule. Policy 2026Q3-0.2 therefore ships calibration **on** but gated: `require_live_history: true` means M-080 runs only when the sector's comps carry an observed source (`live:edgar+yahoo`), and the fixture leaves every alternative absent. Under `--provider live` the baskets carry `months_of_history: 96` (Yahoo `range=10y`), so the history can reach the round months of this book's stale positions (48–71 months old) — on the condition that at least `min_constituents` (3) of the sector's basket were listed and had filed in that month; a month below that has no value, the ±3-month tolerance covers most such gaps, and the M-080 step records how many names stood behind each of the two multiples (`n_constituents_at_round`, `n_constituents_now`) so a reviewer sees when a 2020 value rests on three names and a 2026 one on five. Every month of the history is point-in-time: the revenue, share count and balance sheet used are those *filed* by that month's end, so the multiple in a round month is the one the market saw when the round was priced, not one restated later. Where it does not, the M-080 step and the alternative are simply absent and the "calibrate" suggestion does not appear.
+
+**The sensitivity view.** The ±20% shock the brief asks for is `rollup.sensitivity`, reported on every multiple-exposed mark and on the software sectors alone (`sensitivity.software_sectors` names what "software multiples" means); the review tool's Movement page carries a *Sensitivity view* with a slider from −20% to +20% that interpolates the same arithmetic — NAV(s) = booked + exposed × s — by sector, by fund and by position, with a scope switch between the two.
+
+**Observed sensitivity (`comps_move`).** The same history answers a second question the brief asks — what the book looks like if software multiples move — with what they actually did: each sector's basket multiple in the measurement month against three months earlier, applied to that sector's multiple-exposed NAV (the positions the ±20% shock moves). It is alternative arithmetic like M-080, reported beside the shock on the Movement page and in `run.comps_move`, and labelled fixture or live by the source of each sector's history.
 
 **How a reviewer uses it.** X-202 (round older than 48 months), X-106 (flat extension without price discovery) and X-405 (stale price that a live screen argues with) each carry a "Calibrate the mark to public comps" suggestion that books `calibrated_to_comps`. Accepting it is an E-01 override addressed to that rule, under a named approver, with `source_suggestion` on the ledger record. If the alternative was not produced (calibration off, sector history missing, round too old for the live history) the suggestion is dropped rather than shown with no number.
 
@@ -132,7 +138,7 @@ Severity ∈ {BLOCK, REVIEW, MONITOR}. **Escalation:** any BLOCK rule → BLOCK;
 Every threshold is a policy choice and lives in `rules/2026Q3.yaml`; these are the reasons behind the defaults, so the committee can defend or move them.
 
 - **X-104, 5% spread.** A secondary print within 5% of the last round is the same price with negotiation noise; beyond it the market is saying something about the round, and a reviewer should decide whether the remainder follows it.
-- **X-201 / X-202, 24 / 48 months.** Venture companies at these stages raise every 18–24 months, so 24 months is one funding cycle — a price that is merely due for refresh — and 48 months is two: the company has twice not repriced, and the round probably predates the business it now describes.
+- **X-201 / X-202, 24 / 48 months.** Venture companies at these stages raise every 18–24 months, so 24 months is one funding cycle — a price that is merely due for refresh — and 48 months is two: the company has twice not repriced, and the round probably predates the business it now describes. Age is a duration, `days ÷ 30.4375` to one decimal, compared strictly: a round dated 2022-09-02 is 48.9 months old on 2026-09-30 and is REVIEW (Knollward); calendar-month arithmetic would have called it 48 and let it slip under the threshold.
 - **X-301 / X-302, 0% / −15%.** Any contraction in a growth company is worth noticing; −15% is roughly one lost growth cohort and the point at which the last round's growth assumptions no longer hold, so the mark could move.
 - **X-303 / X-304, 12 / 6 months.** Twelve months of runway is one raise cycle — the company must be in market within the quarter; six months means it must close before the next measurement date or fail, which a reviewer may need to reflect in the mark.
 - **X-401 / X-402, 30× / 3×.** In absolute mode, 30× revenue is the 2021-peak ceiling — a multiple the public market has not paid at scale since — and 3× is a mature-SaaS floor below which a growth-stage mark is probably stale-low. Both are MONITOR because a multiple is a screen, not a valuation.
@@ -153,7 +159,7 @@ Every threshold is a policy choice and lives in `rules/2026Q3.yaml`; these are t
 
 ### Resulting queue (Q3 2026)
 
-**7 BLOCK · 20 REVIEW · 39 MONITOR · 34 CLEAR** *(engine output, policy 2026Q3-0.1; the extended rule set left the blocks unchanged — X-118 also annotates the two insider-led recaps, Oakenvale and Tarnwick, which were already blocked — and X-405 moved five positions from MONITOR to REVIEW: Arcfoundry, Pinwhistle, Yarrowbank, Foxtrellis, Mirthstone)*
+**7 BLOCK · 20 REVIEW · 39 MONITOR · 34 CLEAR** *(engine output, policy 2026Q3-0.2; the extended rule set left the blocks unchanged — X-118 also annotates the two insider-led recaps, Oakenvale and Tarnwick, which were already blocked — and X-405 moved five positions from MONITOR to REVIEW: Arcfoundry, Pinwhistle, Yarrowbank, Foxtrellis, Mirthstone)*
 
 Blocked: Drayvenn (IPO), Gryphonel (announced), Oakenvale (recap), Tarnwick Aerospace (recap + ARR −16%), Duskfern (funded note + runway 4.1mo), Birchhollow (64mo stale + ARR −20%), **Pellagrin (flat extension + 59mo stale)**.
 
@@ -174,7 +180,7 @@ marking:
   ipo:         { price_source: market_close, lockup_discount_pct: 0.00 }
   announced:   { treatment: probability_weighted, close_probability: 0.90 }
   convertible: { new_money_basis: cost }
-  calibration: { enabled: false, min_age_months: 24, bound_pct: 0.35 }
+  calibration: { enabled: true, min_age_months: 24, bound_pct: 0.35, require_live_history: true, round_month_tolerance: 3 }
 
 exceptions:
   staleness:  { monitor_months: 24, review_months: 48 }
@@ -189,7 +195,8 @@ exceptions:
   escalation: { review_rules_to_block: 2 }
 
 tolerances:  { prior_mark_reconciliation_musd: 0.05 }
-sensitivity: { multiple_shock_pct: [-0.20, 0.20] }
+sensitivity: { multiple_shock_pct: [-0.20, 0.20],
+               software_sectors: [AI/ML, Developer Tools, Enterprise SaaS, Fintech, Cybersecurity, Data & Analytics, Infrastructure] }
 
 # forward compatibility — for quarters this policy has not seen
 schema:
@@ -224,8 +231,8 @@ adjudication:                         # E-09 — assist, never a dependency
 | ID | Component | Why it exists |
 |---|---|---|
 | **E-01** | Override ledger | `booked = override.booked ?? proposed`. An override that names the BLOCK rule it addresses (`rule_ids_addressed`) resolves the block — the flag stays visible, the position stops waiting, and its disposition is never below MONITOR so the decision itself remains in the queue. The missing half of human review — without it the committee's decision evaporates and the same flag re-litigates every quarter. Record: company, quarter, proposed, booked, reason, approver, created_at, rule_ids_addressed. Never mutates `proposed_mark`. |
-| **E-02** | Next-quarter snapshot | Emits a Q4 Portfolio tab in the identical input schema. This quarter's output is next quarter's input; otherwise automation covers half the job. |
-| **E-03** | Run manifest + determinism | run_id, sha256(input), policy_version, engine_version, measurement_date, generated_at. Same input → byte-identical output. |
+| **E-02** | Next-quarter snapshot | Emits a Q4 Portfolio tab in the identical input schema. This quarter's output is next quarter's input; otherwise automation covers half the job. Every column keeps its own definition — `Latest Round` is the most recent priced round, a same-terms extension included — and what the column cannot carry travels in the `open_items_carry.yaml` sidecar: the deliberate mark departures X-904 accepts, the open items, and the staleness anchors an extension must not reset (Pellagrin's clock still runs from 2021-10-08 next quarter). |
+| **E-03** | Run manifest + determinism | run_id = hash(sha256(input), policy_version, engine_version, decisions ledger), sha256(input), policy_version, engine_version, measurement_date, generated_at. Same input and same decisions → byte-identical output; a new override → a new run_id. |
 | **E-04** | Fair value hierarchy | L1/L2/L3 per position, assigned by the marking rule. Q3: 93 active after the quarter — Drayvenn L1, 92 L3. |
 | **E-05** | Fund roll-up | TVPI / DPI / RVPI per Fund I–III, plus top-10 concentration. Q3 moves DPI materially ($32.5M returned). |
 | **E-06** | Golden-file test | Pins 18 event treatments, 4 queue counts, portfolio total. Prevents the quiet regression. |
@@ -247,7 +254,7 @@ adjudication:                         # E-09 — assist, never a dependency
 | Larkspell | Shutdown | M-021 | 11.4 | 0.00 | −11.40 | 0.4 | — |
 | Islewind | Shutdown | M-021 | 10.0 | 0.00 | −10.00 | — | — |
 | Aravine | Series B, $128.5M | M-010 | 6.9 | 13.88 | +6.98 | — | MONITOR |
-| Marrowick Bio | Secondary, 30% of position | M-030 | 12.9 | 8.77 | −4.13 | 3.9 | REVIEW |
+| Marrowick Bio | Secondary, 30% of position | M-030 | 12.9 | 8.77 | −4.13 | 3.9 | — |
 | Oakenvale | Series B recap, $37.0M | M-012 | 5.7 | 2.33 | −3.37 | — | BLOCK |
 | Jettamar | Series A, $43.0M | M-010 | 2.9 | 4.77 | +1.87 | — | MONITOR |
 | Nimbrel | Series A, $45.1M | M-010 | 1.2 | 3.07 | +1.87 | — | MONITOR |
@@ -294,5 +301,5 @@ This policy was written against one quarter. The honest risk is that it is *fitt
 
 1. **Gryphonel** — probability-weight at 0.90 *(default)*, full deal value, or hold at prior?
 2. **Drayvenn** — lock-up discount 0% *(default)* or a haircut for the 180-day restriction?
-3. **Marrowick** — remainder at last round *(default)* or at the secondary print 5.5% below?
-4. **M-080 calibration** — built and off by default (section 2b); switch it on once a comps history reaching back to the stale rounds exists, or leave it as a reviewer's suggestion on the fixture?
+3. **Marrowick** — remainder at last round *(default)*; the stated print equals the round, so the alternative coincides with the proposal. Would the committee want the proceeds-implied price ($487.5M, −5.5%) treated as evidence rather than rounding?
+4. **M-080 calibration** — on, gated to the live comps history (section 2b). Open question for the committee: keep it as a reviewer's suggestion, or promote the calibrated figure to the proposal for rounds older than 48 months once a quarter of live history has been reviewed?

@@ -142,8 +142,13 @@ def test_relative_to_comps_changes_valuation_flags(tmp_path, baseline):
 
 
 def test_calibration_writes_alternative_only(tmp_path, baseline):
+    """On the fixture comps the gate holds (no alternatives); waived, the fixture history calibrates
+    alternatives only — proposals and dispositions are untouched either way."""
+    gated = execute(RunPaths.default(ROOT), adjudicate=False)
+    assert not any("calibrated_to_comps" in c.alternative_marks for c in gated.run.companies)
+
     def mutate(raw):
-        raw["marking"]["calibration"]["enabled"] = True
+        raw["marking"]["calibration"]["require_live_history"] = False
     paths = _policy_copy(tmp_path, mutate)
     cal = execute(paths, adjudicate=False)
     calibrated = [c for c in cal.run.companies if "calibrated_to_comps" in c.alternative_marks]

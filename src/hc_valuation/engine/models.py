@@ -55,6 +55,7 @@ class MarketData(_Frozen):
     quotes: dict[str, MarketQuote] = Field(default_factory=dict)
     comps: dict[str, SectorComp] = Field(default_factory=dict)
     comp_history: dict[str, dict[str, float]] = Field(default_factory=dict)  # sector -> {YYYY-MM: multiple}
+    comp_counts: dict[str, dict[str, int]] = Field(default_factory=dict)     # sector -> {YYYY-MM: constituents priced}
     as_of: date | None = None
 
 
@@ -216,6 +217,7 @@ class CompanyResult(_Frozen):
     latest_post_money: float
     staleness_anchor: date        # date the staleness clock runs from
     fv_level: int | None = None   # 1 | 2 | 3 | None for zero positions
+    multiple_exposed: bool = False  # Level 3 with ARR at or above the screening floor: the marks a multiple regime drives
 
     arr: float | None = None
     arr_growth: float | None = None
@@ -293,6 +295,36 @@ class RunManifest(_Frozen):
     recommender: str = "policy"     # "policy" | "claude:<model>" — who chose each flag's recommendation
 
 
+class SectorMove(_Frozen):
+    """One sector's public-comps move over the quarter, applied to the marks it would drive."""
+    sector: str
+    multiple_prior: float          # basket EV/revenue three months before the measurement month
+    multiple_now: float            # ... in the measurement month
+    qoq_pct: float                 # now / prior − 1
+    exposed_nav: float             # Level 3 booked marks with ARR above the floor, this sector
+    delta: float                   # exposed_nav × qoq_pct
+    positions: int
+    live: bool                     # an observed history (live:*) or the vendor-shaped fixture
+    source: str
+    n_prior: int | None = None     # constituents behind each basket value (live only)
+    n_now: int | None = None
+
+
+class CompsMove(_Frozen):
+    """What the book would look like had every multiple-exposed mark moved with its sector's
+    public comps this quarter — the observed counterpart of the ±20% shock. Alternative
+    arithmetic only, like M-080: nothing here touches a proposed or booked mark."""
+    prior_month: str
+    now_month: str
+    base_nav: float
+    exposed_nav: float             # the part of NAV a multiple regime drives (same definition as `sensitivity`)
+    covered_nav: float             # ... in sectors whose comps have both months
+    delta: float
+    nav_if_marked_with_comps: float
+    sectors: tuple[SectorMove, ...]
+    all_live: bool                 # every covered sector read an observed history
+
+
 class ValuationRun(_Frozen):
     manifest: RunManifest
     companies: tuple[CompanyResult, ...]
@@ -301,6 +333,9 @@ class ValuationRun(_Frozen):
     totals: PortfolioTotals
     open_items: tuple[OpenItem, ...] = ()
     sensitivity: dict[str, float] = Field(default_factory=dict)
+    # what the sensitivity was computed with: shock_pct (list), min_arr (the exposure floor), software_sectors (list)
+    sensitivity_meta: dict[str, Any] = Field(default_factory=dict)
+    comps_move: CompsMove | None = None
 
     def by_company(self) -> dict[str, CompanyResult]:
         return {c.company: c for c in self.companies}

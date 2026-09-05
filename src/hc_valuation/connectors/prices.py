@@ -5,7 +5,7 @@ keeps the last available close per month at or before the measurement date. Two 
 ship, both free and keyless:
 
 * **yahoo** (default) — Yahoo Finance's public chart endpoint,
-  `https://query1.finance.yahoo.com/v8/finance/chart/<symbol>?range=4y&interval=1d`.
+  `https://query1.finance.yahoo.com/v8/finance/chart/<symbol>?range=10y&interval=1d`.
   Undocumented but stable for years (it is what `yfinance` reads). JSON envelope:
   `{"chart": {"result": [{"meta": {...}, "timestamp": [unix, ...],
   "indicators": {"quote": [{"close": [...]}], "adjclose": [...]}}], "error": null}}`.
@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 PRICE_SOURCES = ("yahoo", "stooq")
 DEFAULT_PRICE_SOURCE = "yahoo"
 
-YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=4y&interval=1d"
+YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=10y&interval=1d"
 STOOQ_URL = "https://stooq.com/q/d/l/?s={symbol}&i=d"
 
 

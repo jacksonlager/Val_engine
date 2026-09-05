@@ -8,8 +8,14 @@ reads only from there. Re-publishing the same quarter replaces the snapshot and 
 the previous one under `history/` so the audit trail of what executives were shown is
 itself preserved.
 
-A run with open BLOCK positions can be published: its status is "proposed" and the
-executive view says so. It becomes "final" only when every block has been resolved.
+Publishing is gated on decisions. A run still carrying a BLOCK ("decision required
+before booking") or a REVIEW ("check required to confirm the mark") position is refused
+with `PublishBlocked`, which lists every outstanding company and the flags a reviewer
+must decide or confirm first. Confirming a REVIEW or deciding a BLOCK is an E-01
+override addressed to the flag, after which the position rests at MONITOR and the gate
+opens. The one way around it is `require_decisions=False`, which exists for tests and
+for a deliberate "proposed" preview from code — the API never passes it, so the button
+in the review dashboard cannot publish an undecided book.
 """
 from __future__ import annotations
 
@@ -19,8 +25,38 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from ..engine.models import Disposition, ValuationRun
+from ..engine.models import Disposition, Severity, ValuationRun
 from .exec_view import build_exec_view
+
+WAITING = {Disposition.BLOCK: "Decision required before booking",
+           Disposition.REVIEW: "Check required to confirm the mark"}
+
+
+def outstanding(run: ValuationRun) -> list[dict[str, Any]]:
+    """Every position a human still has to decide (BLOCK) or confirm (REVIEW) before the book
+    can be published, with the flags that put it there. Empty means the gate is open."""
+    out = []
+    for c in run.companies:
+        if c.disposition not in WAITING:
+            continue
+        addressed = set(c.override.rule_ids_addressed) if c.override else set()
+        flags = [f for f in c.flags if f.severity in (Severity.BLOCK, Severity.REVIEW) and f.rule_id not in addressed]
+        out.append({"company": c.company, "disposition": c.disposition.value, "why": WAITING[c.disposition],
+                    "proposed_mark": c.proposed_mark, "booked_mark": c.booked_mark,
+                    "rules": [{"rule_id": f.rule_id, "severity": f.severity.value, "action": f.action} for f in flags]})
+    return out
+
+
+class PublishBlocked(ValueError):
+    """Raised when a run with undecided BLOCK / REVIEW positions is sent to publish."""
+
+    def __init__(self, items: list[dict[str, Any]]):
+        self.items = items
+        blocks = sum(1 for i in items if i["disposition"] == "BLOCK")
+        reviews = len(items) - blocks
+        parts = [f"{blocks} BLOCK" if blocks else "", f"{reviews} REVIEW" if reviews else ""]
+        super().__init__(f"{len(items)} position(s) still need a decision before the book can be published "
+                         f"({' and '.join(p for p in parts if p)}). Decide or confirm each one from the queue first.")
 
 
 def _slug(label: str) -> str:
@@ -37,10 +73,15 @@ def _escape(payload: str) -> str:
 
 
 def publish_run(run: ValuationRun, root: Path, *, approver: str, note: str = "",
-                published_at: datetime | None = None) -> dict[str, Any]:
-    """Freeze `run` as the executive snapshot for its quarter. Returns the publish record."""
+                published_at: datetime | None = None, require_decisions: bool = True) -> dict[str, Any]:
+    """Freeze `run` as the executive snapshot for its quarter. Returns the publish record.
+    Refuses (PublishBlocked) while any position is BLOCK or REVIEW unless `require_decisions` is off."""
     if not approver or not approver.strip():
         raise ValueError("a publish must carry the name of the person releasing it")
+    if require_decisions:
+        waiting = outstanding(run)
+        if waiting:
+            raise PublishBlocked(waiting)
     ts = (published_at or datetime.now(timezone.utc)).replace(microsecond=0)
     open_blocks = [c.company for c in run.companies if c.disposition == Disposition.BLOCK]
     record = {

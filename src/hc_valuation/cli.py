@@ -63,6 +63,30 @@ def _slug(label: str) -> str:
     return re.sub(r"[^A-Za-z0-9]+", "_", label).strip("_")
 
 
+def _default_provider(paths, provider: Optional[str]) -> Optional[str]:
+    """`run` and `build` read the committed live cache when nothing was asked for: a checkout
+    that carries `data/market_cache/<measurement date>/` serves live-shaped comps offline, with
+    no flag and no network. An explicit `--provider` or `HC_MARKET_PROVIDER` always wins; the
+    library default (`execute` with no provider, the tests, the golden run) stays `stub`."""
+    import os
+
+    from .config import load_config
+    from .connectors import ENV_VAR
+    from .connectors.cache import MarketCache
+
+    if provider is not None or os.environ.get(ENV_VAR):
+        return provider
+    try:
+        md = load_config(paths.policy).quarter.measurement_date
+    except Exception:  # noqa: BLE001 — a bad policy is reported by execute, not here
+        return provider
+    if MarketCache(paths.root, md).exists():
+        typer.echo(f"market: reading the live comps cache in data/market_cache/{md.isoformat()} (no network; "
+                   f"--provider stub for the fixture, --refresh-market to refetch)")
+        return "live"
+    return provider
+
+
 def _headline(run: ValuationRun) -> str:
     t, m = run.totals, run.manifest
     d = t.dispositions
@@ -202,7 +226,7 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
     from .pipeline import execute
 
     paths = _paths(input_path, policy)
-    r = execute(paths, provider=provider, refresh_market=refresh_market, recommender=recommender)
+    r = execute(paths, provider=_default_provider(paths, provider), refresh_market=refresh_market, recommender=recommender)
     run = r.run
     out.mkdir(parents=True, exist_ok=True)
     q = _slug(run.manifest.quarter_label)
@@ -240,15 +264,24 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
 def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
             approver: str = typer.Option(..., "--approver", "-a", help="Who is releasing these marks to executives"),
             note: str = typer.Option("", "--note", "-n", help="Short note shown on the executive dashboard"),
-            out: Optional[Path] = typer.Option(None, "--out", "-o", help="Also write a self-contained exec_report.html here")) -> None:
-    """Freeze the current run as the executive snapshot for its quarter (the publish gate)."""
-    from .api.publish import exec_payload, publish_run
+            out: Optional[Path] = typer.Option(None, "--out", "-o", help="Also write a self-contained exec_report.html here"),
+            proposed: bool = typer.Option(False, "--proposed", help="Release an undecided book as PROPOSED (bypasses the "
+                                          "decision gate; the dashboard button never does this)")) -> None:
+    """Freeze the current run as the executive snapshot for its quarter (the publish gate). Refuses while any
+    position is still BLOCK or REVIEW: every one must be decided or confirmed from the queue first."""
+    from .api.publish import PublishBlocked, exec_payload, publish_run
     from .export.exec_report import write_exec_report
     from .pipeline import execute
 
     paths = _paths(input_path, policy)
     r = execute(paths)
-    rec = publish_run(r.run, paths.root, approver=approver, note=note)
+    try:
+        rec = publish_run(r.run, paths.root, approver=approver, note=note, require_decisions=not proposed)
+    except PublishBlocked as exc:
+        typer.echo(f"refused: {exc}", err=True)
+        for i in exc.items:
+            typer.echo(f"  {i['disposition']:<7} {i['company']:<22} {', '.join(x['rule_id'] for x in i['rules'])}", err=True)
+        raise typer.Exit(2)
     typer.echo(f"published {rec['quarter']} as {rec['status'].upper()} by {rec['published_by']} "
                f"(run {rec['run_id']}, booked NAV {rec['booked_nav']:,.1f}, {len(rec['open_blocks'])} open block(s))")
     typer.echo(f"executive dashboard: http://127.0.0.1:8765/exec/  (after `hc-valuation run`)")
@@ -407,7 +440,8 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
 
     from .api.app import STATIC_DIR, create_app, watch_inputs
 
-    application = create_app(_paths(input_path, policy), provider=provider, refresh_market=refresh_market,
+    paths = _paths(input_path, policy)
+    application = create_app(paths, provider=_default_provider(paths, provider), refresh_market=refresh_market,
                              recommender=recommender)
     typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"

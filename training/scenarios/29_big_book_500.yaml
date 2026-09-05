@@ -13,7 +13,7 @@ expect:
   max_seconds: 10
   validation_ids: { must: [], must_not: [X-901, X-909, X-902, X-903, X-904, X-906, X-914, X-905] }
   validation_blocking: false
-  manifest: { quarter_label: "Q3 2026", policy_version: "2026Q3-0.1" }
+  manifest: { quarter_label: "Q3 2026", policy_version: "2026Q3-0.2" }
   totals: { events: 64, positions: 500, dispositions: { BLOCK: 16, REVIEW: 8, MONITOR: 8, CLEAR: 468 } }
   companies:
     "Synth-0283": { disposition: CLEAR,   rules: [M-010], proposed: 5.6097, ownership_after: 0.0542 }          # 5.42% × $103.5M

@@ -181,7 +181,7 @@ export function KV({ k, v, mono = false }: { k: string; v: ReactNode; mono?: boo
   );
 }
 
-export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+export function Modal({ title, onClose, children, className = "" }: { title: string; onClose: () => void; children: ReactNode; className?: string }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -189,7 +189,7 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
   }, [onClose]);
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={title}>
+      <div className={`modal ${className}`.trim()} role="dialog" aria-modal="true" aria-label={title}>
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-semibold text-[14px]">{title}</h3>
           <button className="btn btn-ghost" onClick={onClose} aria-label="Close">
@@ -217,15 +217,17 @@ export function WriteButton({
   className = "btn",
   onClick,
   children,
+  title,
 }: {
   disabledReason?: string | null;
   className?: string;
   onClick: () => void;
   children: ReactNode;
+  title?: string;
 }) {
   return (
-    <span title={disabledReason ?? undefined} className="inline-block">
-      <button className={className} disabled={!!disabledReason} onClick={onClick}>
+    <span title={disabledReason ?? title} className="inline-block">
+      <button className={className} disabled={!!disabledReason} onClick={onClick} title={disabledReason ?? title}>
         {children}
       </button>
     </span>

@@ -2,7 +2,7 @@
 # Every threshold the engine uses lives here. There are no numeric literals in engine code.
 # A change to any value below is a policy change: bump policy_version and record why.
 
-policy_version: "2026Q3-0.1"
+policy_version: "2026Q3-0.2"     # 0.2: M-080 calibration on, gated to a live comps history
 inherits: null
 
 quarter:
@@ -26,10 +26,12 @@ marking:
     close_probability: 0.90
   convertible:
     new_money_basis: cost
-  calibration:
-    enabled: false
+  calibration:                       # M-080: the stale-round adjustment (docs/valuation-policy.md §2b)
+    enabled: true
     min_age_months: 24
     bound_pct: 0.35
+    require_live_history: true       # only an observed public-comps history calibrates; the fixture never does
+    round_month_tolerance: 3         # nearest month with a basket value within ±3 months of the round month
 
 exceptions:
   staleness:
@@ -66,6 +68,7 @@ tolerances:
 
 sensitivity:
   multiple_shock_pct: [-0.20, 0.20]
+  software_sectors: ["AI/ML", "Developer Tools", "Enterprise SaaS", "Fintech", "Cybersecurity", "Data & Analytics", "Infrastructure"]
 
 # ---- forward compatibility: for quarters this policy has not seen ----
 schema:

@@ -11,10 +11,11 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ValuationRun } from "../types";
+import type { CompsMove, ValuationRun } from "../types";
 import { musd, pct, signed, signClass } from "../lib/format";
 import { useChartTheme } from "../lib/theme";
 import { SectionTitle } from "../components/ui";
+import { SensitivityView } from "./Sensitivity";
 
 const TAIL_AFTER = 12;
 
@@ -59,10 +60,11 @@ function buildBridge(run: ValuationRun): Bridge[] {
   return out;
 }
 
-export function MovementView({ run }: { run: ValuationRun }) {
+export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (name: string) => void }) {
   const th = useChartTheme();
   const data = useMemo(() => buildBridge(run), [run]);
   const [showTable, setShowTable] = useState(false);
+  const [sensitivity, setSensitivity] = useState(false);
 
   // Truncate the axis so a $35M step is legible against a $1.1B total. Stated in the subtitle.
   const levels = data.map((d) => d.running);
@@ -92,7 +94,29 @@ export function MovementView({ run }: { run: ValuationRun }) {
   const sFloor = Math.floor((sensMin - (sensMax - sensMin) * 0.4) / 100) * 100;
   const sCeil = Math.ceil((sensMax + (sensMax - sensMin) * 0.05) / 100) * 100;
 
+  const switcher = (
+    <div className="view-switch" role="tablist" aria-label="Movement views">
+      <button role="tab" aria-selected={!sensitivity} className={`btn ${!sensitivity ? "btn-primary" : "btn-ghost"}`} onClick={() => setSensitivity(false)}>
+        Bridge
+      </button>
+      <button role="tab" aria-selected={sensitivity} className={`btn ${sensitivity ? "btn-primary" : "btn-ghost"}`} onClick={() => setSensitivity(true)}>
+        Sensitivity view
+      </button>
+    </div>
+  );
+
+  if (sensitivity) {
+    return (
+      <div className="space-y-3">
+        {switcher}
+        <SensitivityView run={run} onGoto={onGoto} />
+      </div>
+    );
+  }
+
   return (
+    <div className="space-y-3">
+    {switcher}
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)] gap-4">
       <div className="card p-4">
         <SectionTitle
@@ -181,7 +205,15 @@ export function MovementView({ run }: { run: ValuationRun }) {
       </div>
 
       <div className="card p-4">
-        <SectionTitle>Sensitivity · revenue multiples ±20%</SectionTitle>
+        <SectionTitle
+          right={
+            <button className="btn btn-ghost" onClick={() => setSensitivity(true)} title="Slider from −20% to +20%, by sector, fund and position">
+              Open slider →
+            </button>
+          }
+        >
+          Sensitivity · revenue multiples ±20%
+        </SectionTitle>
         <p className="text-[11px] text-muted mb-2 num">
           Shock applied to Level 3 positions with ARR above the screening floor: {musd(s.multiple_exposed_nav, 1)} of {musd(s.base_nav, 1)} (
           {pct(exposedShare)}). Level 1, pre-revenue and terminal positions held flat. $M.
@@ -220,7 +252,70 @@ export function MovementView({ run }: { run: ValuationRun }) {
         <div className="text-[11px] text-ink2 mt-1 num">
           Range {signed(sens[0].value - s.base_nav, 1)} / {signed(sens[sens.length - 1].value - s.base_nav, 1)} around base. Axis starts at {musd(sFloor, 0)}.
         </div>
+        {run.comps_move && <CompsMoveCard m={run.comps_move} />}
       </div>
+    </div>
+    </div>
+  );
+}
+
+/** The observed sensitivity: what the same multiple-exposed marks would have done had they moved
+    with their sector's public comps over the quarter. Alternative arithmetic, like M-080 — it
+    changes nothing; it says how far the carried book sits from the public market's quarter. */
+function CompsMoveCard({ m }: { m: CompsMove }) {
+  const share = m.exposed_nav ? m.covered_nav / m.exposed_nav : 0;
+  return (
+    <div className="mt-4 pt-3 border-t border-line">
+      <SectionTitle
+        right={
+          m.all_live ? (
+            <span className="chip disp-CLEAR no-dot">live comps</span>
+          ) : (
+            <span className="chip disp-MONITOR no-dot" title="Vendor-shaped fixture; run with --provider live for an observed history">
+              fixture comps
+            </span>
+          )
+        }
+      >
+        Observed · public comps {m.prior_month} → {m.now_month}
+      </SectionTitle>
+      <p className="text-[11px] text-muted mb-2 num">
+        Each sector's basket EV/revenue move this quarter applied to that sector's multiple-exposed marks. Had the book re-rated with its
+        comps: <span className="text-ink2">{musd(m.nav_if_marked_with_comps, 1)}</span> (
+        <span className={signClass(m.delta)}>{signed(m.delta, 1)}</span>, {pct(m.delta / m.base_nav, 2, true)}). Covers {pct(share)} of the
+        exposed NAV. Nothing here moves a mark — it is the gap between the carried book and the public market's quarter.
+      </p>
+      <div className="overflow-x-auto">
+        <table className="dtable text-[11.5px] w-full">
+          <thead>
+            <tr>
+              <th>Sector</th>
+              <th className="r">QoQ</th>
+              <th className="r">Exposed</th>
+              <th className="r">Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {m.sectors.map((x) => (
+              <tr key={x.sector} title={`${x.sector}: ${x.multiple_prior.toFixed(1)}× → ${x.multiple_now.toFixed(1)}× · ${x.positions} positions · ${x.source}`}>
+                <td className="whitespace-nowrap">
+                  {x.sector} <span className="text-muted">· {x.positions}</span>
+                </td>
+                <td className={`r num ${signClass(x.qoq_pct)}`}>{pct(x.qoq_pct, 1, true)}</td>
+                <td className="r num">{musd(x.exposed_nav, 1)}</td>
+                <td className={`r num ${signClass(x.delta)}`}>{signed(x.delta, 1)}</td>
+              </tr>
+            ))}
+            <tr className="font-semibold">
+              <td>Total</td>
+              <td className={`r num ${signClass(m.delta)}`}>{m.covered_nav ? pct(m.delta / m.covered_nav, 1, true) : "—"}</td>
+              <td className="r num">{musd(m.covered_nav, 1)}</td>
+              <td className={`r num ${signClass(m.delta)}`}>{signed(m.delta, 1)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="text-[10.5px] text-muted mt-1">Hover a row for the basket multiples then → now and the source.</p>
     </div>
   );
 }

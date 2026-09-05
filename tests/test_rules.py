@@ -376,10 +376,10 @@ def test_m999_signature_carries_tags(build):
 # =================================================================== X-2xx staleness
 
 @pytest.mark.parametrize("latest_round,expected", [
-    (date(2024, 9, 15), set()),          # 24 months: not > 24
-    (date(2024, 8, 15), {"X-201"}),      # 25 months
-    (date(2022, 9, 15), {"X-201"}),      # 48 months: still MONITOR
-    (date(2022, 8, 15), {"X-202"}),      # 49 months: REVIEW
+    (date(2024, 9, 30), set()),          # 24.0 months: not > 24
+    (date(2024, 9, 15), {"X-201"}),      # 24.5 months: older than 24 (calendar-month arithmetic would have said 24)
+    (date(2022, 9, 30), {"X-201"}),      # 48.0 months: still MONITOR
+    (date(2022, 9, 15), {"X-202"}),      # 48.5 months: REVIEW
 ])
 def test_staleness_thresholds(build, latest_round, expected):
     run, _ = build([position(latest_round=latest_round)], [])
@@ -474,7 +474,7 @@ def test_x404_moic_outlier_on_stale_round(build):
     run, _ = build([position(invested=1.0, latest_round=date(2024, 6, 15))], [])   # 10x MOIC, 27 months
     c = only(run)
     f = _flag(c, "X-404")
-    assert f.evidence["moic"] == pytest.approx(10.0) and f.evidence["months"] == 27 and f.severity == Severity.MONITOR
+    assert f.evidence["moic"] == pytest.approx(10.0) and f.evidence["months"] == 27.5 and f.severity == Severity.MONITOR
     # each half is MONITOR; together (X-405) an old price that today's numbers argue with is a REVIEW
     assert "X-201" in flag_ids(c) and "X-405" in flag_ids(c) and c.disposition == Disposition.REVIEW
     x405 = _flag(c, "X-405")

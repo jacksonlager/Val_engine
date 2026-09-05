@@ -337,15 +337,41 @@ def test_e07_items_for_other_companies_are_ignored(build):
 
 # =================================================================== M-080 calibration
 
-def _hist(now: float, then: float = 10.0) -> MarketData:
-    return MarketData(comp_history={"SaaS": {"2024-06": then, "2026-09": now}}, as_of=MD)
+def _hist(now: float, then: float = 10.0, source: str = "live:edgar+yahoo@2026-09", then_key: str = "2024-06") -> MarketData:
+    from hc_valuation.engine.models import SectorComp
+    return MarketData(comp_history={"SaaS": {then_key: then, "2026-09": now}},
+                      comps={"SaaS": SectorComp(sector="SaaS", ev_to_arr=now, as_of=MD, source=source)}, as_of=MD)
 
 
-def test_m080_disabled_by_default(build, cfg):
-    assert cfg.marking.calibration.enabled is False
-    run, _ = build([position(latest_round=date(2024, 6, 15))], [], market=_hist(12.0))
+def test_m080_is_on_but_only_an_observed_comps_history_calibrates(build, cfg):
+    """Policy 0.2 ships calibration on, gated to a live history: the fixture's trend never moves a mark."""
+    assert cfg.marking.calibration.enabled is True and cfg.marking.calibration.require_live_history is True
+    fixture = _hist(12.0, source="fixture:pitchbook@2026-09")
+    run, _ = build([position(latest_round=date(2024, 6, 15))], [], market=fixture)
     c = only(run)
     assert "calibrated_to_comps" not in c.alternative_marks and "M-080" not in rule_ids(c)
+    run, _ = build([position(latest_round=date(2024, 6, 15))], [], market=_hist(12.0))          # live: calibrates
+    assert only(run).alternative_marks["calibrated_to_comps"] == pytest.approx(12.0)
+    off = with_policy(cfg, **{"marking.calibration.enabled": False})
+    run, _ = build([position(latest_round=date(2024, 6, 15))], [], cfg_=off, market=_hist(12.0))
+    assert "M-080" not in rule_ids(only(run))
+    loose = with_policy(cfg, **{"marking.calibration.require_live_history": False})
+    run, _ = build([position(latest_round=date(2024, 6, 15))], [], cfg_=loose, market=fixture)   # fixture allowed
+    assert only(run).alternative_marks["calibrated_to_comps"] == pytest.approx(12.0)
+
+
+def test_m080_reads_the_nearest_month_within_tolerance_and_records_it(build, cfg):
+    near = _hist(12.0, then_key="2024-08")                       # round month 2024-06 has no basket value; +2 does
+    run, _ = build([position(latest_round=date(2024, 6, 15))], [], market=near)
+    step = only(run).steps[-1]
+    assert step.rule_id == "M-080" and step.inputs["round_month"] == "2024-06" and step.inputs["comp_month_used"] == "2024-08"
+    assert step.inputs["comps_source"].startswith("live:") and step.inputs["bound_hit"] is False
+    far = _hist(12.0, then_key="2024-01")                        # five months away: outside ±3
+    run, _ = build([position(latest_round=date(2024, 6, 15))], [], market=far)
+    assert "M-080" not in rule_ids(only(run))
+    tol = with_policy(cfg, **{"marking.calibration.round_month_tolerance": 6})
+    run, _ = build([position(latest_round=date(2024, 6, 15))], [], cfg_=tol, market=far)
+    assert only(run).steps[-1].inputs["comp_month_used"] == "2024-01"
 
 
 def test_m080_calibration_writes_alternative_only(build, cfg):
@@ -357,7 +383,8 @@ def test_m080_calibration_writes_alternative_only(build, cfg):
     assert rule_ids(c) == ["M-000", "M-080"]
     step = c.steps[-1]
     assert step.prior_value == step.new_value == pytest.approx(10.0)
-    assert step.inputs["factor_bounded"] == pytest.approx(1.2) and step.inputs["age_months"] == 27
+    assert step.inputs["factor_bounded"] == pytest.approx(1.2) and step.inputs["age_months"] == 27.5
+    assert step.inputs["factor_raw"] == pytest.approx(1.2) and step.inputs["bound_hit"] is False
     assert step.evidence is None, "calibration is not event-driven"
     assert run.totals.proposed_nav == pytest.approx(10.0)
 
@@ -367,6 +394,7 @@ def test_m080_factor_is_bounded(build, cfg):
     run, _ = build([position(latest_round=date(2024, 6, 15))], [], cfg_=alt, market=_hist(30.0))
     c = only(run)
     assert c.alternative_marks["calibrated_to_comps"] == pytest.approx(13.5)
+    assert c.steps[-1].inputs["bound_hit"] is True and c.steps[-1].inputs["factor_raw"] == pytest.approx(3.0)
     run, _ = build([position(latest_round=date(2024, 6, 15))], [], cfg_=alt, market=_hist(2.0))
     assert only(run).alternative_marks["calibrated_to_comps"] == pytest.approx(6.5)
 
@@ -394,7 +422,9 @@ def test_m080_on_real_workbook_never_moves_the_book(cfg):
     sectors = {c.sector for c in base.companies}
     hist = {s: {f"{y}-{m:02d}": 10.0 * (1 + 0.01 * ((y - 2018) * 12 + m)) for y in range(2018, 2027) for m in range(1, 13)}
             for s in sectors}
-    calibrated, _ = run_workbook(WORKBOOK_PATH, alt, market=MarketData(comp_history=hist, as_of=MD))
+    from hc_valuation.engine.models import SectorComp
+    comps = {s: SectorComp(sector=s, ev_to_arr=hist[s]["2026-09"], as_of=MD, source="live:edgar+yahoo@2026-09") for s in sectors}
+    calibrated, _ = run_workbook(WORKBOOK_PATH, alt, market=MarketData(comp_history=hist, comps=comps, as_of=MD))
     assert calibrated.totals.proposed_nav == pytest.approx(base.totals.proposed_nav, abs=1e-9)
     assert calibrated.totals.dispositions == base.totals.dispositions
     touched = [c for c in calibrated.companies if "calibrated_to_comps" in c.alternative_marks]

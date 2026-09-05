@@ -163,7 +163,7 @@ export default function App() {
               ))}
             </div>
             <span className="border-l border-line h-4 mx-1" aria-hidden />
-            <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} />
+            <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} onGoto={gotoCompany} />
             <span
               className={`chip no-dot ${mode === "static" ? "disp-MONITOR" : "disp-CLEAR"} hint`}
               title={mode === "static" ? STATIC_REASON : "Connected to the API; decisions are recorded to the ledger"}
@@ -185,9 +185,9 @@ export default function App() {
           <QueueView run={run} filter={filter} setFilter={setFilter} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />
         )}
         {view === "companies" && <CompaniesView run={run} filter={filter} writeDisabled={writeDisabled} onChanged={reload} focus={focus} />}
-        {view === "movement" && <MovementView run={run} />}
+        {view === "movement" && <MovementView run={run} onGoto={gotoCompany} />}
         {view === "funds" && <FundsView run={run} gotoCompany={gotoCompany} />}
-        {view === "market" && <MarketView mode={mode} />}
+        {view === "market" && <MarketView mode={mode} run={run} onGoto={gotoCompany} />}
         {view === "open" && <OpenItemsView run={run} gotoCompany={gotoCompany} />}
         {view === "proposals" && <ProposalsView run={run} mode={mode} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />}
       </main>

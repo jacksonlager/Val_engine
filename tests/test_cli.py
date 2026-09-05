@@ -18,7 +18,7 @@ def test_help_and_version():
         assert cmd in r.output
     r = runner.invoke(app, ["version"])
     assert r.exit_code == 0
-    assert "engine 0.1.0" in r.output and "policy 2026Q3-0.1" in r.output
+    assert "engine 0.1.0" in r.output and "policy 2026Q3-0.2" in r.output
 
 
 def test_validate_real_workbook_exit_zero():

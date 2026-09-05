@@ -52,6 +52,8 @@ class CalibrationCfg(_Strict):
     enabled: bool = False
     min_age_months: int = 24
     bound_pct: float = 0.35
+    require_live_history: bool = True   # calibrate only from an observed comps history (live:*), never the fixture
+    round_month_tolerance: int = 3      # months either side of the round month the history may be read at
 
 
 class MarkingCfg(_Strict):
@@ -130,6 +132,9 @@ class TolerancesCfg(_Strict):
 
 class SensitivityCfg(_Strict):
     multiple_shock_pct: list[float] = Field(default_factory=lambda: [-0.20, 0.20])
+    # the sectors "software multiples" means in the brief; the shock is also reported on every
+    # multiple-exposed position so the reader sees both scopes
+    software_sectors: list[str] = Field(default_factory=list)
 
 
 class SchemaCfg(_Strict):

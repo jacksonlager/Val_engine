@@ -112,7 +112,8 @@ def test_run_alone_gives_prior_and_live_points(scratch: RunPaths):
 
 def test_publishing_turns_the_live_point_into_a_published_one(scratch: RunPaths):
     r = execute(scratch, provider="stub")
-    publish_run(r.run, scratch.root, approver="IC", published_at=datetime(2026, 10, 2, tzinfo=timezone.utc))
+    publish_run(r.run, scratch.root, approver="IC", published_at=datetime(2026, 10, 2, tzinfo=timezone.utc),
+                require_decisions=False)
     h = build_history(r.run, scratch.root)
     assert h["counts"]["published"] == 100 and h["counts"]["live"] == 0
     live = h["companies"]["Aravine"][-1]
@@ -121,7 +122,7 @@ def test_publishing_turns_the_live_point_into_a_published_one(scratch: RunPaths)
 
 def test_live_run_that_moved_since_publish_is_flagged(scratch: RunPaths):
     r = execute(scratch, provider="stub")
-    publish_run(r.run, scratch.root, approver="IC")
+    publish_run(r.run, scratch.root, approver="IC", require_decisions=False)
     # someone changed the published number afterwards: the ledger disagrees with the live run
     p = scratch.root / "data" / "published" / "2026Q3.json"
     raw = json.loads(p.read_text())

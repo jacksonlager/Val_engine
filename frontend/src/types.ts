@@ -143,6 +143,7 @@ export interface CompanyResult {
   latest_post_money: number;
   staleness_anchor: string; // ISO date
   fv_level: number | null; // 1 | 2 | 3 | null for zero positions
+  multiple_exposed: boolean; // Level 3 with ARR at or above the screening floor: the marks a multiple regime drives
 
   arr: number | null;
   arr_growth: number | null;
@@ -212,8 +213,35 @@ export interface ValuationRun {
   validation: ValidationIssue[];
   totals: PortfolioTotals;
   open_items: OpenItem[];
-  // keys: base_nav, multiple_exposed_nav, nav_if_multiples_-20pct, nav_if_multiples_+20pct
+  // keys: base_nav, multiple_exposed_nav, software_exposed_nav, nav_if_multiples_±20pct, nav_if_software_multiples_±20pct
   sensitivity: Record<string, number>;
+  sensitivity_meta: { shock_pct: number[]; min_arr: number; software_sectors: string[] };
+  /** the observed counterpart of the shock: each sector's public-comps move this quarter applied to the marks it drives */
+  comps_move: CompsMove | null;
+}
+
+export interface SectorMove {
+  sector: string;
+  multiple_prior: number;
+  multiple_now: number;
+  qoq_pct: number;
+  exposed_nav: number;
+  delta: number;
+  positions: number;
+  live: boolean;
+  source: string;
+}
+
+export interface CompsMove {
+  prior_month: string;
+  now_month: string;
+  base_nav: number;
+  exposed_nav: number;
+  covered_nav: number;
+  delta: number;
+  nav_if_marked_with_comps: number;
+  sectors: SectorMove[];
+  all_live: boolean;
 }
 
 // ---------------------------------------------------------------- E-09 proposals (GET /api/proposals)
@@ -311,6 +339,8 @@ export interface Sources {
   columns: Record<string, Record<string, string>>;
   /** step/flag input name -> the column it was read from; absent = computed by the engine */
   input_columns: Record<string, SourceInputColumn>;
+  /** inputs the engine derives rather than reads: name -> what it is arithmetic on (cited cells or policy) */
+  derived_inputs?: Record<string, string>;
   companies: Record<string, SourceCompany>;
 }
 

@@ -29,7 +29,9 @@ edited — and an X-900 BLOCK says which cell to fix.
 from __future__ import annotations
 
 import hashlib
+import json
 from datetime import date, datetime, time
+from typing import Mapping
 
 from ..config import RuleConfig
 from . import declarative, marking, precedence
@@ -41,7 +43,7 @@ from .models import (
 from .open_items import RESOLVES, carry_prior_items
 from .overrides import apply_override
 from .registry import BUILTIN, Registry
-from .rollup import fund_rollups, portfolio_totals, sensitivity
+from .rollup import comps_move, fund_rollups, is_multiple_exposed, portfolio_totals, sensitivity
 from .state import Suggest, Working
 
 ENGINE_VERSION = "0.1.0"
@@ -162,6 +164,7 @@ def run_valuation(
     *,
     validation: tuple[ValidationIssue, ...] = (),
     prior_open_items: tuple[OpenItem, ...] = (),
+    prior_staleness_anchors: Mapping[str, date] | None = None,
     input_sha256: str = "",
     input_file: str = "",
     generated_at: datetime | None = None,
@@ -177,6 +180,13 @@ def run_valuation(
 
     for p in _positions_to_roll(portfolio, activity):
         w = Working.from_position(p, quarter, activity.sheet_name)
+        # A same-terms extension last quarter repriced ownership but was not price discovery: the
+        # emitted book carries the extension as `Latest Round` (its own definition) and the older
+        # anchor in the sidecar, so the clock the engine kept running keeps running here.
+        carried = (prior_staleness_anchors or {}).get(p.company)
+        if carried is not None and carried < w.staleness_anchor:
+            w.staleness_anchor = carried
+            w.carried_anchor = carried
         listed = is_listed(p) and p.status == Status.ACTIVE
         if listed:
             w.listed, w.fv_level = True, 1
@@ -258,6 +268,7 @@ def run_valuation(
             invested_before=p.invested, invested_after=round(invested_after, 6),
             realized_quarter=round(w.realized_quarter, 6), realized_cumulative=round(realized_cum, 6),
             latest_post_money=w.latest_post, staleness_anchor=w.staleness_anchor, fv_level=w.fv_level,
+            multiple_exposed=is_multiple_exposed(w.fv_level, p.arr, config),
             arr=p.arr, arr_growth=p.arr_growth,
             runway_months_aged=(round(aged_runway, 2) if aged_runway is not None else None),
             implied_multiple=(round(implied_mult, 2) if implied_mult else None),
@@ -269,10 +280,20 @@ def run_valuation(
     rollups = fund_rollups(results)
     totals = portfolio_totals(results)
     sens = sensitivity(results, config)
+    sens_meta = {"shock_pct": list(config.sensitivity.multiple_shock_pct), "min_arr": config.exceptions.multiple.min_arr,
+                 "software_sectors": list(config.sensitivity.software_sectors)}
+    moved = comps_move(results, config, market)
     all_open = tuple(item for c in results for item in c.open_items)
 
     gen = generated_at or datetime.combine(md, time.min)
-    run_id = hashlib.sha256(f"{input_sha256}|{config.policy_version}|{ENGINE_VERSION}".encode()).hexdigest()[:12]
+    # The run's identity is every input that can change a number: the workbook, the policy, the
+    # engine — and the decisions (the override ledger, the carried open items and anchors). A
+    # committee override after a publish therefore changes the run_id, so the review tool's
+    # "changes since" indicator can tell that executives are looking at an older book.
+    decisions = hashlib.sha256((overrides.model_dump_json() + "|" + json.dumps(
+        [o.model_dump(mode="json") for o in prior_open_items] + [{k: v.isoformat() for k, v in sorted((prior_staleness_anchors or {}).items())}],
+        sort_keys=True)).encode()).hexdigest()[:12]
+    run_id = hashlib.sha256(f"{input_sha256}|{config.policy_version}|{ENGINE_VERSION}|{decisions}".encode()).hexdigest()[:12]
     manifest = RunManifest(
         run_id=run_id, input_sha256=input_sha256, input_file=input_file,
         policy_version=config.policy_version, engine_version=ENGINE_VERSION,
@@ -280,4 +301,5 @@ def run_valuation(
         generated_at=gen, adjudication_enabled=config.adjudication.enabled, market_data_source=market_data_source,
     )
     return ValuationRun(manifest=manifest, companies=tuple(results), rollups=tuple(rollups),
-                        validation=tuple(validation), totals=totals, open_items=all_open, sensitivity=sens)
+                        validation=tuple(validation), totals=totals, open_items=all_open, sensitivity=sens,
+                        sensitivity_meta=sens_meta, comps_move=moved)

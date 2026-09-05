@@ -11,7 +11,8 @@ from fastapi.testclient import TestClient
 
 from hc_valuation.api.app import create_app
 from hc_valuation.api.exec_view import DRIVERS, build_exec_view
-from hc_valuation.api.publish import exec_payload, list_published, load_published, publish_run
+from hc_valuation.api.publish import (PublishBlocked, exec_payload, list_published, load_published, outstanding,
+                                      publish_run)
 from hc_valuation.export.exec_report import render_exec_report
 from hc_valuation.pipeline import RunPaths, execute
 
@@ -121,7 +122,7 @@ def test_composition_shares_sum_to_one(result):
 
 def test_publish_writes_snapshot_and_latest(result, root):
     rec = publish_run(result.run, root, approver="Jackson Lagerwey", note="IC pack",
-                      published_at=datetime(2026, 10, 2, 17, 0, tzinfo=timezone.utc))
+                      published_at=datetime(2026, 10, 2, 17, 0, tzinfo=timezone.utc), require_decisions=False)
     assert rec["slug"] == "2026Q3" and rec["status"] == "proposed" and len(rec["open_blocks"]) == 7
     assert (root / "data" / "published" / "2026Q3.json").exists()
     assert json.loads((root / "data" / "published" / "latest.json").read_text())["slug"] == "2026Q3"
@@ -131,8 +132,9 @@ def test_publish_writes_snapshot_and_latest(result, root):
 
 
 def test_republish_keeps_history(result, root):
-    publish_run(result.run, root, approver="A", published_at=datetime(2026, 10, 1, tzinfo=timezone.utc))
-    publish_run(result.run, root, approver="B", note="second", published_at=datetime(2026, 10, 2, tzinfo=timezone.utc))
+    publish_run(result.run, root, approver="A", published_at=datetime(2026, 10, 1, tzinfo=timezone.utc), require_decisions=False)
+    publish_run(result.run, root, approver="B", note="second", published_at=datetime(2026, 10, 2, tzinfo=timezone.utc),
+                require_decisions=False)
     hist = list((root / "data" / "published" / "history").glob("2026Q3_*.json"))
     assert len(hist) == 1, "the earlier release is kept, never overwritten silently"
     assert load_published(root)[0]["published_by"] == "B"
@@ -141,12 +143,89 @@ def test_republish_keeps_history(result, root):
 
 def test_publish_requires_an_approver(result, root):
     with pytest.raises(ValueError):
-        publish_run(result.run, root, approver="   ")
+        publish_run(result.run, root, approver="   ", require_decisions=False)
+
+
+# ------------------------------------------------------------------ the decision gate
+
+def test_outstanding_lists_every_block_and_review_with_its_flags(result):
+    items = outstanding(result.run)
+    by_disp = {}
+    for i in items:
+        by_disp.setdefault(i["disposition"], []).append(i)
+    assert len(by_disp["BLOCK"]) == 7 and len(by_disp["REVIEW"]) == 20
+    assert {i["why"] for i in items} == {"Decision required before booking", "Check required to confirm the mark"}
+    for i in items:
+        assert i["rules"], f"{i['company']} is waiting but lists no flag to decide"
+        assert all(r["severity"] in ("BLOCK", "REVIEW") for r in i["rules"])
+    gry = next(i for i in items if i["company"] == "Gryphonel")
+    assert [r["rule_id"] for r in gry["rules"]] == ["X-101", "X-202"]
+    assert all(c.disposition.value in ("MONITOR", "CLEAR") for c in result.run.companies
+               if c.company not in {i["company"] for i in items})
+
+
+def test_publish_refuses_an_undecided_book(result, root):
+    with pytest.raises(PublishBlocked) as exc:
+        publish_run(result.run, root, approver="Jackson Lagerwey")
+    assert len(exc.value.items) == 27 and "27 position(s)" in str(exc.value) and "7 BLOCK and 20 REVIEW" in str(exc.value)
+    assert not (root / "data" / "published").exists(), "nothing is written when the gate refuses"
+
+
+def _decide_everything(client: TestClient, approver: str = "IC") -> int:
+    """Resolve every outstanding position through the API the way the dashboard does: an E-01
+    override addressed to each waiting flag, booking the engine's recommended number."""
+    run = client.get("/api/run").json()
+    n = 0
+    for c in run["companies"]:
+        if c["disposition"] not in ("BLOCK", "REVIEW"):
+            continue
+        waiting = [f for f in c["flags"] if f["severity"] in ("BLOCK", "REVIEW")]
+        rec = next((f["recommendation"] for f in waiting if f.get("recommendation")), None)
+        booked = rec["booked"] if rec else c["proposed_mark"]
+        r = client.post("/api/overrides", json={"company": c["company"], "booked": booked, "approver": approver,
+                                                "reason": "committee confirmed", "rule_ids_addressed": [f["rule_id"] for f in waiting]})
+        assert r.status_code == 200, r.text
+        n += 1
+    return n
+
+
+def test_api_gate_opens_only_after_every_item_is_decided(root):
+    c = TestClient(create_app(RunPaths.default(root)))
+    ready = c.get("/api/publish/readiness").json()
+    assert ready["ready"] is False and len(ready["outstanding"]) == 27
+    r = c.post("/api/publish", json={"approver": "Jackson Lagerwey", "note": ""})
+    assert r.status_code == 409
+    detail = r.json()["detail"]
+    assert len(detail["outstanding"]) == 27 and "before the book can be published" in detail["message"]
+    assert c.get("/api/exec").status_code == 404, "nothing reached the executives"
+    # decide all but one: still locked, and the popup list names exactly the one left
+    assert _decide_everything(c) == 27
+    ready = c.get("/api/publish/readiness").json()
+    assert ready["ready"] is True and ready["outstanding"] == []
+    run = c.get("/api/run").json()
+    assert all(x["disposition"] in ("MONITOR", "CLEAR") for x in run["companies"])
+    r = c.post("/api/publish", json={"approver": "Jackson Lagerwey", "note": "all decided"})
+    assert r.status_code == 200 and r.json()["status"] == "final" and r.json()["open_blocks"] == []
+    assert c.get("/api/exec").json()["meta"]["status"] == "final"
+
+
+def test_api_gate_names_the_last_undecided_position(root):
+    c = TestClient(create_app(RunPaths.default(root)))
+    run = c.get("/api/run").json()
+    waiting = [x for x in run["companies"] if x["disposition"] in ("BLOCK", "REVIEW")]
+    keep = waiting[-1]["company"]
+    for x in waiting[:-1]:
+        flags = [f for f in x["flags"] if f["severity"] in ("BLOCK", "REVIEW")]
+        assert c.post("/api/overrides", json={"company": x["company"], "booked": x["proposed_mark"], "approver": "IC",
+                                              "reason": "confirmed", "rule_ids_addressed": [f["rule_id"] for f in flags]}).status_code == 200
+    r = c.post("/api/publish", json={"approver": "Jackson Lagerwey", "note": ""})
+    assert r.status_code == 409 and [i["company"] for i in r.json()["detail"]["outstanding"]] == [keep]
 
 
 def test_exec_payload_and_static_report(result, root):
     assert exec_payload(root) is None
-    publish_run(result.run, root, approver="Jackson Lagerwey", published_at=datetime(2026, 10, 2, tzinfo=timezone.utc))
+    publish_run(result.run, root, approver="Jackson Lagerwey", published_at=datetime(2026, 10, 2, tzinfo=timezone.utc),
+                require_decisions=False)
     view = exec_payload(root)
     assert view["meta"]["published_by"] == "Jackson Lagerwey" and view["history"][0]["slug"] == "2026Q3"
     html = render_exec_report(view, static_dir=root / "does-not-exist")
@@ -159,8 +238,10 @@ def test_api_publish_then_exec(root):
     c = TestClient(create_app(RunPaths.default(root)))
     assert c.get("/api/exec").status_code == 404
     assert c.post("/api/publish", json={"approver": " ", "note": ""}).status_code == 400
-    r = c.post("/api/publish", json={"approver": "Jackson Lagerwey", "note": "Q3 proposed"})
-    assert r.status_code == 200 and r.json()["status"] == "proposed"
+    assert c.post("/api/publish", json={"approver": "Jackson Lagerwey", "note": ""}).status_code == 409, "undecided book"
+    _decide_everything(c)
+    r = c.post("/api/publish", json={"approver": "Jackson Lagerwey", "note": "Q3 final"})
+    assert r.status_code == 200 and r.json()["status"] == "final"
     v = c.get("/api/exec").json()
     assert v["headline"]["booked_nav"] == pytest.approx(1183.93, abs=0.01)
     assert c.get("/api/exec/2026Q3").status_code == 200

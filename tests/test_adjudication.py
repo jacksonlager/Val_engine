@@ -260,7 +260,7 @@ def test_second_run_hits_cache(paths):
 def test_cache_key_moves_with_policy_version(paths):
     r1 = execute(paths, generated_at=GENERATED_AT)
     raw = yaml.safe_load(paths.policy.read_text())
-    raw["policy_version"] = "2026Q3-0.2"
+    raw["policy_version"] = "2026Q3-0.3"
     paths.policy.write_text(yaml.safe_dump(raw, sort_keys=False))
     r2 = execute(paths, generated_at=GENERATED_AT)
     assert r2.proposals[0].proposal_id != r1.proposals[0].proposal_id

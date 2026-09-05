@@ -7,7 +7,7 @@ note: >
   policy (a delisting, a take-private, a rename such as SQ -> XYZ), so a reviewer can tell a
   mechanical fix from a change of view.
 defaults:
-  months_of_history: 36
+  months_of_history: 96         # 8 years: reaches the round months of the book's stale positions (M-080)
   min_constituents: 3          # fewer than this with data -> sector falls back to the fixture
   price_source: yahoo          # yahoo | stooq  (--price-source / HC_PRICE_SOURCE override per run)
   price_max_per_s: 2           # polite request rate against the price source
@@ -23,5 +23,5 @@ sectors:
   "Robotics":         [SYM, ISRG, TER, KTOS, AVAV]
   "Climate & Energy": [ENPH, FSLR, TSLA, RUN, BE]
   "Space & Defense":  [RKLB, PL, IRDM, KTOS, AVAV]
-  "Consumer":         [ABNB, DASH, UBER, DUOL, SPOT]
+  "Consumer":         [ABNB, DASH, UBER, DUOL, RBLX]   # RBLX replaced SPOT 2026-09-05: Spotify files 20-F under IFRS, so EDGAR carries no us-gaap revenue for it
 overrides: {}                  # optional per-ticker fixes, e.g. T: { cik: 123, name: "..." }; CIK is normally resolved from company_tickers.json

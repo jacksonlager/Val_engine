@@ -51,6 +51,38 @@ INPUT_COLUMNS: dict[str, tuple[str, str]] = {
 }
 
 
+# Inputs the engine derives rather than reads. Each is labelled with what it is arithmetic on
+# (cited cells, or policy), so an audit reader never meets a number with no provenance.
+DERIVED_INPUTS: dict[str, str] = {
+    "implied_from_deal_value": "derived: ownership × deal_value",
+    "implied_post_money": "derived: the row's stated implied valuation, else proceeds ÷ ownership_sold",
+    "implied_from_ownership": "derived: proceeds ÷ ownership_sold",
+    "ownership_sold": "derived: ownership_before − ownership_after",
+    "at_last_round": "derived: ownership_after × last_round_post_money",
+    "at_secondary_price": "derived: ownership_after × implied_post_money",
+    "at_implied_price": "derived: ownership_after × implied_post_money",
+    "valuation_cap": "derived: parsed from Detail text",
+    "cap_vs_last_round": "derived: valuation_cap ÷ last_round_post_money − 1",
+    "close_probability": "policy: marking.announced.close_probability",
+    "treatment": "policy: marking.announced.treatment",
+    "at_full_deal_value": "derived: ownership × deal_value",
+    "probability_weighted": "derived: ownership × deal_value × close_probability",
+    "hold_prior": "derived: the prior mark",
+    "indicated_mark": "derived: ownership × indicated_post_money",
+    "measurement_date_market_cap": "market data: the measurement-date quote (see price_source)",
+    "price_source": "market data: provenance of the quote",
+    "lockup_end": "derived: event date + open_items.ipo_lockup_days",
+    "lockup_discount_pct": "policy: marking.ipo.lockup_discount_pct",
+    "remainder_basis": "policy: marking.secondary.remainder_basis",
+    "new_money_basis": "policy: marking.convertible.new_money_basis",
+    "note_converted": "derived: the note leg folded into equity on listing",
+    "comp_multiple_now": "market data: sector basket EV/revenue, measurement month",
+    "comp_multiple_at_round": "market data: sector basket EV/revenue, round month",
+    "factor_raw": "derived: comp_multiple_now ÷ comp_multiple_at_round",
+    "factor_bounded": "derived: factor_raw clamped to ±calibration.bound_pct",
+}
+
+
 def _letters(columns: dict[str, str]) -> dict[str, str]:
     """Column name -> spreadsheet letter, in the order the reader expects them."""
     return {name: get_column_letter(i) for i, name in enumerate(columns, start=1)}
@@ -79,6 +111,7 @@ def build_sources(result: PipelineResult) -> dict[str, Any]:
         "sheets": {"portfolio": snapshot.sheet_name, "activity": feed.sheet_name},
         "columns": {"portfolio": _letters(PORTFOLIO_COLUMNS), "activity": _letters(ACTIVITY_COLUMNS)},
         "input_columns": {k: {"sheet": s, "column": c} for k, (s, c) in INPUT_COLUMNS.items()},
+        "derived_inputs": dict(DERIVED_INPUTS),
         "companies": companies,
     }
 
@@ -97,6 +130,8 @@ def input_cell_refs(sources: dict[str, Any], company: str, inputs: dict[str, Any
     for name in inputs:
         where = INPUT_COLUMNS.get(name)
         if where is None:
+            if name in DERIVED_INPUTS:
+                out[name] = DERIVED_INPUTS[name]
             continue
         tab, header = where
         letter = cols[tab].get(header)

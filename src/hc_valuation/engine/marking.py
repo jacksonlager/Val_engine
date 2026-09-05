@@ -22,8 +22,11 @@ EFFECTIVE = date(2026, 7, 1)   # policy 2026Q3 in force from the start of the qu
 V = "2026Q3.1"
 
 
-def months_between(a: date, b: date) -> int:
-    return (b.year - a.year) * 12 + (b.month - a.month)
+def months_between(a: date, b: date) -> float:
+    """Age in months as a duration, to one decimal: a round dated 2022-09-02 is 48.9 months old on
+    2026-09-30 — older than 48 — where calendar-month arithmetic would have said 48 and let it
+    slip under a ">48 months" threshold. 30.4375 days per month (365.25 / 12)."""
+    return round((b - a).days / 30.4375, 1)
 
 
 _CAP_PATTERNS = (
@@ -336,7 +339,14 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
     after = float(e.ownership_after)
     sold = before - after
     proceeds = float(e.proceeds or 0.0)
-    implied_post = proceeds / sold if sold > 1e-12 else None
+    # The price of the sale. The row's own value column is defined as "implied valuation for
+    # secondaries" and is read first; proceeds ÷ stake sold is the cross-check (ownership is
+    # reported to three decimals, so on a small block it carries rounding noise of several
+    # percent — Marrowick: 0.8% sold, $487.5M implied against the $516M the row states).
+    implied_from_ownership = proceeds / sold if sold > 1e-12 else None
+    implied_post = float(e.value) if e.value else implied_from_ownership
+    if implied_from_ownership is None and e.value and sold <= 1e-12:
+        implied_post = None                                    # a price with no block sold: still unreconcilable
     basis = cfg.marking.secondary.remainder_basis
     at_last_round = after * w.latest_post
     at_secondary = after * implied_post if implied_post else None
@@ -363,12 +373,18 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
                proceeds=proceeds, ownership_before=before, ownership_after=after)
         w.realized_quarter += proceeds
         return
+    price_source = "row value (implied valuation for secondaries)" if e.value else "proceeds ÷ stake sold"
+    cross = (implied_from_ownership / implied_post - 1) if (e.value and implied_from_ownership and implied_post) else None
     w.step("M-030", V, {"ownership_before": before, "ownership_after": after, "ownership_sold": round(sold, 6),
-                        "proceeds": proceeds, "implied_post_money": implied_post, "last_round_post_money": w.latest_post,
+                        "proceeds": proceeds, "implied_post_money": implied_post, "implied_price_source": price_source,
+                        "implied_from_ownership": (round(implied_from_ownership, 6) if implied_from_ownership else None),
+                        "last_round_post_money": w.latest_post,
                         "remainder_basis": basis, "at_last_round": at_last_round, "at_secondary_price": at_secondary},
            w.proposed_mark, new_equity + w.note_at_cost,
-           f"Sold {sold/before:.0%} of the position for ${proceeds:.1f}M (implies ${implied_post:.1f}M post vs ${w.latest_post:.1f}M last round"
-           + (f", {spread:+.1%})" if spread is not None else ")")
+           f"Sold {sold/before:.0%} of the position for ${proceeds:.1f}M at ${implied_post:.1f}M post ({price_source}) vs "
+           f"${w.latest_post:.1f}M last round" + (f", {spread:+.1%}" if spread is not None else "")
+           + (f"; proceeds ÷ stake sold gives ${implied_from_ownership:.1f}M ({cross:+.1%}), rounding of a 3-dp ownership figure"
+              if cross is not None else "")
            + f". Remainder {after:.1%} marked on basis '{basis}'.", e)
     if at_secondary is not None:
         w.alternative_marks["at_secondary_price" if basis == "last_round" else "at_last_round"] = (
@@ -924,32 +940,63 @@ def unrecognised(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
 # --------------------------------------------------------------------------- M-080 (post-roll, config-gated)
 
 @rule(rule_id="M-080", version=V, applies_to=(), severity=None, effective_from=EFFECTIVE, tier=9,
-      description="Stale-round comps calibration (config-gated, off by default): writes an alternative mark only.")
+      description="Stale-round comps calibration (on; gated to a live comps history): writes an alternative mark only.")
 def _m080_doc(w, e, cfg, market):  # pragma: no cover - post-roll step applied by run.py via calibrate_stale
     raise NotImplementedError
 
 
 def calibrate_stale(w: Working, cfg: RuleConfig, market: MarketData) -> None:
-    """Writes an *alternative* mark; never touches equity_mark."""
+    """Writes an *alternative* mark; never touches equity_mark.
+
+    factor = sector multiple now / sector multiple in the round month, bounded ±bound_pct. With
+    `require_live_history` (the default) the sector's comps must be an observed public history
+    (source `live:*`); the vendor-shaped fixture trends too hard to move a mark and is never
+    used. The round month is read at the nearest month with a basket value inside
+    `round_month_tolerance`, and the month actually used is recorded on the step."""
     c = cfg.marking.calibration
-    if not c.enabled or w.terminal or w.listed or w.pos.arr is None:
+    # the same exposure test as the multiple screens and the sensitivity: Level 3, with an ARR above the floor
+    if not c.enabled or w.terminal or w.listed or w.pos.arr is None or w.pos.arr < cfg.exceptions.multiple.min_arr:
         return
     md = cfg.quarter.measurement_date
     age = months_between(w.staleness_anchor, md)
-    if age < c.min_age_months:
+    if age <= c.min_age_months:            # the same test as X-201: strictly older than the monitor threshold
         return
     hist = market.comp_history.get(w.pos.sector)
-    if not hist:
+    comp = market.comps.get(w.pos.sector)
+    if not hist or comp is None:
+        return
+    if c.require_live_history and not comp.source.startswith("live:"):
         return
     k_now = md.strftime("%Y-%m")
-    k_then = w.staleness_anchor.strftime("%Y-%m")
-    if k_now not in hist or k_then not in hist or not hist[k_then]:
+    k_round = w.staleness_anchor.strftime("%Y-%m")
+    k_then = _nearest_month(hist, k_round, c.round_month_tolerance)
+    if k_now not in hist or k_then is None or not hist[k_then]:
         return
-    factor = hist[k_now] / hist[k_then]
-    factor = max(1 - c.bound_pct, min(1 + c.bound_pct, factor))
+    raw = hist[k_now] / hist[k_then]
+    factor = max(1 - c.bound_pct, min(1 + c.bound_pct, raw))
+    bounded = abs(raw - factor) > 1e-9
+    counts = market.comp_counts.get(w.pos.sector) or {}
     w.alternative_marks["calibrated_to_comps"] = round(w.equity_mark * factor, 6)
-    w.step("M-080", V, {"comp_multiple_now": hist[k_now], "comp_multiple_at_round": hist[k_then], "factor_bounded": round(factor, 4),
-                        "age_months": age, "sector": w.pos.sector},
+    w.step("M-080", V, {"comp_multiple_now": hist[k_now], "comp_multiple_at_round": hist[k_then], "round_month": k_round,
+                        "comp_month_used": k_then, "factor_raw": round(raw, 4), "factor_bounded": round(factor, 4),
+                        "bound_hit": bounded, "age_months": age, "sector": w.pos.sector, "comps_source": comp.source,
+                        "n_constituents_at_round": counts.get(k_then), "n_constituents_now": counts.get(k_now)},
            w.proposed_mark, w.proposed_mark,   # chain invariant compares proposed (equity + note leg), not equity alone
-           f"Comps calibration (alternative only): sector {w.pos.sector} multiple moved {factor - 1:+.1%} since the round "
-           f"({age} months). Calibrated alternative ${w.equity_mark * factor:.2f}M recorded; base mark unchanged.")
+           f"Comps calibration (alternative only): sector {w.pos.sector} multiple {hist[k_then]:.1f}× in {k_then} → "
+           f"{hist[k_now]:.1f}× now, {raw - 1:+.1%}" + (f" bounded to {factor - 1:+.0%}" if bounded else "")
+           + f" over {age} months. Calibrated alternative ${w.equity_mark * factor:.2f}M recorded; base mark unchanged.")
+
+
+def _nearest_month(hist: dict[str, float], key: str, tolerance: int) -> str | None:
+    """`key` itself when present, else the closest month within ±tolerance that has a value
+    (the earlier month preferred on a tie: the round was priced on the way in)."""
+    if key in hist:
+        return key
+    y, m = int(key[:4]), int(key[5:7])
+    idx = y * 12 + (m - 1)
+    for d in range(1, tolerance + 1):
+        for cand in (idx - d, idx + d):
+            k = f"{cand // 12:04d}-{cand % 12 + 1:02d}"
+            if k in hist and hist[k]:
+                return k
+    return None

@@ -74,6 +74,21 @@ def load_prior_open_items(path: Path) -> tuple[OpenItem, ...]:
     return tuple(OpenItem.model_validate(i) for i in raw.get("open_items", []) or [])
 
 
+def load_staleness_anchors(path: Path) -> dict[str, date]:
+    """company -> the price anchor the prior quarter's run kept running (a same-terms extension
+    is written to `Latest Round` as its definition asks, and its older anchor lands here)."""
+    if not path.exists():
+        return {}
+    raw = yaml.safe_load(path.read_text()) or {}
+    out: dict[str, date] = {}
+    for m in raw.get("staleness_anchors", []) or []:
+        try:
+            out[str(m["company"])] = date.fromisoformat(str(m["anchor"]))
+        except (KeyError, ValueError, TypeError):
+            continue
+    return out
+
+
 def load_mark_basis(path: Path) -> dict[str, str]:
     """company -> reason, for prior marks that deliberately depart from last-round pricing."""
     if not path.exists():
@@ -111,6 +126,7 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
     run = run_valuation(
         snapshot, feed, market, ledger, cfg,
         validation=tuple(issues), prior_open_items=prior_items,
+        prior_staleness_anchors=load_staleness_anchors(paths.open_items_carry),
         input_sha256=file_sha256(paths.workbook), input_file=paths.workbook.name,
         generated_at=generated_at or datetime.now(timezone.utc).replace(microsecond=0),
         market_data_source=source,

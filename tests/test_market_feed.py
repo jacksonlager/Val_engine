@@ -28,10 +28,9 @@ from hc_valuation.connectors.baskets import load_baskets
 from hc_valuation.connectors.base import CompsProvider
 from hc_valuation.connectors.cache import MarketCache
 from hc_valuation.connectors.edgar import (
-    COMPANY_FACTS_URL, COMPANY_TICKERS_URL, CONTACT_ENV, DEFAULT_CONTACT, EdgarClient, ExtractionError, cash_series,
-    combine_series, debt_series, extract, frames_through, latest_quarter_at, net_cash_at, parse_company_tickers,
-    quarterly_from_entries, quarterly_revenue, resolve_ciks, shares_series, summed_instant_series, ttm_at, ttm_revenue,
-    user_agent, value_at,
+    COMPANY_FACTS_URL, COMPANY_TICKERS_URL, CONTACT_ENV, DEFAULT_CONTACT, EdgarClient, ExtractionError, RevenueHistory,
+    cash_series, combine_series, debt_series, extract, net_cash_at, parse_company_tickers, quarters_from_periods,
+    resolve_ciks, revenue_periods, shares_series, slim, summed_instant_series, ttm_at, user_agent, value_at,
 )
 from hc_valuation.connectors.fetch import FetchError, browser_challenge_message, fetch_text, is_browser_challenge
 from hc_valuation.connectors.live import (
@@ -57,7 +56,7 @@ BASELINE = {"BLOCK": 7, "REVIEW": 20, "MONITOR": 39, "CLEAR": 34}
 CONSTITUENT_KEYS = {"ticker", "name", "cik", "status", "price", "price_month", "shares_m", "market_cap_musd",
                     "net_cash_musd", "ttm_revenue_musd", "revenue_through", "ev_to_revenue", "error"}
 SECTOR_KEYS = {"sector", "positions", "ev_to_revenue", "as_of_month", "source", "live", "prior_quarter", "qoq_pct",
-               "history", "constituents"}
+               "history", "counts", "constituents"}
 REPORT_KEYS = {"provider", "source", "reached_live", "as_of", "fetched_at", "cache", "used_by", "baskets_file",
                "errors", "sectors"}
 
@@ -129,7 +128,7 @@ def make_provider(root: Path, fetch: FakeFetch | None = None, **kw) -> tuple[Pub
 def test_baskets_file_matches_contract_and_validates_strictly(tmp_path: Path):
     b = load_baskets(ROOT / "rules" / "comps_baskets.yaml")
     assert b.version == 1 and len(b.sectors) == 12 and b.defaults.min_constituents == 3
-    assert b.defaults.months_of_history == 36 and b.defaults.price_source == "yahoo" and b.defaults.price_max_per_s == 2
+    assert b.defaults.months_of_history == 96 and b.defaults.price_source == "yahoo" and b.defaults.price_max_per_s == 2
     assert b.sectors["AI/ML"] == ["PLTR", "AI", "SOUN", "BBAI", "NVDA"] and "DDOG" in b.tickers
     # SQ became XYZ (Block's 2025 rename); CFLT was taken private — neither stale symbol remains
     assert "XYZ" in b.sectors["Fintech"] and "TDC" in b.sectors["Data & Analytics"]
@@ -149,40 +148,78 @@ def test_baskets_file_matches_contract_and_validates_strictly(tmp_path: Path):
 
 # ---------------------------------------------------------------- EDGAR extraction (pure)
 
-def test_quarterly_revenue_uses_frames_and_derives_q4():
-    concept, q = quarterly_revenue(facts("AAA"))
-    assert concept == "RevenueFromContractWithCustomerExcludingAssessedTax"
-    entries = facts("AAA")["facts"]["us-gaap"][concept]["units"]["USD"]
+def _facts_from(rows, concept="RevenueFromContractWithCustomerExcludingAssessedTax", **meta):
+    """rows: (concept | None, start, end, $M, form). A None concept uses the default."""
+    facts = {"cik": 1, "entityName": "Sample", "facts": {"us-gaap": {}}}
+    for c, s, e, v, form in rows:
+        node = facts["facts"]["us-gaap"].setdefault(c or concept, {"units": {"USD": []}})
+        node["units"]["USD"].append({"start": s, "end": e, "val": v * 1e6, "form": form, "filed": e, **meta})
+    return facts
+
+
+def test_revenue_periods_merge_every_concept_and_read_by_dates_not_frames():
+    concepts, periods = revenue_periods(facts("AAA"))
+    assert concepts == ["RevenueFromContractWithCustomerExcludingAssessedTax"]
+    assert all(set(r) == {"start", "end", "value", "days", "filed"} for r in periods) and [r["end"] for r in periods] == sorted(r["end"] for r in periods)
+    entries = facts("AAA")["facts"]["us-gaap"][concepts[0]]["units"]["USD"]
+    assert sum(1 for e in entries if "frame" not in e) > 0             # frameless rows are read, not ignored...
+    assert len({(r["start"], r["end"]) for r in periods}) == len(periods)   # ...and de-duplicated by period (same value re-filed)
+    q = quarters_from_periods(periods)
     annual = next(e["val"] for e in entries if e.get("frame") == "CY2025")
     q123 = [next(e["val"] for e in entries if e.get("frame") == f"CY2025Q{i}") for i in (1, 2, 3)]
-    assert q["CY2025Q4"] == pytest.approx((annual - sum(q123)) / 1e6, abs=1e-3)   # derived, USD millions
-    assert "CY2026Q2" in q and "CY2026Q3" not in q and list(q) == sorted(q)
-    assert sum(1 for e in entries if "frame" not in e) > 0          # frameless duplicates exist in the recording...
-    assert len(q) == len({f for f in q})                            # ...and did not create extra quarters
-    assert q["CY2026Q2"] == round(next(e["val"] for e in entries if e.get("frame") == "CY2026Q2") / 1e6, 3)
+    assert q["2025-12-31"] == pytest.approx((annual - sum(q123)) / 1e6, abs=1e-3)   # Q4 derived from the year
+    assert "2026-06-30" in q and "2026-09-30" not in q
+    assert revenue_periods(facts("CCC")) == ([], [])                       # no revenue under any known concept
+    with pytest.raises(ExtractionError, match="no revenue periods"):
+        ttm_at([], AS_OF)
 
 
-def test_quarterly_revenue_falls_to_next_concept_and_reports_none_without_quarterly_frames():
-    concept, q = quarterly_revenue(facts("BBB"))
-    assert concept == "Revenues" and "CY2025Q4" in q               # Q4 reported directly, not derived
-    assert quarterly_revenue(facts("CCC")) == (None, {})           # annual frames only
-    with pytest.raises(ExtractionError, match="no quarterly revenue frames"):
-        ttm_at({}, AS_OF)
-    assert quarterly_from_entries([{"val": 1, "frame": "CY2025"}]) == {}   # annual alone cannot derive Q4
+def test_ttm_is_four_consecutive_quarters_whatever_the_fiscal_calendar():
+    # NVIDIA-shaped: year ends late January, 13-week quarters, and a concept switch (Revenues -> ASC 606 tag)
+    old, new = "Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax"
+    rows = [(old, "2019-01-28", "2019-04-28", 2220, "10-Q"), (old, "2019-04-29", "2019-07-28", 2579, "10-Q"),
+            (old, "2019-07-29", "2019-10-27", 3014, "10-Q"), (old, "2019-01-28", "2019-10-27", 7813, "10-Q"),
+            (old, "2019-01-28", "2020-01-26", 10918, "10-K"),
+            (new, "2020-01-27", "2020-04-26", 3080, "10-Q"), (new, "2020-04-27", "2020-07-26", 3866, "10-Q"),
+            (new, "2020-07-27", "2020-10-25", 4726, "10-Q"), (new, "2020-01-27", "2020-10-25", 11672, "10-Q"),
+            (new, "2020-01-27", "2021-01-31", 16675, "10-K"),
+            (new, "2021-02-01", "2021-05-02", 5661, "10-Q"), (new, "2021-05-03", "2021-08-01", 6507, "10-Q"),
+            (new, "2021-02-01", "2021-08-01", 12168, "10-Q")]
+    concepts, periods = revenue_periods(_facts_from(rows))
+    assert concepts == [new, old]                                    # the concept in current use first
+    h = RevenueHistory(periods)
+    assert h.quarters["2020-01-26"] == 3105.0 and h.quarters["2021-01-31"] == 5003.0   # fiscal Q4s derived from FY − 9M
+    assert h.ttm_at(date(2020, 1, 31)) == (10918.0, "2020-01-26")   # the fiscal year itself
+    assert h.ttm_at(date(2020, 12, 31)) == (14777.0, "2020-10-25")  # four quarters spanning the concept switch
+    assert h.ttm_at(date(2021, 9, 30)) == (21897.0, "2021-08-01")
+    with pytest.raises(ExtractionError, match="no revenue period ended on or before"):
+        h.ttm_at(date(2019, 1, 1))
 
 
-def test_ttm_sums_four_quarters_and_errors_on_a_missing_one():
-    q = {"CY2025Q3": 10.0, "CY2025Q4": 11.0, "CY2026Q1": 12.0, "CY2026Q2": 13.0}
-    assert frames_through("CY2026Q2") == ["CY2025Q3", "CY2025Q4", "CY2026Q1", "CY2026Q2"]
-    assert ttm_revenue(q, "CY2026Q2") == 46.0
-    assert ttm_at(q, AS_OF) == (46.0, "CY2026Q2")                  # Q3 2026 not filed yet
-    assert latest_quarter_at(q, date(2025, 12, 31)) == "CY2025Q4"
-    with pytest.raises(ExtractionError, match="missing CY2025Q2"):
-        ttm_revenue(q, "CY2026Q1")
-    with pytest.raises(ExtractionError, match="no quarter ended on or before"):
-        ttm_at(q, date(2025, 6, 30))
-    _, qa = quarterly_revenue(facts("AAA"))
-    assert ttm_at(qa, date(2025, 12, 31))[1] == "CY2025Q4"         # the derived Q4 is usable
+def test_ttm_falls_back_to_fiscal_year_plus_ytd():
+    # C3.ai-shaped: year ends April 30; only the year and this year's YTD are usable (a gap in the quarters)
+    rows = [(None, "2024-05-01", "2025-04-30", 389, "10-K"),
+            (None, "2024-05-01", "2024-10-31", 181, "10-Q"),     # prior-year six months
+            (None, "2025-05-01", "2025-10-31", 203, "10-Q")]     # this year's six months
+    h = RevenueHistory(revenue_periods(_facts_from(rows))[1])
+    assert h.ttm_at(date(2026, 1, 31)) == (389 + 203 - 181, "2025-10-31")
+    assert h.ttm_at(date(2025, 6, 30)) == (389.0, "2025-04-30")     # nothing filed since the year: the year
+    with pytest.raises(ExtractionError, match="TTM through 2025-10-31 undefined"):
+        RevenueHistory(revenue_periods(_facts_from(rows[:1] + rows[2:]))[1]).ttm_at(date(2026, 1, 31))   # no prior YTD
+    # a restatement is kept as a second row: the latest filing wins by default, the earlier one as of its date
+    early = {"start": "2026-01-01", "end": "2026-03-31", "val": 100e6, "filed": "2026-04-30", "form": "10-Q"}
+    restated = dict(early, val=110e6, filed="2027-02-20", form="10-K")
+    f = {"facts": {"us-gaap": {"Revenues": {"units": {"USD": [early, restated, dict(early, filed="2026-08-01")]}}}}}
+    rows = revenue_periods(f)[1]
+    assert rows == [{"start": "2026-01-01", "end": "2026-03-31", "value": 100.0, "days": 90, "filed": "2026-04-30"},
+                    {"start": "2026-01-01", "end": "2026-03-31", "value": 110.0, "days": 90, "filed": "2027-02-20"}]
+    assert RevenueHistory(rows).quarters == {"2026-03-31": 110.0}
+    assert RevenueHistory(rows, filed_by=date(2026, 12, 31)).quarters == {"2026-03-31": 100.0}
+    assert RevenueHistory(rows, filed_by=date(2026, 4, 1)).quarters == {}                  # nothing filed yet
+    # concept tie-break: equally current concepts -> the larger latest value (a total over a component)
+    fees = "RevenueFromContractWithCustomerExcludingAssessedTax"
+    lender = _facts_from([(fees, "2026-01-01", "2026-03-31", 40, "10-Q"), ("Revenues", "2026-01-01", "2026-03-31", 100, "10-Q")])
+    assert revenue_periods(lender)[0] == ["Revenues", fees] and revenue_periods(lender)[1][0]["value"] == 100.0
 
 
 def test_shares_sum_multi_class_rows_and_fall_back_by_concept():
@@ -201,7 +238,8 @@ def test_shares_sum_multi_class_rows_and_fall_back_by_concept():
         {"start": "2026-04-01", "end": "2026-06-30", "val": 90e6, "fy": 2026, "fp": "Q2", "filed": "2026-08-01", "frame": "CY2026Q2"},
         {"start": "2026-01-01", "end": "2026-06-30", "val": 89e6, "fy": 2026, "fp": "Q2", "filed": "2026-08-01"},
     ]}}}}}
-    assert shares_series(diluted) == ("us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding", [{"end": "2026-06-30", "value": 90.0}])
+    assert shares_series(diluted) == ("us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding",
+                                      [{"end": "2026-06-30", "value": 90.0, "filed": "2026-08-01"}])
     assert shares_series({"facts": {}}) == (None, [])
 
 
@@ -209,7 +247,12 @@ def test_instant_series_keeps_latest_filed_per_end():
     rows = [{"end": "2025-12-31", "val": 100e6, "fy": 2025, "fp": "FY", "filed": "2026-02-25"},
             {"end": "2025-12-31", "val": 50e6, "fy": 2025, "fp": "FY", "filed": "2000-01-01"},
             {"end": "2026-06-30", "val": 120e6, "fy": 2026, "fp": "Q2", "filed": "2026-08-05"}]
-    assert summed_instant_series(rows) == [{"end": "2025-12-31", "value": 100.0}, {"end": "2026-06-30", "value": 120.0}]
+    series = summed_instant_series(rows)
+    assert series == [{"end": "2025-12-31", "value": 50.0, "filed": "2000-01-01"}, {"end": "2025-12-31", "value": 100.0, "filed": "2026-02-25"},
+                      {"end": "2026-06-30", "value": 120.0, "filed": "2026-08-05"}]
+    assert value_at(series, date(2026, 3, 31)) == 100.0                                 # latest filing wins...
+    assert value_at(series, date(2026, 3, 31), filed_by=date(2026, 1, 31)) == 50.0       # ...unless asked as of a date
+    assert value_at(series, date(2026, 9, 30), filed_by=date(2026, 7, 31)) == 100.0      # Q2 not filed by end-July
     assert value_at(cash_series(facts("AAA")), date(2025, 12, 31)) > 0    # the 0.5x restated comparative lost
 
 
@@ -224,14 +267,20 @@ def test_net_cash_fallbacks():
     assert debt_series(c) == [] and net_cash_at(cash_series(c), debt_series(c), AS_OF) == 120.0
     assert net_cash_at([], [], AS_OF) == 0.0
     assert combine_series([[{"end": "2026-03-31", "value": 1.0}], [{"end": "2026-06-30", "value": 2.0}]]) == [
-        {"end": "2026-03-31", "value": 1.0}, {"end": "2026-06-30", "value": 3.0}]
+        {"end": "2026-03-31", "value": 1.0, "filed": ""}, {"end": "2026-06-30", "value": 3.0, "filed": ""}]
 
 
 def test_extract_is_trimmed_and_cacheable():
     x = extract(facts("AAA"))
-    assert set(x) == {"cik", "name", "revenue_concept", "revenue_quarterly", "shares_concept", "shares", "cash", "debt"}
+    assert set(x) == {"extract_version", "cik", "name", "revenue_concepts", "revenue_periods", "shares_concept", "shares", "cash", "debt"}
+    assert x["extract_version"] == 2
     assert x["cik"] == "0001000001" and x["name"] == "Alpha Analytics Corp"
-    assert len(json.dumps(x)) < 6000 < len(json.dumps(facts("AAA")))
+    assert len(json.dumps(x)) < 8000 < len(json.dumps(facts("AAA")))
+    # the slim companyfacts keeps only the concepts read, with the fields read, and re-derives the same extract
+    sl = slim(facts("AAA"))
+    assert extract(sl) == x and len(json.dumps(sl)) <= len(json.dumps(facts("AAA")))
+    assert all(set(e) <= {"start", "end", "val", "fy", "fp", "form", "filed", "frame"}
+               for tax in sl["facts"].values() for node in tax.values() for es in node["units"].values() for e in es)
 
 
 def test_ticker_table_and_cik_resolution():
@@ -422,7 +471,7 @@ def test_provider_medians_the_basket_and_captures_errors_per_constituent(tmp_pat
     assert set(ai) == SECTOR_KEYS and ai["live"] and ai["source"] == f"{LIVE_LABEL}@2026-09" and ai["as_of_month"] == "2026-09"
     cons = {c["ticker"]: c for c in ai["constituents"]}
     assert set(cons["AAA"]) == CONSTITUENT_KEYS and cons["AAA"]["status"] == "ok" and cons["BBB"]["status"] == "ok"
-    assert cons["CCC"]["status"] == "error" and "no quarterly revenue frames" in cons["CCC"]["error"]
+    assert cons["CCC"]["status"] == "error" and "no revenue periods" in cons["CCC"]["error"]
     assert all(cons["CCC"][k] is None for k in ("price", "shares_m", "ev_to_revenue", "ttm_revenue_musd"))
     # arithmetic: EV = close × shares − net cash; EV / TTM revenue; median of the two that priced
     daily = parse_yahoo_chart(yahoo("AAA"))
@@ -435,7 +484,9 @@ def test_provider_medians_the_basket_and_captures_errors_per_constituent(tmp_pat
     assert b["shares_m"] == 200.0 and b["net_cash_musd"] == -500.0
     assert ai["ev_to_revenue"] == pytest.approx((a["ev_to_revenue"] + b["ev_to_revenue"]) / 2, abs=0.01)
     assert ai["history"]["2026-09"] == ai["ev_to_revenue"] and list(ai["history"]) == sorted(ai["history"])
-    assert len(ai["history"]) <= 36 and "2026-10" not in ai["history"] and ai["history"]["2024-01"] > 0
+    assert ai["counts"]["2026-09"] == 2 and set(ai["counts"]) == set(ai["history"]) and p.counts("AI/ML") == ai["counts"]
+    assert p.counts("Consumer") == {}                                    # a fixture sector has no constituent counts
+    assert len(ai["history"]) <= 96 and "2026-10" not in ai["history"] and ai["history"]["2024-01"] > 0
     assert ai["prior_quarter"] == ai["history"]["2026-06"] and ai["qoq_pct"] == pytest.approx(ai["ev_to_revenue"] / ai["prior_quarter"] - 1, abs=1e-3)
     # the engine-facing surface agrees with the report
     comps = p.sector_multiples(AS_OF)
@@ -458,7 +509,7 @@ def test_stooq_as_the_alternative_price_source(tmp_path: Path):
     assert rep["source"] == LIVE_STOOQ
     cons = {c["ticker"]: c for s in rep["sectors"] if s["sector"] == "AI/ML" for c in s["constituents"]}
     assert cons["AAA"]["status"] == "ok" and cons["AAA"]["price"] == 57.43
-    assert cons["CCC"]["status"] == "error" and "no quarterly revenue frames" in cons["CCC"]["error"]   # priced, but no revenue
+    assert cons["CCC"]["status"] == "error" and "no revenue periods" in cons["CCC"]["error"]   # priced, but no revenue
     assert MarketCache(tmp_path, AS_OF).read_meta()["price_source"] == "stooq"
     assert (MarketCache(tmp_path, AS_OF).dir / "prices" / "CCC.json").is_file()
     # the same numbers whichever envelope carried the closes
@@ -496,7 +547,10 @@ def test_cache_hit_makes_no_network_call_and_refresh_refetches(tmp_path: Path):
     assert meta["price_source"] == "yahoo"
     assert cache.read_tickers()["DDD"] == {"cik": None, "title": None}     # a miss is recorded, not retried
     assert set(cache.read_prices("AAA")) <= set(months_back(AS_OF, 60)) and "2026-10" not in cache.read_prices("AAA")
-    assert sum(f.stat().st_size for f in cache.dir.rglob("*.json")) < 60_000   # trimmed extracts, not payloads
+    committed = [f for f in cache.dir.rglob("*.json") if "edgar_raw" not in f.parts]
+    assert sum(f.stat().st_size for f in committed) < 60_000            # trimmed extracts, not payloads
+    assert (cache.dir / "edgar_raw" / "AAA.json").is_file()              # the slim facts sit beside them, git-ignored
+    assert "edgar_raw/" in (ROOT / ".gitignore").read_text()
 
     p2, f2 = make_provider(tmp_path)
     assert f2.calls == [] and p2.cache_hit and p2.report()["cache"]["hit"]
@@ -512,10 +566,21 @@ def test_partial_cache_fetches_only_what_is_missing(tmp_path: Path):
     make_provider(tmp_path)
     cache = MarketCache(tmp_path, AS_OF)
     (cache.dir / "prices" / "BBB.json").unlink()
-    (cache.dir / "edgar" / "AAA.json").unlink()
+    (cache.dir / "edgar" / "AAA.json").unlink()                          # extract gone, slim facts still there
     p, f = make_provider(tmp_path)
-    assert sorted(f.calls) == sorted([YAHOO["BBB"], COMPANY_FACTS_URL.format(cik=1000001)])
+    assert f.calls == [YAHOO["BBB"]], "a lost extract is re-derived from the slim facts, not refetched"
     assert not p.cache_hit and p.reached_live and (cache.dir / "prices" / "BBB.json").is_file()
+    assert (cache.dir / "edgar" / "AAA.json").is_file()
+    # an extract written by the earlier, frame-keyed extraction is treated as missing and re-derived too
+    (cache.dir / "edgar" / "AAA.json").write_text(json.dumps({"cik": "0001000001", "revenue_quarterly": {"CY2026Q2": 1.0}}))
+    assert cache.read_edgar("AAA") is None and "AAA" in cache.missing(["AAA"])[0]
+    p, f = make_provider(tmp_path)
+    assert f.calls == [] and "revenue_periods" in cache.read_edgar("AAA")
+    # slim facts gone as well: only then is SEC asked again
+    (cache.dir / "edgar" / "AAA.json").unlink()
+    (cache.dir / "edgar_raw" / "AAA.json").unlink()
+    p, f = make_provider(tmp_path)
+    assert f.calls == [COMPANY_FACTS_URL.format(cik=1000001)]
 
 
 def test_cache_written_by_another_price_source_is_a_miss_for_prices_only(tmp_path: Path, caplog):
@@ -665,7 +730,7 @@ def test_assembler_keeps_the_two_tuple_and_carries_the_report():
     assert isinstance(asm, MarketAssembly)
     market, label = asm
     assert label == "stub" and market.as_of == AS_OF and asm.report["provider"] == "stub"
-    assert asm.report["used_by"]["multiple_mode"] == "absolute" and asm.report["used_by"]["calibration_enabled"] is False
+    assert asm.report["used_by"]["multiple_mode"] == "absolute" and asm.report["used_by"]["calibration_enabled"] is True
     assert "relative_to_comps" in asm.report["used_by"]["note"]
 
 
@@ -693,7 +758,7 @@ def test_api_market_stub_shape(tmp_path: Path):
     for s in rep["sectors"]:
         assert set(s) == SECTOR_KEYS and s["live"] is False and s["source"] == "fixture:pitchbook@2026-09"
         assert s["as_of_month"] == "2026-09" and s["ev_to_revenue"] == s["history"]["2026-09"]
-        assert len(s["history"]) == 36 and list(s["history"]) == sorted(s["history"]) and s["qoq_pct"] is not None
+        assert len(s["history"]) == 93 and list(s["history"]) == sorted(s["history"]) and s["qoq_pct"] is not None
         for c in s["constituents"]:
             assert set(c) == CONSTITUENT_KEYS and c["status"] == "fixture" and c["ev_to_revenue"] is None and c["error"] is None
     ai = rep["sectors"][0]
@@ -812,8 +877,9 @@ def test_real_edgar_shape_palantir_revenue_ttm():
                 **({"frame": f} if f else {})} for s, e, v, f in rows]
     facts = {"cik": 1321655, "entityName": "Palantir Technologies Inc.",
              "facts": {"us-gaap": {"RevenueFromContractWithCustomerExcludingAssessedTax": {"units": {"USD": entries}}}}}
-    concept, q = edgar.quarterly_revenue(facts)
-    assert concept == "RevenueFromContractWithCustomerExcludingAssessedTax"
-    assert q["CY2025Q4"] == 1406.802                       # 4475.446 - 883.855 - 1003.697 - 1181.092
-    assert edgar.ttm_at(q, date(2026, 9, 30)) == (6155.941, "CY2026Q2")
-    assert edgar.ttm_at(q, date(2025, 12, 31)) == (4475.446, "CY2025Q4")
+    concepts, periods = edgar.revenue_periods(facts)
+    assert concepts == ["RevenueFromContractWithCustomerExcludingAssessedTax"]
+    h = edgar.RevenueHistory(periods)
+    assert h.quarters["2025-12-31"] == 1406.802             # 4475.446 - 883.855 - 1003.697 - 1181.092 (FY − 9M)
+    assert h.ttm_at(date(2026, 9, 30)) == (6155.941, "2026-06-30")
+    assert h.ttm_at(date(2025, 12, 31)) == (4475.446, "2025-12-31")

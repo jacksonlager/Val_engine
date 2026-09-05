@@ -59,18 +59,30 @@ def next_quarter_label(label: str) -> str:
 
 
 def _latest_round_date(c: CompanyResult, src: Position) -> date:
-    """Date of the last event that set a price (priced round or IPO); else the source value.
-
-    A same-terms extension (M-011) reprices ownership but is not price discovery, so its date
-    must not be written as `Latest Round` — otherwise the staleness clock the engine
-    deliberately kept running would be reset by the export and lost next quarter. The
-    engine's own `staleness_anchor` is the authority; an IPO is the one pricing event that
-    sits outside it (a listed position is carried at its close, M-041)."""
+    """`Latest Round` as the column defines it: the date of the most recent priced round (an IPO
+    counts; a same-terms extension, M-011, is a priced round too). The staleness clock is a
+    different thing — an extension does not reset it — and travels in the sidecar
+    (`staleness_anchors`, see `_carried_anchors`) rather than by overloading this column."""
     dates = [s.evidence.date for s in c.steps if s.evidence and s.evidence.event_type in _PRICING_EVENTS
-             and s.rule_id not in ("M-000", "M-011")]
+             and s.rule_id != "M-000"]
     if dates:
-        return max(dates[-1], c.staleness_anchor)
+        return max(dates)
     return c.staleness_anchor if c.staleness_anchor != date.min else src.latest_round
+
+
+def _carried_anchors(run: ValuationRun, sources: dict[str, Position]) -> list[dict[str, str]]:
+    """Positions whose staleness anchor is older than the `Latest Round` the emitted book will
+    carry — the clock the engine kept running through an extension — for the sidecar."""
+    out = []
+    for c in run.companies:
+        src = sources.get(c.company)
+        if src is None or c.staleness_anchor == date.min:
+            continue
+        if c.staleness_anchor < _latest_round_date(c, src):
+            out.append({"company": c.company, "anchor": c.staleness_anchor.isoformat(),
+                        "reason": f"same-terms extension on {_latest_round_date(c, src).isoformat()} is not price discovery; "
+                                  f"the staleness clock runs from {c.staleness_anchor.isoformat()}"})
+    return out
 
 
 def _post_money(c: CompanyResult, tol: float) -> tuple[float, str | None]:
@@ -208,15 +220,18 @@ def _write_notes(wb: Workbook, notes: list[tuple[str, str]]) -> None:
     _style_header(ws, 2, "A2")
 
 
-def write_open_items_sidecar(run: ValuationRun, path: str | Path, mark_basis: list[tuple[str, str]] | None = None) -> Path:
+def write_open_items_sidecar(run: ValuationRun, path: str | Path, mark_basis: list[tuple[str, str]] | None = None,
+                             staleness_anchors: list[dict[str, str]] | None = None) -> Path:
     """`open_items_carry.yaml`: what the pipeline loads next quarter — `open_items` as
-    `prior_open_items`, and `mark_basis` as the explained departures X-904 accepts."""
+    `prior_open_items`, `mark_basis` as the explained departures X-904 accepts, and
+    `staleness_anchors` for clocks that outlive the `Latest Round` column."""
     p = Path(path)
     payload = {
         "source_run_id": run.manifest.run_id,
         "quarter": run.manifest.quarter_label,
         "open_items": [o.model_dump(mode="json") for o in run.open_items],
         "mark_basis": [{"company": c, "reason": r} for c, r in (mark_basis or [])],
+        "staleness_anchors": list(staleness_anchors or []),
     }
     p.write_text(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True))
     return p
@@ -244,7 +259,8 @@ def write_next_quarter_workbook(run: ValuationRun, source_workbook_path: str | P
     _write_activity(wb, activity_name)
     _copy_field_definitions(wb, source, run, next_label)
     _write_open_items(wb, run)
-    _write_notes(wb, notes)
+    anchors = _carried_anchors(run, sources)
+    _write_notes(wb, notes + [(a["company"], a["reason"]) for a in anchors])
     wb.save(out)
-    write_open_items_sidecar(run, out.parent / "open_items_carry.yaml", mark_basis=notes)
+    write_open_items_sidecar(run, out.parent / "open_items_carry.yaml", mark_basis=notes, staleness_anchors=anchors)
     return out
