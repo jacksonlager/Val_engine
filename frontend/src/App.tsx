@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Disposition, Sources, ValuationRun } from "./types";
 import { DISPOSITION_HINT, DISPOSITIONS } from "./types";
-import { currentRunStamp, loadHistory, loadRun, loadSignals, STATIC_REASON, type Mode } from "./lib/api";
+import { currentRunStamp, loadHistory, loadProposals, loadRun, loadSignals, STATIC_REASON, type Mode } from "./lib/api";
 import { HistoryProvider, type HistoryState } from "./lib/history";
 import { SourcesProvider } from "./lib/sources";
 import { isoDateTime, shortSha } from "./lib/format";
@@ -16,25 +16,29 @@ import { ProposalsView } from "./views/Proposals";
 import { MarketView } from "./views/Market";
 
 type View = "queue" | "companies" | "movement" | "funds" | "market" | "open" | "proposals";
+// The four views the brief asks for: the decisions, the auditor's table, what moved and why,
+// and where the market numbers came from. Funds lives on the executive dashboard; open items
+// sit at the foot of the Queue; Proposals appears only when the engine actually has one.
+// The other routes still answer to their hash (#funds, #open) for anyone who bookmarked them.
 const VIEWS: { id: View; label: string }[] = [
   { id: "queue", label: "Queue" },
   { id: "companies", label: "Companies" },
   { id: "movement", label: "Movement" },
-  { id: "funds", label: "Funds" },
   { id: "market", label: "Market" },
-  { id: "open", label: "Open items" },
-  { id: "proposals", label: "Proposals" },
 ];
+const ALL_VIEWS: View[] = ["queue", "companies", "movement", "funds", "market", "open", "proposals"];
 
 function viewFromHash(): View {
   const h = window.location.hash.replace("#", "");
-  return (VIEWS.find((v) => v.id === h)?.id ?? "queue") as View;
+  return (ALL_VIEWS.includes(h as View) ? h : "queue") as View;
 }
 
 export default function App() {
   const [state, setState] = useState<{ run?: ValuationRun; mode?: Mode; sources?: Sources; error?: string; stale?: boolean }>({});
   // the per-company mark archive; refetched with the run because an override moves the live point
   const [history, setHistory] = useState<HistoryState>({});
+  // E-09 drafts for events no rule recognises; the tab exists only while there are some
+  const [proposalCount, setProposalCount] = useState(0);
   const [view, setView] = useState<View>(viewFromHash);
   const [filter, setFilter] = useState<Disposition | "ALL">("ALL");
   const [focus, setFocus] = useState<string | null>(null);
@@ -51,6 +55,7 @@ export default function App() {
         Promise.all([loadHistory(mode).then((data) => ({ data }), (e) => ({ error: String(e?.message ?? e) })), loadSignals(mode)]).then(
           ([h, signals]) => setHistory({ ...h, signals }),
         );
+        loadProposals(mode).then((p) => setProposalCount(p.length), () => setProposalCount(0));
       },
       (e) => setState((s) => ({ ...s, error: String(e?.message ?? e), stale: false })),
     );
@@ -117,7 +122,7 @@ export default function App() {
             </span>
           </div>
           <nav className="flex flex-wrap gap-1 ml-2" aria-label="Views">
-            {VIEWS.map((v) => (
+            {[...VIEWS, ...(proposalCount > 0 || view === "proposals" ? [{ id: "proposals" as View, label: "Proposals" }] : [])].map((v) => (
               <button
                 key={v.id}
                 onClick={() => go(v.id)}
@@ -127,6 +132,9 @@ export default function App() {
                 {v.label}
                 {v.id === "queue" && run.totals.dispositions.BLOCK > 0 && (
                   <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--block-text)]"}`}>{run.totals.dispositions.BLOCK}</span>
+                )}
+                {v.id === "proposals" && proposalCount > 0 && (
+                  <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--review-text)]"}`}>{proposalCount}</span>
                 )}
               </button>
             ))}

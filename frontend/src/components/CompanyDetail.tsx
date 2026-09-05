@@ -312,7 +312,7 @@ export function CompanyDetail({
                   )}
                   {f.suggestions.length > 0 && (
                     <div className="mt-1.5">
-                      <div className="eyebrow-sm">Suggested resolutions</div>
+                      <div className="eyebrow-sm">Recommended resolution</div>
                       <SuggestionCards c={c} f={f} writeDisabled={writeDisabled} onChanged={onChanged} />
                     </div>
                   )}

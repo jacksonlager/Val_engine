@@ -4,6 +4,7 @@ import { DISPOSITION_HINT, DISPOSITIONS } from "../types";
 import { deltaPct, musd, musdTile, pct, signed, signClass } from "../lib/format";
 import { CompanyDetail } from "../components/CompanyDetail";
 import { FlagActionList } from "../components/Flags";
+import { OpenItemsView } from "./OpenItems";
 import { DispChip, EscalatedChip, escalatedReviewFamilies, FlagChip } from "../components/ui";
 
 function Headline({ label, value, sub, cls = "" }: { label: string; value: string; sub?: string; cls?: string }) {
@@ -106,6 +107,19 @@ export function QueueView({
           ))}
         </div>
       </div>
+
+      {/* carried across the quarter boundary (E-07): kept in sight, out of the way */}
+      {run.open_items.length > 0 && (
+        <details className="card p-3">
+          <summary className="text-[11px] uppercase tracking-wider text-muted cursor-pointer select-none">
+            Open items carried from prior quarters ({run.open_items.length}
+            {run.open_items.some((o) => o.escalated) ? `, ${run.open_items.filter((o) => o.escalated).length} escalated` : ""})
+          </summary>
+          <div className="mt-2">
+            <OpenItemsView run={run} gotoCompany={gotoCompany} />
+          </div>
+        </details>
+      )}
     </div>
   );
 }

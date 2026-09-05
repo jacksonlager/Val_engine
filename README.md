@@ -77,7 +77,14 @@ signal. On the Q3 book that is 7 BLOCK / 20 REVIEW / 39 MONITOR / 34 CLEAR. Exce
 rules only ever add flags: no flag has changed a mark, and none can. Every BLOCK and
 REVIEW flag carries an imperative action, two or three scannable points, and one to three
 priced suggestions (ratify, hold the prior mark, the full deal value, cost, an alternative
-mark); accepting a suggestion records an ordinary override under a named approver.
+mark). One of them is put forward first as the **recommendation**: by default the rule's own
+policy default; with `recommendation.provider: claude` in the policy (or `--recommender claude`)
+Claude chooses among the engine's priced options for that company's facts and writes the
+sentence and two reasons — it can never propose a number of its own, the choice is validated
+against the candidates, and every answer is cached under `data/recommendations/` so reruns are
+deterministic and offline (`pip install -e ".[adjudication]"`, set `ANTHROPIC_API_KEY`, run
+`hc-valuation recommend` once, commit the folder). Accepting a recommendation, or any other
+option, records an ordinary override under a named approver.
 
 **The audit chain.** A mark is not a value, it is a list of steps. Each `MarkStep` records
 the rule that fired, its version, every input it read, the prior and new value, a

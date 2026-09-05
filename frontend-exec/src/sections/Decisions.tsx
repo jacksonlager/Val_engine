@@ -1,4 +1,4 @@
-import type { Decision, ExecView, Suggestion } from "../types";
+import type { Action, Decision, ExecView, Suggestion } from "../types";
 import { Section, Chip, Delta, DeltaPct, Empty } from "../components/ui";
 import { humanAltMark, money, num, plural } from "../lib/format";
 
@@ -8,23 +8,38 @@ function renderBold(text: string): React.ReactNode {
   return parts.map((part, i) => (i % 2 === 1 ? <strong key={i} className="font-semibold text-ink">{part}</strong> : part));
 }
 
-/** The engine's suggested resolutions for one flag: label — the mark it would book. Read-only here;
-    a reviewer accepts one in the back-office tool. */
-function Suggestions({ items }: { items: Suggestion[] }) {
+/** The recommendation first (who chose it), then the engine's other priced options, muted.
+    Read-only here; a reviewer accepts one in the back-office tool. */
+function Suggestions({ items, rec }: { items: Suggestion[]; rec?: Action["recommendation"] }) {
+  const chosen = rec ? items.find((s) => s.key === rec.key) : undefined;
+  const primary = rec && chosen ? { label: rec.label, reasons: rec.reasons, booked: chosen.booked } : items[0];
+  const primaryKey = chosen?.key ?? items[0]?.key;
+  const others = items.filter((s) => s.key !== primaryKey);
+  const who = rec?.source === "claude" ? `Claude · ${rec.model ?? "model"}` : "policy default";
   return (
     <div className="mt-1 rounded-[4px] px-3 py-2" style={{ background: "var(--raised)" }}>
-      <div className="eyebrow mb-1" style={{ fontSize: 10 }}>Suggested resolutions</div>
-      <ul className="flex flex-col gap-1">
-        {items.map((sg) => (
-          <li key={sg.key} className="flex items-baseline justify-between gap-3 text-[12.5px] leading-snug">
-            <span className="text-ink2" title={sg.reasons.join(" ")}>
-              {sg.label}
-              {sg.reasons.length > 0 && <span className="block text-[11px] text-muted">{sg.reasons.join(" · ")}</span>}
-            </span>
-            <span className="num text-ink font-medium whitespace-nowrap">{money(sg.booked, 2)}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="eyebrow" style={{ fontSize: 10 }}>Recommended resolution</div>
+        <span className="text-[10.5px] text-muted">{who}</span>
+      </div>
+      <div className="flex items-baseline justify-between gap-3 text-[12.5px] leading-snug">
+        <span className="text-ink font-medium">
+          {primary.label}
+          <span className="block text-[11px] text-muted font-normal">{primary.reasons.join(" · ")}</span>
+          {rec?.rationale && <span className="block text-[11px] text-muted italic font-normal mt-0.5">{rec.rationale}</span>}
+        </span>
+        <span className="num text-ink font-semibold whitespace-nowrap">{money(primary.booked, 2)}</span>
+      </div>
+      {others.length > 0 && (
+        <ul className="mt-1.5 pt-1.5 flex flex-col gap-0.5" style={{ borderTop: "1px solid var(--hairline)" }}>
+          {others.map((sg) => (
+            <li key={sg.key} className="flex items-baseline justify-between gap-3 text-[11.5px] leading-snug text-muted">
+              <span title={sg.reasons.join(" ")}>{sg.label}</span>
+              <span className="num whitespace-nowrap">{money(sg.booked, 2)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -70,7 +85,7 @@ function DecisionCard({ d, index }: { d: Decision; index: number }) {
                 <div className="text-[12.5px] leading-snug text-ink2">{a.message}</div>
               )}
               <div className="num text-[10.5px] text-muted uppercase tracking-[0.06em]">{a.rule_id} · {a.severity}</div>
-              {a.suggestions && a.suggestions.length > 0 && <Suggestions items={a.suggestions} />}
+              {a.suggestions && a.suggestions.length > 0 && <Suggestions items={a.suggestions} rec={a.recommendation} />}
             </li>
           ))}
         </ol>

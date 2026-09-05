@@ -100,6 +100,11 @@ export interface Action {
   /** The reasoning in two or three scannable lines; `**bold**` marks the decisive words. */
   points?: string[];
   suggestions?: Suggestion[];
+  /** the one put forward first — chosen among `suggestions` by the policy default or by Claude */
+  recommendation?: {
+    key: string; label: string; reasons: string[]; booked: number;
+    source: "policy" | "claude"; model: string | null; rationale: string | null; confidence: number | null;
+  } | null;
 }
 
 export interface Decision extends CompanyRow {

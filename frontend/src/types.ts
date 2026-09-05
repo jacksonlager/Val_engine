@@ -47,6 +47,22 @@ export interface Suggestion {
   booked: number;
 }
 
+/** The one resolution put forward first, chosen among `suggestions` (recommend.py). `key`
+    names the chosen suggestion, so `booked` is always a number the engine computed; `source`
+    says who chose — the rule's policy default, or Claude (with `model`, `rationale`,
+    `confidence`). `note` explains a fallback when Claude was asked for but unavailable. */
+export interface Recommendation {
+  key: string;
+  label: string;
+  reasons: string[];
+  booked: number;
+  source: "policy" | "claude";
+  model: string | null;
+  rationale: string | null;
+  confidence: number | null;
+  note: string | null;
+}
+
 export interface Flag {
   rule_id: string;
   family: string;
@@ -61,6 +77,8 @@ export interface Flag {
   points: string[];
   /** One to three priced resolutions; empty on MONITOR and on a server that predates them. */
   suggestions: Suggestion[];
+  /** The one shown first; null on MONITOR, and on a server that predates it (then the first suggestion stands in). */
+  recommendation?: Recommendation | null;
   evidence: Record<string, unknown>;
 }
 
@@ -183,6 +201,8 @@ export interface RunManifest {
   generated_at: string; // ISO datetime
   adjudication_enabled: boolean;
   market_data_source: string;
+  /** who chose each flag's recommendation: "policy" or "claude:<model>" */
+  recommender?: string;
 }
 
 export interface ValuationRun {

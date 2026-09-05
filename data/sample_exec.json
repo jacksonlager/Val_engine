@@ -5,7 +5,7 @@
     "measurement_date": "2026-09-30",
     "prior_close": "2026-06-30",
     "status": "proposed",
-    "published_at": "2026-09-04T23:15:48+00:00",
+    "published_at": "2026-09-05T00:39:21+00:00",
     "published_by": "Jackson Lagerwey",
     "note": "Q3 2026 proposed marks for the valuation committee",
     "run_id": "d8c4f428fa0b",
@@ -14,7 +14,7 @@
     "input_file": "HC_Mock_Portfolio_Data.xlsx",
     "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
     "market_data_source": "stub",
-    "generated_at": "2026-09-04T23:15:48+00:00"
+    "generated_at": "2026-09-05T00:39:21+00:00"
   },
   "headline": {
     "prior_nav": 1139.3,
@@ -3021,7 +3021,20 @@
               ],
               "booked": 110.07
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Book the 30 Sep close with the 0% lock-up discount, as proposed.",
+            "reasons": [
+              "Level 1: the quoted price is fair value under ASC 820.",
+              "Blockage discounts on quoted prices are disfavored."
+            ],
+            "booked": 110.07,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ],
       "alternative_marks": {
@@ -3079,7 +3092,20 @@
               ],
               "booked": 5.7
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Book the recap figure as proposed.",
+            "reasons": [
+              "It is the only priced transaction and reflects the new capital structure.",
+              "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+            ],
+            "booked": 2.33,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ],
       "alternative_marks": {}
@@ -3126,7 +3152,20 @@
               ],
               "booked": 13.93
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark on the extension price as proposed.",
+            "reasons": [
+              "New money came in at that price, even without a new lead.",
+              "Nothing in the file says the company is worth less."
+            ],
+            "booked": 13.93,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         },
         {
           "rule_id": "X-202",
@@ -3148,7 +3187,20 @@
               ],
               "booked": 13.93
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 13.93,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ],
       "alternative_marks": {}
@@ -3204,7 +3256,20 @@
               ],
               "booked": 2.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Book the recap figure as proposed.",
+            "reasons": [
+              "It is the only priced transaction and reflects the new capital structure.",
+              "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+            ],
+            "booked": 1.14,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         },
         {
           "rule_id": "X-302",
@@ -3226,7 +3291,20 @@
               ],
               "booked": 1.14
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "The last round is still the latest priced transaction.",
+              "The decline is recorded and will price into the next round."
+            ],
+            "booked": 1.14,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ],
       "alternative_marks": {}
@@ -3291,7 +3369,20 @@
               ],
               "booked": 3.5
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Ratify the 0.90-weighted mark of $4.31M.",
+            "reasons": [
+              "Reflects a signed agreement with a real chance of not closing.",
+              "Policy default for an announced, unclosed deal."
+            ],
+            "booked": 4.31,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         },
         {
           "rule_id": "X-202",
@@ -3313,7 +3404,20 @@
               ],
               "booked": 4.31
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 4.31,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ],
       "alternative_marks": {
@@ -3373,7 +3477,20 @@
               ],
               "booked": 5.6
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
+            "reasons": [
+              "A cap is not a price; cost is the only observable value for the note.",
+              "Standard treatment until the note converts."
+            ],
+            "booked": 6.6,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         },
         {
           "rule_id": "X-304",
@@ -3404,7 +3521,20 @@
               ],
               "booked": 6.1
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "Cash on hand does not change the last-round price.",
+              "The runway is tracked; the next round will reprice it."
+            ],
+            "booked": 6.6,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ],
       "alternative_marks": {}
@@ -3451,7 +3581,20 @@
               ],
               "booked": 43.3
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 43.3,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         },
         {
           "rule_id": "X-302",
@@ -3482,7 +3625,20 @@
               ],
               "booked": 15.6
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "The last round is still the latest priced transaction.",
+              "The decline is recorded and will price into the next round."
+            ],
+            "booked": 43.3,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ],
       "alternative_marks": {}
@@ -3531,7 +3687,20 @@
               ],
               "booked": 68.4
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 68.4,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -3586,7 +3755,20 @@
               ],
               "booked": 4.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Affirm the last-round mark as proposed.",
+            "reasons": [
+              "No transaction has repriced the company; the round is still the last real price.",
+              "The screen is a cross-check, not a valuation."
+            ],
+            "booked": 26.5,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -3641,7 +3823,20 @@
               ],
               "booked": 10.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "Cash on hand does not change the last-round price.",
+              "The runway is tracked; the next round will reprice it."
+            ],
+            "booked": 24.1,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -3687,7 +3882,20 @@
               ],
               "booked": 21.3
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 21.3,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -3742,7 +3950,20 @@
               ],
               "booked": 10.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "The last round is still the latest priced transaction.",
+              "The decline is recorded and will price into the next round."
+            ],
+            "booked": 18.5,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -3797,7 +4018,20 @@
               ],
               "booked": 10.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "Cash on hand does not change the last-round price.",
+              "The runway is tracked; the next round will reprice it."
+            ],
+            "booked": 14.3,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -3843,7 +4077,20 @@
               ],
               "booked": 13.9
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 13.9,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -3898,7 +4145,20 @@
               ],
               "booked": 8.29
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the remaining stake at the last-round price.",
+            "reasons": [
+              "The round is the principal market; one block sale is weaker evidence.",
+              "Policy default \u2014 the secondary is recorded as an alternative mark."
+            ],
+            "booked": 8.77,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -3953,7 +4213,20 @@
               ],
               "booked": 6.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "Cash on hand does not change the last-round price.",
+              "The runway is tracked; the next round will reprice it."
+            ],
+            "booked": 8.1,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4008,7 +4281,20 @@
               ],
               "booked": 6.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Affirm the last-round mark as proposed.",
+            "reasons": [
+              "No transaction has repriced the company; the round is still the last real price.",
+              "The screen is a cross-check, not a valuation."
+            ],
+            "booked": 7.3,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4063,7 +4349,20 @@
               ],
               "booked": 4.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "Cash on hand does not change the last-round price.",
+              "The runway is tracked; the next round will reprice it."
+            ],
+            "booked": 7.3,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4118,7 +4417,20 @@
               ],
               "booked": 4.0
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Affirm the last-round mark as proposed.",
+            "reasons": [
+              "No transaction has repriced the company; the round is still the last real price.",
+              "The screen is a cross-check, not a valuation."
+            ],
+            "booked": 6.6,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4164,7 +4476,20 @@
               ],
               "booked": 2.7
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 2.7,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4210,7 +4535,20 @@
               ],
               "booked": 2.1
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 2.1,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4265,7 +4603,20 @@
               ],
               "booked": 1.4
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "Cash on hand does not change the last-round price.",
+              "The runway is tracked; the next round will reprice it."
+            ],
+            "booked": 1.7,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4311,7 +4662,20 @@
               ],
               "booked": 1.7
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "The last round is still the latest priced transaction.",
+              "The decline is recorded and will price into the next round."
+            ],
+            "booked": 1.7,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4357,7 +4721,20 @@
               ],
               "booked": 1.6
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "The last round is still the latest priced transaction.",
+              "The decline is recorded and will price into the next round."
+            ],
+            "booked": 1.6,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4403,7 +4780,20 @@
               ],
               "booked": 1.4
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Affirm the last-round mark as proposed.",
+            "reasons": [
+              "No transaction has repriced the company; the round is still the last real price.",
+              "The screen is a cross-check, not a valuation."
+            ],
+            "booked": 1.4,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4449,7 +4839,20 @@
               ],
               "booked": 0.7
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Keep the mark as proposed.",
+            "reasons": [
+              "No transaction or metric in the file says the value moved.",
+              "Staleness alone is not evidence of a decline."
+            ],
+            "booked": 0.7,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     },
@@ -4495,7 +4898,20 @@
               ],
               "booked": 0.6
             }
-          ]
+          ],
+          "recommendation": {
+            "key": "as_proposed",
+            "label": "Affirm the last-round mark as proposed.",
+            "reasons": [
+              "No transaction has repriced the company; the round is still the last real price.",
+              "The screen is a cross-check, not a valuation."
+            ],
+            "booked": 0.6,
+            "source": "policy",
+            "model": null,
+            "rationale": null,
+            "confidence": null
+          }
         }
       ]
     }
@@ -5173,7 +5589,7 @@
     {
       "quarter": "Q3 2026",
       "slug": "2026Q3",
-      "published_at": "2026-09-04T23:15:48+00:00",
+      "published_at": "2026-09-05T00:39:21+00:00",
       "published_by": "Jackson Lagerwey",
       "status": "proposed",
       "booked_nav": 1183.9263

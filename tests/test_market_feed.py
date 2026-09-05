@@ -749,10 +749,20 @@ def test_cli_market_json_parses_and_text_lists_sectors():
 
 
 def test_cli_market_live_prints_collapsed_errors(monkeypatch, tmp_path: Path):
-    """A source-wide outage is one line in the errors block, not one per ticker. The repo has no
-    cache for the measurement date, so every URL goes through the (replaced) seam and nothing
-    is written."""
+    """A source-wide outage is one line in the errors block, not one per ticker. The run is
+    rooted in a scratch copy of the repo with no market cache (a checkout that has done a real
+    live run carries one under data/market_cache/, which would satisfy some tickers from disk),
+    so every URL goes through the (replaced) seam and nothing is written into the repo."""
     monkeypatch.delenv(PRICE_SOURCE_ENV, raising=False)
+    scratch = tmp_path / "root"
+    (scratch / "rules").mkdir(parents=True)
+    for f in (ROOT / "rules").glob("*.yaml"):
+        shutil.copy(f, scratch / "rules" / f.name)
+    shutil.copytree(ROOT / "data", scratch / "data", ignore=shutil.ignore_patterns("sample_run.json", "market_cache", "published"))
+    import hc_valuation.pipeline as pipeline_mod
+    monkeypatch.setattr(pipeline_mod, "repo_root", lambda: scratch)
+    import hc_valuation.config as config_mod
+    monkeypatch.setattr(config_mod, "repo_root", lambda: scratch)
 
     def challenge(url, headers=None, timeout_s=8.0):
         raise FetchError(browser_challenge_message(url))
@@ -762,7 +772,7 @@ def test_cli_market_live_prints_collapsed_errors(monkeypatch, tmp_path: Path):
     n = len(load_baskets(ROOT / "rules" / "comps_baskets.yaml").tickers)
     assert f"{n} tickers: EDGAR ticker table unavailable; cannot resolve CIK [" in r.output
     assert r.output.count("cannot resolve CIK") == 1 and "www.sec.gov answered with a browser-verification page" in r.output
-    assert "source stub" in r.output and not (ROOT / "data" / "market_cache" / "2026-09-30").exists()
+    assert "source stub" in r.output and not (scratch / "data" / "market_cache" / "2026-09-30").exists()
 
 
 def test_stub_market_report_helper_direct():

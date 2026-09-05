@@ -8,6 +8,7 @@ Everything with I/O lives here or below; nothing in `engine/` imports this modul
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -89,10 +90,12 @@ class PipelineResult:
     market: MarketData
     proposals: list  # list[TreatmentProposal] from adjudication, may be empty
     market_report: dict = field(default_factory=dict)   # docs/market-feed.md §3, served at /api/market
+    recommender: Any = None                              # the chooser that filled Flag.recommendation (recommend.py)
 
 
 def execute(paths: RunPaths | None = None, *, provider: str | None = None, generated_at: datetime | None = None,
-            adjudicate: bool = True, refresh_market: bool = False) -> PipelineResult:
+            adjudicate: bool = True, refresh_market: bool = False, recommender: str | None = None,
+            refresh_recommendations: bool = False) -> PipelineResult:
     from .connectors import assemble_market_data   # local import: connectors may pull optional deps
 
     paths = paths or RunPaths.default()
@@ -117,4 +120,19 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
     if adjudicate and cfg.adjudication.enabled:
         from .adjudication import adjudicate_run
         proposals = adjudicate_run(run, feed, cfg, paths)
-    return PipelineResult(run=run, config=cfg, paths=paths, market=market, proposals=proposals, market_report=market_report)
+
+    # One recommendation per actionable flag — chosen among the engine's priced suggestions by
+    # the policy default or by Claude (recommend.py). Outside the engine, after it, like E-09.
+    result = PipelineResult(run=run, config=cfg, paths=paths, market=market, proposals=proposals, market_report=market_report)
+    from .recommend import make_chooser, recommend_run
+    chooser = make_chooser(cfg, paths.root, recommender, refresh=refresh_recommendations)
+    signals = None
+    if getattr(chooser, "name", "") == "claude":
+        try:
+            from .api.signals import build_signals
+            signals = build_signals(result)     # vendor context goes into the brief, never into a number
+        except Exception:  # noqa: BLE001
+            signals = None
+    result.run = recommend_run(run, chooser, signals)
+    result.recommender = chooser
+    return result

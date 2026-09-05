@@ -134,9 +134,18 @@ def _suggestions(f) -> list[dict[str, Any]]:
             for s in (getattr(f, "suggestions", ()) or ())]
 
 
+def _recommendation(f: Any) -> dict[str, Any] | None:
+    r = getattr(f, "recommendation", None)
+    if r is None:
+        return None
+    return {"key": r.key, "label": r.label, "reasons": list(r.reasons), "booked": _r(r.booked), "source": r.source,
+            "model": r.model, "rationale": r.rationale, "confidence": r.confidence}
+
+
 def _actions(c: CompanyResult) -> list[dict[str, Any]]:
     return [{"rule_id": f.rule_id, "severity": f.severity.value, "action": f.action, "message": f.message,
-             "points": list(getattr(f, "points", ()) or ()), "suggestions": _suggestions(f)}
+             "points": list(getattr(f, "points", ()) or ()), "suggestions": _suggestions(f),
+             "recommendation": _recommendation(f)}
             for f in c.flags if f.severity != Severity.MONITOR and f.action]
 
 

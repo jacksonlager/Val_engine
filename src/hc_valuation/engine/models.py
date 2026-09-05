@@ -135,6 +135,26 @@ class Suggestion(_Frozen):
     booked: float
 
 
+class Recommendation(_Frozen):
+    """The one resolution put forward to the reviewer, chosen from the flag's `suggestions`.
+
+    `key` names the chosen suggestion, so `booked` is always a number the engine computed —
+    the chooser (a policy default, or Claude through the recommend module) picks and
+    explains; it never prices. `source` says which; `model`, `rationale` and `confidence`
+    are filled in when a model made the call. Accepting it records an ordinary E-01
+    override, exactly as accepting any suggestion does.
+    """
+    key: str
+    label: str
+    reasons: tuple[str, ...]
+    booked: float
+    source: str                     # "policy" | "claude"
+    model: str | None = None
+    rationale: str | None = None
+    confidence: float | None = None
+    note: str | None = None         # why a model was not used, when it was asked for
+
+
 class Flag(_Frozen):
     """A reason a human should look at a position. Never changes a mark.
 
@@ -155,6 +175,7 @@ class Flag(_Frozen):
     action: str = ""
     points: tuple[str, ...] = ()
     suggestions: tuple[Suggestion, ...] = ()
+    recommendation: Recommendation | None = None   # set by the recommend module, outside the engine
     evidence: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -269,6 +290,7 @@ class RunManifest(_Frozen):
     generated_at: datetime
     adjudication_enabled: bool
     market_data_source: str
+    recommender: str = "policy"     # "policy" | "claude:<model>" — who chose each flag's recommendation
 
 
 class ValuationRun(_Frozen):

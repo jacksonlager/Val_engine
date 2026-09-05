@@ -179,6 +179,17 @@ class AdjudicationCfg(_Strict):
     allowed_operators: list[str] = Field(default_factory=list)
 
 
+class RecommendationCfg(_Strict):
+    """Who picks the one resolution shown first for each BLOCK/REVIEW flag. `policy` takes the
+    rule's own default (the first suggestion). `claude` asks the model to choose among the
+    engine's priced suggestions — never to invent a number — and caches every answer under
+    data/recommendations/ so reruns are deterministic and offline; without an API key or a
+    cached answer it falls back to `policy` and says so on the recommendation."""
+    provider: Literal["policy", "claude"] = "policy"
+    model: str = "claude-sonnet-4-5"
+    cache: bool = True
+
+
 class CustomRuleSpec(_Strict):
     """A declarative rule promoted from adjudication (E-09). Formula is DSL, never code."""
     rule_id: str
@@ -208,6 +219,7 @@ class RuleConfig(_Strict):
     normalization: NormalizationCfg = NormalizationCfg()
     open_items: OpenItemsCfg = OpenItemsCfg()
     adjudication: AdjudicationCfg = AdjudicationCfg()
+    recommendation: RecommendationCfg = RecommendationCfg()
     custom_rules: list[CustomRuleSpec] = Field(default_factory=list)
 
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)

@@ -129,7 +129,7 @@ def rule_catalogue(result: PipelineResult) -> list[dict[str, Any]]:
 
 
 def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None,
-               refresh_market: bool = False) -> FastAPI:
+               refresh_market: bool = False, recommender: str | None = None) -> FastAPI:
     paths = paths or RunPaths.default()
     static_dir = Path(static_dir) if static_dir is not None else STATIC_DIR
     app = FastAPI(title="HC valuation engine", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
@@ -142,7 +142,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
 
     def recompute(refresh: bool = False) -> PipelineResult:
         with lock:
-            app.state.result = execute(paths, provider=provider, refresh_market=refresh)
+            app.state.result = execute(paths, provider=provider, refresh_market=refresh, recommender=recommender)
         return app.state.result
 
     app.state.paths = paths

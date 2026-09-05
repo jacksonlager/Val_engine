@@ -115,5 +115,13 @@ adjudication:
                    proceeds, prior_mark, hc_investment, close_probability, note_at_cost]
   allowed_operators: ["*", "/", "+", "-", "min", "max"]
 
+# Who picks the one resolution shown first on each BLOCK/REVIEW flag. `claude` chooses among the
+# engine's priced suggestions (never a number of its own) and caches answers in data/recommendations/;
+# set ANTHROPIC_API_KEY and run `hc-valuation recommend` once to fill the cache.
+recommendation:
+  provider: policy                   # policy | claude
+  model: claude-sonnet-4-5
+  cache: true
+
 # Declarative rules promoted from E-09 adjudication land here. Empty for the base quarter.
 custom_rules: []

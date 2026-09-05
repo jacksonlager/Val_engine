@@ -2,7 +2,7 @@
  "publish": {
   "quarter": "Q3 2026",
   "slug": "2026Q3",
-  "published_at": "2026-09-04T23:15:48+00:00",
+  "published_at": "2026-09-05T00:39:21+00:00",
   "published_by": "Jackson Lagerwey",
   "note": "Q3 2026 proposed marks for the valuation committee",
   "status": "proposed",
@@ -31,9 +31,10 @@
    "quarter_label": "Q3 2026",
    "measurement_date": "2026-09-30",
    "prior_close": "2026-06-30",
-   "generated_at": "2026-09-04T23:15:48Z",
+   "generated_at": "2026-09-05T00:39:21Z",
    "adjudication_enabled": true,
-   "market_data_source": "stub"
+   "market_data_source": "stub",
+   "recommender": "policy"
   },
   "companies": [
    {
@@ -97,6 +98,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "ownership_before": 0.136,
        "ownership_after": 0.108,
@@ -111,6 +113,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 37.79,
        "threshold": 30.0
@@ -174,6 +177,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 26,
        "anchor": "2024-07-05"
@@ -210,6 +214,20 @@
         "booked": 6.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "Cash on hand does not change the last-round price.",
+        "The runway is tracked; the next round will reprice it."
+       ],
+       "booked": 8.1,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "runway_months_aged": 4.96
       }
@@ -336,6 +354,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "ownership_before": 0.076,
        "ownership_after": 0.055,
@@ -350,6 +369,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 41.52,
        "threshold": 30.0
@@ -421,6 +441,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "valuation_cap": 32.0,
        "cap_vs_last_round": 0.4222222222222223
@@ -434,6 +455,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 32.14,
        "threshold": 30.0
@@ -608,6 +630,20 @@
         "booked": 3.5
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Ratify the 0.90-weighted mark of $4.31M.",
+       "reasons": [
+        "Reflects a signed agreement with a real chance of not closing.",
+        "Policy default for an announced, unclosed deal."
+       ],
+       "booked": 4.3092,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "deal_value": 133.0,
        "close_probability": 0.9,
@@ -636,6 +672,20 @@
         "booked": 4.3092
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 4.3092,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 72,
        "anchor": "2020-09-07"
@@ -721,6 +771,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "indicated_post_money": 50.0,
        "indicated_mark": 4.25
@@ -748,6 +799,20 @@
         "booked": 2.7
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 2.7,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 71,
        "anchor": "2020-10-30"
@@ -833,6 +898,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "ownership_before": 0.052,
        "ownership_after": 0.038,
@@ -905,6 +971,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 35.83,
        "threshold": 30.0
@@ -1099,6 +1166,20 @@
         "booked": 8.2875
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the remaining stake at the last-round price.",
+       "reasons": [
+        "The round is the principal market; one block sale is weaker evidence.",
+        "Policy default \u2014 the secondary is recorded as an alternative mark."
+       ],
+       "booked": 8.772,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "spread": -0.0552,
        "implied_post_money": 487.5,
@@ -1173,6 +1254,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 50.11,
        "threshold": 30.0
@@ -1250,6 +1332,20 @@
         "booked": 13.9
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 13.9,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 61,
        "anchor": "2021-08-18"
@@ -1335,6 +1431,20 @@
         "booked": 13.9277
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark on the extension price as proposed.",
+       "reasons": [
+        "New money came in at that price, even without a new lead.",
+        "Nothing in the file says the company is worth less."
+       ],
+       "booked": 13.9277,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "post_money": 176.3,
        "anchor": "2021-10-08"
@@ -1362,6 +1472,20 @@
         "booked": 13.9277
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 13.9277,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 59,
        "anchor": "2021-10-08"
@@ -1425,6 +1549,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 34,
        "anchor": "2023-11-09"
@@ -1617,6 +1742,20 @@
         "booked": 2.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Book the recap figure as proposed.",
+       "reasons": [
+        "It is the only priced transaction and reflects the new capital structure.",
+        "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+       ],
+       "booked": 1.136,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "prior_post_money": 23.9,
        "post_money": 14.2,
@@ -1631,6 +1770,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "rule": "M-012",
        "insider_led": true
@@ -1658,6 +1798,20 @@
         "booked": 1.136
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "The last round is still the latest priced transaction.",
+        "The decline is recorded and will price into the next round."
+       ],
+       "booked": 1.136,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "arr_growth": -0.16
       }
@@ -1720,6 +1874,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 35,
        "anchor": "2023-10-09"
@@ -1756,6 +1911,20 @@
         "booked": 10.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "Cash on hand does not change the last-round price.",
+        "The runway is tracked; the next round will reprice it."
+       ],
+       "booked": 24.1,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "runway_months_aged": 3.12
       }
@@ -1867,6 +2036,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 43,
        "anchor": "2023-02-23"
@@ -1930,6 +2100,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 37,
        "anchor": "2023-08-13"
@@ -1993,6 +2164,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 27,
        "anchor": "2024-06-23"
@@ -2056,6 +2228,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 31,
        "anchor": "2024-02-14"
@@ -2119,6 +2292,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 34,
        "anchor": "2023-11-10"
@@ -2132,6 +2306,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 30.29,
        "threshold": 30.0
@@ -2159,6 +2334,20 @@
         "booked": 1.4
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 1.4,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 34,
        "screens": [
@@ -2224,6 +2413,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 27,
        "anchor": "2024-06-24"
@@ -2260,6 +2450,20 @@
         "booked": 10.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "The last round is still the latest priced transaction.",
+        "The decline is recorded and will price into the next round."
+       ],
+       "booked": 18.5,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "arr_growth": -0.21
       }
@@ -2322,6 +2526,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 53.88,
        "threshold": 30.0
@@ -2408,6 +2613,20 @@
         "booked": 110.068
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Book the 30 Sep close with the 0% lock-up discount, as proposed.",
+       "reasons": [
+        "Level 1: the quoted price is fair value under ASC 820.",
+        "Blockage discounts on quoted prices are disfavored."
+       ],
+       "booked": 110.068,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "price_source": "stub:seeded_to_ipo_print",
        "price_source_note": "Synthetic ticker; no live feed can price it. Seeded to the IPO print \u2014 replace with the measurement-date close.",
@@ -2487,6 +2706,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 2.33,
        "threshold": 3.0
@@ -2550,6 +2770,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 31,
        "anchor": "2024-02-20"
@@ -2613,6 +2834,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 38,
        "anchor": "2023-07-09"
@@ -2676,6 +2898,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 33,
        "anchor": "2023-12-12"
@@ -2739,6 +2962,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 47,
        "anchor": "2022-10-22"
@@ -2802,6 +3026,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 30,
        "anchor": "2024-03-03"
@@ -2838,6 +3063,20 @@
         "booked": 10.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "Cash on hand does not change the last-round price.",
+        "The runway is tracked; the next round will reprice it."
+       ],
+       "booked": 14.3,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "runway_months_aged": 3.4
       }
@@ -2900,6 +3139,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 27,
        "anchor": "2024-06-08"
@@ -3017,6 +3257,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 26,
        "anchor": "2024-07-24"
@@ -3080,6 +3321,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 40,
        "anchor": "2023-05-09"
@@ -3174,6 +3416,20 @@
         "booked": 5.7
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Book the recap figure as proposed.",
+       "reasons": [
+        "It is the only priced transaction and reflects the new capital structure.",
+        "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+       ],
+       "booked": 2.331,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "prior_post_money": 71.0,
        "post_money": 37.0,
@@ -3188,6 +3444,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "ownership_before": 0.08,
        "ownership_after": 0.063,
@@ -3202,6 +3459,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "rule": "M-012",
        "insider_led": true
@@ -3215,6 +3473,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "arr_growth": -0.08
       }
@@ -3277,6 +3536,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 33,
        "anchor": "2023-12-18"
@@ -3290,6 +3550,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 31.32,
        "threshold": 30.0
@@ -3326,6 +3587,20 @@
         "booked": 6.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 7.3,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 33,
        "screens": [
@@ -3405,6 +3680,20 @@
         "booked": 1.6
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "The last round is still the latest priced transaction.",
+        "The decline is recorded and will price into the next round."
+       ],
+       "booked": 1.6,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "arr_growth": -0.32
       }
@@ -3467,6 +3756,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 37,
        "anchor": "2023-08-28"
@@ -3530,6 +3820,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 39.86,
        "threshold": 30.0
@@ -3642,6 +3933,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "arr": 0.3
       }
@@ -3704,6 +3996,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "arr_growth": -0.11
       }
@@ -3766,6 +4059,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 42,
        "anchor": "2023-03-06"
@@ -3829,6 +4123,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 32,
        "anchor": "2024-01-03"
@@ -3842,6 +4137,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 1.03,
        "threshold": 3.0
@@ -3869,6 +4165,20 @@
         "booked": 0.6
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 0.6,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 32,
        "screens": [
@@ -3934,6 +4244,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 31,
        "anchor": "2024-02-02"
@@ -4060,6 +4371,20 @@
         "booked": 43.3
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 43.3,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 64,
        "anchor": "2021-05-11"
@@ -4096,6 +4421,20 @@
         "booked": 15.6
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "The last round is still the latest priced transaction.",
+        "The decline is recorded and will price into the next round."
+       ],
+       "booked": 43.3,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "arr_growth": -0.2
       }
@@ -4238,6 +4577,20 @@
         "booked": 5.6
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
+       "reasons": [
+        "A cap is not a price; cost is the only observable value for the note.",
+        "Standard treatment until the note converts."
+       ],
+       "booked": 6.6,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "hc_investment": 0.5,
        "valuation_cap": 133.0,
@@ -4252,6 +4605,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 40,
        "anchor": "2023-05-14"
@@ -4288,6 +4642,20 @@
         "booked": 6.1
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "Cash on hand does not change the last-round price.",
+        "The runway is tracked; the next round will reprice it."
+       ],
+       "booked": 6.6,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "runway_months_aged": 4.11
       }
@@ -4362,6 +4730,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 47.85,
        "threshold": 30.0
@@ -4425,6 +4794,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 35,
        "anchor": "2023-10-14"
@@ -4438,6 +4808,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 32.56,
        "threshold": 30.0
@@ -4451,6 +4822,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "moic": 6.62,
        "months": 35
@@ -4487,6 +4859,20 @@
         "booked": 4.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 26.5,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 35,
        "screens": [
@@ -4846,6 +5232,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 34,
        "anchor": "2023-11-10"
@@ -4859,6 +5246,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "arr_growth": -0.05
       }
@@ -4894,6 +5282,20 @@
         "booked": 4.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 6.6,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 34,
        "screens": [
@@ -4973,6 +5375,20 @@
         "booked": 21.3
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 21.3,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 49,
        "anchor": "2022-08-28"
@@ -5059,6 +5475,20 @@
         "booked": 4.0
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "Cash on hand does not change the last-round price.",
+        "The runway is tracked; the next round will reprice it."
+       ],
+       "booked": 7.3,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "runway_months_aged": 2.5
       }
@@ -5219,6 +5649,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 44,
        "anchor": "2023-01-12"
@@ -5282,6 +5713,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 33,
        "anchor": "2023-12-07"
@@ -5318,6 +5750,20 @@
         "booked": 1.4
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "Cash on hand does not change the last-round price.",
+        "The runway is tracked; the next round will reprice it."
+       ],
+       "booked": 1.7,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "runway_months_aged": 3.67
       }
@@ -5429,6 +5875,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 28,
        "anchor": "2024-05-06"
@@ -5442,6 +5889,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "arr": 0.2
       }
@@ -5602,6 +6050,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 44,
        "anchor": "2023-01-30"
@@ -5665,6 +6114,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "arr": 0.1
       }
@@ -5727,6 +6177,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 28,
        "anchor": "2024-05-23"
@@ -5740,6 +6191,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "runway_months_aged": 11.62
       }
@@ -5802,6 +6254,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 37,
        "anchor": "2023-08-01"
@@ -5815,6 +6268,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "arr": 0.4
       }
@@ -5877,6 +6331,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 45,
        "anchor": "2022-12-30"
@@ -6086,6 +6541,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 38,
        "anchor": "2023-07-20"
@@ -6315,6 +6771,20 @@
         "booked": 0.7
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 0.7,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 60,
        "anchor": "2021-09-16"
@@ -6328,6 +6798,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 1.71,
        "threshold": 3.0
@@ -6391,6 +6862,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 48,
        "anchor": "2022-09-02"
@@ -6517,6 +6989,20 @@
         "booked": 68.4
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 68.4,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 52,
        "anchor": "2022-05-21"
@@ -6530,6 +7016,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "moic": 6.28,
        "months": 52
@@ -6593,6 +7080,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "months": 33,
        "anchor": "2023-12-06"
@@ -6606,6 +7094,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "runway_months_aged": 7.12
       }
@@ -6731,6 +7220,20 @@
         "booked": 1.7
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "The last round is still the latest priced transaction.",
+        "The decline is recorded and will price into the next round."
+       ],
+       "booked": 1.7,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "arr_growth": -0.3
       }
@@ -6743,6 +7246,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 32.29,
        "threshold": 30.0
@@ -6806,6 +7310,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 35.47,
        "threshold": 30.0
@@ -6981,6 +7486,20 @@
         "booked": 2.1
        }
       ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 2.1,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
        "months": 56,
        "anchor": "2022-01-03"
@@ -7093,6 +7612,7 @@
       "action": "",
       "points": [],
       "suggestions": [],
+      "recommendation": null,
       "evidence": {
        "implied_multiple": 45.5,
        "threshold": 30.0

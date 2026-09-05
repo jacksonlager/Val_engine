@@ -7,6 +7,7 @@
     rules     print the rule catalogue
     market    show the sector comps feed (live EDGAR + Yahoo/Stooq closes, or the fixture) and where it came from
     history   the quarter-over-quarter booked-mark archive per company (backfill + publish ledger + this run)
+    recommend fill the one recommendation per flag (policy default, or Claude choosing among the engine's options)
     next-policy  write rules/<next quarter>.yaml inheriting from the current policy
     version   engine and policy versions
 
@@ -48,6 +49,8 @@ InputOpt = typer.Option(None, "--input", "-i", help="Portfolio workbook (.xlsx).
 PolicyOpt = typer.Option(None, "--policy", "-p", help="Policy file. Default: rules/2026Q3.yaml (the base policy)")
 ProviderOpt = typer.Option(None, "--provider", help="Market-data provider override (stub | live | pitchbook), passed to the connectors")
 RefreshMarketOpt = typer.Option(False, "--refresh-market", help="Refetch the live market feed over its cache (provider live)")
+RecommenderOpt = typer.Option(None, "--recommender", help="Who picks the one resolution shown first per flag: policy | claude "
+                                                        "(default: the policy file's recommendation.provider)")
 
 
 def _paths(input_path: Optional[Path], policy: Optional[Path]):
@@ -189,7 +192,8 @@ def export(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Polic
 @app.command()
 def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
           out: Path = typer.Option(Path("dist"), "--out", "-o", help="Output folder"),
-          provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt) -> None:
+          provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt,
+          recommender: Optional[str] = RecommenderOpt) -> None:
     """Produce every deliverable: report.html, workbook, CSVs, next-quarter input file, run.json, manifest.json."""
     from .api.app import STATIC_DIR
     from .api.history import build_history
@@ -198,7 +202,7 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
     from .pipeline import execute
 
     paths = _paths(input_path, policy)
-    r = execute(paths, provider=provider, refresh_market=refresh_market)
+    r = execute(paths, provider=provider, refresh_market=refresh_market, recommender=recommender)
     run = r.run
     out.mkdir(parents=True, exist_ok=True)
     q = _slug(run.manifest.quarter_label)
@@ -332,6 +336,44 @@ def history(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
             typer.echo(f"  {e}")
 
 
+@app.command()
+def recommend(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+              recommender: Optional[str] = typer.Option("claude", "--recommender", help="policy | claude"),
+              refresh: bool = typer.Option(False, "--refresh", help="Ignore cached answers and ask the model again"),
+              as_json: bool = typer.Option(False, "--json", help="Print every recommendation as JSON")) -> None:
+    """Fill (or show) the one recommendation per BLOCK/REVIEW flag. With --recommender claude and
+    ANTHROPIC_API_KEY set, every answer is cached under data/recommendations/ — commit that folder
+    and later runs are deterministic and offline."""
+    from .pipeline import execute
+
+    paths = _paths(input_path, policy)
+    r = execute(paths, recommender=recommender, refresh_recommendations=refresh)
+    rows, out = [], []
+    for c in r.run.companies:
+        for f in c.flags:
+            rec = f.recommendation
+            if rec is None:
+                continue
+            out.append({"company": c.company, "rule_id": f.rule_id, "severity": f.severity.value,
+                        **rec.model_dump(mode="json")})
+            rows.append([c.company, f.rule_id, f.severity.value, rec.source + (f" ({rec.model})" if rec.model else ""),
+                         rec.key, f"{rec.booked:.2f}", rec.label[:70]])
+    if as_json:
+        typer.echo(json.dumps(out, indent=2))
+        return
+    ch = r.recommender
+    typer.echo(f"recommender {r.run.manifest.recommender}  flags {len(rows)}"
+               + (f"  model calls {ch.calls}  cache hits {ch.cache_hits}  fallbacks {len(ch.fallbacks)}"
+                  if hasattr(ch, "calls") else ""))
+    typer.echo(_table(["company", "rule", "severity", "source", "choice", "booked", "label"], rows))
+    if getattr(ch, "fallbacks", None):
+        typer.echo(f"\nfell back to the policy default ({len(ch.fallbacks)}):")
+        for line in ch.fallbacks[:10]:
+            typer.echo(f"  {line}")
+        if len(ch.fallbacks) > 10:
+            typer.echo(f"  … {len(ch.fallbacks) - 10} more")
+
+
 def _open_when_up(url: str, health: str, timeout: float = 30.0) -> None:
     """Poll /api/health from a thread, then open the browser. Never raises into the server."""
     import urllib.request
@@ -357,14 +399,16 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
         no_browser: bool = typer.Option(False, "--no-browser", help="Do not open a browser tab"),
         watch: bool = typer.Option(False, "--watch", help="Recompute when the workbook, policy or a ledger changes; "
                                                           "the open dashboard reloads itself"),
-        provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt) -> None:
+        provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt,
+        recommender: Optional[str] = RecommenderOpt) -> None:
     """Compute the run, serve the dashboard and API, open a browser. With --watch, a new
     workbook dropped in place (or an edited policy / ledger) re-runs and refreshes the page."""
     import uvicorn
 
     from .api.app import STATIC_DIR, create_app, watch_inputs
 
-    application = create_app(_paths(input_path, policy), provider=provider, refresh_market=refresh_market)
+    application = create_app(_paths(input_path, policy), provider=provider, refresh_market=refresh_market,
+                             recommender=recommender)
     typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")

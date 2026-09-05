@@ -19,6 +19,7 @@
      "family": "treatment",
      "message": "HC did not follow its pro rata, so ownership fell 13.6% \u2192 10.8% (-20.6%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-103",
      "severity": "MONITOR",
      "suggestions": []
@@ -32,6 +33,7 @@
      "family": "valuation",
      "message": "Carried at 38\u00d7 revenue (sector comp 7.1\u00d7), growing +83%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -103,6 +105,7 @@
      "family": "staleness",
      "message": "Last priced 26 months ago (2024-07-05) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -119,6 +122,20 @@
       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
       "The round that saves it **may be priced below this mark**."
      ],
+     "recommendation": {
+      "booked": 8.1,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "Cash on hand does not change the last-round price.",
+       "The runway is tracked; the next round will reprice it."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-304",
      "severity": "REVIEW",
      "suggestions": [
@@ -258,6 +275,7 @@
      "family": "treatment",
      "message": "HC did not follow its pro rata, so ownership fell 7.6% \u2192 5.5% (-27.6%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-103",
      "severity": "MONITOR",
      "suggestions": []
@@ -271,6 +289,7 @@
      "family": "valuation",
      "message": "Carried at 42\u00d7 revenue (sector comp 9.2\u00d7), growing +186%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -342,6 +361,7 @@
      "family": "treatment",
      "message": "The company raised a bridge note that HC did not fund (cap $32.0M, +42% vs last round). A cap is not a price, so the mark is unchanged and there is nothing to decide.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-108",
      "severity": "MONITOR",
      "suggestions": []
@@ -355,6 +375,7 @@
      "family": "valuation",
      "message": "Carried at 32\u00d7 revenue (sector comp 13.0\u00d7), growing +207%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -504,6 +525,20 @@
       "Policy weights it at **0.90** \u2192 **$4.31M**.",
       "Alternatives: **$4.79M** at full value, **$3.50M** held at prior."
      ],
+     "recommendation": {
+      "booked": 4.3092,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Ratify the 0.90-weighted mark of $4.31M.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "Reflects a signed agreement with a real chance of not closing.",
+       "Policy default for an announced, unclosed deal."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-101",
      "severity": "BLOCK",
      "suggestions": [
@@ -549,6 +584,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 4.3092,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -646,6 +695,7 @@
      "family": "treatment",
      "message": "A term sheet indicates ~$50.0M against the $31.3M the mark rests on. It is non-binding and diligence is open, so nothing is booked from it \u2014 this is disclosure only.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-109",
      "severity": "MONITOR",
      "suggestions": []
@@ -663,6 +713,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 2.7,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -755,6 +819,7 @@
      "family": "treatment",
      "message": "HC did not follow its pro rata, so ownership fell 5.2% \u2192 3.8% (-26.9%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-103",
      "severity": "MONITOR",
      "suggestions": []
@@ -826,6 +891,7 @@
      "family": "valuation",
      "message": "Carried at 36\u00d7 revenue (sector comp 10.6\u00d7), growing +271%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -1001,6 +1067,20 @@
       "One buyer taking one block is real evidence but **may not be the principal market**.",
       "On the secondary price the remaining stake would be **$8.29M** instead."
      ],
+     "recommendation": {
+      "booked": 8.772,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the remaining stake at the last-round price.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "The round is the principal market; one block sale is weaker evidence.",
+       "Policy default \u2014 the secondary is recorded as an alternative mark."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-104",
      "severity": "REVIEW",
      "suggestions": [
@@ -1094,6 +1174,7 @@
      "family": "valuation",
      "message": "Carried at 50\u00d7 revenue (sector comp 22.7\u00d7), growing +125%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -1169,6 +1250,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 13.9,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -1246,6 +1341,20 @@
       "**No price discovery**: nobody re-tested what the company is worth.",
       "Last real price was **59 months ago** (2021-10-08)."
      ],
+     "recommendation": {
+      "booked": 13.9277,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark on the extension price as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "New money came in at that price, even without a new lead.",
+       "Nothing in the file says the company is worth less."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-106",
      "severity": "REVIEW",
      "suggestions": [
@@ -1273,6 +1382,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 13.9277,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -1354,6 +1477,7 @@
      "family": "staleness",
      "message": "Last priced 34 months ago (2023-11-09) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -1520,6 +1644,20 @@
       "Ownership \u00d7 post-money **ignores liquidation preference** and pay-to-play.",
       "So the mark is a **ceiling**, not an estimate \u2014 the terms sit in the round documents."
      ],
+     "recommendation": {
+      "booked": 1.136,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Book the recap figure as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "It is the only priced transaction and reflects the new capital structure.",
+       "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-102",
      "severity": "BLOCK",
      "suggestions": [
@@ -1552,6 +1690,7 @@
      "family": "treatment",
      "message": "The notes say the round was insider-led (M-012). Existing investors re-pricing their own position is weaker evidence than a new lead, though not a related-party price for HC itself.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-118",
      "severity": "MONITOR",
      "suggestions": []
@@ -1568,6 +1707,20 @@
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
+     "recommendation": {
+      "booked": 1.136,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "The last round is still the latest priced transaction.",
+       "The decline is recorded and will price into the next round."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-302",
      "severity": "REVIEW",
      "suggestions": [
@@ -1649,6 +1802,7 @@
      "family": "staleness",
      "message": "Last priced 35 months ago (2023-10-09) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -1665,6 +1819,20 @@
       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
       "The round that saves it **may be priced below this mark**."
      ],
+     "recommendation": {
+      "booked": 24.1,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "Cash on hand does not change the last-round price.",
+       "The runway is tracked; the next round will reprice it."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-304",
      "severity": "REVIEW",
      "suggestions": [
@@ -1796,6 +1964,7 @@
      "family": "staleness",
      "message": "Last priced 43 months ago (2023-02-23) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -1859,6 +2028,7 @@
      "family": "staleness",
      "message": "Last priced 37 months ago (2023-08-13) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -1922,6 +2092,7 @@
      "family": "staleness",
      "message": "Last priced 27 months ago (2024-06-23) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -1985,6 +2156,7 @@
      "family": "staleness",
      "message": "Last priced 31 months ago (2024-02-14) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2048,6 +2220,7 @@
      "family": "staleness",
      "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2061,6 +2234,7 @@
      "family": "valuation",
      "message": "Carried at 30\u00d7 revenue (sector comp 11.3\u00d7), growing +270%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -2080,6 +2254,20 @@
       "Screen: **carried above the multiple screen** (30\u00d7 revenue, growing +270%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
+     "recommendation": {
+      "booked": 1.4,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-405",
      "severity": "REVIEW",
      "suggestions": [
@@ -2153,6 +2341,7 @@
      "family": "staleness",
      "message": "Last priced 27 months ago (2024-06-24) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2169,6 +2358,20 @@
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
+     "recommendation": {
+      "booked": 18.5,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "The last round is still the latest priced transaction.",
+       "The decline is recorded and will price into the next round."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-302",
      "severity": "REVIEW",
      "suggestions": [
@@ -2251,6 +2454,7 @@
      "family": "valuation",
      "message": "Carried at 54\u00d7 revenue (sector comp 22.7\u00d7), growing +194%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -2322,6 +2526,20 @@
       "HC **cannot sell until 2027-03-19**.",
       "Policy applies a **0%** lock-up discount (ASC 820 disfavors blockage on Level 1) \u2014 a committee call, not arithmetic."
      ],
+     "recommendation": {
+      "booked": 110.068,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Book the 30 Sep close with the 0% lock-up discount, as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "Level 1: the quoted price is fair value under ASC 820.",
+       "Blockage discounts on quoted prices are disfavored."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-101",
      "severity": "BLOCK",
      "suggestions": [
@@ -2416,6 +2634,7 @@
      "family": "valuation",
      "message": "Carried at 2.3\u00d7 revenue (sector comp 10.6\u00d7), growing +42%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-402",
      "severity": "MONITOR",
      "suggestions": []
@@ -2479,6 +2698,7 @@
      "family": "staleness",
      "message": "Last priced 31 months ago (2024-02-20) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2542,6 +2762,7 @@
      "family": "staleness",
      "message": "Last priced 38 months ago (2023-07-09) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2605,6 +2826,7 @@
      "family": "staleness",
      "message": "Last priced 33 months ago (2023-12-12) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2668,6 +2890,7 @@
      "family": "staleness",
      "message": "Last priced 47 months ago (2022-10-22) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2731,6 +2954,7 @@
      "family": "staleness",
      "message": "Last priced 30 months ago (2024-03-03) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2747,6 +2971,20 @@
       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
       "The round that saves it **may be priced below this mark**."
      ],
+     "recommendation": {
+      "booked": 14.3,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "Cash on hand does not change the last-round price.",
+       "The runway is tracked; the next round will reprice it."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-304",
      "severity": "REVIEW",
      "suggestions": [
@@ -2829,6 +3067,7 @@
      "family": "staleness",
      "message": "Last priced 27 months ago (2024-06-08) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -2946,6 +3185,7 @@
      "family": "staleness",
      "message": "Last priced 26 months ago (2024-07-24) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -3009,6 +3249,7 @@
      "family": "staleness",
      "message": "Last priced 40 months ago (2023-05-09) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -3077,6 +3318,20 @@
       "Ownership \u00d7 post-money **ignores liquidation preference** and pay-to-play.",
       "So the mark is a **ceiling**, not an estimate \u2014 the terms sit in the round documents."
      ],
+     "recommendation": {
+      "booked": 2.331,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Book the recap figure as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "It is the only priced transaction and reflects the new capital structure.",
+       "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-102",
      "severity": "BLOCK",
      "suggestions": [
@@ -3110,6 +3365,7 @@
      "family": "treatment",
      "message": "HC did not follow its pro rata, so ownership fell 8.0% \u2192 6.3% (-21.3%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-103",
      "severity": "MONITOR",
      "suggestions": []
@@ -3123,6 +3379,7 @@
      "family": "treatment",
      "message": "The notes say the round was insider-led (M-012). Existing investors re-pricing their own position is weaker evidence than a new lead, though not a related-party price for HC itself.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-118",
      "severity": "MONITOR",
      "suggestions": []
@@ -3135,6 +3392,7 @@
      "family": "growth",
      "message": "Revenue is down -8% year on year \u2014 mild, but the wrong direction.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-301",
      "severity": "MONITOR",
      "suggestions": []
@@ -3206,6 +3464,7 @@
      "family": "staleness",
      "message": "Last priced 33 months ago (2023-12-18) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -3219,6 +3478,7 @@
      "family": "valuation",
      "message": "Carried at 31\u00d7 revenue (sector comp 13.0\u00d7), growing +51%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -3238,6 +3498,20 @@
       "Screen: **carried above the multiple screen** (31\u00d7 revenue, growing +51%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
+     "recommendation": {
+      "booked": 7.3,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-405",
      "severity": "REVIEW",
      "suggestions": [
@@ -3323,6 +3597,20 @@
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
+     "recommendation": {
+      "booked": 1.6,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "The last round is still the latest priced transaction.",
+       "The decline is recorded and will price into the next round."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-302",
      "severity": "REVIEW",
      "suggestions": [
@@ -3396,6 +3684,7 @@
      "family": "staleness",
      "message": "Last priced 37 months ago (2023-08-28) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -3459,6 +3748,7 @@
      "family": "valuation",
      "message": "Carried at 40\u00d7 revenue (sector comp 11.3\u00d7), growing +116%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -3570,6 +3860,7 @@
      "family": "valuation",
      "message": "At $0.3M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-403",
      "severity": "MONITOR",
      "suggestions": []
@@ -3632,6 +3923,7 @@
      "family": "growth",
      "message": "Revenue is down -11% year on year \u2014 mild, but the wrong direction.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-301",
      "severity": "MONITOR",
      "suggestions": []
@@ -3695,6 +3987,7 @@
      "family": "staleness",
      "message": "Last priced 42 months ago (2023-03-06) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -3758,6 +4051,7 @@
      "family": "staleness",
      "message": "Last priced 32 months ago (2024-01-03) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -3771,6 +4065,7 @@
      "family": "valuation",
      "message": "Carried at 1.0\u00d7 revenue (sector comp 5.8\u00d7), growing +85%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-402",
      "severity": "MONITOR",
      "suggestions": []
@@ -3790,6 +4085,20 @@
       "Screen: **carried below the multiple screen** (1\u00d7 revenue, growing +85%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
+     "recommendation": {
+      "booked": 0.6,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-405",
      "severity": "REVIEW",
      "suggestions": [
@@ -3863,6 +4172,7 @@
      "family": "staleness",
      "message": "Last priced 31 months ago (2024-02-02) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -3979,6 +4289,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 43.3,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -4005,6 +4329,20 @@
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
+     "recommendation": {
+      "booked": 43.3,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "The last round is still the latest priced transaction.",
+       "The decline is recorded and will price into the next round."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-302",
      "severity": "REVIEW",
      "suggestions": [
@@ -4141,6 +4479,20 @@
       "A cap is a **ceiling on a future conversion**, not a price \u2014 the equity mark cannot move.",
       "The new money is carried **separately at cost** until it converts."
      ],
+     "recommendation": {
+      "booked": 6.6,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "A cap is not a price; cost is the only observable value for the note.",
+       "Standard treatment until the note converts."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-107",
      "severity": "REVIEW",
      "suggestions": [
@@ -4173,6 +4525,7 @@
      "family": "staleness",
      "message": "Last priced 40 months ago (2023-05-14) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -4189,6 +4542,20 @@
       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
       "The round that saves it **may be priced below this mark**."
      ],
+     "recommendation": {
+      "booked": 6.6,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "Cash on hand does not change the last-round price.",
+       "The runway is tracked; the next round will reprice it."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-304",
      "severity": "REVIEW",
      "suggestions": [
@@ -4291,6 +4658,7 @@
      "family": "valuation",
      "message": "Carried at 48\u00d7 revenue (sector comp 22.7\u00d7), growing +98%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -4354,6 +4722,7 @@
      "family": "staleness",
      "message": "Last priced 35 months ago (2023-10-14) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -4367,6 +4736,7 @@
      "family": "valuation",
      "message": "Carried at 33\u00d7 revenue (sector comp 7.1\u00d7), growing +103%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -4380,6 +4750,7 @@
      "family": "valuation",
      "message": "Carrying a 6.6\u00d7 return on a price set 35 months ago \u2014 a large unrealised gain resting on an old mark.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-404",
      "severity": "MONITOR",
      "suggestions": []
@@ -4400,6 +4771,20 @@
       "Screen: **carried above the multiple screen; an outsized unrealised gain** (33\u00d7 revenue, growing +103%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
+     "recommendation": {
+      "booked": 26.5,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-405",
      "severity": "REVIEW",
      "suggestions": [
@@ -4775,6 +5160,7 @@
      "family": "staleness",
      "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -4787,6 +5173,7 @@
      "family": "growth",
      "message": "Revenue is down -5% year on year \u2014 mild, but the wrong direction.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-301",
      "severity": "MONITOR",
      "suggestions": []
@@ -4806,6 +5193,20 @@
       "Screen: **revenue now shrinking** (5\u00d7 revenue, growing -5%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
+     "recommendation": {
+      "booked": 6.6,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-405",
      "severity": "REVIEW",
      "suggestions": [
@@ -4892,6 +5293,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 21.3,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -4968,6 +5383,20 @@
       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
       "The round that saves it **may be priced below this mark**."
      ],
+     "recommendation": {
+      "booked": 7.3,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "Cash on hand does not change the last-round price.",
+       "The runway is tracked; the next round will reprice it."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-304",
      "severity": "REVIEW",
      "suggestions": [
@@ -5148,6 +5577,7 @@
      "family": "staleness",
      "message": "Last priced 44 months ago (2023-01-12) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -5211,6 +5641,7 @@
      "family": "staleness",
      "message": "Last priced 33 months ago (2023-12-07) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -5227,6 +5658,20 @@
       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
       "The round that saves it **may be priced below this mark**."
      ],
+     "recommendation": {
+      "booked": 1.7,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "Cash on hand does not change the last-round price.",
+       "The runway is tracked; the next round will reprice it."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-304",
      "severity": "REVIEW",
      "suggestions": [
@@ -5358,6 +5803,7 @@
      "family": "staleness",
      "message": "Last priced 28 months ago (2024-05-06) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -5370,6 +5816,7 @@
      "family": "valuation",
      "message": "At $0.2M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-403",
      "severity": "MONITOR",
      "suggestions": []
@@ -5531,6 +5978,7 @@
      "family": "staleness",
      "message": "Last priced 44 months ago (2023-01-30) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -5593,6 +6041,7 @@
      "family": "valuation",
      "message": "At $0.1M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-403",
      "severity": "MONITOR",
      "suggestions": []
@@ -5656,6 +6105,7 @@
      "family": "staleness",
      "message": "Last priced 28 months ago (2024-05-23) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -5668,6 +6118,7 @@
      "family": "liquidity",
      "message": "About 11.6 months of cash left \u2014 enough to reach a raise, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-303",
      "severity": "MONITOR",
      "suggestions": []
@@ -5731,6 +6182,7 @@
      "family": "staleness",
      "message": "Last priced 37 months ago (2023-08-01) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -5743,6 +6195,7 @@
      "family": "valuation",
      "message": "At $0.4M of revenue the multiple screen produces numbers that mean nothing except that the denominator is small. Companies this early are valued on team and product, so the screen is skipped rather than reported.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-403",
      "severity": "MONITOR",
      "suggestions": []
@@ -5806,6 +6259,7 @@
      "family": "staleness",
      "message": "Last priced 45 months ago (2022-12-30) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -6015,6 +6469,7 @@
      "family": "staleness",
      "message": "Last priced 38 months ago (2023-07-20) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -6234,6 +6689,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 0.7,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -6257,6 +6726,7 @@
      "family": "valuation",
      "message": "Carried at 1.7\u00d7 revenue (sector comp 10.6\u00d7), growing +101%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-402",
      "severity": "MONITOR",
      "suggestions": []
@@ -6320,6 +6790,7 @@
      "family": "staleness",
      "message": "Last priced 48 months ago (2022-09-02) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -6436,6 +6907,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 68.4,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -6459,6 +6944,7 @@
      "family": "valuation",
      "message": "Carrying a 6.3\u00d7 return on a price set 52 months ago \u2014 a large unrealised gain resting on an old mark.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-404",
      "severity": "MONITOR",
      "suggestions": []
@@ -6522,6 +7008,7 @@
      "family": "staleness",
      "message": "Last priced 33 months ago (2023-12-06) \u2014 normal at this stage, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-201",
      "severity": "MONITOR",
      "suggestions": []
@@ -6534,6 +7021,7 @@
      "family": "liquidity",
      "message": "About 7.1 months of cash left \u2014 enough to reach a raise, worth watching.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-303",
      "severity": "MONITOR",
      "suggestions": []
@@ -6649,6 +7137,20 @@
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
+     "recommendation": {
+      "booked": 1.7,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "The last round is still the latest priced transaction.",
+       "The decline is recorded and will price into the next round."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-302",
      "severity": "REVIEW",
      "suggestions": [
@@ -6672,6 +7174,7 @@
      "family": "valuation",
      "message": "Carried at 32\u00d7 revenue (sector comp 11.3\u00d7), growing -30%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -6735,6 +7238,7 @@
      "family": "valuation",
      "message": "Carried at 35\u00d7 revenue (sector comp 9.2\u00d7), growing +62%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -6900,6 +7404,20 @@
       "Companies at this stage normally **reprice every 18\u201324 months**.",
       "This price **predates two funding cycles** \u2014 and probably the business it describes."
      ],
+     "recommendation": {
+      "booked": 2.1,
+      "confidence": null,
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "model": null,
+      "note": null,
+      "rationale": null,
+      "reasons": [
+       "No transaction or metric in the file says the value moved.",
+       "Staleness alone is not evidence of a decline."
+      ],
+      "source": "policy"
+     },
      "rule_id": "X-202",
      "severity": "REVIEW",
      "suggestions": [
@@ -7022,6 +7540,7 @@
      "family": "valuation",
      "message": "Carried at 46\u00d7 revenue (sector comp 10.6\u00d7), growing +199%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
+     "recommendation": null,
      "rule_id": "X-401",
      "severity": "MONITOR",
      "suggestions": []
@@ -7127,6 +7646,7 @@
   "policy_version": "2026Q3-0.1",
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
+  "recommender": "policy",
   "run_id": "d8c4f428fa0b"
  },
  "open_items": [

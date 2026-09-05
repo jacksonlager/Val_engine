@@ -14,7 +14,7 @@
 // `**bold**` inside a point marks the words that carry the decision; nothing else in the
 // string is markup, and an unmatched `**` renders literally rather than eating the text.
 import { Fragment, useState } from "react";
-import type { CompanyResult, Flag, Suggestion } from "../types";
+import type { CompanyResult, Flag, Recommendation, Suggestion } from "../types";
 import { postOverride } from "../lib/api";
 import { isoDate, musd, signClass, signed } from "../lib/format";
 import { DispChip, Field, Modal, WriteButton } from "./ui";
@@ -105,7 +105,9 @@ function SuggestionConfirmModal({
   onDone: () => void;
 }) {
   const [approver, setApprover] = useState("");
-  const [reason, setReason] = useState(`Suggested (${f.rule_id}): ${s.label} ${s.reasons.join(" ")}`);
+  const rec = f.recommendation && f.recommendation.key === s.key ? f.recommendation : null;
+  const who = rec ? (rec.source === "claude" ? `Recommended by Claude (${rec.model ?? "model"})` : "Policy default") : "Engine option";
+  const [reason, setReason] = useState(`${who} (${f.rule_id}): ${s.label} ${s.reasons.join(" ")}`);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const delta = s.booked - c.proposed_mark;
@@ -113,9 +115,12 @@ function SuggestionConfirmModal({
   const valid = approver.trim().length > 0 && reason.trim().length > 0;
   return (
     <Modal title={`Confirm · ${c.company} · ${f.rule_id}`} onClose={onClose}>
-      <p className="text-[13.5px] font-semibold leading-snug mb-1">{s.label}</p>
+      <div className="flex items-center gap-2 mb-1">
+        <p className="text-[13.5px] font-semibold leading-snug m-0">{rec ? rec.label : s.label}</p>
+        {rec && <SourceChip rec={rec} />}
+      </div>
       <ul className="flag-points mb-3">
-        {s.reasons.map((r, i) => (
+        {(rec ? rec.reasons : s.reasons).map((r, i) => (
           <li key={i}>{r}</li>
         ))}
       </ul>
@@ -192,7 +197,69 @@ function decidedOn(c: CompanyResult, f: Flag): { s?: Suggestion; booked: number;
   return { s: key ? f.suggestions.find((s) => s.key === key) : undefined, booked: o.booked, approver: o.approver, at: o.created_at };
 }
 
-/** The menu: one card per suggestion, the whole card is the button. */
+/** Who chose the recommendation, as a chip. */
+function SourceChip({ rec }: { rec: Recommendation }) {
+  if (rec.source === "claude") {
+    return (
+      <span className="chip chip-ai" title={`Chosen by ${rec.model ?? "Claude"} among the engine's priced options${rec.confidence !== null ? ` · confidence ${Math.round(rec.confidence * 100)}%` : ""}`}>
+        Claude
+      </span>
+    );
+  }
+  return (
+    <span className="chip disp-NONE" title={rec.note ?? "The rule's own default resolution"}>
+      policy default
+    </span>
+  );
+}
+
+/** One card: the resolution put forward. Label and reasons from the recommendation, the number
+    from the engine's suggestion it names. */
+function RecommendationCard({
+  c,
+  f,
+  rec,
+  s,
+  writeDisabled,
+  onPick,
+  isCurrent,
+}: {
+  c: CompanyResult;
+  f: Flag;
+  rec: Recommendation;
+  s: Suggestion;
+  writeDisabled: string | null;
+  onPick: (s: Suggestion) => void;
+  isCurrent: boolean;
+}) {
+  const delta = s.booked - c.proposed_mark;
+  return (
+    <WriteButton disabledReason={writeDisabled} className={`suggest primary ${isCurrent ? "current" : ""}`} onClick={() => onPick(s)}>
+      <span className="flex items-center justify-between gap-2">
+        <span className="suggest-label">{rec.label}</span>
+        <SourceChip rec={rec} />
+      </span>
+      <ul className="suggest-why">
+        {rec.reasons.map((r, i) => (
+          <li key={i}>{r}</li>
+        ))}
+      </ul>
+      {rec.rationale && <span className="suggest-rationale">{rec.rationale}</span>}
+      {rec.note && <span className="suggest-rationale">{rec.note}</span>}
+      <span className="suggest-foot">
+        <span className="num">
+          {musd(s.booked)}
+          <span className={`ml-1 text-[10.5px] ${signClass(delta)}`}>
+            {Math.abs(delta) < 5e-3 ? "as proposed" : `(${signed(delta)})`}
+          </span>
+        </span>
+        <span className="suggest-cta">{isCurrent ? "current" : `Select for ${f.rule_id}`}</span>
+      </span>
+    </WriteButton>
+  );
+}
+
+/** The recommendation first; the engine's other priced options behind a disclosure. */
 export function SuggestionCards({
   c,
   f,
@@ -208,6 +275,12 @@ export function SuggestionCards({
   const [change, setChange] = useState(false);
   const decided = decidedOn(c, f);
   if (f.suggestions.length === 0) return null;
+  // a server that predates recommendations: the rule's first suggestion stands in as the policy default
+  const rec: Recommendation =
+    f.recommendation ?? { key: f.suggestions[0].key, label: f.suggestions[0].label, reasons: f.suggestions[0].reasons,
+      booked: f.suggestions[0].booked, source: "policy", model: null, rationale: null, confidence: null, note: null };
+  const chosen = f.suggestions.find((s) => s.key === rec.key) ?? f.suggestions[0];
+  const others = f.suggestions.filter((s) => s.key !== chosen.key);
 
   if (decided && !change) {
     return (
@@ -228,36 +301,47 @@ export function SuggestionCards({
 
   return (
     <>
-      <div className="suggest-grid">
-        {f.suggestions.map((s) => {
-          const delta = s.booked - c.proposed_mark;
-          const isCurrent = decided && Math.abs(decided.booked - s.booked) < 1e-6;
-          return (
-            <WriteButton
-              key={s.key}
-              disabledReason={writeDisabled}
-              className={`suggest ${isCurrent ? "current" : ""}`}
-              onClick={() => setPick(s)}
-            >
-              <span className="suggest-label">{s.label}</span>
-              <ul className="suggest-why">
-                {s.reasons.map((r, i) => (
-                  <li key={i}>{r}</li>
-                ))}
-              </ul>
-              <span className="suggest-foot">
-                <span className="num">
-                  {musd(s.booked)}
-                  <span className={`ml-1 text-[10.5px] ${signClass(delta)}`}>
-                    {Math.abs(delta) < 5e-3 ? "as proposed" : `(${signed(delta)})`}
+      <RecommendationCard
+        c={c}
+        f={f}
+        rec={rec}
+        s={chosen}
+        writeDisabled={writeDisabled}
+        onPick={setPick}
+        isCurrent={!!decided && Math.abs(decided.booked - chosen.booked) < 1e-6}
+      />
+      {others.length > 0 && (
+        <details className="suggest-others">
+          <summary>
+            Other engine-priced option{others.length === 1 ? "" : "s"} ({others.length})
+          </summary>
+          <div className="suggest-grid mt-1.5">
+            {others.map((s) => {
+              const delta = s.booked - c.proposed_mark;
+              const isCurrent = !!decided && Math.abs(decided.booked - s.booked) < 1e-6;
+              return (
+                <WriteButton key={s.key} disabledReason={writeDisabled} className={`suggest ${isCurrent ? "current" : ""}`} onClick={() => setPick(s)}>
+                  <span className="suggest-label">{s.label}</span>
+                  <ul className="suggest-why">
+                    {s.reasons.map((r, i) => (
+                      <li key={i}>{r}</li>
+                    ))}
+                  </ul>
+                  <span className="suggest-foot">
+                    <span className="num">
+                      {musd(s.booked)}
+                      <span className={`ml-1 text-[10.5px] ${signClass(delta)}`}>
+                        {Math.abs(delta) < 5e-3 ? "as proposed" : `(${signed(delta)})`}
+                      </span>
+                    </span>
+                    <span className="suggest-cta">{isCurrent ? "current" : "Select"}</span>
                   </span>
-                </span>
-                <span className="suggest-cta">{isCurrent ? "current" : "Select"}</span>
-              </span>
-            </WriteButton>
-          );
-        })}
-      </div>
+                </WriteButton>
+              );
+            })}
+          </div>
+        </details>
+      )}
       {decided && change && (
         <button className="btn btn-ghost mt-1 text-[11px]" onClick={() => setChange(false)}>
           Keep current decision
@@ -322,7 +406,7 @@ export function FlagActionList({
             </div>
             {f.suggestions.length > 0 && (
               <div className="flag-do">
-                <div className="eyebrow-sm">Suggested resolutions</div>
+                <div className="eyebrow-sm">Recommended resolution</div>
                 <SuggestionCards c={c} f={f} writeDisabled={writeDisabled} onChanged={onChanged} />
               </div>
             )}

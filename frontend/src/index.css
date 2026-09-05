@@ -2,61 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Palette. Neutrals are green-biased on a cool paper ground; the accent is used only
-   for focus, links and the active tab. Semantic disposition colors are separate from
-   the accent and were validated with the dataviz palette validator in both modes
-   (light: #b91c1c #b8860b #6d4fc2 #2f7d4f; dark: #d84e62 #ad9200 #8a7ad8 #3a9a5e). */
+/* Palette — Human Capital's own: a warm greige ground (#ebeae4), near-black ink (#171614),
+   warm greys for secondary text (#423e35, #78746d), paper surfaces (#f9f8f0, #eeece1) and a
+   taupe hairline (#b8b1a4), as on human.capital. The site is monochrome, so the "accent" is the
+   ink itself; disposition hues are separate, warmed to sit on this ground, and validated with
+   the dataviz palette validator (light: #b23a2b #a37a12 #5e52a8 #3f7f4e all pass; dark keeps
+   the previously validated #d84e62 #ad9200 #8a7ad8 #3a9a5e on a warm dark surface). */
 :root {
   color-scheme: light;
-  --ground: #f3f6f2;
-  --surface: #fbfcfa;
-  --raised: #ffffff;
-  --ink: #16211b;
-  --ink-2: #4d5c53;
-  --muted: #7d8b83;
-  --hairline: #e3e9e4;
-  --border: #cfd8d1;
-  --accent: #2456c9;
-  --accent-ink: #ffffff;
+  --ground: #ebeae4;
+  --surface: #f9f8f0;
+  --raised: #fdfcf7;
+  --ink: #171614;
+  --ink-2: #423e35;
+  --muted: #78746d;
+  --hairline: #dedbd1;
+  --border: #b8b1a4;
+  --accent: #171614;
+  --accent-ink: #f9f8f0;
 
-  --block: #b91c1c;
-  --review: #b8860b;
-  --monitor: #6d4fc2;
-  --clear: #2f7d4f;
-  --block-text: #a11a1a;
-  --review-text: #8a6408;
-  --monitor-text: #5b3fb0;
-  --clear-text: #256a42;
-  --block-wash: rgba(185, 28, 28, 0.10);
-  --review-wash: rgba(184, 134, 11, 0.13);
-  --monitor-wash: rgba(109, 79, 194, 0.11);
-  --clear-wash: rgba(47, 125, 79, 0.11);
+  --block: #b23a2b;
+  --review: #a37a12;
+  --monitor: #5e52a8;
+  --clear: #3f7f4e;
+  --block-text: #9a3224;
+  --review-text: #7d5d0b;
+  --monitor-text: #4d4292;
+  --clear-text: #316a40;
+  --block-wash: rgba(178, 58, 43, 0.10);
+  --review-wash: rgba(163, 122, 18, 0.13);
+  --monitor-wash: rgba(94, 82, 168, 0.11);
+  --clear-wash: rgba(63, 127, 78, 0.11);
 
-  --up: #256a42;
-  --down: #b91c1c;
-  --up-mark: #2f7d4f;
-  --down-mark: #b91c1c;
-  --neutral-mark: #8b978f;
-  --series-1: #2f6ecf;
-  --series-1-soft: #a9c4ee;
-  --grid: #e3e9e4;
-  --axis: #cfd8d1;
-  --tooltip-bg: #ffffff;
+  --up: #316a40;
+  --down: #9a3224;
+  --up-mark: #3f7f4e;
+  --down-mark: #b23a2b;
+  --neutral-mark: #9b958a;
+  --series-1: #423e35;
+  --series-1-soft: #c9c3b6;
+  --grid: #dedbd1;
+  --axis: #b8b1a4;
+  --tooltip-bg: #fdfcf7;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --ground: #121614;
-    --surface: #181e1a;
-    --raised: #1f2622;
-    --ink: #eef2ee;
-    --ink-2: #b3bfb6;
-    --muted: #7f8c84;
-    --hairline: #2a332d;
-    --border: #35403a;
-    --accent: #7aa2f0;
-    --accent-ink: #0d1424;
+    --ground: #171614;
+    --surface: #201f1b;
+    --raised: #2a2823;
+    --ink: #eeece1;
+    --ink-2: #c9c4b7;
+    --muted: #8f8a7e;
+    --hairline: #2f2d27;
+    --border: #423e35;
+    --accent: #f9f8f0;
+    --accent-ink: #171614;
 
     --block: #d84e62;
     --review: #ad9200;
@@ -75,12 +77,12 @@
     --down: #f08a97;
     --up-mark: #3a9a5e;
     --down-mark: #d84e62;
-    --neutral-mark: #6f7b74;
-    --series-1: #5b8fe0;
-    --series-1-soft: #2d4a78;
-    --grid: #2a332d;
-    --axis: #35403a;
-    --tooltip-bg: #1f2622;
+    --neutral-mark: #6e6a60;
+    --series-1: #d8d3c6;
+    --series-1-soft: #5a564c;
+    --grid: #2f2d27;
+    --axis: #423e35;
+    --tooltip-bg: #2a2823;
   }
 }
 
@@ -219,6 +221,12 @@ details[open] > summary::before { content: "▾ "; }
   margin-top: auto; padding-top: 4px; border-top: 1px solid var(--hairline); font-size: 12px;
 }
 .suggest-cta { font-size: 11px; font-weight: 600; color: var(--accent); }
+.suggest.primary { border-color: color-mix(in srgb, var(--ink) 35%, var(--border)); }
+.suggest-rationale { font-size: 11px; line-height: 1.35; color: var(--muted); font-style: italic; }
+.suggest-others { margin-top: 6px; }
+.suggest-others > summary { font-size: 11px; color: var(--muted); cursor: pointer; select: none; }
+.suggest-others > summary:hover { color: var(--ink-2); }
+.chip-ai { --c: var(--ink); --ct: var(--ink); --cw: color-mix(in srgb, var(--ink) 10%, transparent); }
 .suggest.current .suggest-cta { color: var(--clear-text, var(--clear)); }
 /* a read-only export cannot take a decision: the call to action loses its accent */
 .suggest:disabled .suggest-cta { color: var(--muted); }
