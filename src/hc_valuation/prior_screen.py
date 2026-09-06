@@ -58,10 +58,13 @@ def screen_prior_close(snapshot: PortfolioSnapshot, cfg: RuleConfig, market: Mar
 
 
 def prior_screen_for(result: Any) -> dict[str, dict[str, Any]] | None:
-    """The reconstruction for a PipelineResult, computed once and kept on it. None when the
-    result has no snapshot (a run assembled by hand) — the archive then simply has no prior flags."""
+    """The reconstruction for a PipelineResult, computed once and kept on it.
+
+    None — no prior flags in the archive, which the panel reports as "not on record" — unless
+    the policy asks for it (`history.reconstruct_prior_flags`), or when the result carries no
+    snapshot (a run assembled by hand)."""
     snap = getattr(result, "snapshot", None)
-    if snap is None:
+    if snap is None or not result.config.history.reconstruct_prior_flags:
         return None
     cached = getattr(result, "prior_screen", None)
     if cached is None:

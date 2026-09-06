@@ -124,6 +124,9 @@ body {
 .prior-pill { opacity: .92; border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); padding-top: 0; padding-bottom: 0; }
 .prior-pill .prior-q { font-family: var(--mono, ui-monospace, monospace); font-size: 10px; letter-spacing: .02em; opacity: .8; }
 .prior-pill .prior-arrow { margin-left: 2px; opacity: .7; }
+/* the quarter whose flags nobody released: stated, not guessed at */
+.chip.prior-none { color: var(--muted); border: 1px dashed var(--border); background: transparent; font-weight: 500; }
+.fh-row.fh-none { opacity: .85; }
 /* the flag-history rows in the detail panel */
 .fh { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
 .fh-row { display: grid; grid-template-columns: 44px auto 1fr auto; align-items: center; gap: 6px; padding: 3px 0; border-top: 1px solid var(--hairline); }
@@ -212,6 +215,27 @@ details[open] > summary::before { content: "▾ "; }
 @media (min-width: 980px) { .flag-row { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); } }
 .flag-why { min-width: 0; }
 .flag-do { min-width: 0; }
+/* the rule's arithmetic, folded away: a reviewer reads the rationale, an auditor opens this */
+.step-io > summary {
+  font-size: 11px; color: var(--muted); cursor: pointer; list-style: none;
+  display: inline-flex; align-items: center; gap: 5px; user-select: none;
+}
+.step-io > summary::-webkit-details-marker { display: none; }
+.step-io > summary::before { content: "\25B8"; font-size: 9px; transition: transform .12s ease; }
+.step-io[open] > summary::before { transform: rotate(90deg); }
+.step-io > summary:hover { color: var(--ink-2); }
+
+/* MONITOR findings: one line, no card — they are context beside a decision, not a decision */
+.note-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.note-row {
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: baseline; gap: 8px;
+  padding: 4px 0; border-top: 1px solid var(--hairline); font-size: 12px;
+}
+.note-row:first-child { border-top: 0; }
+.note-family { font-size: 10.5px; color: var(--muted); letter-spacing: .02em; }
+.note-text { color: var(--ink-2); line-height: 1.45; }
+@media (max-width: 640px) { .note-row { grid-template-columns: auto minmax(0, 1fr); } .note-family { display: none; } }
+
 .eyebrow-sm {
   font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted); margin-bottom: 4px;

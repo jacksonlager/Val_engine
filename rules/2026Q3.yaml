@@ -139,6 +139,15 @@ adjudication:
 publish:
   require_second_approver: true
 
+# The per-company flag archive. It fills itself from the publish ledger: release Q3 and next
+# quarter's panel shows what each position was flagged for this quarter. Q3 2026 is the first
+# quarter on the engine, so nothing was released before it and the prior quarter reads "not on
+# record" — which is the truth. Setting `reconstruct_prior_flags: true` instead re-screens the
+# prior-close book under this policy and labels those points `reconstructed`; defensible as an
+# estimate, but it is not what any committee saw, so it is off.
+history:
+  reconstruct_prior_flags: false
+
 # Who picks the one resolution shown first on each BLOCK/REVIEW flag. `claude` chooses among the
 # engine's priced suggestions (never a number of its own) and caches answers in data/recommendations/;
 # set ANTHROPIC_API_KEY and run `hc-valuation recommend` once to fill the cache.

@@ -5,16 +5,16 @@
   "measurement_date": "2026-09-30",
   "prior_close": "2026-06-30",
   "status": "proposed",
-  "published_at": "2026-09-05T21:04:38+00:00",
+  "published_at": "2026-09-06T23:28:17+00:00",
   "published_by": "Jackson Lagerwey",
-  "note": "Q3 2026 proposed book \u2014 regrade fixes",
-  "run_id": "fa8280e29ff7",
+  "note": "Q3 2026 proposed book",
+  "run_id": "59b9dc6df4f4",
   "policy_version": "2026Q3-0.2",
   "engine_version": "0.1.0",
   "input_file": "HC_Mock_Portfolio_Data.xlsx",
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
   "market_data_source": "stub",
-  "generated_at": "2026-09-05T21:04:38+00:00"
+  "generated_at": "2026-09-06T23:28:17+00:00"
  },
  "headline": {
   "prior_nav": 1139.3,
@@ -5582,7 +5582,7 @@
   {
    "quarter": "Q3 2026",
    "slug": "2026Q3",
-   "published_at": "2026-09-05T21:04:38+00:00",
+   "published_at": "2026-09-06T23:28:17+00:00",
    "published_by": "Jackson Lagerwey",
    "status": "proposed",
    "booked_nav": 1184.2763

@@ -8,6 +8,7 @@
 import { useState } from "react";
 import type { CompanyResult, Disposition, MarkHistoryPoint } from "../types";
 import { useHistory } from "../lib/history";
+import { musd } from "../lib/format";
 import { DispChip, Label } from "./ui";
 import { useRationale } from "../lib/rationale";
 
@@ -18,10 +19,16 @@ const SOURCE_LABEL: Record<string, string> = {
   live: "this run",
 };
 
-/** The archive points before the current quarter, newest first, that carry a disposition. */
+/** Every archived quarter before this one, newest first. A point with `disposition === null`
+    is a quarter whose *mark* is on record but whose flags are not — the normal state before the
+    first release, reported as such rather than left blank or filled in. */
 export function priorPoints(asOf: string | undefined, points: MarkHistoryPoint[] | undefined): MarkHistoryPoint[] {
-  return (points ?? []).filter((p) => p.quarter !== asOf && p.disposition !== null).slice().reverse();
+  return (points ?? []).filter((p) => p.quarter !== asOf).slice().reverse();
 }
+
+const NO_RECORD =
+  "No flag record for that quarter: the archive fills from the publish ledger, and nothing had been released before this one. " +
+  "Publish this quarter and next quarter's panel shows what each position was flagged for now.";
 
 function shortQuarter(q: string): string {
   // "Q2 2026" -> "Q2 ’26"
@@ -34,7 +41,13 @@ function shortQuarter(q: string): string {
 export function PriorFlagPill({ c, className = "" }: { c: CompanyResult; className?: string }) {
   const { data } = useHistory();
   const prior = priorPoints(data?.as_of_quarter, data?.companies[c.company])[0];
-  if (!prior || !prior.disposition) return null;
+  if (!prior) return null;
+  if (!prior.disposition)
+    return (
+      <span className={`chip no-dot prior-pill prior-none hint ${className}`} title={`${prior.quarter}: ${NO_RECORD}`}>
+        <span className="prior-q">{shortQuarter(prior.quarter)}</span> no flag record
+      </span>
+    );
   const d = prior.disposition as Disposition;
   const ids = prior.flags.map((f) => f.rule_id);
   const nowIds = new Set(c.flags.map((f) => f.rule_id));
@@ -64,7 +77,9 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
   const [showAll, setShowAll] = useState(false);
   const points = data?.companies[c.company] ?? [];
   const prior = priorPoints(data?.as_of_quarter, points);
-  const lastIds = new Set(prior[0]?.flags.map((f) => f.rule_id) ?? []);
+  // "new" only means something against a quarter whose flags are actually on record
+  const last = prior.find((p) => p.disposition !== null);
+  const lastIds = new Set(last?.flags.map((f) => f.rule_id) ?? []);
   const rows = showAll ? prior : prior.slice(0, 3);
   const nameOf = (id: string) => rationale?.rules.find((r) => r.id === id)?.name ?? "";
   return (
@@ -80,8 +95,7 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
       {error && <p className="text-[11.5px] text-muted m-0">History unavailable: {error}</p>}
       {!error && prior.length === 0 && (
         <p className="text-[11.5px] text-muted m-0 leading-snug">
-          No earlier quarter on record for this position. The trail starts with the first published quarter; HC can backfill earlier
-          flags in <span className="mono">data/mark_history.yaml</span>.
+          No earlier quarter on record for this position — it is new to the book this quarter.
         </p>
       )}
       {prior.length > 0 && (
@@ -95,12 +109,20 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
               {c.flags.map((f) => (
                 <span key={f.rule_id} className={`chip disp-${f.severity}`} title={`${f.severity} · ${f.family}${nameOf(f.rule_id) ? " · " + nameOf(f.rule_id) : ""}`}>
                   <span className="mono">{f.rule_id}</span>
-                  {prior[0] && !lastIds.has(f.rule_id) && <span className="fh-new">new</span>}
+                  {last && !lastIds.has(f.rule_id) && <span className="fh-new">new</span>}
                 </span>
               ))}
             </span>
           </div>
-          {rows.map((p) => (
+          {rows.map((p) =>
+            !p.disposition ? (
+              <div key={p.quarter} className="fh-row fh-none">
+                <span className="fh-q">{shortQuarter(p.quarter)}</span>
+                <span className="chip no-dot prior-none">not on record</span>
+                <span className="fh-flags text-[11px] text-muted">mark {musd(p.mark)} is on record; its flags are not</span>
+                <span className="fh-src" />
+              </div>
+            ) : (
             <div key={p.quarter} className="fh-row">
               <span className="fh-q" title={`${p.quarter} · flags ${SOURCE_LABEL[p.flags_source ?? ""] ?? "from the archive"}`}>
                 {shortQuarter(p.quarter)}
@@ -120,8 +142,15 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
               </span>
               <span className="fh-src">{p.flags_source === "reconstructed" ? "reconstructed" : p.flags_source === "backfill" ? "HC records" : p.flags_source === "published" ? "released" : ""}</span>
             </div>
-          ))}
+            ),
+          )}
         </div>
+      )}
+      {prior.some((p) => !p.disposition) && (
+        <p className="text-[10.5px] text-muted mt-2 mb-0 leading-snug">
+          The trail fills itself: publishing a quarter writes that quarter's flags into the archive, so from the next close this card shows
+          what each position was flagged for now. Earlier quarters can be entered by hand in <span className="mono">data/mark_history.yaml</span>.
+        </p>
       )}
       {prior.some((p) => p.flags_source === "reconstructed") && (
         <p className="text-[10.5px] text-muted mt-2 mb-0 leading-snug">

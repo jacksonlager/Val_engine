@@ -30,6 +30,18 @@ class MetricsCfg(_Strict):
     reporting_lag_months: int = 0
 
 
+class HistoryCfg(_Strict):
+    """What the per-company archive is allowed to show for quarters the engine did not run.
+
+    The archive grows from the publish ledger: every released quarter contributes the flags it
+    actually carried. Before the first release there is nothing, and the honest answer is "not
+    on record" — so `reconstruct_prior_flags` is off. Turned on, `prior_screen.py` re-screens
+    the prior-close book under the current policy and the points are labelled `reconstructed`,
+    which is a defensible bridge but is not what any committee saw.
+    """
+    reconstruct_prior_flags: bool = False
+
+
 class SecondaryCfg(_Strict):
     remainder_basis: Literal["last_round", "secondary_price"] = "last_round"
 
@@ -258,6 +270,7 @@ class RuleConfig(_Strict):
     adjudication: AdjudicationCfg = AdjudicationCfg()
     recommendation: RecommendationCfg = RecommendationCfg()
     publish: PublishCfg = PublishCfg()
+    history: HistoryCfg = HistoryCfg()
     custom_rules: list[CustomRuleSpec] = Field(default_factory=list)
 
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)

@@ -120,6 +120,16 @@ one-sentence rationale and the activity-tab row it came from. `proposed_mark` is
 equal to the last step's `new_value`; the review table is that chain rendered. Companies
 with no activity carry an explicit `M-000` step rather than silence.
 
+**Reading a position.** The detail panel is ordered the way a reviewer works, not the way
+the engine computes. *What moved and why* is the rule that produced the number and its
+one-sentence rationale; the arithmetic — every input with the workbook cell behind it — is
+folded into a disclosure, because that is what an auditor opens, not what a reviewer reads.
+*What to decide* carries only the BLOCK and REVIEW findings, each as an imperative, two or
+three scannable facts, and the priced resolutions beside it. MONITOR findings are context,
+not decisions, so they sit under *Also noted, nothing to decide* as one line each rather than
+competing for attention as cards. Position, vendor context and the workpaper cells sit in a
+reference row below the decision.
+
 **Rules.** The review tool's Rules tab is the page an auditor reads first: the six checks
 behind every disposition, then every exception rule with two bullets — why it is a flag and
 why it carries that severity — tagged *in the brief* (the five exceptions the assessment
@@ -309,13 +319,22 @@ so the review tool can warn that today's BLOCK was a MONITOR three months ago. O
 card and the Companies detail strip a small colour-coded pill beside the disposition reads
 `Q2 ’26 MONITOR →` (the arrow means it moved); hovering lists last quarter's rule ids and
 which of today's are new, still open, or cleared. The detail panel's *Flag history* card
-shows the full trail with today's new flags marked. The flags come from the same three
-places: a released snapshot (`published`), HC's backfill (`backfill`, which may list
-`disposition` and `flags` per quarter), and — for the first quarter on the engine, which
-has no released predecessor — a **reconstruction**: the Portfolio tab is the book at the
-prior close, so `prior_screen.py` re-runs the current policy's screens against it at that
-date with no activity and no overrides. It is labelled `reconstructed` everywhere it
-appears and is replaced by the released flags once a quarter is published.
+shows the full trail, with this quarter's new flags marked.
+
+The trail fills itself from the publish ledger: releasing a quarter writes that quarter's
+flags into the archive, so from the next close each panel shows what the position was flagged
+for now. Q3 2026 is the first quarter on the engine, so nothing was released before it — the
+prior quarter's *mark* is on record (the workbook carried it) and its flags are not, and the
+panel says exactly that: **not on record**, as a muted pill rather than a blank or a guess.
+Quarters HC has its own records for can be entered in `data/mark_history.yaml`, which takes a
+`disposition` and a `flags` list per quarter.
+
+Policy can instead ask for a *reconstruction* (`history.reconstruct_prior_flags: true`): the
+Portfolio tab is the book at the prior close, so `prior_screen.py` re-runs the current policy's
+screens against it at that date with no activity and no overrides, and every point it produces
+is labelled `reconstructed` wherever it appears. A defensible estimate of what the engine would
+have flagged, but not what any committee saw — so it is off, and a released snapshot always
+beats it.
 
 ## Live market data
 

@@ -387,6 +387,26 @@ export function SuggestionCards({
 
 /** Every flag a reviewer must act on: rule id, imperative, summary points and details on
     the left; the engine's priced suggestions on the right. */
+/** MONITOR findings: real information, no decision. One line each — rule, family, the
+    engine's sentence — because a watch item rendered as a card competes with the two flags
+    that actually need a reviewer, which is how a queue stops being read. */
+export function FlagNoteList({ flags }: { flags: Flag[] }) {
+  if (flags.length === 0) return null;
+  return (
+    <ul className="note-list">
+      {flags.map((f, i) => (
+        <li key={i} className="note-row">
+          <span className={`chip disp-${f.severity} shrink-0`} title={`${f.severity} · ${f.family}`}>
+            <span className="mono">{f.rule_id}</span>
+          </span>
+          <span className="note-family">{f.family}</span>
+          <span className="note-text">{f.message}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function FlagActionList({
   c,
   flags,

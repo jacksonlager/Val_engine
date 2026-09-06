@@ -1,6 +1,6 @@
 {
  "manifest": {
-  "run_id": "fa8280e29ff7",
+  "run_id": "59b9dc6df4f4",
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
   "input_file": "HC_Mock_Portfolio_Data.xlsx",
   "policy_version": "2026Q3-0.2",
@@ -8,7 +8,7 @@
   "quarter_label": "Q3 2026",
   "measurement_date": "2026-09-30",
   "prior_close": "2026-06-30",
-  "generated_at": "2026-09-05T21:04:37Z",
+  "generated_at": "2026-09-06T23:28:16Z",
   "adjudication_enabled": true,
   "market_data_source": "stub",
   "recommender": "policy"

@@ -3,7 +3,7 @@ import { DISPOSITION_HINT, type CompanyResult, type MarkStep } from "../types";
 import { altLabel, isoDate, KIND_LABEL, musd, pct, shortSha, signed, signClass } from "../lib/format";
 import { postOverride } from "../lib/api";
 import { eventRowRef, inputRef, portfolioRowRef, useSources } from "../lib/sources";
-import { FlagDetailModal, FlagPoints, SuggestionCards } from "./Flags";
+import { FlagActionList, FlagDetailModal, FlagNoteList } from "./Flags";
 import { MarkHistoryCard } from "./MarkHistoryChart";
 import { FlagHistoryCard, PriorFlagPill } from "./FlagHistory";
 import { VendorSignalsCard } from "./VendorSignals";
@@ -26,7 +26,13 @@ function StepInputs({ s, company }: { s: MarkStep; company: string }) {
   const entries = Object.entries(s.inputs);
   if (entries.length === 0) return null;
   const eventRow = s.evidence?.row_index ?? null;
+  // The rule's arithmetic, one row per input with the workbook cell behind it. Folded away by
+  // default: the rationale above is what a reviewer reads, this is what an auditor opens.
   return (
+    <details className="step-io mt-1.5">
+      <summary>
+        {entries.length} input{entries.length === 1 ? "" : "s"} and their cells
+      </summary>
     <div className="inputs mt-1.5">
       {entries.map(([k, v]) => {
         const cell = inputRef(sources, k, company, eventRow);
@@ -49,6 +55,7 @@ function StepInputs({ s, company }: { s: MarkStep; company: string }) {
         );
       })}
     </div>
+    </details>
   );
 }
 
@@ -317,7 +324,7 @@ export function CompanyDetail({
           </ol>
 
           <div className="flex items-baseline justify-between mt-3 mb-1.5">
-            <h3 className="font-semibold">{showFlags ? "Flags and decision" : "Decision"}</h3>
+            <h3 className="font-semibold">{showFlags && actions.length > 0 ? "What to decide" : "Decision"}</h3>
             {showFlags && c.flags.length > 0 && (
               <span className="text-[11px] text-muted">
                 {actions.length} to act on · {notes.length} noted
@@ -327,38 +334,20 @@ export function CompanyDetail({
           {!showFlags ? null : c.flags.length === 0 ? (
             <p className="text-muted text-[12px]">No exception flags — nothing for a reviewer to decide.</p>
           ) : (
-            <ul className="space-y-1.5">
-              {c.flags.map((f, i) => (
-                <li key={i} className={`disp-${f.severity} stripe card p-2 pl-3`}>
-                  <div className="flex items-center gap-2">
-                    <DispChip d={f.severity} />
-                    <span className="mono font-medium">{f.rule_id}</span>
-                    <span className="text-[11px] text-muted">{f.family}</span>
-                    {(f.points.length > 0 || f.action) && (
-                      <button
-                        className="btn btn-ghost ml-auto text-[11px]"
-                        onClick={() => setFlagDetail(i)}
-                        aria-haspopup="dialog"
-                        title={`Read ${f.rule_id} in full, with the inputs behind it`}
-                      >
-                        Details
-                      </button>
-                    )}
-                  </div>
-                  {f.action && <p className="mt-0.5 text-[13px] font-semibold leading-snug">{f.action}</p>}
-                  <FlagPoints f={f} className="mt-0.5" />
-                  {typeof f.evidence.price_source_note === "string" && (
-                    <p className="mt-0.5 text-[11.5px] text-muted italic leading-snug">{f.evidence.price_source_note}</p>
-                  )}
-                  {f.suggestions.length > 0 && (
-                    <div className="mt-1.5">
-                      <div className="eyebrow-sm">Recommended resolution</div>
-                      <SuggestionCards c={c} f={f} writeDisabled={writeDisabled} onChanged={onChanged} />
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <>
+              {/* disp-* so the rule between two decisions picks up the disposition's hue */}
+              {actions.length > 0 && (
+                <div className={`card p-3 disp-${c.disposition}`}>
+                  <FlagActionList c={c} flags={actions} writeDisabled={writeDisabled} onChanged={onChanged} />
+                </div>
+              )}
+              {notes.length > 0 && (
+                <div className="mt-2">
+                  <div className="eyebrow-sm">Also noted, nothing to decide</div>
+                  <FlagNoteList flags={notes} />
+                </div>
+              )}
+            </>
           )}
 
           {/* the recorded decision, or the door to a custom one */}
