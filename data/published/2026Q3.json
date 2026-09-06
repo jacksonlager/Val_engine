@@ -2,9 +2,9 @@
  "publish": {
   "quarter": "Q3 2026",
   "slug": "2026Q3",
-  "published_at": "2026-09-05T00:39:21+00:00",
+  "published_at": "2026-09-05T21:04:38+00:00",
   "published_by": "Jackson Lagerwey",
-  "note": "Q3 2026 proposed marks for the valuation committee",
+  "note": "Q3 2026 proposed book \u2014 regrade fixes",
   "status": "proposed",
   "open_blocks": [
    "Gryphonel",
@@ -15,23 +15,23 @@
    "Birchhollow",
    "Duskfern"
   ],
-  "run_id": "d8c4f428fa0b",
-  "policy_version": "2026Q3-0.1",
+  "run_id": "fa8280e29ff7",
+  "policy_version": "2026Q3-0.2",
   "engine_version": "0.1.0",
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
-  "booked_nav": 1183.9263
+  "booked_nav": 1184.2763
  },
  "run": {
   "manifest": {
-   "run_id": "d8c4f428fa0b",
+   "run_id": "fa8280e29ff7",
    "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
    "input_file": "HC_Mock_Portfolio_Data.xlsx",
-   "policy_version": "2026Q3-0.1",
+   "policy_version": "2026Q3-0.2",
    "engine_version": "0.1.0",
    "quarter_label": "Q3 2026",
    "measurement_date": "2026-09-30",
    "prior_close": "2026-06-30",
-   "generated_at": "2026-09-05T00:39:21Z",
+   "generated_at": "2026-09-05T21:04:38Z",
    "adjudication_enabled": true,
    "market_data_source": "stub",
    "recommender": "policy"
@@ -60,6 +60,7 @@
     "latest_post_money": 128.5,
     "staleness_anchor": "2026-08-24",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 3.4,
     "arr_growth": 0.83,
     "runway_months_aged": 32.52,
@@ -116,7 +117,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 37.79,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -147,6 +149,7 @@
     "latest_post_money": 61.3,
     "staleness_anchor": "2024-07-05",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 5.1,
     "arr_growth": 1.08,
     "runway_months_aged": 4.96,
@@ -173,13 +176,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 26 months ago (2024-07-05) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 26.8 months ago (2024-07-05) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 26,
+       "months": 26.8,
        "anchor": "2024-07-05"
       }
      },
@@ -229,7 +232,8 @@
        "note": null
       },
       "evidence": {
-       "runway_months_aged": 4.96
+       "runway_months_aged": 4.96,
+       "financings_in_quarter": []
       }
      }
     ],
@@ -260,6 +264,7 @@
     "latest_post_money": 209.5,
     "staleness_anchor": "2021-07-06",
     "fv_level": null,
+    "multiple_exposed": false,
     "arr": 27.3,
     "arr_growth": 0.93,
     "runway_months_aged": 32.47,
@@ -316,6 +321,7 @@
     "latest_post_money": 103.8,
     "staleness_anchor": "2026-07-06",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 2.5,
     "arr_growth": 1.86,
     "runway_months_aged": 24.62,
@@ -372,7 +378,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 41.52,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -403,6 +410,7 @@
     "latest_post_money": 22.5,
     "staleness_anchor": "2025-01-24",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.7,
     "arr_growth": 2.07,
     "runway_months_aged": 12.08,
@@ -458,7 +466,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 32.14,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -501,6 +510,7 @@
     "latest_post_money": 1837.9,
     "staleness_anchor": "2026-08-04",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 80.1,
     "arr_growth": 0.69,
     "runway_months_aged": 31.09,
@@ -544,10 +554,10 @@
     "status_after": "Active",
     "listed": false,
     "prior_mark": 3.5,
-    "equity_mark": 4.3092,
+    "equity_mark": 4.6592,
     "note_at_cost": 0.0,
-    "proposed_mark": 4.3092,
-    "booked_mark": 4.3092,
+    "proposed_mark": 4.6592,
+    "booked_mark": 4.6592,
     "override": null,
     "ownership_before": 0.036,
     "ownership_after": 0.036,
@@ -558,11 +568,12 @@
     "latest_post_money": 97.0,
     "staleness_anchor": "2020-09-07",
     "fv_level": 3,
+    "multiple_exposed": false,
     "arr": 14.0,
     "arr_growth": 0.51,
     "runway_months_aged": 24.0,
     "implied_multiple": 6.93,
-    "moic_after": 1.0773,
+    "moic_after": 1.1648,
     "steps": [
      {
       "rule_id": "M-050",
@@ -574,13 +585,14 @@
        "treatment": "probability_weighted",
        "close_probability": 0.9,
        "at_full_deal_value": 4.787999999999999,
-       "probability_weighted": 4.3092,
+       "standalone_if_deal_breaks": 3.5,
+       "probability_weighted": 4.659199999999999,
        "hold_prior": 3.5,
        "detail": "Definitive agreement signed, all cash"
       },
       "prior_value": 3.5,
-      "new_value": 4.3092,
-      "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Treatment 'probability_weighted': 3.6% \u00d7 $133M \u00d7 0.90 = $4.31M. Alternatives: full $4.79M, hold $3.50M.",
+      "new_value": 4.6592,
+      "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Treatment 'probability_weighted': 0.90 \u00d7 $4.79M (closes at 3.6% \u00d7 $133M) + 0.10 \u00d7 $3.50M (breaks; standalone at the last round) = $4.66M. Alternatives: full $4.79M, hold $3.50M.",
       "evidence": {
        "sheet": "Q3 2026 Activity",
        "row_index": 15,
@@ -594,22 +606,22 @@
       "rule_id": "X-101",
       "family": "treatment",
       "severity": "BLOCK",
-      "message": "A buyer has signed for $133M but the deal has not closed and still needs approval. Booking the full deal value ignores that contingency; holding the old mark ignores a signed agreement. Policy splits the difference at 0.90, giving $4.31M against $4.79M at full value and $3.50M if held.",
+      "message": "A buyer has signed for $133M but the deal has not closed and still needs approval. Booking the full deal value ignores that contingency; holding the old mark ignores a signed agreement. Policy weights the two outcomes at 0.90 \u2014 the deal price if it closes, the standalone mark if it breaks \u2014 giving $4.66M against $4.79M at full value and $3.50M if held.",
       "action": "Ratify the 0.90 close probability, or choose full deal value or hold at prior.",
       "points": [
        "Buyer signed for **$133M**, but the deal has **not closed** and still needs approval.",
-       "Policy weights it at **0.90** \u2192 **$4.31M**.",
+       "Policy weights **0.90 \u00d7 deal price + 0.10 \u00d7 standalone** \u2192 **$4.66M**.",
        "Alternatives: **$4.79M** at full value, **$3.50M** held at prior."
       ],
       "suggestions": [
        {
         "key": "as_proposed",
-        "label": "Ratify the 0.90-weighted mark of $4.31M.",
+        "label": "Ratify the 0.90-weighted mark of $4.66M.",
         "reasons": [
          "Reflects a signed agreement with a real chance of not closing.",
          "Policy default for an announced, unclosed deal."
         ],
-        "booked": 4.3092
+        "booked": 4.6592
        },
        {
         "key": "full_value",
@@ -632,12 +644,12 @@
       ],
       "recommendation": {
        "key": "as_proposed",
-       "label": "Ratify the 0.90-weighted mark of $4.31M.",
+       "label": "Ratify the 0.90-weighted mark of $4.66M.",
        "reasons": [
         "Reflects a signed agreement with a real chance of not closing.",
         "Policy default for an announced, unclosed deal."
        ],
-       "booked": 4.3092,
+       "booked": 4.6592,
        "source": "policy",
        "model": null,
        "rationale": null,
@@ -651,44 +663,18 @@
       }
      },
      {
-      "rule_id": "X-202",
+      "rule_id": "X-201",
       "family": "staleness",
-      "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 72 months ago, on 2020-09-07. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 72 months ago is still fair value.",
-      "points": [
-       "The mark rests on a round **72 months old** (2020-09-07).",
-       "Companies at this stage normally **reprice every 18\u201324 months**.",
-       "This price **predates two funding cycles** \u2014 and probably the business it describes."
-      ],
-      "suggestions": [
-       {
-        "key": "as_proposed",
-        "label": "Keep the mark as proposed.",
-        "reasons": [
-         "No transaction or metric in the file says the value moved.",
-         "Staleness alone is not evidence of a decline."
-        ],
-        "booked": 4.3092
-       }
-      ],
-      "recommendation": {
-       "key": "as_proposed",
-       "label": "Keep the mark as proposed.",
-       "reasons": [
-        "No transaction or metric in the file says the value moved.",
-        "Staleness alone is not evidence of a decline."
-       ],
-       "booked": 4.3092,
-       "source": "policy",
-       "model": null,
-       "rationale": null,
-       "confidence": null,
-       "note": null
-      },
+      "severity": "MONITOR",
+      "message": "Last priced 72.7 months ago (2020-09-07); the signed acquisition this quarter is the price test now, so the age of the round is context only while the deal is pending.",
+      "action": "",
+      "points": [],
+      "suggestions": [],
+      "recommendation": null,
       "evidence": {
-       "months": 72,
-       "anchor": "2020-09-07"
+       "months": 72.7,
+       "anchor": "2020-09-07",
+       "superseded_by": "pending acquisition"
       }
      }
     ],
@@ -709,7 +695,7 @@
     "alternative_marks": {
      "at_full_deal_value": 4.788,
      "hold_prior": 3.5,
-     "probability_weighted": 4.3092
+     "probability_weighted": 4.6592
     }
    },
    {
@@ -735,6 +721,7 @@
     "latest_post_money": 31.3,
     "staleness_anchor": "2020-10-30",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 4.8,
     "arr_growth": 1.7,
     "runway_months_aged": 15.15,
@@ -774,17 +761,18 @@
       "recommendation": null,
       "evidence": {
        "indicated_post_money": 50.0,
-       "indicated_mark": 4.25
+       "indicated_mark": 4.25,
+       "ratio_to_last_round": 1.5974
       }
      },
      {
       "rule_id": "X-202",
       "family": "staleness",
       "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 71 months ago, on 2020-10-30. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 71 months ago is still fair value.",
+      "message": "The mark rests on a round that closed 71.0 months ago, on 2020-10-30. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 71.0 months ago is still fair value.",
       "points": [
-       "The mark rests on a round **71 months old** (2020-10-30).",
+       "The mark rests on a round **71.0 months old** (2020-10-30).",
        "Companies at this stage normally **reprice every 18\u201324 months**.",
        "This price **predates two funding cycles** \u2014 and probably the business it describes."
       ],
@@ -814,7 +802,7 @@
        "note": null
       },
       "evidence": {
-       "months": 71,
+       "months": 71.0,
        "anchor": "2020-10-30"
       }
      }
@@ -860,6 +848,7 @@
     "latest_post_money": 764.2,
     "staleness_anchor": "2026-08-27",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 76.7,
     "arr_growth": 0.28,
     "runway_months_aged": 13.49,
@@ -933,6 +922,7 @@
     "latest_post_money": 43.0,
     "staleness_anchor": "2026-07-08",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.2,
     "arr_growth": 2.71,
     "runway_months_aged": 25.52,
@@ -949,7 +939,8 @@
        "ownership_before": 0.108,
        "ownership_after": 0.111,
        "hc_investment": 1.3,
-       "detail": "Series A"
+       "detail": "Series A",
+       "implied_post_from_hc_cheque": 433.333333
       },
       "prior_value": 2.9,
       "new_value": 4.773,
@@ -974,7 +965,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 35.83,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -1005,6 +997,7 @@
     "latest_post_money": 112.1,
     "staleness_anchor": "2024-12-27",
     "fv_level": null,
+    "multiple_exposed": false,
     "arr": null,
     "arr_growth": null,
     "runway_months_aged": null,
@@ -1053,6 +1046,7 @@
     "latest_post_money": 4.3,
     "staleness_anchor": "2026-03-15",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.8,
     "arr_growth": 2.86,
     "runway_months_aged": 21.0,
@@ -1102,6 +1096,7 @@
     "latest_post_money": 516.0,
     "staleness_anchor": "2025-04-17",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 75.3,
     "arr_growth": 0.46,
     "runway_months_aged": 15.75,
@@ -1117,15 +1112,17 @@
        "ownership_after": 0.017,
        "ownership_sold": 0.008,
        "proceeds": 3.9,
-       "implied_post_money": 487.5,
+       "implied_post_money": 516.0,
+       "implied_price_source": "row value (implied valuation for secondaries)",
+       "implied_from_ownership": 487.5,
        "last_round_post_money": 516.0,
        "remainder_basis": "last_round",
        "at_last_round": 8.772,
-       "at_secondary_price": 8.287500000000001
+       "at_secondary_price": 8.772
       },
       "prior_value": 12.9,
       "new_value": 8.772,
-      "rationale": "Sold 32% of the position for $3.9M (implies $487.5M post vs $516.0M last round, -5.5%). Remainder 1.7% marked on basis 'last_round'.",
+      "rationale": "Sold 32% of the position for $3.9M at $516.0M post (row value (implied valuation for secondaries)) vs $516.0M last round, +0.0%; proceeds \u00f7 stake sold gives $487.5M (-5.5%), rounding of a 3-dp ownership figure. Remainder 1.7% marked on basis 'last_round'.",
       "evidence": {
        "sheet": "Q3 2026 Activity",
        "row_index": 8,
@@ -1134,63 +1131,11 @@
       }
      }
     ],
-    "flags": [
-     {
-      "rule_id": "X-104",
-      "family": "treatment",
-      "severity": "REVIEW",
-      "message": "The sale implies the company is worth $487.5M, -5.5% against the $516.0M the last round set. One buyer taking one block is real evidence but not necessarily the principal market, so policy holds the remaining stake at the round price. On the secondary price it would be $8.29M instead.",
-      "action": "Decide whether the stake HC still holds follows the last round or the secondary price.",
-      "points": [
-       "Secondary implies **$487.5M**, **-5.5%** against the $516.0M round price.",
-       "One buyer taking one block is real evidence but **may not be the principal market**.",
-       "On the secondary price the remaining stake would be **$8.29M** instead."
-      ],
-      "suggestions": [
-       {
-        "key": "as_proposed",
-        "label": "Keep the remaining stake at the last-round price.",
-        "reasons": [
-         "The round is the principal market; one block sale is weaker evidence.",
-         "Policy default \u2014 the secondary is recorded as an alternative mark."
-        ],
-        "booked": 8.772
-       },
-       {
-        "key": "at_secondary",
-        "label": "Mark the remaining stake at the secondary price (-5.5%).",
-        "reasons": [
-         "The secondary is the most recent transaction in this security.",
-         "Right if the buyer was informed and the block was meaningful."
-        ],
-        "booked": 8.2875
-       }
-      ],
-      "recommendation": {
-       "key": "as_proposed",
-       "label": "Keep the remaining stake at the last-round price.",
-       "reasons": [
-        "The round is the principal market; one block sale is weaker evidence.",
-        "Policy default \u2014 the secondary is recorded as an alternative mark."
-       ],
-       "booked": 8.772,
-       "source": "policy",
-       "model": null,
-       "rationale": null,
-       "confidence": null,
-       "note": null
-      },
-      "evidence": {
-       "spread": -0.0552,
-       "implied_post_money": 487.5,
-       "basis": "last_round"
-      }
-     }
-    ],
-    "disposition": "REVIEW",
+    "flags": [],
+    "disposition": "CLEAR",
     "open_items": [],
     "alternative_marks": {
-     "at_secondary_price": 8.2875
+     "at_secondary_price": 8.772
     }
    },
    {
@@ -1216,6 +1161,7 @@
     "latest_post_money": 45.1,
     "staleness_anchor": "2026-07-27",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.9,
     "arr_growth": 1.25,
     "runway_months_aged": 13.83,
@@ -1232,7 +1178,8 @@
        "ownership_before": 0.065,
        "ownership_after": 0.068,
        "hc_investment": 0.9,
-       "detail": "Series A"
+       "detail": "Series A",
+       "implied_post_from_hc_cheque": 300.0
       },
       "prior_value": 1.2,
       "new_value": 3.0668,
@@ -1257,7 +1204,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 50.11,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -1288,6 +1236,7 @@
     "latest_post_money": 1157.1,
     "staleness_anchor": "2021-08-18",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 121.2,
     "arr_growth": 0.27,
     "runway_months_aged": 15.13,
@@ -1314,10 +1263,10 @@
       "rule_id": "X-202",
       "family": "staleness",
       "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 61 months ago, on 2021-08-18. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 61 months ago is still fair value.",
+      "message": "The mark rests on a round that closed 61.4 months ago, on 2021-08-18. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 61.4 months ago is still fair value.",
       "points": [
-       "The mark rests on a round **61 months old** (2021-08-18).",
+       "The mark rests on a round **61.4 months old** (2021-08-18).",
        "Companies at this stage normally **reprice every 18\u201324 months**.",
        "This price **predates two funding cycles** \u2014 and probably the business it describes."
       ],
@@ -1347,7 +1296,7 @@
        "note": null
       },
       "evidence": {
-       "months": 61,
+       "months": 61.4,
        "anchor": "2021-08-18"
       }
      }
@@ -1379,6 +1328,7 @@
     "latest_post_money": 176.3,
     "staleness_anchor": "2021-10-08",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 25.5,
     "arr_growth": 1.01,
     "runway_months_aged": 19.2,
@@ -1413,12 +1363,12 @@
       "rule_id": "X-106",
       "family": "treatment",
       "severity": "REVIEW",
-      "message": "The extension raised money at the same $176.3M price, so ownership moved but nobody re-tested what the company is worth. The last real price discovery was 59 months ago, on 2021-10-08.",
+      "message": "The extension raised money at the same $176.3M price, so ownership moved but nobody re-tested what the company is worth. The last real price discovery was 59.7 months ago, on 2021-10-08.",
       "action": "Confirm the mark should still rest on a price nobody has re-tested since 2021-10-08.",
       "points": [
        "Extension at the **same $176.3M price** \u2014 ownership moved, valuation did not.",
        "**No price discovery**: nobody re-tested what the company is worth.",
-       "Last real price was **59 months ago** (2021-10-08)."
+       "Last real price was **59.7 months ago** (2021-10-08)."
       ],
       "suggestions": [
        {
@@ -1454,10 +1404,10 @@
       "rule_id": "X-202",
       "family": "staleness",
       "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 59 months ago, on 2021-10-08. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 59 months ago is still fair value.",
+      "message": "The mark rests on a round that closed 59.7 months ago, on 2021-10-08. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 59.7 months ago is still fair value.",
       "points": [
-       "The mark rests on a round **59 months old** (2021-10-08).",
+       "The mark rests on a round **59.7 months old** (2021-10-08).",
        "Companies at this stage normally **reprice every 18\u201324 months**.",
        "This price **predates two funding cycles** \u2014 and probably the business it describes."
       ],
@@ -1487,7 +1437,7 @@
        "note": null
       },
       "evidence": {
-       "months": 59,
+       "months": 59.7,
        "anchor": "2021-10-08"
       }
      }
@@ -1519,6 +1469,7 @@
     "latest_post_money": 61.1,
     "staleness_anchor": "2023-11-09",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 2.9,
     "arr_growth": 1.26,
     "runway_months_aged": 13.82,
@@ -1545,13 +1496,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 34 months ago (2023-11-09) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 34.7 months ago (2023-11-09) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 34,
+       "months": 34.7,
        "anchor": "2023-11-09"
       }
      }
@@ -1583,6 +1534,7 @@
     "latest_post_money": 23.9,
     "staleness_anchor": "2025-07-25",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.3,
     "arr_growth": 2.44,
     "runway_months_aged": 15.4,
@@ -1632,6 +1584,7 @@
     "latest_post_money": 75.5,
     "staleness_anchor": "2025-11-24",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 3.6,
     "arr_growth": 1.07,
     "runway_months_aged": 22.88,
@@ -1681,6 +1634,7 @@
     "latest_post_money": 14.2,
     "staleness_anchor": "2026-09-06",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.4,
     "arr_growth": -0.16,
     "runway_months_aged": 32.45,
@@ -1697,11 +1651,13 @@
        "ownership_before": 0.083,
        "ownership_after": 0.08,
        "hc_investment": 0.3,
-       "detail": "Series A (recap)"
+       "detail": "Series A (recap)",
+       "structure_haircut_pct": 0.25,
+       "structure_adjusted": 0.852
       },
       "prior_value": 2.0,
       "new_value": 1.136,
-      "rationale": "Recap at $14.2M post vs $23.9M prior. Priced mechanically at 8.0% \u00d7 $14.2M; treated as an UPPER BOUND on junior-equity value because the headline post-money ignores preference and pay-to-play structure the schema cannot see.",
+      "rationale": "Recap at $14.2M post vs $23.9M prior. Priced mechanically at 8.0% \u00d7 $14.2M, which assumes every class shares the post-money pro rata. The allocation is unknown: the preference stack and pay-to-play the schema cannot see move HC's share down if HC's class is junior to the new money and up if HC funded the senior class.",
       "evidence": {
        "sheet": "Q3 2026 Activity",
        "row_index": 14,
@@ -1715,12 +1671,12 @@
       "rule_id": "X-102",
       "family": "treatment",
       "severity": "BLOCK",
-      "message": "Recap: the round priced at $14.2M against $23.9M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook.",
-      "action": "Read the round documents and confirm the preference stack before booking this mark.",
+      "message": "Recap: the round priced at $14.2M against $23.9M last time. Ownership \u00d7 post-money assumes every class shares pro rata; rounds like this almost always carry a liquidation preference and pay-to-play that move HC's share \u2014 down if HC's class sits behind the new money, up if HC funded the senior class. The allocation is in the round documents, not the workbook.",
+      "action": "Read the round documents and allocate the post-money across the classes before booking this mark.",
       "points": [
        "Recap: priced at **$14.2M** against $23.9M last round.",
-       "Ownership \u00d7 post-money **ignores liquidation preference** and pay-to-play.",
-       "So the mark is a **ceiling**, not an estimate \u2014 the terms sit in the round documents."
+       "Ownership \u00d7 post-money **assumes pro rata**; preference and pay-to-play **move HC's share either way**.",
+       "The **allocation is unknown** until the round documents are read."
       ],
       "suggestions": [
        {
@@ -1728,9 +1684,18 @@
         "label": "Book the recap figure as proposed.",
         "reasons": [
          "It is the only priced transaction and reflects the new capital structure.",
-         "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+         "Right if HC's class shares roughly pro rata with the new money."
         ],
         "booked": 1.136
+       },
+       {
+        "key": "structure_adjusted",
+        "label": "Apply the policy's 25% junior-class haircut: $0.85M.",
+        "reasons": [
+         "A placeholder for a preference stack that sits ahead of HC's class.",
+         "Replace it with the waterfall \u2014 which may also raise the mark \u2014 once the documents are read."
+        ],
+        "booked": 0.852
        },
        {
         "key": "hold_prior",
@@ -1747,7 +1712,7 @@
        "label": "Book the recap figure as proposed.",
        "reasons": [
         "It is the only priced transaction and reflects the new capital structure.",
-        "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+        "Right if HC's class shares roughly pro rata with the new money."
        ],
        "booked": 1.136,
        "source": "policy",
@@ -1759,12 +1724,14 @@
       "evidence": {
        "prior_post_money": 23.9,
        "post_money": 14.2,
-       "insider_led": true
+       "insider_led": true,
+       "structure_haircut_pct": 0.25,
+       "hc_funded_new_class": true
       }
      },
      {
       "rule_id": "X-118",
-      "family": "treatment",
+      "family": "related_party",
       "severity": "MONITOR",
       "message": "The notes say the round was insider-led (M-012). Existing investors re-pricing their own position is weaker evidence than a new lead, though not a related-party price for HC itself.",
       "action": "",
@@ -1773,7 +1740,8 @@
       "recommendation": null,
       "evidence": {
        "rule": "M-012",
-       "insider_led": true
+       "insider_led": true,
+       "step_up": 0.594
       }
      },
      {
@@ -1819,7 +1787,9 @@
     ],
     "disposition": "BLOCK",
     "open_items": [],
-    "alternative_marks": {}
+    "alternative_marks": {
+     "structure_adjusted": 0.852
+    }
    },
    {
     "company": "Umberly",
@@ -1844,6 +1814,7 @@
     "latest_post_money": 279.8,
     "staleness_anchor": "2023-10-09",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 31.7,
     "arr_growth": 0.45,
     "runway_months_aged": 3.12,
@@ -1870,13 +1841,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 35 months ago (2023-10-09) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 35.7 months ago (2023-10-09) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 35,
+       "months": 35.7,
        "anchor": "2023-10-09"
       }
      },
@@ -1926,7 +1897,8 @@
        "note": null
       },
       "evidence": {
-       "runway_months_aged": 3.12
+       "runway_months_aged": 3.12,
+       "financings_in_quarter": []
       }
      }
     ],
@@ -1957,6 +1929,7 @@
     "latest_post_money": 398.1,
     "staleness_anchor": "2025-05-05",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 71.8,
     "arr_growth": 0.29,
     "runway_months_aged": 17.86,
@@ -2006,6 +1979,7 @@
     "latest_post_money": 562.1,
     "staleness_anchor": "2023-02-23",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 78.7,
     "arr_growth": 0.75,
     "runway_months_aged": 15.97,
@@ -2032,13 +2006,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 43 months ago (2023-02-23) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 43.2 months ago (2023-02-23) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 43,
+       "months": 43.2,
        "anchor": "2023-02-23"
       }
      }
@@ -2070,6 +2044,7 @@
     "latest_post_money": 97.6,
     "staleness_anchor": "2023-08-13",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 12.2,
     "arr_growth": 1.08,
     "runway_months_aged": 25.54,
@@ -2096,13 +2071,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 37 months ago (2023-08-13) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 37.6 months ago (2023-08-13) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 37,
+       "months": 37.6,
        "anchor": "2023-08-13"
       }
      }
@@ -2134,6 +2109,7 @@
     "latest_post_money": 14.2,
     "staleness_anchor": "2024-06-23",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.8,
     "arr_growth": 1.49,
     "runway_months_aged": 14.62,
@@ -2160,13 +2136,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 27 months ago (2024-06-23) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 27.2 months ago (2024-06-23) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 27,
+       "months": 27.2,
        "anchor": "2024-06-23"
       }
      }
@@ -2198,6 +2174,7 @@
     "latest_post_money": 9.3,
     "staleness_anchor": "2024-02-14",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.5,
     "arr_growth": 1.02,
     "runway_months_aged": 31.86,
@@ -2224,13 +2201,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 31 months ago (2024-02-14) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 31.5 months ago (2024-02-14) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 31,
+       "months": 31.5,
        "anchor": "2024-02-14"
       }
      }
@@ -2262,6 +2239,7 @@
     "latest_post_money": 21.2,
     "staleness_anchor": "2023-11-10",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.7,
     "arr_growth": 2.7,
     "runway_months_aged": 28.0,
@@ -2288,13 +2266,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 34.7 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 34,
+       "months": 34.7,
        "anchor": "2023-11-10"
       }
      },
@@ -2309,17 +2287,18 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 30.29,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      },
      {
       "rule_id": "X-405",
       "family": "valuation",
       "severity": "REVIEW",
-      "message": "The price behind this mark is 34 months old, and the current numbers disagree with it: carried above the multiple screen (30\u00d7 revenue, growing +270%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "message": "The price behind this mark is 34.7 months old, and the current numbers disagree with it: carried above the multiple screen (30\u00d7 revenue, growing +270%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
       "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
       "points": [
-       "Price is **34 months old** \u2014 and today's numbers **argue with it**.",
+       "Price is **34.7 months old** \u2014 and today's numbers **argue with it**.",
        "Screen: **carried above the multiple screen** (30\u00d7 revenue, growing +270%).",
        "Two independent signals point the same way: **affirm or reprice**."
       ],
@@ -2349,7 +2328,7 @@
        "note": null
       },
       "evidence": {
-       "months": 34,
+       "months": 34.7,
        "screens": [
         "X-401"
        ]
@@ -2383,6 +2362,7 @@
     "latest_post_money": 246.7,
     "staleness_anchor": "2024-06-24",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 12.0,
     "arr_growth": -0.21,
     "runway_months_aged": 24.11,
@@ -2409,13 +2389,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 27 months ago (2024-06-24) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 27.2 months ago (2024-06-24) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 27,
+       "months": 27.2,
        "anchor": "2024-06-24"
       }
      },
@@ -2496,6 +2476,7 @@
     "latest_post_money": 86.2,
     "staleness_anchor": "2024-12-22",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.6,
     "arr_growth": 1.94,
     "runway_months_aged": 17.31,
@@ -2529,7 +2510,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 53.88,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -2560,6 +2542,7 @@
     "latest_post_money": 3931.0,
     "staleness_anchor": "2026-09-20",
     "fv_level": 1,
+    "multiple_exposed": false,
     "arr": 148.9,
     "arr_growth": 0.43,
     "runway_months_aged": 25.69,
@@ -2581,7 +2564,7 @@
       },
       "prior_value": 80.3,
       "new_value": 110.068,
-      "rationale": "Listed (Listed on Nasdaq). Mark = 2.8% \u00d7 $3,931M market cap at measurement date (source: stub:seeded_to_ipo_print) with no lock-up discount (ASC 820 disfavors blockage factors for Level 1). Fair value hierarchy: Level 3 \u2192 Level 1.",
+      "rationale": "Listed (Listed on Nasdaq). Mark = 2.8% \u00d7 $3,931M market cap at measurement date (source: stub:seeded_to_ipo_print) with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security). Fair value hierarchy: Level 3 \u2192 Level 1.",
       "evidence": {
        "sheet": "Q3 2026 Activity",
        "row_index": 18,
@@ -2595,30 +2578,30 @@
       "rule_id": "X-101",
       "family": "treatment",
       "severity": "BLOCK",
-      "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round, and it should be the closing price on 2026-09-30 \u2014 not the $3,931M the shares priced at on listing day. HC also cannot sell until 2027-03-19. ASC 820 disfavors blockage discounts for a Level 1 holding, so policy applies 0%, but that is a committee call rather than an arithmetic one.",
-      "action": "Confirm the 30 Sep closing price, then ratify or change the 0% lock-up discount.",
+      "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round. No exchange quote is on file for the 2026-09-30 close: the quote in this run is stub:seeded_to_ipo_print ($3,931M market cap), so the proposed mark is the listing-day market cap of $3,931M and stands in for the close until the actual 30 Sep price is confirmed. HC also cannot sell until 2027-03-19. Under ASU 2022-03 a contractual sale restriction is not a characteristic of the security and takes no discount, so policy applies 0%; the committee ratifies that.",
+      "action": "Obtain the 30 Sep closing price (none is on file) and confirm the $3,931M stand-in, then ratify or change the 0% lock-up discount.",
       "points": [
-       "Now **listed**: the mark is the **2026-09-30 close**, not the $3,931M listing-day price.",
+       "Now **listed**: the mark should be the **2026-09-30 close**; no quote is on file, so the **$3,931M listing-day market cap** stands in (stub:seeded_to_ipo_print).",
        "HC **cannot sell until 2027-03-19**.",
-       "Policy applies a **0%** lock-up discount (ASC 820 disfavors blockage on Level 1) \u2014 a committee call, not arithmetic."
+       "Policy applies a **0%** lock-up discount (ASU 2022-03: a contractual restriction takes no discount) \u2014 ratified by the committee."
       ],
       "suggestions": [
        {
         "key": "as_proposed",
-        "label": "Book the 30 Sep close with the 0% lock-up discount, as proposed.",
+        "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
         "reasons": [
          "Level 1: the quoted price is fair value under ASC 820.",
-         "Blockage discounts on quoted prices are disfavored."
+         "ASU 2022-03: a contractual lock-up is not a characteristic of the security, so no discount."
         ],
         "booked": 110.068
        }
       ],
       "recommendation": {
        "key": "as_proposed",
-       "label": "Book the 30 Sep close with the 0% lock-up discount, as proposed.",
+       "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
        "reasons": [
         "Level 1: the quoted price is fair value under ASC 820.",
-        "Blockage discounts on quoted prices are disfavored."
+        "ASU 2022-03: a contractual lock-up is not a characteristic of the security, so no discount."
        ],
        "booked": 110.068,
        "source": "policy",
@@ -2676,6 +2659,7 @@
     "latest_post_money": 14.2,
     "staleness_anchor": "2025-08-29",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 6.1,
     "arr_growth": 0.42,
     "runway_months_aged": 20.09,
@@ -2709,7 +2693,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 2.33,
-       "threshold": 3.0
+       "threshold": 3.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -2740,6 +2725,7 @@
     "latest_post_money": 258.1,
     "staleness_anchor": "2024-02-20",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 21.4,
     "arr_growth": 1.14,
     "runway_months_aged": 24.85,
@@ -2766,13 +2752,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 31 months ago (2024-02-20) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 31.3 months ago (2024-02-20) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 31,
+       "months": 31.3,
        "anchor": "2024-02-20"
       }
      }
@@ -2804,6 +2790,7 @@
     "latest_post_money": 326.0,
     "staleness_anchor": "2023-07-09",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 39.1,
     "arr_growth": 0.73,
     "runway_months_aged": 27.52,
@@ -2830,13 +2817,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 38 months ago (2023-07-09) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 38.7 months ago (2023-07-09) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 38,
+       "months": 38.7,
        "anchor": "2023-07-09"
       }
      }
@@ -2868,6 +2855,7 @@
     "latest_post_money": 780.4,
     "staleness_anchor": "2023-12-12",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 74.7,
     "arr_growth": 0.62,
     "runway_months_aged": 23.35,
@@ -2894,13 +2882,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 33 months ago (2023-12-12) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 33.6 months ago (2023-12-12) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 33,
+       "months": 33.6,
        "anchor": "2023-12-12"
       }
      }
@@ -2932,6 +2920,7 @@
     "latest_post_money": 261.2,
     "staleness_anchor": "2022-10-22",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 26.1,
     "arr_growth": 0.78,
     "runway_months_aged": 19.4,
@@ -2958,13 +2947,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 47 months ago (2022-10-22) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 47.3 months ago (2022-10-22) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 47,
+       "months": 47.3,
        "anchor": "2022-10-22"
       }
      }
@@ -2996,6 +2985,7 @@
     "latest_post_money": 192.9,
     "staleness_anchor": "2024-03-03",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 28.6,
     "arr_growth": 0.84,
     "runway_months_aged": 3.4,
@@ -3022,13 +3012,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 30 months ago (2024-03-03) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 30.9 months ago (2024-03-03) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 30,
+       "months": 30.9,
        "anchor": "2024-03-03"
       }
      },
@@ -3078,7 +3068,8 @@
        "note": null
       },
       "evidence": {
-       "runway_months_aged": 3.4
+       "runway_months_aged": 3.4,
+       "financings_in_quarter": []
       }
      }
     ],
@@ -3109,6 +3100,7 @@
     "latest_post_money": 12.0,
     "staleness_anchor": "2024-06-08",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.6,
     "arr_growth": 3.0,
     "runway_months_aged": 19.5,
@@ -3135,13 +3127,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 27 months ago (2024-06-08) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 27.7 months ago (2024-06-08) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 27,
+       "months": 27.7,
        "anchor": "2024-06-08"
       }
      }
@@ -3173,6 +3165,7 @@
     "latest_post_money": 86.9,
     "staleness_anchor": "2024-11-11",
     "fv_level": null,
+    "multiple_exposed": false,
     "arr": 2.9,
     "arr_growth": 1.82,
     "runway_months_aged": 4.71,
@@ -3227,6 +3220,7 @@
     "latest_post_money": 2012.1,
     "staleness_anchor": "2024-07-24",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 227.3,
     "arr_growth": 0.48,
     "runway_months_aged": 21.05,
@@ -3253,13 +3247,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 26 months ago (2024-07-24) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 26.2 months ago (2024-07-24) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 26,
+       "months": 26.2,
        "anchor": "2024-07-24"
       }
      }
@@ -3291,6 +3285,7 @@
     "latest_post_money": 9.8,
     "staleness_anchor": "2023-05-09",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.2,
     "arr_growth": 0.64,
     "runway_months_aged": 21.0,
@@ -3317,13 +3312,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 40 months ago (2023-05-09) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 40.7 months ago (2023-05-09) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 40,
+       "months": 40.7,
        "anchor": "2023-05-09"
       }
      }
@@ -3355,6 +3350,7 @@
     "latest_post_money": 37.0,
     "staleness_anchor": "2026-09-01",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 3.6,
     "arr_growth": -0.08,
     "runway_months_aged": 22.57,
@@ -3371,11 +3367,13 @@
        "ownership_before": 0.08,
        "ownership_after": 0.063,
        "hc_investment": 0.0,
-       "detail": "Series B (recap)"
+       "detail": "Series B (recap)",
+       "structure_haircut_pct": 0.25,
+       "structure_adjusted": 1.74825
       },
       "prior_value": 5.7,
       "new_value": 2.331,
-      "rationale": "Recap at $37.0M post vs $71.0M prior. Priced mechanically at 6.3% \u00d7 $37.0M; treated as an UPPER BOUND on junior-equity value because the headline post-money ignores preference and pay-to-play structure the schema cannot see.",
+      "rationale": "Recap at $37.0M post vs $71.0M prior. Priced mechanically at 6.3% \u00d7 $37.0M, which assumes every class shares the post-money pro rata. The allocation is unknown: the preference stack and pay-to-play the schema cannot see move HC's share down if HC's class is junior to the new money and up if HC funded the senior class.",
       "evidence": {
        "sheet": "Q3 2026 Activity",
        "row_index": 13,
@@ -3389,12 +3387,12 @@
       "rule_id": "X-102",
       "family": "treatment",
       "severity": "BLOCK",
-      "message": "Recap: the round priced at $37.0M against $71.0M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook.",
-      "action": "Read the round documents and confirm the preference stack before booking this mark.",
+      "message": "Recap: the round priced at $37.0M against $71.0M last time. Ownership \u00d7 post-money assumes every class shares pro rata; rounds like this almost always carry a liquidation preference and pay-to-play that move HC's share \u2014 down if HC's class sits behind the new money, up if HC funded the senior class. The allocation is in the round documents, not the workbook.",
+      "action": "Read the round documents and allocate the post-money across the classes before booking this mark.",
       "points": [
        "Recap: priced at **$37.0M** against $71.0M last round.",
-       "Ownership \u00d7 post-money **ignores liquidation preference** and pay-to-play.",
-       "So the mark is a **ceiling**, not an estimate \u2014 the terms sit in the round documents."
+       "Ownership \u00d7 post-money **assumes pro rata**; preference and pay-to-play **move HC's share either way**.",
+       "The **allocation is unknown** until the round documents are read."
       ],
       "suggestions": [
        {
@@ -3402,9 +3400,18 @@
         "label": "Book the recap figure as proposed.",
         "reasons": [
          "It is the only priced transaction and reflects the new capital structure.",
-         "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+         "Right if HC's class shares roughly pro rata with the new money."
         ],
         "booked": 2.331
+       },
+       {
+        "key": "structure_adjusted",
+        "label": "Apply the policy's 25% junior-class haircut: $1.75M.",
+        "reasons": [
+         "A placeholder for a preference stack that sits ahead of HC's class.",
+         "Replace it with the waterfall \u2014 which may also raise the mark \u2014 once the documents are read."
+        ],
+        "booked": 1.74825
        },
        {
         "key": "hold_prior",
@@ -3421,7 +3428,7 @@
        "label": "Book the recap figure as proposed.",
        "reasons": [
         "It is the only priced transaction and reflects the new capital structure.",
-        "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+        "Right if HC's class shares roughly pro rata with the new money."
        ],
        "booked": 2.331,
        "source": "policy",
@@ -3433,7 +3440,9 @@
       "evidence": {
        "prior_post_money": 71.0,
        "post_money": 37.0,
-       "insider_led": true
+       "insider_led": true,
+       "structure_haircut_pct": 0.25,
+       "hc_funded_new_class": false
       }
      },
      {
@@ -3453,7 +3462,7 @@
      },
      {
       "rule_id": "X-118",
-      "family": "treatment",
+      "family": "related_party",
       "severity": "MONITOR",
       "message": "The notes say the round was insider-led (M-012). Existing investors re-pricing their own position is weaker evidence than a new lead, though not a related-party price for HC itself.",
       "action": "",
@@ -3462,7 +3471,8 @@
       "recommendation": null,
       "evidence": {
        "rule": "M-012",
-       "insider_led": true
+       "insider_led": true,
+       "step_up": 0.521
       }
      },
      {
@@ -3481,7 +3491,9 @@
     ],
     "disposition": "BLOCK",
     "open_items": [],
-    "alternative_marks": {}
+    "alternative_marks": {
+     "structure_adjusted": 1.74825
+    }
    },
    {
     "company": "Pinwhistle",
@@ -3506,6 +3518,7 @@
     "latest_post_money": 87.7,
     "staleness_anchor": "2023-12-18",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 2.8,
     "arr_growth": 0.51,
     "runway_months_aged": 26.73,
@@ -3532,13 +3545,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 33 months ago (2023-12-18) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 33.4 months ago (2023-12-18) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 33,
+       "months": 33.4,
        "anchor": "2023-12-18"
       }
      },
@@ -3553,17 +3566,18 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 31.32,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      },
      {
       "rule_id": "X-405",
       "family": "valuation",
       "severity": "REVIEW",
-      "message": "The price behind this mark is 33 months old, and the current numbers disagree with it: carried above the multiple screen (31\u00d7 revenue, growing +51%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "message": "The price behind this mark is 33.4 months old, and the current numbers disagree with it: carried above the multiple screen (31\u00d7 revenue, growing +51%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
       "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
       "points": [
-       "Price is **33 months old** \u2014 and today's numbers **argue with it**.",
+       "Price is **33.4 months old** \u2014 and today's numbers **argue with it**.",
        "Screen: **carried above the multiple screen** (31\u00d7 revenue, growing +51%).",
        "Two independent signals point the same way: **affirm or reprice**."
       ],
@@ -3602,7 +3616,7 @@
        "note": null
       },
       "evidence": {
-       "months": 33,
+       "months": 33.4,
        "screens": [
         "X-401"
        ]
@@ -3636,6 +3650,7 @@
     "latest_post_money": 15.1,
     "staleness_anchor": "2025-12-18",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.4,
     "arr_growth": -0.32,
     "runway_months_aged": 27.28,
@@ -3726,6 +3741,7 @@
     "latest_post_money": 22.8,
     "staleness_anchor": "2023-08-28",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 2.0,
     "arr_growth": 1.11,
     "runway_months_aged": 14.0,
@@ -3752,13 +3768,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 37 months ago (2023-08-28) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 37.1 months ago (2023-08-28) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 37,
+       "months": 37.1,
        "anchor": "2023-08-28"
       }
      }
@@ -3790,6 +3806,7 @@
     "latest_post_money": 87.7,
     "staleness_anchor": "2026-05-26",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 2.2,
     "arr_growth": 1.16,
     "runway_months_aged": 14.45,
@@ -3823,7 +3840,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 39.86,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -3854,6 +3872,7 @@
     "latest_post_money": 12.0,
     "staleness_anchor": "2024-12-08",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.6,
     "arr_growth": 2.54,
     "runway_months_aged": 30.52,
@@ -3903,6 +3922,7 @@
     "latest_post_money": 10.3,
     "staleness_anchor": "2025-08-01",
     "fv_level": 3,
+    "multiple_exposed": false,
     "arr": 0.3,
     "arr_growth": 2.88,
     "runway_months_aged": 18.09,
@@ -3966,6 +3986,7 @@
     "latest_post_money": 84.9,
     "staleness_anchor": "2026-03-10",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 5.7,
     "arr_growth": -0.11,
     "runway_months_aged": 24.4,
@@ -4029,6 +4050,7 @@
     "latest_post_money": 2055.3,
     "staleness_anchor": "2023-03-06",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 201.8,
     "arr_growth": 0.32,
     "runway_months_aged": 18.41,
@@ -4055,13 +4077,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 42 months ago (2023-03-06) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 42.8 months ago (2023-03-06) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 42,
+       "months": 42.8,
        "anchor": "2023-03-06"
       }
      }
@@ -4093,6 +4115,7 @@
     "latest_post_money": 7.7,
     "staleness_anchor": "2024-01-03",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 7.5,
     "arr_growth": 0.85,
     "runway_months_aged": 29.87,
@@ -4119,13 +4142,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 32 months ago (2024-01-03) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 32.9 months ago (2024-01-03) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 32,
+       "months": 32.9,
        "anchor": "2024-01-03"
       }
      },
@@ -4140,17 +4163,18 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 1.03,
-       "threshold": 3.0
+       "threshold": 3.0,
+       "basis": "absolute policy bound"
       }
      },
      {
       "rule_id": "X-405",
       "family": "valuation",
       "severity": "REVIEW",
-      "message": "The price behind this mark is 32 months old, and the current numbers disagree with it: carried below the multiple screen (1\u00d7 revenue, growing +85%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "message": "The price behind this mark is 32.9 months old, and the current numbers disagree with it: carried below the multiple screen (1\u00d7 revenue, growing +85%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
       "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
       "points": [
-       "Price is **32 months old** \u2014 and today's numbers **argue with it**.",
+       "Price is **32.9 months old** \u2014 and today's numbers **argue with it**.",
        "Screen: **carried below the multiple screen** (1\u00d7 revenue, growing +85%).",
        "Two independent signals point the same way: **affirm or reprice**."
       ],
@@ -4180,7 +4204,7 @@
        "note": null
       },
       "evidence": {
-       "months": 32,
+       "months": 32.9,
        "screens": [
         "X-402"
        ]
@@ -4214,6 +4238,7 @@
     "latest_post_money": 30.2,
     "staleness_anchor": "2024-02-02",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 2.0,
     "arr_growth": 1.68,
     "runway_months_aged": 16.69,
@@ -4240,13 +4265,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 31 months ago (2024-02-02) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 31.9 months ago (2024-02-02) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 31,
+       "months": 31.9,
        "anchor": "2024-02-02"
       }
      }
@@ -4278,6 +4303,7 @@
     "latest_post_money": 251.6,
     "staleness_anchor": "2025-12-04",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 10.8,
     "arr_growth": 0.79,
     "runway_months_aged": 29.53,
@@ -4327,6 +4353,7 @@
     "latest_post_money": 1494.5,
     "staleness_anchor": "2021-05-11",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 129.4,
     "arr_growth": -0.2,
     "runway_months_aged": 17.45,
@@ -4353,10 +4380,10 @@
       "rule_id": "X-202",
       "family": "staleness",
       "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 64 months ago, on 2021-05-11. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 64 months ago is still fair value.",
+      "message": "The mark rests on a round that closed 64.7 months ago, on 2021-05-11. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 64.7 months ago is still fair value.",
       "points": [
-       "The mark rests on a round **64 months old** (2021-05-11).",
+       "The mark rests on a round **64.7 months old** (2021-05-11).",
        "Companies at this stage normally **reprice every 18\u201324 months**.",
        "This price **predates two funding cycles** \u2014 and probably the business it describes."
       ],
@@ -4386,7 +4413,7 @@
        "note": null
       },
       "evidence": {
-       "months": 64,
+       "months": 64.7,
        "anchor": "2021-05-11"
       }
      },
@@ -4467,6 +4494,7 @@
     "latest_post_money": 260.3,
     "staleness_anchor": "2026-03-08",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 24.8,
     "arr_growth": 0.68,
     "runway_months_aged": 26.78,
@@ -4516,6 +4544,7 @@
     "latest_post_money": 73.8,
     "staleness_anchor": "2023-05-14",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 7.0,
     "arr_growth": 1.12,
     "runway_months_aged": 4.11,
@@ -4601,13 +4630,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 40 months ago (2023-05-14) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 40.6 months ago (2023-05-14) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 40,
+       "months": 40.6,
        "anchor": "2023-05-14"
       }
      },
@@ -4615,11 +4644,11 @@
       "rule_id": "X-304",
       "family": "liquidity",
       "severity": "REVIEW",
-      "message": "About 4.1 months of cash left ($2.3M against $0.45M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
-      "action": "Confirm the mark reflects a company with 4.1 months of cash.",
+      "message": "About 4.1 months of cash left ($2.3M against $0.45M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark. A financing closed this quarter \u2014 convertible note on 2026-08-28 (HC put in $0.50M) \u2014 and the cash figure may predate it; the round size is not in the workbook, so the runway here is pre-raise.",
+      "action": "Confirm the post-raise cash position; the 4.1-month runway is measured before this quarter's financing.",
       "points": [
        "About **4.1 months of cash** left ($2.3M against $0.45M a month).",
-       "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+       "A **financing closed this quarter** (convertible note, 2026-08-28); the cash figure may **predate it**.",
        "The round that saves it **may be priced below this mark**."
       ],
       "suggestions": [
@@ -4657,7 +4686,14 @@
        "note": null
       },
       "evidence": {
-       "runway_months_aged": 4.11
+       "runway_months_aged": 4.11,
+       "financings_in_quarter": [
+        {
+         "date": "2026-08-28",
+         "event": "Convertible Note",
+         "hc_investment": 0.5
+        }
+       ]
       }
      }
     ],
@@ -4700,6 +4736,7 @@
     "latest_post_money": 626.9,
     "staleness_anchor": "2024-12-07",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 13.1,
     "arr_growth": 0.98,
     "runway_months_aged": 23.62,
@@ -4733,7 +4770,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 47.85,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -4764,6 +4802,7 @@
     "latest_post_money": 631.7,
     "staleness_anchor": "2023-10-14",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 19.4,
     "arr_growth": 1.03,
     "runway_months_aged": 30.08,
@@ -4790,13 +4829,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 35 months ago (2023-10-14) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 35.5 months ago (2023-10-14) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 35,
+       "months": 35.5,
        "anchor": "2023-10-14"
       }
      },
@@ -4811,31 +4850,32 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 32.56,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      },
      {
       "rule_id": "X-404",
       "family": "valuation",
       "severity": "MONITOR",
-      "message": "Carrying a 6.6\u00d7 return on a price set 35 months ago \u2014 a large unrealised gain resting on an old mark.",
+      "message": "Carrying a 6.6\u00d7 return on a price set 35.5 months ago \u2014 a large unrealised gain resting on an old mark.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
        "moic": 6.62,
-       "months": 35
+       "months": 35.5
       }
      },
      {
       "rule_id": "X-405",
       "family": "valuation",
       "severity": "REVIEW",
-      "message": "The price behind this mark is 35 months old, and the current numbers disagree with it: carried above the multiple screen; an outsized unrealised gain (33\u00d7 revenue, growing +103%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "message": "The price behind this mark is 35.5 months old, and the current numbers disagree with it: carried above the multiple screen; an outsized unrealised gain (33\u00d7 revenue, growing +103%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
       "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
       "points": [
-       "Price is **35 months old** \u2014 and today's numbers **argue with it**.",
+       "Price is **35.5 months old** \u2014 and today's numbers **argue with it**.",
        "Screen: **carried above the multiple screen; an outsized unrealised gain** (33\u00d7 revenue, growing +103%).",
        "Two independent signals point the same way: **affirm or reprice**."
       ],
@@ -4874,7 +4914,7 @@
        "note": null
       },
       "evidence": {
-       "months": 35,
+       "months": 35.5,
        "screens": [
         "X-401",
         "X-404"
@@ -4909,6 +4949,7 @@
     "latest_post_money": 30.3,
     "staleness_anchor": "2026-02-17",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 6.3,
     "arr_growth": 0.52,
     "runway_months_aged": 21.31,
@@ -4958,6 +4999,7 @@
     "latest_post_money": 8.9,
     "staleness_anchor": "2026-06-22",
     "fv_level": null,
+    "multiple_exposed": false,
     "arr": null,
     "arr_growth": null,
     "runway_months_aged": null,
@@ -5006,6 +5048,7 @@
     "latest_post_money": 24.7,
     "staleness_anchor": "2024-09-03",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 6.6,
     "arr_growth": 1.28,
     "runway_months_aged": 21.7,
@@ -5027,8 +5070,23 @@
       "evidence": null
      }
     ],
-    "flags": [],
-    "disposition": "CLEAR",
+    "flags": [
+     {
+      "rule_id": "X-201",
+      "family": "staleness",
+      "severity": "MONITOR",
+      "message": "Last priced 24.9 months ago (2024-09-03) \u2014 normal at this stage, worth watching.",
+      "action": "",
+      "points": [],
+      "suggestions": [],
+      "recommendation": null,
+      "evidence": {
+       "months": 24.9,
+       "anchor": "2024-09-03"
+      }
+     }
+    ],
+    "disposition": "MONITOR",
     "open_items": [],
     "alternative_marks": {}
    },
@@ -5055,6 +5113,7 @@
     "latest_post_money": 79.0,
     "staleness_anchor": "2025-09-06",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 6.1,
     "arr_growth": 1.04,
     "runway_months_aged": 23.08,
@@ -5104,6 +5163,7 @@
     "latest_post_money": 63.6,
     "staleness_anchor": "2025-05-22",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 7.5,
     "arr_growth": 0.56,
     "runway_months_aged": 29.83,
@@ -5153,6 +5213,7 @@
     "latest_post_money": 15.3,
     "staleness_anchor": "2026-04-01",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.4,
     "arr_growth": 0.68,
     "runway_months_aged": 22.81,
@@ -5202,6 +5263,7 @@
     "latest_post_money": 122.5,
     "staleness_anchor": "2023-11-10",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 26.0,
     "arr_growth": -0.05,
     "runway_months_aged": 28.07,
@@ -5228,13 +5290,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 34 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 34.7 months ago (2023-11-10) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 34,
+       "months": 34.7,
        "anchor": "2023-11-10"
       }
      },
@@ -5255,10 +5317,10 @@
       "rule_id": "X-405",
       "family": "valuation",
       "severity": "REVIEW",
-      "message": "The price behind this mark is 34 months old, and the current numbers disagree with it: revenue now shrinking (5\u00d7 revenue, growing -5%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+      "message": "The price behind this mark is 34.7 months old, and the current numbers disagree with it: revenue now shrinking (5\u00d7 revenue, growing -5%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
       "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
       "points": [
-       "Price is **34 months old** \u2014 and today's numbers **argue with it**.",
+       "Price is **34.7 months old** \u2014 and today's numbers **argue with it**.",
        "Screen: **revenue now shrinking** (5\u00d7 revenue, growing -5%).",
        "Two independent signals point the same way: **affirm or reprice**."
       ],
@@ -5297,7 +5359,7 @@
        "note": null
       },
       "evidence": {
-       "months": 34,
+       "months": 34.7,
        "screens": [
         "X-301"
        ]
@@ -5331,6 +5393,7 @@
     "latest_post_money": 820.2,
     "staleness_anchor": "2022-08-28",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 65.7,
     "arr_growth": 0.53,
     "runway_months_aged": 17.32,
@@ -5357,10 +5420,10 @@
       "rule_id": "X-202",
       "family": "staleness",
       "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 49 months ago, on 2022-08-28. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 49 months ago is still fair value.",
+      "message": "The mark rests on a round that closed 49.1 months ago, on 2022-08-28. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 49.1 months ago is still fair value.",
       "points": [
-       "The mark rests on a round **49 months old** (2022-08-28).",
+       "The mark rests on a round **49.1 months old** (2022-08-28).",
        "Companies at this stage normally **reprice every 18\u201324 months**.",
        "This price **predates two funding cycles** \u2014 and probably the business it describes."
       ],
@@ -5390,7 +5453,7 @@
        "note": null
       },
       "evidence": {
-       "months": 49,
+       "months": 49.1,
        "anchor": "2022-08-28"
       }
      }
@@ -5422,6 +5485,7 @@
     "latest_post_money": 119.9,
     "staleness_anchor": "2025-07-19",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 22.1,
     "arr_growth": 0.59,
     "runway_months_aged": 2.5,
@@ -5490,7 +5554,8 @@
        "note": null
       },
       "evidence": {
-       "runway_months_aged": 2.5
+       "runway_months_aged": 2.5,
+       "financings_in_quarter": []
       }
      }
     ],
@@ -5521,6 +5586,7 @@
     "latest_post_money": 54.3,
     "staleness_anchor": "2026-06-09",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 7.2,
     "arr_growth": 1.87,
     "runway_months_aged": 16.53,
@@ -5570,6 +5636,7 @@
     "latest_post_money": 66.1,
     "staleness_anchor": "2026-06-11",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 6.0,
     "arr_growth": 1.16,
     "runway_months_aged": 26.39,
@@ -5619,6 +5686,7 @@
     "latest_post_money": 298.3,
     "staleness_anchor": "2023-01-12",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 16.0,
     "arr_growth": 1.15,
     "runway_months_aged": 24.43,
@@ -5645,13 +5713,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 44 months ago (2023-01-12) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 44.6 months ago (2023-01-12) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 44,
+       "months": 44.6,
        "anchor": "2023-01-12"
       }
      }
@@ -5683,6 +5751,7 @@
     "latest_post_money": 18.1,
     "staleness_anchor": "2023-12-07",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.0,
     "arr_growth": 2.99,
     "runway_months_aged": 3.67,
@@ -5709,13 +5778,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 33 months ago (2023-12-07) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 33.8 months ago (2023-12-07) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 33,
+       "months": 33.8,
        "anchor": "2023-12-07"
       }
      },
@@ -5765,7 +5834,8 @@
        "note": null
       },
       "evidence": {
-       "runway_months_aged": 3.67
+       "runway_months_aged": 3.67,
+       "financings_in_quarter": []
       }
      }
     ],
@@ -5796,6 +5866,7 @@
     "latest_post_money": 13.9,
     "staleness_anchor": "2026-06-14",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.4,
     "arr_growth": 1.43,
     "runway_months_aged": 19.0,
@@ -5845,6 +5916,7 @@
     "latest_post_money": 17.9,
     "staleness_anchor": "2024-05-06",
     "fv_level": 3,
+    "multiple_exposed": false,
     "arr": 0.2,
     "arr_growth": 0.65,
     "runway_months_aged": 25.96,
@@ -5871,13 +5943,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 28 months ago (2024-05-06) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 28.8 months ago (2024-05-06) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 28,
+       "months": 28.8,
        "anchor": "2024-05-06"
       }
      },
@@ -5922,6 +5994,7 @@
     "latest_post_money": 1390.7,
     "staleness_anchor": "2025-04-30",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 127.7,
     "arr_growth": 0.45,
     "runway_months_aged": 25.07,
@@ -5971,6 +6044,7 @@
     "latest_post_money": 38.7,
     "staleness_anchor": "2025-03-28",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 5.5,
     "arr_growth": 0.45,
     "runway_months_aged": 16.46,
@@ -6020,6 +6094,7 @@
     "latest_post_money": 2282.4,
     "staleness_anchor": "2023-01-30",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 204.3,
     "arr_growth": 0.18,
     "runway_months_aged": 16.58,
@@ -6046,13 +6121,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 44 months ago (2023-01-30) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 44.0 months ago (2023-01-30) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 44,
+       "months": 44.0,
        "anchor": "2023-01-30"
       }
      }
@@ -6084,6 +6159,7 @@
     "latest_post_money": 21.3,
     "staleness_anchor": "2025-10-31",
     "fv_level": 3,
+    "multiple_exposed": false,
     "arr": 0.1,
     "arr_growth": null,
     "runway_months_aged": 18.26,
@@ -6147,6 +6223,7 @@
     "latest_post_money": 91.0,
     "staleness_anchor": "2024-05-23",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 9.8,
     "arr_growth": 0.52,
     "runway_months_aged": 11.62,
@@ -6173,13 +6250,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 28 months ago (2024-05-23) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 28.3 months ago (2024-05-23) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 28,
+       "months": 28.3,
        "anchor": "2024-05-23"
       }
      },
@@ -6193,7 +6270,8 @@
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "runway_months_aged": 11.62
+       "runway_months_aged": 11.62,
+       "financings_in_quarter": []
       }
      }
     ],
@@ -6224,6 +6302,7 @@
     "latest_post_money": 12.5,
     "staleness_anchor": "2023-08-01",
     "fv_level": 3,
+    "multiple_exposed": false,
     "arr": 0.4,
     "arr_growth": 2.9,
     "runway_months_aged": 13.0,
@@ -6250,13 +6329,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 37 months ago (2023-08-01) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 38.0 months ago (2023-08-01) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 37,
+       "months": 38.0,
        "anchor": "2023-08-01"
       }
      },
@@ -6301,6 +6380,7 @@
     "latest_post_money": 415.9,
     "staleness_anchor": "2022-12-30",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 64.1,
     "arr_growth": 0.31,
     "runway_months_aged": 18.36,
@@ -6327,13 +6407,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 45 months ago (2022-12-30) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 45.0 months ago (2022-12-30) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 45,
+       "months": 45.0,
        "anchor": "2022-12-30"
       }
      }
@@ -6365,6 +6445,7 @@
     "latest_post_money": 25.5,
     "staleness_anchor": "2025-03-09",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.9,
     "arr_growth": 0.75,
     "runway_months_aged": 31.5,
@@ -6414,6 +6495,7 @@
     "latest_post_money": 677.3,
     "staleness_anchor": "2025-07-28",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 78.8,
     "arr_growth": 0.29,
     "runway_months_aged": 28.92,
@@ -6463,6 +6545,7 @@
     "latest_post_money": 130.7,
     "staleness_anchor": "2024-07-09",
     "fv_level": null,
+    "multiple_exposed": false,
     "arr": null,
     "arr_growth": null,
     "runway_months_aged": null,
@@ -6511,6 +6594,7 @@
     "latest_post_money": 285.1,
     "staleness_anchor": "2023-07-20",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 68.6,
     "arr_growth": 0.53,
     "runway_months_aged": 17.98,
@@ -6537,13 +6621,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 38 months ago (2023-07-20) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 38.4 months ago (2023-07-20) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 38,
+       "months": 38.4,
        "anchor": "2023-07-20"
       }
      }
@@ -6575,6 +6659,7 @@
     "latest_post_money": 10.1,
     "staleness_anchor": "2025-09-10",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.9,
     "arr_growth": 0.64,
     "runway_months_aged": 20.36,
@@ -6624,6 +6709,7 @@
     "latest_post_money": 86.9,
     "staleness_anchor": "2026-04-13",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 3.9,
     "arr_growth": 1.73,
     "runway_months_aged": 23.86,
@@ -6673,6 +6759,7 @@
     "latest_post_money": 278.1,
     "staleness_anchor": "2023-03-10",
     "fv_level": null,
+    "multiple_exposed": false,
     "arr": 12.7,
     "arr_growth": 0.75,
     "runway_months_aged": 7.02,
@@ -6727,6 +6814,7 @@
     "latest_post_money": 8.2,
     "staleness_anchor": "2021-09-16",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 4.8,
     "arr_growth": 1.01,
     "runway_months_aged": 25.59,
@@ -6753,10 +6841,10 @@
       "rule_id": "X-202",
       "family": "staleness",
       "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 60 months ago, on 2021-09-16. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 60 months ago is still fair value.",
+      "message": "The mark rests on a round that closed 60.5 months ago, on 2021-09-16. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 60.5 months ago is still fair value.",
       "points": [
-       "The mark rests on a round **60 months old** (2021-09-16).",
+       "The mark rests on a round **60.5 months old** (2021-09-16).",
        "Companies at this stage normally **reprice every 18\u201324 months**.",
        "This price **predates two funding cycles** \u2014 and probably the business it describes."
       ],
@@ -6786,7 +6874,7 @@
        "note": null
       },
       "evidence": {
-       "months": 60,
+       "months": 60.5,
        "anchor": "2021-09-16"
       }
      },
@@ -6801,7 +6889,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 1.71,
-       "threshold": 3.0
+       "threshold": 3.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -6832,6 +6921,7 @@
     "latest_post_money": 842.1,
     "staleness_anchor": "2022-09-02",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 54.5,
     "arr_growth": 0.72,
     "runway_months_aged": 17.32,
@@ -6855,21 +6945,48 @@
     ],
     "flags": [
      {
-      "rule_id": "X-201",
+      "rule_id": "X-202",
       "family": "staleness",
-      "severity": "MONITOR",
-      "message": "Last priced 48 months ago (2022-09-02) \u2014 normal at this stage, worth watching.",
-      "action": "",
-      "points": [],
-      "suggestions": [],
-      "recommendation": null,
+      "severity": "REVIEW",
+      "message": "The mark rests on a round that closed 48.9 months ago, on 2022-09-02. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 48.9 months ago is still fair value.",
+      "points": [
+       "The mark rests on a round **48.9 months old** (2022-09-02).",
+       "Companies at this stage normally **reprice every 18\u201324 months**.",
+       "This price **predates two funding cycles** \u2014 and probably the business it describes."
+      ],
+      "suggestions": [
+       {
+        "key": "as_proposed",
+        "label": "Keep the mark as proposed.",
+        "reasons": [
+         "No transaction or metric in the file says the value moved.",
+         "Staleness alone is not evidence of a decline."
+        ],
+        "booked": 48.8
+       }
+      ],
+      "recommendation": {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "No transaction or metric in the file says the value moved.",
+        "Staleness alone is not evidence of a decline."
+       ],
+       "booked": 48.8,
+       "source": "policy",
+       "model": null,
+       "rationale": null,
+       "confidence": null,
+       "note": null
+      },
       "evidence": {
-       "months": 48,
+       "months": 48.9,
        "anchor": "2022-09-02"
       }
      }
     ],
-    "disposition": "MONITOR",
+    "disposition": "REVIEW",
     "open_items": [],
     "alternative_marks": {}
    },
@@ -6896,6 +7013,7 @@
     "latest_post_money": 653.6,
     "staleness_anchor": "2025-06-18",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 74.0,
     "arr_growth": 0.55,
     "runway_months_aged": 12.54,
@@ -6945,6 +7063,7 @@
     "latest_post_money": 5699.4,
     "staleness_anchor": "2022-05-21",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 252.8,
     "arr_growth": 0.54,
     "runway_months_aged": 14.92,
@@ -6971,10 +7090,10 @@
       "rule_id": "X-202",
       "family": "staleness",
       "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 52 months ago, on 2022-05-21. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 52 months ago is still fair value.",
+      "message": "The mark rests on a round that closed 52.3 months ago, on 2022-05-21. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 52.3 months ago is still fair value.",
       "points": [
-       "The mark rests on a round **52 months old** (2022-05-21).",
+       "The mark rests on a round **52.3 months old** (2022-05-21).",
        "Companies at this stage normally **reprice every 18\u201324 months**.",
        "This price **predates two funding cycles** \u2014 and probably the business it describes."
       ],
@@ -7004,7 +7123,7 @@
        "note": null
       },
       "evidence": {
-       "months": 52,
+       "months": 52.3,
        "anchor": "2022-05-21"
       }
      },
@@ -7012,14 +7131,14 @@
       "rule_id": "X-404",
       "family": "valuation",
       "severity": "MONITOR",
-      "message": "Carrying a 6.3\u00d7 return on a price set 52 months ago \u2014 a large unrealised gain resting on an old mark.",
+      "message": "Carrying a 6.3\u00d7 return on a price set 52.3 months ago \u2014 a large unrealised gain resting on an old mark.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
        "moic": 6.28,
-       "months": 52
+       "months": 52.3
       }
      }
     ],
@@ -7050,6 +7169,7 @@
     "latest_post_money": 289.9,
     "staleness_anchor": "2023-12-06",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 12.8,
     "arr_growth": 0.79,
     "runway_months_aged": 7.12,
@@ -7076,13 +7196,13 @@
       "rule_id": "X-201",
       "family": "staleness",
       "severity": "MONITOR",
-      "message": "Last priced 33 months ago (2023-12-06) \u2014 normal at this stage, worth watching.",
+      "message": "Last priced 33.8 months ago (2023-12-06) \u2014 normal at this stage, worth watching.",
       "action": "",
       "points": [],
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "months": 33,
+       "months": 33.8,
        "anchor": "2023-12-06"
       }
      },
@@ -7096,7 +7216,8 @@
       "suggestions": [],
       "recommendation": null,
       "evidence": {
-       "runway_months_aged": 7.12
+       "runway_months_aged": 7.12,
+       "financings_in_quarter": []
       }
      }
     ],
@@ -7127,6 +7248,7 @@
     "latest_post_money": 302.2,
     "staleness_anchor": "2025-08-29",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 14.3,
     "arr_growth": 0.46,
     "runway_months_aged": 20.39,
@@ -7176,6 +7298,7 @@
     "latest_post_money": 22.6,
     "staleness_anchor": "2024-12-04",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 0.7,
     "arr_growth": -0.3,
     "runway_months_aged": 18.26,
@@ -7249,7 +7372,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 32.29,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -7280,6 +7404,7 @@
     "latest_post_money": 60.3,
     "staleness_anchor": "2025-03-11",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.7,
     "arr_growth": 0.62,
     "runway_months_aged": 17.52,
@@ -7313,7 +7438,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 35.47,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -7344,6 +7470,7 @@
     "latest_post_money": 15.6,
     "staleness_anchor": "2026-05-09",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.6,
     "arr_growth": 1.16,
     "runway_months_aged": 13.35,
@@ -7393,6 +7520,7 @@
     "latest_post_money": 2170.9,
     "staleness_anchor": "2025-04-04",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 189.6,
     "arr_growth": 0.32,
     "runway_months_aged": 22.18,
@@ -7442,6 +7570,7 @@
     "latest_post_money": 17.4,
     "staleness_anchor": "2022-01-03",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 2.8,
     "arr_growth": 1.99,
     "runway_months_aged": 19.94,
@@ -7468,10 +7597,10 @@
       "rule_id": "X-202",
       "family": "staleness",
       "severity": "REVIEW",
-      "message": "The mark rests on a round that closed 56 months ago, on 2022-01-03. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-      "action": "Decide whether a price set 56 months ago is still fair value.",
+      "message": "The mark rests on a round that closed 56.9 months ago, on 2022-01-03. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
+      "action": "Decide whether a price set 56.9 months ago is still fair value.",
       "points": [
-       "The mark rests on a round **56 months old** (2022-01-03).",
+       "The mark rests on a round **56.9 months old** (2022-01-03).",
        "Companies at this stage normally **reprice every 18\u201324 months**.",
        "This price **predates two funding cycles** \u2014 and probably the business it describes."
       ],
@@ -7501,7 +7630,7 @@
        "note": null
       },
       "evidence": {
-       "months": 56,
+       "months": 56.9,
        "anchor": "2022-01-03"
       }
      }
@@ -7533,6 +7662,7 @@
     "latest_post_money": 22.1,
     "staleness_anchor": "2025-11-21",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.3,
     "arr_growth": 1.67,
     "runway_months_aged": 30.87,
@@ -7582,6 +7712,7 @@
     "latest_post_money": 54.6,
     "staleness_anchor": "2025-09-23",
     "fv_level": 3,
+    "multiple_exposed": true,
     "arr": 1.2,
     "arr_growth": 1.99,
     "runway_months_aged": 21.67,
@@ -7615,7 +7746,8 @@
       "recommendation": null,
       "evidence": {
        "implied_multiple": 45.5,
-       "threshold": 30.0
+       "threshold": 30.0,
+       "basis": "absolute policy bound"
       }
      }
     ],
@@ -7646,6 +7778,7 @@
     "latest_post_money": 12.1,
     "staleness_anchor": "2024-08-02",
     "fv_level": null,
+    "multiple_exposed": false,
     "arr": null,
     "arr_growth": null,
     "runway_months_aged": null,
@@ -7679,13 +7812,13 @@
     "active": 29,
     "invested": 268.9,
     "prior_nav": 656.8,
-    "proposed_nav": 725.3385,
-    "booked_nav": 725.3385,
+    "proposed_nav": 725.6885,
+    "booked_nav": 725.6885,
     "realized_quarter": 28.2,
     "realized_cumulative": 28.2,
-    "tvpi": 2.8023,
+    "tvpi": 2.8036,
     "dpi": 0.1049,
-    "rvpi": 2.6974,
+    "rvpi": 2.6987,
     "top_positions": [
      [
       "Drayvenn",
@@ -7693,7 +7826,7 @@
      ],
      [
       "Fernwave",
-      0.1014
+      0.1013
      ],
      [
       "Mardellan",
@@ -7705,7 +7838,7 @@
      ],
      [
       "Knollward",
-      0.0673
+      0.0672
      ]
     ]
    },
@@ -7787,9 +7920,9 @@
    "positions": 100,
    "active_after": 93,
    "prior_nav": 1139.3,
-   "proposed_nav": 1183.9263,
-   "booked_nav": 1183.9263,
-   "net_movement": 44.6263,
+   "proposed_nav": 1184.2763,
+   "booked_nav": 1184.2763,
+   "net_movement": 44.9763,
    "realized_quarter": 32.5,
    "realized_cumulative": 49.6,
    "written_off": 21.4,
@@ -7801,7 +7934,7 @@
     "CLEAR": 34
    },
    "level1_positions": 1,
-   "top10_concentration": 0.4461
+   "top10_concentration": 0.4459
   },
   "open_items": [
    {
@@ -7861,10 +7994,197 @@
    }
   ],
   "sensitivity": {
-   "base_nav": 1183.9263,
-   "multiple_exposed_nav": 1067.5583,
-   "nav_if_multiples_-20pct": 970.41464,
-   "nav_if_multiples_+20pct": 1397.43796
+   "base_nav": 1184.2763,
+   "multiple_exposed_nav": 1062.7491,
+   "software_exposed_nav": 801.7124,
+   "nav_if_multiples_-20pct": 971.72648,
+   "nav_if_software_multiples_-20pct": 1023.93382,
+   "nav_if_multiples_+20pct": 1396.82612,
+   "nav_if_software_multiples_+20pct": 1344.61878
+  },
+  "sensitivity_meta": {
+   "shock_pct": [
+    -0.2,
+    0.2
+   ],
+   "min_arr": 0.5,
+   "software_sectors": [
+    "AI/ML",
+    "Developer Tools",
+    "Enterprise SaaS",
+    "Fintech",
+    "Cybersecurity",
+    "Data & Analytics",
+    "Infrastructure"
+   ]
+  },
+  "comps_move": {
+   "prior_month": "2026-06",
+   "now_month": "2026-09",
+   "base_nav": 1184.2763,
+   "exposed_nav": 1062.7491,
+   "covered_nav": 1062.7491,
+   "delta": 1.749103,
+   "nav_if_marked_with_comps": 1186.025403,
+   "sectors": [
+    {
+     "sector": "Cybersecurity",
+     "multiple_prior": 13.45,
+     "multiple_now": 13.01,
+     "qoq_pct": -0.0327,
+     "exposed_nav": 155.3,
+     "delta": -5.080446,
+     "positions": 8,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Infrastructure",
+     "multiple_prior": 11.0,
+     "multiple_now": 11.28,
+     "qoq_pct": 0.0255,
+     "exposed_nav": 100.216,
+     "delta": 2.550953,
+     "positions": 6,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Robotics",
+     "multiple_prior": 7.05,
+     "multiple_now": 7.21,
+     "qoq_pct": 0.0227,
+     "exposed_nav": 100.9,
+     "delta": 2.289929,
+     "positions": 5,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Fintech",
+     "multiple_prior": 9.41,
+     "multiple_now": 9.18,
+     "qoq_pct": -0.0244,
+     "exposed_nav": 77.109,
+     "delta": -1.884705,
+     "positions": 9,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "AI/ML",
+     "multiple_prior": 22.53,
+     "multiple_now": 22.7,
+     "qoq_pct": 0.0075,
+     "exposed_nav": 206.2388,
+     "delta": 1.556174,
+     "positions": 14,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Enterprise SaaS",
+     "multiple_prior": 10.45,
+     "multiple_now": 10.63,
+     "qoq_pct": 0.0172,
+     "exposed_nav": 88.909,
+     "delta": 1.531447,
+     "positions": 11,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Developer Tools",
+     "multiple_prior": 11.4,
+     "multiple_now": 11.28,
+     "qoq_pct": -0.0105,
+     "exposed_nav": 133.6396,
+     "delta": -1.406733,
+     "positions": 10,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Space & Defense",
+     "multiple_prior": 10.01,
+     "multiple_now": 10.19,
+     "qoq_pct": 0.018,
+     "exposed_nav": 64.8,
+     "delta": 1.165235,
+     "positions": 3,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Climate & Energy",
+     "multiple_prior": 7.04,
+     "multiple_now": 7.14,
+     "qoq_pct": 0.0142,
+     "exposed_nav": 69.8057,
+     "delta": 0.991558,
+     "positions": 5,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Healthcare",
+     "multiple_prior": 7.82,
+     "multiple_now": 7.63,
+     "qoq_pct": -0.0243,
+     "exposed_nav": 18.431,
+     "delta": -0.447812,
+     "positions": 6,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Data & Analytics",
+     "multiple_prior": 11.19,
+     "multiple_now": 11.3,
+     "qoq_pct": 0.0098,
+     "exposed_nav": 40.3,
+     "delta": 0.396157,
+     "positions": 8,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    },
+    {
+     "sector": "Consumer",
+     "multiple_prior": 5.69,
+     "multiple_now": 5.76,
+     "qoq_pct": 0.0123,
+     "exposed_nav": 7.1,
+     "delta": 0.087346,
+     "positions": 2,
+     "live": false,
+     "source": "fixture:pitchbook@2026-09",
+     "n_prior": null,
+     "n_now": null
+    }
+   ],
+   "all_live": false
   }
  }
 }

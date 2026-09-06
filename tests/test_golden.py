@@ -32,7 +32,7 @@ EVENT_TABLE = [
     ("Dovelane Systems", "M-010", 4.1, 5.71, 0.0),
     ("Pellagrin", "M-011", 13.0, 13.93, 0.0),
     ("Tarnwick Aerospace", "M-012", 2.0, 1.14, 0.0),
-    ("Gryphonel", "M-050", 3.5, 4.31, 0.0),
+    ("Gryphonel", "M-050", 3.5, 4.66, 0.0),
     ("Duskfern", "M-060", 6.1, 6.60, 0.0),
     ("Emberfold", "M-060", 1.8, 1.80, 0.0),
     ("Halcyra", "M-070", 2.7, 2.70, 0.0),
@@ -55,8 +55,8 @@ def test_headline_totals(run_real):
     t = run_real.totals
     assert t.positions == 100
     assert t.prior_nav == pytest.approx(1139.3, abs=0.05)
-    assert t.proposed_nav == pytest.approx(1183.9, abs=0.05)
-    assert t.net_movement == pytest.approx(44.6, abs=0.05)
+    assert t.proposed_nav == pytest.approx(1184.3, abs=0.05)
+    assert t.net_movement == pytest.approx(45.0, abs=0.05)
     assert t.realized_quarter == pytest.approx(32.5, abs=0.005)
     assert t.realized_cumulative == pytest.approx(49.6, abs=0.005)
     assert t.written_off == pytest.approx(21.4, abs=0.005)            # Larkspell 11.4 + Islewind 10.0 (shutdowns)

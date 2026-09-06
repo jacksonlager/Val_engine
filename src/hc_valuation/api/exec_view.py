@@ -94,7 +94,7 @@ def _r(x: float, n: int = 2) -> float:
 
 
 def _pct(delta: float, base: float) -> float | None:
-    return _r(delta / base, 4) if base else None
+    return _r(delta / base, 6) if base else None   # 6 dp: a 4-dp ratio re-rounded to 0.1% can drift (0.03948 -> 0.0395 -> "4.0%")
 
 
 def _mover_kind(c: CompanyResult) -> str:

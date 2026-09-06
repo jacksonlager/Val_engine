@@ -30,9 +30,7 @@ from ..config import RuleConfig, repo_root
 from ..engine.inputs import ActivityFeed, PortfolioSnapshot
 from ..engine.models import MarketData
 from .base import CompanyMetricsProvider, CompsProvider, MarketDataProvider, NewsSignalProvider  # noqa: F401
-from .stubs import (  # noqa: F401 — StubIndexProvider stays re-exported for callers of the earlier live path
-    StubCompanyMetricsProvider, StubCompsProvider, StubIndexProvider, StubMarketDataProvider, StubNewsSignalProvider,
-)
+from .stubs import StubCompanyMetricsProvider, StubCompsProvider, StubMarketDataProvider, StubNewsSignalProvider
 
 log = logging.getLogger(__name__)
 
@@ -177,16 +175,18 @@ def _baskets_path(root: Path | None) -> Path:
 
 def assemble_market_data(cfg: RuleConfig, root: Path, snapshot: PortfolioSnapshot, feed: ActivityFeed,
                          provider: str | None = None, *, drift_pct: float = 0.0,
-                         refresh: bool = False, price_source: str | None = None) -> MarketAssembly:
+                         refresh: bool = False, price_source: str | None = None,
+                         quotes_provider_name: str | None = None) -> MarketAssembly:
     """Build the `MarketData` the engine consumes, label where it came from, and build the
     market report. `refresh=True` makes the live provider refetch over its cache;
-    `price_source` (else `HC_PRICE_SOURCE`, else the baskets default) picks the price half."""
+    `price_source` (else `HC_PRICE_SOURCE`, else the baskets default) picks the price half;
+    `quotes_provider_name` (else `HC_QUOTES_PROVIDER`, else the stub) picks the quote slot."""
     from .live import stub_market_report
 
     md = cfg.quarter.measurement_date
     name = resolve_provider(provider)
 
-    quotes_provider: MarketDataProvider = quotes_provider_for(feed, snapshot, drift_pct=drift_pct)
+    quotes_provider: MarketDataProvider = quotes_provider_for(feed, snapshot, drift_pct=drift_pct, provider=quotes_provider_name)
     stub_comps = StubCompsProvider(root)
     positions = positions_by_sector(snapshot)
     used_by = used_by_from_policy(cfg)
@@ -207,7 +207,10 @@ def assemble_market_data(cfg: RuleConfig, root: Path, snapshot: PortfolioSnapsho
                                     errors=errors, months_of_history=months_of_history)
 
     quotes = {}
-    for company in sorted({e.company for e in feed.events} | set(quotes_provider.carried_listings)):
+    # `carried_listings` is a stub convenience (the names it seeds to their prior close); a real
+    # quote feed need not offer it, so the Protocol does not require it.
+    carried = getattr(quotes_provider, "carried_listings", None) or []
+    for company in sorted({e.company for e in feed.events} | set(carried)):
         q = quotes_provider.quote(company, md)
         if q is not None:
             quotes[company] = q
@@ -221,16 +224,58 @@ def assemble_market_data(cfg: RuleConfig, root: Path, snapshot: PortfolioSnapsho
     return MarketAssembly(market=market, label=label, report=report)
 
 
-def quotes_provider_for(feed: ActivityFeed, snapshot: PortfolioSnapshot, *, drift_pct: float = 0.0) -> MarketDataProvider:
-    """The measurement-date quote source (the S&P / market-cap slot). Only the fixture exists:
-    it seeds a new listing to its IPO print and labels the quote so the flag says so. A real
-    provider implements `MarketDataProvider.quote()` and is returned from here instead."""
-    return StubMarketDataProvider(feed, drift_pct=drift_pct, snapshot=snapshot)
+# ---------------------------------------------------------------- the other three slots
+# The same shape as the comps registry: one factory per vendor name, chosen by an explicit
+# argument, else an environment variable, else `stub`. A Capital IQ quote feed, a Foresight
+# metrics client or an AlphaSense signal client is one registered factory; nothing downstream
+# changes. An unknown name falls back to the stub and says so, like `resolve_provider`.
+
+QUOTES_ENV_VAR = "HC_QUOTES_PROVIDER"
+METRICS_ENV_VAR = "HC_METRICS_PROVIDER"
+SIGNALS_ENV_VAR = "HC_SIGNALS_PROVIDER"
+
+QUOTES_PROVIDERS: dict[str, Callable[..., MarketDataProvider]] = {}
+METRICS_PROVIDERS: dict[str, Callable[[Path], CompanyMetricsProvider]] = {}
+SIGNALS_PROVIDERS: dict[str, Callable[[Path], NewsSignalProvider]] = {}
 
 
-def company_metrics_provider(root: Path) -> CompanyMetricsProvider:
-    return StubCompanyMetricsProvider(root)
+def register_quotes_provider(name: str, factory: Callable[..., MarketDataProvider]) -> None:
+    """`factory(feed, snapshot, drift_pct=...) -> MarketDataProvider` (the S&P / market-cap slot)."""
+    QUOTES_PROVIDERS[name.strip().lower()] = factory
 
 
-def news_signal_provider(root: Path) -> NewsSignalProvider:
-    return StubNewsSignalProvider(root)
+def register_metrics_provider(name: str, factory: Callable[[Path], CompanyMetricsProvider]) -> None:
+    METRICS_PROVIDERS[name.strip().lower()] = factory
+
+
+def register_signals_provider(name: str, factory: Callable[[Path], NewsSignalProvider]) -> None:
+    SIGNALS_PROVIDERS[name.strip().lower()] = factory
+
+
+def _pick(registry: dict[str, Any], provider: str | None, env_var: str, slot: str) -> str:
+    name = (provider or os.environ.get(env_var) or "stub").strip().lower()
+    if name not in registry:
+        log.warning("unknown %s provider %r; using stub", slot, name)
+        name = "stub"
+    return name
+
+
+def quotes_provider_for(feed: ActivityFeed, snapshot: PortfolioSnapshot, *, drift_pct: float = 0.0,
+                        provider: str | None = None) -> MarketDataProvider:
+    """The measurement-date quote source (the S&P / market-cap slot). Only the fixture is
+    registered: it seeds a new listing to its IPO print and labels the quote so the flag says so."""
+    name = _pick(QUOTES_PROVIDERS, provider, QUOTES_ENV_VAR, "quotes")
+    return QUOTES_PROVIDERS[name](feed, snapshot, drift_pct=drift_pct)
+
+
+def company_metrics_provider(root: Path, provider: str | None = None) -> CompanyMetricsProvider:
+    return METRICS_PROVIDERS[_pick(METRICS_PROVIDERS, provider, METRICS_ENV_VAR, "metrics")](root)
+
+
+def news_signal_provider(root: Path, provider: str | None = None) -> NewsSignalProvider:
+    return SIGNALS_PROVIDERS[_pick(SIGNALS_PROVIDERS, provider, SIGNALS_ENV_VAR, "signals")](root)
+
+
+register_quotes_provider("stub", lambda feed, snapshot, drift_pct=0.0: StubMarketDataProvider(feed, drift_pct=drift_pct, snapshot=snapshot))
+register_metrics_provider("stub", StubCompanyMetricsProvider)
+register_signals_provider("stub", StubNewsSignalProvider)

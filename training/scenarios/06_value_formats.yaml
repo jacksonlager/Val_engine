@@ -58,7 +58,7 @@ expect:
     Lanternfell Space:    { disposition: CLEAR,   rules: [M-030], proposed: 26.144, realized_quarter: 11.1112, ownership_after: 0.04, flags_must_not: [X-104] }
     Kilnbrook:            { disposition: REVIEW,  rules: [M-060], proposed: 4.9,    note_at_cost: 0.5, flags_must: [X-107] }
     Willowmere Compute:   { disposition: MONITOR, rules: [M-070], proposed: 4.7,    flags_must: [X-109] }
-    Oxbowlane:            { disposition: BLOCK,   rules: [M-050], proposed: 19.35,  flags_must: [X-101] }
+    Oxbowlane:            { disposition: BLOCK,   rules: [M-050], proposed: 20.65,  flags_must: [X-101] }
     Coppermoss Energy:    { disposition: CLEAR,   rules: [M-021], proposed: 0.0,    realized_quarter: 0.1, status: "Shut Down" }
     Vellichor Systems:    { disposition: MONITOR, rules: [M-000], proposed: 11.8,   flags_must: [X-301] }
     Yewbranch Security:   { rules: [M-000], proposed: 2.5, flags_must_not: [X-301, X-302] }

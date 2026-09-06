@@ -53,7 +53,7 @@ def test_workbook_sheets_and_row_counts(result, tmp_path: Path):
     # the only timestamp is the manifest's generated_at
     summary = {r[0]: r[1] for r in wb["Summary"].iter_rows(min_row=2, values_only=True)}
     assert summary["Generated at"] == GENERATED.isoformat()
-    assert summary["Proposed NAV ($M)"] == pytest.approx(1183.9, abs=0.05)
+    assert summary["Proposed NAV ($M)"] == pytest.approx(1184.3, abs=0.05)
 
 
 def test_workbook_is_deterministic(result, tmp_path: Path):

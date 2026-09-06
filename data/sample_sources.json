@@ -133,6 +133,34 @@
    "column": "Status"
   }
  },
+ "derived_inputs": {
+  "implied_from_deal_value": "derived: ownership \u00d7 deal_value",
+  "implied_post_money": "derived: the row's stated implied valuation, else proceeds \u00f7 ownership_sold",
+  "implied_from_ownership": "derived: proceeds \u00f7 ownership_sold",
+  "ownership_sold": "derived: ownership_before \u2212 ownership_after",
+  "at_last_round": "derived: ownership_after \u00d7 last_round_post_money",
+  "at_secondary_price": "derived: ownership_after \u00d7 implied_post_money",
+  "at_implied_price": "derived: ownership_after \u00d7 implied_post_money",
+  "valuation_cap": "derived: parsed from Detail text",
+  "cap_vs_last_round": "derived: valuation_cap \u00f7 last_round_post_money \u2212 1",
+  "close_probability": "policy: marking.announced.close_probability",
+  "treatment": "policy: marking.announced.treatment",
+  "at_full_deal_value": "derived: ownership \u00d7 deal_value",
+  "probability_weighted": "derived: ownership \u00d7 deal_value \u00d7 close_probability",
+  "hold_prior": "derived: the prior mark",
+  "indicated_mark": "derived: ownership \u00d7 indicated_post_money",
+  "measurement_date_market_cap": "market data: the measurement-date quote (see price_source)",
+  "price_source": "market data: provenance of the quote",
+  "lockup_end": "derived: event date + open_items.ipo_lockup_days",
+  "lockup_discount_pct": "policy: marking.ipo.lockup_discount_pct",
+  "remainder_basis": "policy: marking.secondary.remainder_basis",
+  "new_money_basis": "policy: marking.convertible.new_money_basis",
+  "note_converted": "derived: the note leg folded into equity on listing",
+  "comp_multiple_now": "market data: sector basket EV/revenue, measurement month",
+  "comp_multiple_at_round": "market data: sector basket EV/revenue, round month",
+  "factor_raw": "derived: comp_multiple_now \u00f7 comp_multiple_at_round",
+  "factor_bounded": "derived: factor_raw clamped to \u00b1calibration.bound_pct"
+ },
  "companies": {
   "Aravine": {
    "portfolio_row": 2,

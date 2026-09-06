@@ -37,7 +37,7 @@ def test_health_and_run_totals(client: TestClient):
     run = client.get("/api/run").json()
     assert run["totals"]["positions"] == 100
     assert run["totals"]["prior_nav"] == pytest.approx(1139.3, abs=0.05)
-    assert run["totals"]["proposed_nav"] == pytest.approx(1183.9, abs=0.05)
+    assert run["totals"]["proposed_nav"] == pytest.approx(1184.3, abs=0.05)
     assert run["totals"]["realized_quarter"] == pytest.approx(32.5, abs=0.05)
     assert run["totals"]["level1_positions"] == 1
     assert len(run["companies"]) == 100
@@ -63,6 +63,13 @@ def test_override_changes_booked_not_proposed(client: TestClient, paths: RunPath
     before = client.get("/api/companies/Oakenvale").json()
     body = {"company": "Oakenvale", "booked": 2.0, "reason": "preference stack reviewed; haircut to 2.0",
             "approver": "committee-test"}
+    # a decision names what it decides: an override on a flagged position must list the rule ids
+    r = client.post("/api/overrides", json=body)
+    assert r.status_code == 422 and "rule_ids_addressed" in r.json()["detail"]["message"], r.text
+    assert set(r.json()["detail"]["flags"]) == {f["rule_id"] for f in before["flags"]}
+    r = client.post("/api/overrides", json={**body, "rule_ids_addressed": ["X-999"]})
+    assert r.status_code == 422 and "X-999" in r.json()["detail"]["message"], r.text
+    body["rule_ids_addressed"] = [before["flags"][0]["rule_id"]]
     r = client.post("/api/overrides", json=body)
     assert r.status_code == 200, r.text
     after = r.json()
@@ -107,7 +114,7 @@ def test_decision_route_is_501_until_promote_exists(client: TestClient):
 
 def test_rerun(client: TestClient):
     r = client.post("/api/rerun")
-    assert r.status_code == 200 and r.json()["booked_nav"] == pytest.approx(1183.9, abs=0.05)
+    assert r.status_code == 200 and r.json()["booked_nav"] == pytest.approx(1184.3, abs=0.05)
 
 
 def test_signals_route_lines_vendor_metrics_up_against_the_workbook(client: TestClient):

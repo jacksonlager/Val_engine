@@ -6,6 +6,7 @@ import { CompanyDetail } from "../components/CompanyDetail";
 import { FlagActionList } from "../components/Flags";
 import { OpenItemsView } from "./OpenItems";
 import { DispChip, EscalatedChip, escalatedReviewFamilies, FlagChip } from "../components/ui";
+import { PriorFlagPill } from "../components/FlagHistory";
 
 function Headline({ label, value, sub, cls = "" }: { label: string; value: string; sub?: string; cls?: string }) {
   return (
@@ -164,6 +165,7 @@ function QueueCard({
               <span className="font-semibold text-[15px] tracking-tight">{c.company}</span>
               <DispChip d={c.disposition} />
               <EscalatedChip n={escalated} />
+              <PriorFlagPill c={c} />
             </div>
             <div className="text-[11px] text-muted mt-0.5">
               {c.fund} · {c.sector} · {c.stage}

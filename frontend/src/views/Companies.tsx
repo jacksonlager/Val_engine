@@ -115,6 +115,19 @@ export function CompaniesView({
           </span>
         ),
       }),
+      col.accessor("disposition", {
+        header: "Disposition",   // right after the name: the column the reader sorts by, never at the scroll edge
+        sortingFn: (a, b) => DISP_ORDER[a.original.disposition] - DISP_ORDER[b.original.disposition],
+        cell: (i) => {
+          const n = escalatedReviewFamilies(i.row.original);
+          return (
+            <span className="inline-flex items-center gap-1 whitespace-nowrap">
+              <DispChip d={i.getValue()} />
+              <EscalatedChip n={n} short />
+            </span>
+          );
+        },
+      }),
       col.accessor("fund", { header: "Fund" }),
       // Sector and Stage are in the card subtitle and the audit chain; they give way first on a narrower screen
       col.accessor("sector", { header: "Sector", meta: { hide: "hide-lt-1300" } }),
@@ -193,19 +206,6 @@ export function CompaniesView({
         meta: { r: true },
         sortUndefined: "last",
         cell: (i) => <span className="num">{mult(i.getValue())}</span>,
-      }),
-      col.accessor("disposition", {
-        header: "Disposition",
-        sortingFn: (a, b) => DISP_ORDER[a.original.disposition] - DISP_ORDER[b.original.disposition],
-        cell: (i) => {
-          const n = escalatedReviewFamilies(i.row.original);
-          return (
-            <span className="inline-flex items-center gap-1">
-              <DispChip d={i.getValue()} />
-              <EscalatedChip n={n} />
-            </span>
-          );
-        },
       }),
       col.accessor((r) => r.flags.length, {
         id: "flags",

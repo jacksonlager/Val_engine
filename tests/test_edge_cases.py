@@ -173,7 +173,8 @@ def test_custom_rule_terminal_flag(build, cfg):
     run, _ = build([position()], [event("SPAC Merger", value=400.0, proceeds=12.0)], cfg_=alt)
     c = only(run)
     assert c.proposed_mark == 0.0 and c.realized_quarter == 12.0 and c.fv_level is None
-    assert c.disposition == Disposition.CLEAR and c.flags == ()
+    # the rule's own REVIEW flag is event-driven, so it survives the terminal filter; the carry-side screens do not
+    assert c.disposition == Disposition.REVIEW and [f.rule_id for f in c.flags] == ["M-111"]
 
 
 @pytest.mark.parametrize("formula,fragment", [
@@ -417,6 +418,8 @@ def test_m080_on_real_workbook_never_moves_the_book(cfg):
     Regression: M-080 once recorded its no-op step as equity→equity, which broke the chain
     invariant (proposed = equity + note leg) for Duskfern and crashed the whole run."""
     from conftest import GENERATED_AT, WORKBOOK_PATH, run_workbook
+    # absolute screens on both sides: the synthetic live comps would otherwise (correctly) re-bound X-401/402
+    cfg = with_policy(cfg, **{"exceptions.multiple.mode": "absolute"})
     alt = with_policy(cfg, **{"marking.calibration.enabled": True})
     base, _ = run_workbook(WORKBOOK_PATH, cfg)
     sectors = {c.sector for c in base.companies}

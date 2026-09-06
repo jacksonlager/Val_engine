@@ -32,7 +32,9 @@ The JSON shape (`GET /api/history`, inlined as `window.__HC_HISTORY__` by `build
         "Aravine": [
           {"quarter": "Q2 2026", "slug": "2026Q2", "mark": 6.9, "invested": 6.0, "realized": 0.0,
            "moic": 1.15, "status": "Active", "disposition": null, "source": "prior",
-           "overridden": false, "run_id": null, "published_at": null, "note": null},
+           "overridden": false, "run_id": null, "published_at": null, "note": null,
+           "flags": [{"rule_id": "X-202", "severity": "REVIEW", "family": "staleness"}],
+           "flags_source": "reconstructed"},          # published | backfill | reconstructed | live
           ...
         ]
       }
@@ -55,7 +57,9 @@ from ..engine.models import ValuationRun
 from .publish import published_dir
 
 _QUARTER_RX = re.compile(r"^\s*Q([1-4])\s+(\d{4})\s*$")
-_BACKFILL_KEYS = {"quarter", "mark", "invested", "realized", "status", "note"}
+_BACKFILL_KEYS = {"quarter", "mark", "invested", "realized", "status", "note", "disposition", "flags"}
+_DISPOSITIONS = {"BLOCK", "REVIEW", "MONITOR", "CLEAR"}
+_SEVERITIES = {"BLOCK", "REVIEW", "MONITOR"}
 BACKFILL_FILE = Path("data") / "mark_history.yaml"
 SOURCE_RANK = {"backfill": 0, "prior": 1, "published": 2, "live": 3}
 
@@ -94,7 +98,8 @@ def _moic(mark: float | None, realized: float | None, invested: float | None) ->
 
 def _point(quarter: str, mark: float, source: str, *, invested: float | None = None, realized: float | None = None,
            status: str | None = None, disposition: str | None = None, overridden: bool = False,
-           run_id: str | None = None, published_at: str | None = None, note: str | None = None) -> dict[str, Any]:
+           run_id: str | None = None, published_at: str | None = None, note: str | None = None,
+           flags: list[dict[str, Any]] | None = None, flags_source: str | None = None) -> dict[str, Any]:
     return {
         "quarter": quarter, "slug": quarter_slug(quarter), "mark": round(float(mark), 6),
         "invested": None if invested is None else round(float(invested), 6),
@@ -102,7 +107,14 @@ def _point(quarter: str, mark: float, source: str, *, invested: float | None = N
         "moic": _moic(mark, realized, invested),
         "status": status, "disposition": disposition, "source": source, "overridden": overridden,
         "run_id": run_id, "published_at": published_at, "note": note,
+        # the flags the position carried that quarter, and where they came from:
+        # published (a released snapshot), backfill (HC's records), reconstructed (the book re-screened)
+        "flags": list(flags or []), "flags_source": flags_source,
     }
+
+
+def _slim_flags(flags: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    return [{"rule_id": f["rule_id"], "severity": f["severity"], "family": f.get("family")} for f in (flags or [])]
 
 
 def _company_point(c: dict[str, Any], quarter: str, source: str, run_id: str | None,
@@ -113,6 +125,7 @@ def _company_point(c: dict[str, Any], quarter: str, source: str, run_id: str | N
         invested=c.get("invested_after"), realized=c.get("realized_cumulative"),
         status=c.get("status_after"), disposition=c.get("disposition"),
         overridden=c.get("override") is not None, run_id=run_id, published_at=published_at,
+        flags=_slim_flags(c.get("flags")), flags_source="published" if source == "published" else "live",
     )
 
 
@@ -162,12 +175,42 @@ def load_backfill(path: Path) -> tuple[dict[str, dict[str, dict[str, Any]]], lis
             except (TypeError, ValueError):
                 errors.append(f"{where}: `invested` and `realized` must be numbers when given")
                 continue
+            disposition = None if e.get("disposition") is None else str(e["disposition"]).upper()
+            if disposition is not None and disposition not in _DISPOSITIONS:
+                errors.append(f"{where}: `disposition` must be one of {sorted(_DISPOSITIONS)}")
+                continue
+            flags, bad = _backfill_flags(e.get("flags"))
+            if bad:
+                errors.append(f"{where}: {bad}")
+                continue
             out.setdefault(str(company), {})[q] = _point(
                 q, mark, "backfill", invested=invested, realized=realized,
                 status=None if e.get("status") is None else str(e["status"]),
                 note=None if e.get("note") is None else str(e["note"]),
+                disposition=disposition, flags=flags, flags_source="backfill" if (flags or disposition) else None,
             )
     return out, errors
+
+
+def _backfill_flags(raw: Any) -> tuple[list[dict[str, Any]], str | None]:
+    """`flags:` in the backfill file: a list of `X-202` strings (severity unknown) or of
+    `{rule_id, severity, family}` mappings. Returns the slim list or an error string."""
+    if raw is None:
+        return [], None
+    if not isinstance(raw, list):
+        return [], "`flags` must be a list of rule ids or {rule_id, severity, family} entries"
+    out: list[dict[str, Any]] = []
+    for f in raw:
+        if isinstance(f, str):
+            out.append({"rule_id": f, "severity": None, "family": None})
+        elif isinstance(f, dict) and f.get("rule_id"):
+            sev = None if f.get("severity") is None else str(f["severity"]).upper()
+            if sev is not None and sev not in _SEVERITIES:
+                return [], f"flag {f['rule_id']}: severity must be one of {sorted(_SEVERITIES)}"
+            out.append({"rule_id": str(f["rule_id"]), "severity": sev, "family": None if f.get("family") is None else str(f["family"])})
+        else:
+            return [], "each flag must be a rule id or a mapping with rule_id"
+    return out, None
 
 
 def load_published_points(root: Path) -> tuple[dict[str, dict[str, dict[str, Any]]], list[str]]:
@@ -195,8 +238,12 @@ def load_published_points(root: Path) -> tuple[dict[str, dict[str, dict[str, Any
 # ---------------------------------------------------------------- assembly
 
 def build_history(run: ValuationRun, root: Path, *, backfill_path: Path | None = None,
-                  tolerance_musd: float = 0.01) -> dict[str, Any]:
-    """The `/api/history` payload. See the module docstring for the contract."""
+                  tolerance_musd: float = 0.01, prior_screen: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+    """The `/api/history` payload. See the module docstring for the contract.
+
+    `prior_screen` is `prior_screen.screen_prior_close(...)`: the previous quarter's flags
+    reconstructed from the book this run started from. It fills the `prior` point's flags and
+    disposition when no published snapshot or backfill entry has them (tagged `reconstructed`)."""
     root = Path(root)
     backfill_path = backfill_path if backfill_path is not None else root / BACKFILL_FILE
     backfill, errors = load_backfill(backfill_path)
@@ -221,9 +268,15 @@ def build_history(run: ValuationRun, root: Path, *, backfill_path: Path | None =
         by_q = merged.setdefault(company, {})
         # previous quarter: the workbook's Prior Mark, unless the archive already has that close
         prior_realized = float(c.get("realized_cumulative", 0.0)) - float(c.get("realized_quarter", 0.0))
+        recon = (prior_screen or {}).get(company)
         prior_pt = _point(previous, c["prior_mark"], "prior", invested=c.get("invested_before"),
-                          realized=prior_realized, status=c.get("status_before"))
+                          realized=prior_realized, status=c.get("status_before"),
+                          disposition=recon["disposition"] if recon else None,
+                          flags=recon["flags"] if recon else [], flags_source="reconstructed" if recon else None)
         have = by_q.get(previous)
+        if have is not None and recon and not have.get("flags") and not have.get("disposition"):
+            # a backfilled mark with no flags recorded: the reconstruction supplies them, labelled
+            have.update(disposition=recon["disposition"], flags=recon["flags"], flags_source="reconstructed")
         if have is None or SOURCE_RANK[have["source"]] < SOURCE_RANK["prior"]:
             if have is not None and abs(float(have["mark"]) - float(c["prior_mark"])) > tolerance_musd:
                 prior_pt["note"] = (f"{have['source']} entry ${float(have['mark']):.3f}M differs from the workbook's "

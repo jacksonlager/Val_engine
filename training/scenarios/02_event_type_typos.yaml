@@ -45,7 +45,7 @@ expect:
     Kilnbrook:            { disposition: REVIEW,  rules: [M-060], proposed: 4.9,    flags_must: [X-107], flags_must_not: [M-999] }
     Vinecroft:            { disposition: BLOCK,   rules: [M-040], proposed: 35.0,   flags_must: [X-101], flags_must_not: [M-999] }
     Ambercrest:           { disposition: CLEAR,   rules: [M-020], proposed: 0.0,    realized_quarter: 16.8, status: Acquired, flags_must_not: [M-999] }
-    Oxbowlane:            { disposition: BLOCK,   rules: [M-050], proposed: 19.35,  flags_must: [X-101], flags_must_not: [M-999] }
+    Oxbowlane:            { disposition: BLOCK,   rules: [M-050], proposed: 20.65,  flags_must: [X-101], flags_must_not: [M-999] }
     Coppermoss Energy:    { disposition: CLEAR,   rules: [M-021], proposed: 0.0,    status: "Shut Down", flags_must_not: [M-999] }
     Lanternfell Space:    { disposition: CLEAR,   rules: [M-030], proposed: 26.144, flags_must_not: [M-999, X-104] }
     Willowmere Compute:   { disposition: MONITOR, rules: [M-070], proposed: 4.7,    flags_must: [X-109], flags_must_not: [M-999] }

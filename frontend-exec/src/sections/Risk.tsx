@@ -7,11 +7,13 @@ function RiskList({
   threshold,
   rows,
   metric,
+  word,
 }: {
   title: string;
   threshold: string;
   rows: RiskRow[];
   metric: (r: RiskRow) => { value: string; label: string };
+  word: string;
 }) {
   const total = rows.reduce((s, r) => s + r.booked, 0);
   return (
@@ -22,7 +24,7 @@ function RiskList({
           <div className="text-[11px] text-muted">{threshold}</div>
         </div>
         <div className="text-[12px] text-ink2 mt-0.5">
-          {plural(rows.length, "position")} · <span className="num text-ink">{money(total, 1)}</span> booked
+          {plural(rows.length, "position")} · <span className="num text-ink">{money(total, 1)}</span> {word}
         </div>
       </div>
       {rows.length === 0 ? (
@@ -63,6 +65,7 @@ const n = (v: unknown, d: number) => (typeof v === "number" ? v.toFixed(d) : "�
 
 export function Risk({ view }: { view: ExecView }) {
   const r = view.risk_watch;
+  const word = view.meta.status === "final" ? "booked" : "proposed";
   return (
     <Section
       id="risk"
@@ -75,18 +78,21 @@ export function Risk({ view }: { view: ExecView }) {
           title="Short runway"
           threshold="under 6 months of cash"
           rows={r.short_runway}
+          word={word}
           metric={(x) => ({ value: n(x.evidence.runway_months_aged, 1), label: "months" })}
         />
         <RiskList
           title="Revenue contracting"
           threshold="ARR growth below −15%"
           rows={r.arr_contraction}
+          word={word}
           metric={(x) => ({ value: typeof x.evidence.arr_growth === "number" ? `−${Math.abs(x.evidence.arr_growth * 100).toFixed(0)}%` : "—", label: "YoY" })}
         />
         <RiskList
           title="Stale marks"
           threshold="last priced over 48 months ago"
           rows={r.stale_marks}
+          word={word}
           metric={(x) => ({ value: n(x.evidence.months, 0), label: "months" })}
         />
       </div>

@@ -4,6 +4,34 @@ Rolls a venture portfolio forward through a quarter's activity feed, proposes a 
 every position, and flags what a human must decide before anything is booked. Built for
 the HC finance assessment against the synthetic 100-company workbook in `data/`.
 
+## Q3 2026 in one screen
+
+The book rolls from **$1,139.3M at 30 June to $1,184.3M proposed at 30 September (+$45.0M,
++3.9%)** across 100 positions and 18 activity events. Seven priced rounds add $61.5M and
+the Drayvenn IPO adds $29.8M; Cindral's sale closed for $28.2M of cash against an $18.2M
+mark (a $10.0M gain, realized rather than held); two shutdowns write off $21.4M; $32.5M of
+cash came back in the quarter.
+Ninety-three positions are active, one is now Level 1.
+
+**Seven positions need a committee decision before anything is booked** — the engine has a
+number for each, and says why it is not the final word:
+
+| Company | Prior → proposed ($M) | The decision |
+|---|---|---|
+| Drayvenn | 80.3 → 110.07 | Confirm the 30 Sep close for the new listing; ratify the 0% lock-up discount |
+| Gryphonel | 3.5 → 4.66 | Ratify 0.90 × deal price + 0.10 × standalone for the announced, unclosed sale — or full value, or hold |
+| Oakenvale | 5.7 → 2.33 | Recap at $37M vs $71M: ownership × post-money is a ceiling until the preference stack is read |
+| Tarnwick Aerospace | 2.0 → 1.14 | Down round, same question |
+| Duskfern | 6.1 → 6.60 | HC's $0.5M bridge note carried at cost on its own leg; is the bridge a distress signal? |
+| Pellagrin | 13.0 → 13.93 | A same-terms extension is not price discovery: 59 months since the last real price |
+| Birchhollow | 43.3 → 43.30 | 65-month-old round plus shrinking ARR: two independent reasons to doubt the number |
+
+Twenty more positions need a reviewer's confirmation (a stale round, a contraction, short
+runway, a term or a note the columns cannot hold); 39 carry a watch item; 34 are clear.
+**Publish is locked until all 27 are decided** — the executive dashboard never sees an
+undecided book. Open the review tool (`hc-valuation run`), or the executive view at
+`/exec/`, and the numbers above are the first thing on the screen.
+
 The engine is deterministic and pure: the same workbook and policy file always produce
 the same marks, the same queue and the same audit chain. Judgment lives in the policy
 file and in the committee's override ledger, never in the code path that computes a number.
@@ -92,14 +120,25 @@ one-sentence rationale and the activity-tab row it came from. `proposed_mark` is
 equal to the last step's `new_value`; the review table is that chain rendered. Companies
 with no activity carry an explicit `M-000` step rather than silence.
 
+**Rules.** The review tool's Rules tab is the page an auditor reads first: the six checks
+behind every disposition, then every exception rule with two bullets — why it is a flag and
+why it carries that severity — tagged *in the brief* (the five exceptions the assessment
+names) or *our call* (rules we added and defend), and a table of every flagged company with
+the engine's exact reason. The bullets live in `rules/rationale.yaml`, are served at
+`/api/rationale`, inlined into the static report, and shown beside every flag's detail; a
+test refuses any rule the engine can raise that has no entry.
+
 **Overrides.** The committee books a different number by appending to
 `data/overrides.yaml` (or `POST /api/overrides` from the dashboard) with a reason and an
 approver. The engine keeps `proposed_mark` untouched, sets `booked_mark`, appends an
 `E-01` step naming the approver, and flags the override for re-confirmation if the
-proposal it was recorded against has since moved. The decision records — `data/overrides.yaml`,
-`data/precedent.yaml`, `data/proposals/*.json` and `data/published/` — are versioned in git on
-purpose, so a booked number always travels with the decision behind it; only the superseded
-publish copies (`data/published/history/`) and the emitted `open_items_carry.yaml` stay local.
+proposal it was recorded against has since moved. The decision records — `data/overrides.yaml`
+(empty until the committee books its first override), `data/precedent.yaml`,
+`data/proposals/*.json` and `data/published/` — are tracked in git on purpose and committed
+with the quarter's close, so a booked number always travels with the decision behind it; only
+the superseded publish copies (`data/published/history/`) and the emitted
+`open_items_carry.yaml` stay local. Every write to them is atomic (temp file + rename), so a
+crash or a concurrent reader never sees a half-written ledger.
 
 **Vendor signals.** A company's detail panel also shows a "Vendor signals" card
 (`GET /api/signals`): the Foresight-shaped operating metrics beside the workbook's own, with
@@ -128,7 +167,11 @@ flags waiting on it, and a *Decide* / *Confirm* link to its row — and can only
 the server refuses the request (409) as well, so an undecided book cannot reach executives
 by any path. Once the list is empty the same button publishes the quarter as **FINAL**.
 (`hc-valuation publish --proposed` is the one deliberate bypass, for a preview from the
-command line; the dashboard never uses it.) Re-publishing replaces the snapshot and keeps the previous one under
+command line; the dashboard never uses it. **The snapshot committed in this repository was
+released that way** — an IC pre-read with 7 decisions and 20 confirmations still open, and
+the executive page says so in its first paragraph.) `hc-valuation build` writes the same
+executive page as a self-contained `dist/exec_report.html` whenever a snapshot exists.
+Re-publishing replaces the snapshot and keeps the previous one under
 `data/published/history/`, so what executives were shown is itself auditable.
 
 The executive page covers the September 30 marks, the quarter-over-quarter bridge by
@@ -189,7 +232,7 @@ quarter's file can `inherits: 2026Q3` and override only what moved; rules carry 
 
 ```bash
 pip install -e ".[dev]"             # adds pytest and httpx to the install above
-pytest                              # 750+ tests (756 at the time of writing), ~25 s, no network
+pytest                              # 760+ tests (767 at the time of writing), ~40 s, no network
 python training/run_gauntlet.py     # 44 dirty-workbook scenarios, 1,785 checks -> training/report.md
 ```
 
@@ -260,6 +303,19 @@ mark that differs from the `Prior Mark` the next run started from; a live run th
 after publishing) is noted on the point rather than hidden. `GET /api/history` serves the
 archive, `build` inlines it into `report.html` and writes it as `mark_history.csv`, and
 `hc-valuation history [--company X]` prints it.
+
+**Flag history.** Every archive point also carries the flags the position had that quarter,
+so the review tool can warn that today's BLOCK was a MONITOR three months ago. On the queue
+card and the Companies detail strip a small colour-coded pill beside the disposition reads
+`Q2 ’26 MONITOR →` (the arrow means it moved); hovering lists last quarter's rule ids and
+which of today's are new, still open, or cleared. The detail panel's *Flag history* card
+shows the full trail with today's new flags marked. The flags come from the same three
+places: a released snapshot (`published`), HC's backfill (`backfill`, which may list
+`disposition` and `flags` per quarter), and — for the first quarter on the engine, which
+has no released predecessor — a **reconstruction**: the Portfolio tab is the book at the
+prior close, so `prior_screen.py` re-runs the current policy's screens against it at that
+date with no activity and no overrides. It is labelled `reconstructed` everywhere it
+appears and is replaced by the released flags once a quarter is published.
 
 ## Live market data
 

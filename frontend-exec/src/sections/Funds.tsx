@@ -18,13 +18,15 @@ function FundTip({ active, payload }: { active?: boolean; payload?: { payload: F
 
 export function Funds({ view }: { view: ExecView }) {
   const funds = view.funds;
+  const word = view.meta.status === "final" ? "booked" : "proposed";
+  const Word = word[0].toUpperCase() + word.slice(1);
   const maxT = Math.max(1, ...funds.map((f) => f.tvpi));
   const xMax = Math.ceil(maxT * 2) / 2 + 0.5;
   const ticks: number[] = [];
   for (let t = 0; t <= xMax + 1e-9; t += 0.5) ticks.push(t);
 
   return (
-    <Section id="funds" eyebrow="Funds" title="Fund performance on booked marks" aside={<>TVPI = (booked NAV + cumulative distributions) ÷ invested. DPI is the realized part, RVPI the residual.</>}>
+    <Section id="funds" eyebrow="Funds" title={`Fund performance on ${word} marks`} aside={<>TVPI = ({word} NAV + cumulative distributions) ÷ invested. DPI is the realized part, RVPI the residual.</>}>
       <div className="grid grid-cols-12 gap-3">
         <div className="col-span-8 max-[1180px]:col-span-12 frame overflow-x-auto">
           <table className="tbl">
@@ -33,7 +35,7 @@ export function Funds({ view }: { view: ExecView }) {
                 <th>Fund</th>
                 <th className="r">Invested</th>
                 <th className="r">Prior NAV</th>
-                <th className="r">Booked NAV</th>
+                <th className="r">{Word} NAV</th>
                 <th className="r">Δ</th>
                 <th className="r">Δ %</th>
                 <th className="r">Realized Q</th>
@@ -86,7 +88,7 @@ export function Funds({ view }: { view: ExecView }) {
                 ))}
               </div>
             ))}
-            <div className="text-[11px] text-muted mt-1">$M except multiples. Top positions as a share of the fund's booked NAV.</div>
+            <div className="text-[11px] text-muted mt-1">$M except multiples. Top positions as a share of the fund's {word} NAV.</div>
           </div>
         </div>
         <div className="col-span-4 max-[1180px]:col-span-12 frame px-4 pt-3.5 pb-3 flex flex-col">

@@ -68,6 +68,7 @@ expect:
     Thornmill Systems:    { disposition: BLOCK,   rules: [M-025], proposed: 28.2, status: Active, flags_must: [X-116] }
     Vexmoor:              { disposition: BLOCK,   rules: [M-040], proposed: 30.0, fv_level: 1, listed: true, flags_must: [X-101], flags_must_not: [M-999] }
     Covebright:           { disposition: BLOCK,   rules: [M-024], proposed: 19.6, status: Active, stage: "Acquired (stock)", latest_post_money: 350.0, realized_quarter: 0.0, flags_must: [X-112], flags_must_not: [M-999], open_items_must: [acquirer_shares] }
-    Willowmere Compute:   { disposition: REVIEW,  rules: [M-010], proposed: 9.8, invested_after: 8.0, flags_must: [X-117], flags_must_not: [X-118] }
+    # $2.0M for the stake bought does not reconcile to the $70M stated (X-119) on top of the HC-led question (X-117): two families -> BLOCK
+    Willowmere Compute:   { disposition: BLOCK,   rules: [M-010], proposed: 9.8, invested_after: 8.0, flags_must: [X-117, X-119], flags_must_not: [X-118] }
     Palefire Labs:        { disposition: MONITOR, rules: [M-010], proposed: 10.35, flags_must: [X-118], flags_must_not: [X-117] }
     Harrowgate Bio:       { disposition: BLOCK, flags_must_not: [X-117] }

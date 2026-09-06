@@ -1,0 +1,6 @@
+# Committee override ledger (E-01). One record per decision, appended by the review tool
+# (POST /api/overrides) or by hand; never edited in place. Each record names the company,
+# the quarter, the proposed and booked marks, the approver, the reason and the flag(s) the
+# decision resolves (rule_ids_addressed). Committed with the quarter's close so the booked
+# number always travels with the decision behind it. Empty: no override has been booked yet.
+overrides: []

@@ -71,6 +71,14 @@ def signals_json_script(signals: dict | None) -> str:
     return "<script>window.__HC_SIGNALS__ = " + payload.replace("<", "\\u003c") + ";</script>"
 
 
+def rationale_json_script(rationale: dict | None) -> str:
+    """`window.__HC_RATIONALE__` — `/api/rationale`, the two bullets behind every rule (rules/rationale.yaml)."""
+    if not rationale:
+        return ""
+    payload = json.dumps(rationale, default=str)
+    return "<script>window.__HC_RATIONALE__ = " + payload.replace("<", "\\u003c") + ";</script>"
+
+
 # ---------------------------------------------------------------- bundle inlining
 
 def _is_local(ref: str) -> bool:
@@ -89,7 +97,8 @@ def _resolve(static_dir: Path, ref: str) -> Path | None:
 
 
 def inline_bundle(index_html: str, static_dir: Path, run: ValuationRun, sources: dict | None = None,
-                  market: dict | None = None, history: dict | None = None, signals: dict | None = None) -> str:
+                  market: dict | None = None, history: dict | None = None, signals: dict | None = None,
+                  rationale: dict | None = None) -> str:
     def script_repl(m: re.Match) -> str:
         pre, src, post = m.group(1), m.group(2), m.group(3)
         p = _resolve(static_dir, src) if _is_local(src) else None
@@ -116,7 +125,7 @@ def inline_bundle(index_html: str, static_dir: Path, run: ValuationRun, sources:
     out = _SCRIPT_TAG.sub(script_repl, index_html)
     out = _LINK_TAG.sub(link_repl, out)
     injection = (run_json_script(run) + sources_json_script(sources) + market_json_script(market)
-                 + history_json_script(history) + signals_json_script(signals))
+                 + history_json_script(history) + signals_json_script(signals) + rationale_json_script(rationale))
     idx = out.lower().find("<script")
     if idx < 0:
         idx = out.lower().find("</head>")
@@ -226,7 +235,8 @@ def fallback_html(run: ValuationRun, sources: dict | None = None, market: dict |
 
 
 def render_report(run: ValuationRun, static_dir: str | Path | None, sources: dict | None = None,
-                  market: dict | None = None, history: dict | None = None, signals: dict | None = None) -> str:
+                  market: dict | None = None, history: dict | None = None, signals: dict | None = None,
+                  rationale: dict | None = None) -> str:
     """The report HTML: the inlined dashboard bundle when present, else the fallback page.
 
     `sources` is the optional cell provenance (`api.sources.build_sources`); when given it is
@@ -236,14 +246,15 @@ def render_report(run: ValuationRun, static_dir: str | Path | None, sources: dic
     if static_dir is not None:
         index = Path(static_dir) / "index.html"
         if index.is_file():
-            return inline_bundle(index.read_text(encoding="utf-8"), Path(static_dir), run, sources, market, history, signals)
+            return inline_bundle(index.read_text(encoding="utf-8"), Path(static_dir), run, sources, market, history, signals, rationale)
     return fallback_html(run, sources, market, history, signals)
 
 
 def write_static_report(run: ValuationRun, path: str | Path, static_dir: str | Path | None = None,
                         sources: dict | None = None, market: dict | None = None,
-                        history: dict | None = None, signals: dict | None = None) -> Path:
+                        history: dict | None = None, signals: dict | None = None,
+                        rationale: dict | None = None) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(render_report(run, static_dir, sources, market, history, signals), encoding="utf-8")
+    out.write_text(render_report(run, static_dir, sources, market, history, signals, rationale), encoding="utf-8")
     return out

@@ -5,6 +5,7 @@ import { postOverride } from "../lib/api";
 import { eventRowRef, inputRef, portfolioRowRef, useSources } from "../lib/sources";
 import { FlagDetailModal, FlagPoints, SuggestionCards } from "./Flags";
 import { MarkHistoryCard } from "./MarkHistoryChart";
+import { FlagHistoryCard, PriorFlagPill } from "./FlagHistory";
 import { VendorSignalsCard } from "./VendorSignals";
 import { CopyRef, DispChip, Field, KV, Label, Modal, WriteButton } from "./ui";
 
@@ -139,13 +140,41 @@ export function OverrideModal({
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const valid = approver.trim() && reason.trim() && Number.isFinite(parseFloat(booked));
+  // A decision names what it decides: every open BLOCK / REVIEW is ticked by default, MONITOR
+  // items are offered unticked. The API refuses an override on a flagged position that names nothing.
+  const [addressed, setAddressed] = useState<Set<string>>(
+    () => new Set(c.flags.filter((f) => f.severity !== "MONITOR").map((f) => f.rule_id)),
+  );
+  const toggle = (id: string) =>
+    setAddressed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const needsRules = c.flags.length > 0;
+  const valid = approver.trim() && reason.trim() && Number.isFinite(parseFloat(booked)) && (!needsRules || addressed.size > 0);
   return (
     <Modal title={`Override · ${c.company}`} onClose={onClose}>
       <p className="text-[12px] text-ink2 mb-3">
         Records an E-01 override. The engine's proposed mark ({musd(c.proposed_mark)}) is never changed; the booked mark
         is replaced and the decision is written to the ledger with your name.
       </p>
+      {needsRules && (
+        <Field label="Flags this decision resolves">
+          <div className="flex flex-col gap-1 mb-1">
+            {c.flags.map((f) => (
+              <label key={f.rule_id} className="flex items-baseline gap-2 text-[12px] cursor-pointer">
+                <input type="checkbox" checked={addressed.has(f.rule_id)} onChange={() => toggle(f.rule_id)} />
+                <span className="mono">{f.rule_id}</span>
+                <span className="text-muted">{f.severity}</span>
+                <span className="text-ink2 truncate">{f.family}</span>
+              </label>
+            ))}
+          </div>
+          {addressed.size === 0 && <div className="text-[11px] down">Tick at least one flag — an override must say what it decides.</div>}
+        </Field>
+      )}
       <Field label="Booked mark ($M)">
         <input className="input mono w-full" value={booked} onChange={(e) => setBooked(e.target.value)} />
       </Field>
@@ -176,7 +205,13 @@ export function OverrideModal({
             setBusy(true);
             setErr(null);
             try {
-              await postOverride({ company: c.company, booked: parseFloat(booked), approver, reason });
+              await postOverride({
+                company: c.company,
+                booked: parseFloat(booked),
+                approver: approver.trim(),
+                reason: reason.trim(),
+                rule_ids_addressed: Array.from(addressed),
+              });
               onDone();
             } catch (e) {
               setErr(String((e as Error).message ?? e));
@@ -234,6 +269,7 @@ function DecisionStrip({ c }: { c: CompanyResult }) {
       </dl>
       <div className="dstrip-disp">
         <DispChip d={c.disposition} />
+        <PriorFlagPill c={c} />
         <span className="text-[12px] text-ink2">{DISPOSITION_HINT[c.disposition]}</span>
       </div>
     </div>
@@ -363,6 +399,7 @@ export function CompanyDetail({
 
         {/* ------------------------------------------------ the position, in support */}
         <aside className="min-w-0 space-y-3">
+          <FlagHistoryCard c={c} />
           <MarkHistoryCard company={c.company} />
 
           <div className="card p-3">

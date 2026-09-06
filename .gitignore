@@ -18,3 +18,7 @@ data/open_items_carry.yaml
 
 # slim companyfacts kept beside each EDGAR extract so a changed extraction re-derives offline
 data/market_cache/*/edgar_raw/
+
+# the gauntlet rewrites its report on every pytest run; the committed copy was removed from version control
+training/report.json
+training/report.md

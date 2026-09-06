@@ -2,7 +2,7 @@
 //   served  — the FastAPI app serves this bundle at '/' and exposes /api/*
 //   static  — the run is inlined as window.__HC_RUN__ (hc-valuation build); no API,
 //             so every write action is disabled with an explanation.
-import type { MarkHistory, MarketReport, Signals, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun } from "../types";
+import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun } from "../types";
 
 export type Mode = "served" | "static";
 
@@ -33,7 +33,10 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     let detail = `${r.status} ${r.statusText}`;
     try {
       const j = await r.json();
-      if (j && j.detail) detail = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail);
+      if (j && j.detail) {
+        // FastAPI's detail is a string, or an object the publish gate shapes as {message, outstanding, ...}
+        detail = typeof j.detail === "string" ? j.detail : typeof j.detail?.message === "string" ? j.detail.message : JSON.stringify(j.detail);
+      }
     } catch {
       /* body not JSON */
     }
@@ -91,6 +94,17 @@ export async function loadSignals(mode: Mode): Promise<Signals | undefined> {
   if (mode === "static" || window.__HC_RUN__) return window.__HC_SIGNALS__;
   try {
     return await getJson<Signals>("/api/signals");
+  } catch {
+    return undefined;
+  }
+}
+
+/** The two bullets behind every rule (rules/rationale.yaml). Never throws: an older server
+    or an export without it just means the Rules tab explains itself as unavailable. */
+export async function loadRationale(mode: Mode): Promise<Rationale | undefined> {
+  if (mode === "static" || window.__HC_RUN__) return window.__HC_RATIONALE__;
+  try {
+    return await getJson<Rationale>("/api/rationale");
   } catch {
     return undefined;
   }

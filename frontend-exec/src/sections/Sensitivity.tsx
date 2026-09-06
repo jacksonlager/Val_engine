@@ -5,9 +5,14 @@ import { humanKind, longDate, money, pct, signedMoney, signedPct } from "../lib/
 export function Sensitivity({ view }: { view: ExecView }) {
   const s = view.sensitivity;
   const base = s.base_nav ?? view.headline.booked_nav;
-  const lo = s["nav_if_multiples_-20pct"];
-  const hi = s["nav_if_multiples_+20pct"];
-  const exposed = s.multiple_exposed_nav;
+  // Headline scope is the brief's own wording — software multiples — when the run reports it; the
+  // wider "every multiple-exposed position" figure is the secondary line.
+  const soft = typeof s["nav_if_software_multiples_-20pct"] === "number";
+  const lo = soft ? s["nav_if_software_multiples_-20pct"] : s["nav_if_multiples_-20pct"];
+  const hi = soft ? s["nav_if_software_multiples_+20pct"] : s["nav_if_multiples_+20pct"];
+  const exposed = soft ? s.software_exposed_nav : s.multiple_exposed_nav;
+  const allLo = s["nav_if_multiples_-20pct"];
+  const allHi = s["nav_if_multiples_+20pct"];
   const has = typeof lo === "number" && typeof hi === "number";
   const span = has ? hi - lo : 1;
   const basePos = has ? ((base - lo) / span) * 100 : 50;
@@ -33,10 +38,13 @@ export function Sensitivity({ view }: { view: ExecView }) {
     >
       <div className="grid grid-cols-12 gap-3 items-start">
         <div className="col-span-4 max-[1180px]:col-span-12 frame px-5 pt-4 pb-5">
-          <div className="text-[13px] font-medium text-ink">{view.meta.status === "final" ? "Booked" : "Proposed"} NAV if revenue multiples moved</div>
+          <div className="text-[13px] font-medium text-ink">
+            {view.meta.status === "final" ? "Booked" : "Proposed"} NAV if {soft ? "software" : "revenue"} multiples moved
+          </div>
           {typeof exposed === "number" && (
             <div className="text-[12px] text-muted mt-0.5">
-              <span className="num text-ink2">{money(exposed, 1)}</span> ({pct(exposed / base)}) of NAV is in Level 3 positions with ARR ≥ $0.5M, the part the shock touches
+              <span className="num text-ink2">{money(exposed, 1)}</span> ({pct(exposed / base)}) of NAV is in {soft ? "software-sector " : ""}Level 3 positions with
+              ARR ≥ $0.5M, the part the shock touches
             </div>
           )}
           {has ? (
@@ -63,6 +71,11 @@ export function Sensitivity({ view }: { view: ExecView }) {
                 <div className="absolute inset-y-0 rounded-r-[3px]" style={{ left: `${basePos}%`, right: 0, background: "var(--up-mark)", opacity: 0.55 }} />
                 <div className="absolute -top-1 w-[2px] h-4 rounded" style={{ left: `calc(${basePos}% - 1px)`, background: "var(--ink)" }} />
               </div>
+              {soft && typeof allLo === "number" && typeof allHi === "number" && (
+                <div className="text-[11.5px] text-muted mt-3 num">
+                  Every multiple-exposed position, not only software: {money(allLo, 1)} / {money(allHi, 1)} ({signedMoney(allLo - base, 1)} / {signedMoney(allHi - base, 1)}).
+                </div>
+              )}
             </>
           ) : (
             <Empty>No sensitivity was computed for this run.</Empty>

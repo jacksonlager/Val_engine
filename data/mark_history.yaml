@@ -1,11 +1,13 @@
-# Optional backfill of quarterly marks from BEFORE the engine's first run.
+# Optional backfill of quarterly marks (and flags) from BEFORE the engine's first run.
 #
-# The review tool's per-company history chart is assembled from three places, in rising
-# authority: this file (tagged "backfill"), the publish ledger in data/published/ (tagged
-# "published" — one point per company per released quarter, extended automatically every
-# time a quarter is published), and the current run (the workbook's Prior Mark for the
-# previous quarter, the booked mark for this one). Nothing here is read by the engine
-# itself; it only lengthens the chart's history for quarters that predate the tool.
+# The review tool's per-company history — the mark chart and the flag trail — is assembled
+# from three places, in rising authority: this file (tagged "backfill"), the publish ledger
+# in data/published/ (tagged "published" — one point per company per released quarter,
+# extended automatically every time a quarter is published), and the current run (the
+# workbook's Prior Mark for the previous quarter, with that quarter's flags reconstructed by
+# re-screening the book at the prior close; the booked mark and live flags for this one).
+# Nothing here is read by the engine itself; it only lengthens the history for quarters that
+# predate the tool.
 #
 # Every entry is shown tagged "backfill" in the review tool. Leave `companies: {}` empty
 # rather than inventing numbers.
@@ -19,6 +21,8 @@
 #         invested: 6.0             # optional, cumulative invested ($M) — enables the cost line and MOIC
 #         realized: 0.0             # optional, cumulative realized ($M)
 #         status: Active            # optional
+#         disposition: REVIEW       # optional, BLOCK | REVIEW | MONITOR | CLEAR as the committee recorded it
+#         flags: [X-202, {rule_id: X-303, severity: MONITOR, family: liquidity}]   # optional, ids or full entries
 #         note: "Q4 2025 IC book"   # optional, shown in the chart tooltip
 #
 # Company names must match the workbook's `Company` column exactly.

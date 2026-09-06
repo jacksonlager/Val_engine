@@ -180,7 +180,7 @@ function PublishModal({ run, onClose, onDone }: { run: ValuationRun; onClose: ()
           void submit();
         }}
       >
-        <Field label="Your name">
+        <Field label="Your name (a second person: the approver on this quarter's overrides may not also release them)">
           <input className="input w-full" value={approver} onChange={(e) => setApprover(e.target.value)} autoFocus required />
         </Field>
         <Field label="Note (optional, shown on the executive page)">

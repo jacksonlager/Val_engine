@@ -7,6 +7,7 @@ The run is computed once when the app is created and held in `app.state.result`;
 """
 from __future__ import annotations
 
+import os
 import threading
 import time
 from datetime import date
@@ -21,11 +22,14 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from ..engine.run import build_registry
+from ..fsutil import write_atomically  # noqa: F401 — re-exported; tests import it from here
 from ..export.exec_report import EXEC_STATIC_DIR, render_exec_report
 from ..export.static_report import render_report
 from ..pipeline import PipelineResult, RunPaths, execute
+from ..prior_screen import prior_screen_for
+from ..rationale import load_rationale
 from .history import build_history
-from .publish import PublishBlocked, exec_payload, list_published, outstanding, publish_run
+from .publish import PublishBlocked, SecondApproverRequired, exec_payload, list_published, outstanding, publish_run
 from .signals import build_signals
 from .sources import build_sources
 
@@ -67,8 +71,7 @@ def append_override(path: Path, record: dict[str, Any]) -> None:
     records = list(raw.get("overrides") or [])
     records.append(record)
     raw["overrides"] = records
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(yaml.safe_dump(raw, sort_keys=False, allow_unicode=True))
+    write_atomically(path, yaml.safe_dump(raw, sort_keys=False, allow_unicode=True))
 
 
 def watched_inputs(paths: RunPaths) -> list[Path]:
@@ -138,12 +141,20 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_methods=["*"], allow_headers=["*"],
     )
-    lock = threading.Lock()
+    # One writer at a time: every ledger write and the recompute that follows it happen under
+    # this lock, so two decisions posted together cannot interleave and the watch thread never
+    # recomputes against a ledger another request is mid-way through appending to.
+    lock = threading.RLock()
 
     def recompute(refresh: bool = False) -> PipelineResult:
         with lock:
             app.state.result = execute(paths, provider=provider, refresh_market=refresh, recommender=recommender)
         return app.state.result
+
+    def write_then_recompute(write) -> PipelineResult:
+        with lock:
+            write()
+            return recompute()
 
     app.state.paths = paths
     app.state.provider = provider
@@ -183,6 +194,12 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     def get_rules() -> list[dict[str, Any]]:
         return rule_catalogue(result())
 
+    @app.get("/api/rationale")
+    def get_rationale() -> JSONResponse:
+        """Why each exception rule exists and why it carries its severity (rules/rationale.yaml),
+        with which of them the brief named. Shown on the Rules tab and beside every flag."""
+        return JSONResponse(load_rationale(paths.root))
+
     @app.get("/api/market")
     def get_market() -> JSONResponse:
         """The sector comps behind X-401/X-402 and M-080, with where they came from (docs/market-feed.md §3)."""
@@ -191,7 +208,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     @app.get("/api/history")
     def get_history() -> JSONResponse:
         """Quarter-over-quarter booked marks per company: backfill + publish ledger + this run (api/history.py)."""
-        return JSONResponse(build_history(result().run, paths.root))
+        return JSONResponse(build_history(result().run, paths.root, prior_screen=prior_screen_for(result())))
 
     @app.get("/api/signals")
     def get_signals() -> JSONResponse:
@@ -239,9 +256,14 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         """Release the current run to the executive dashboard under a named approver. Refused (409) while
         any position is still BLOCK or REVIEW — every one must be decided or confirmed first."""
         try:
-            rec = publish_run(result().run, paths.root, approver=body.approver, note=body.note)
+            with lock:
+                r = result()
+                rec = publish_run(r.run, paths.root, approver=body.approver, note=body.note,
+                                  require_second_approver=r.config.publish.require_second_approver)
         except PublishBlocked as exc:
             raise HTTPException(409, {"message": str(exc), "outstanding": exc.items}) from exc
+        except SecondApproverRequired as exc:
+            raise HTTPException(409, {"message": str(exc), "outstanding": [], "second_approver": True}) from exc
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
         return JSONResponse(rec)
@@ -258,15 +280,28 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         c = r.run.by_company().get(body.company)
         if c is None:
             raise HTTPException(404, f"no company named {body.company!r} in this run")
-        append_override(paths.overrides, {
+        # A decision names what it decides. An override that addressed "every flag on the position"
+        # would resolve a notes question and a growth question with one click on a recap; the caller
+        # (the suggestion buttons and the custom-override form both do) lists the rule ids.
+        known = {f.rule_id for f in c.flags}
+        if known and not body.rule_ids_addressed:
+            raise HTTPException(422, {"message": "rule_ids_addressed must name the flag(s) this decision resolves",
+                                      "flags": sorted(known)})
+        unknown = sorted(set(body.rule_ids_addressed) - known)
+        if unknown:
+            raise HTTPException(422, {"message": f"{', '.join(unknown)} is not a flag on {body.company} in this run",
+                                      "flags": sorted(known)})
+        if not body.reason.strip() or not body.approver.strip():
+            raise HTTPException(422, {"message": "an override needs a reason and an approver"})
+        record = {
             "company": body.company, "quarter": r.config.quarter.label,
             "proposed": float(c.proposed_mark), "booked": float(body.booked),
             "reason": body.reason, "approver": body.approver,
             "created_at": date.today().isoformat(),
-            "rule_ids_addressed": body.rule_ids_addressed or [f.rule_id for f in c.flags],
+            "rule_ids_addressed": list(body.rule_ids_addressed),
             **({"source_suggestion": body.source_suggestion} if body.source_suggestion else {}),
-        })
-        r2 = recompute()
+        }
+        r2 = write_then_recompute(lambda: append_override(paths.overrides, record))
         return _json(r2.run.by_company()[body.company])
 
     @app.post("/api/proposals/{proposal_id}/decision")
@@ -280,13 +315,14 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         if record is None:
             raise HTTPException(501, "adjudication.promote exists but has no record_decision(); decisions cannot be recorded")
         try:
-            outcome = record(paths, proposal_id, body.decision, body.approver, body.reason,
-                             booked=body.booked, effective_from=body.effective_from)
+            with lock:
+                outcome = record(paths, proposal_id, body.decision, body.approver, body.reason,
+                                 booked=body.booked, effective_from=body.effective_from)
+                r2 = recompute()
         except (FileNotFoundError, KeyError) as exc:
             raise HTTPException(404, f"proposal {proposal_id!r}: {exc}") from exc
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
-        r2 = recompute()
         payload = {"proposal_id": proposal_id, "decision": body.decision, "run_id": r2.run.manifest.run_id,
                    "outcome": outcome.model_dump(mode="json") if hasattr(outcome, "model_dump") else outcome}
         return JSONResponse(payload)
@@ -312,7 +348,8 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         @app.get("/", include_in_schema=False)
         def index() -> HTMLResponse:
             return HTMLResponse(render_report(result().run, None, market=result().market_report,
-                                              history=build_history(result().run, paths.root),
-                                              signals=build_signals(result())))
+                                              history=build_history(result().run, paths.root, prior_screen=prior_screen_for(result())),
+                                              signals=build_signals(result()),
+                                              rationale=load_rationale(paths.root)))
 
     return app

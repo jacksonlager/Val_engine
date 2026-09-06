@@ -6,10 +6,12 @@ change the booked number?* — if not, it is MONITOR however interesting.
 """
 from __future__ import annotations
 
+import re
+
 from ..config import RuleConfig
 from .inputs import Event, EventType
 from .marking import months_between
-from .models import Disposition, Flag, MarketData, Severity
+from .models import OpenItemKind, Disposition, Flag, MarketData, Severity
 from .state import Suggest, Working
 
 
@@ -20,9 +22,19 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     x = cfg.exceptions
     md = cfg.quarter.measurement_date
     p = w.pos
+    # A signed, unclosed acquisition (M-050) is a fresh price test on the whole company; asking the
+    # committee whether the 2021 round is "still fair value" beside a signed $133M agreement is noise.
+    deal_priced = any(i.kind == OpenItemKind.PENDING_ACQUISITION for i in w.open_items)
 
     # ---- X-201 / X-202 staleness (not applicable to listed positions: they have a daily price)
-    if not w.listed:
+    if not w.listed and deal_priced:
+        age = months_between(w.staleness_anchor, md)
+        if age > x.staleness.monitor_months:
+            w.flag("X-201", "staleness", Severity.MONITOR,
+                   f"Last priced {age} months ago ({w.staleness_anchor.isoformat()}); the signed acquisition this quarter is the "
+                   "price test now, so the age of the round is context only while the deal is pending.",
+                   months=age, anchor=w.staleness_anchor, superseded_by="pending acquisition")
+    elif not w.listed:
         age = months_between(w.staleness_anchor, md)
         if age > x.staleness.review_months:
             w.flag("X-202", "staleness", Severity.REVIEW,
@@ -64,25 +76,40 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     # ---- X-303 / X-304 runway, recomputed and aged by the reporting lag
     rw = p.runway_months
     aged = None
+    # The cash figure is as of the metrics date (late in the quarter, `reporting_lag_months` before
+    # the close). A financing that closed this quarter is not necessarily in it — the workbook
+    # carries HC's cheque, not the round size — so the screen says so rather than guessing a number.
+    raised = [(d, kind, inv) for d, kind, inv in w.financings]
+    raised_txt = ""
+    if raised:
+        parts = [f"{kind.lower()} on {d.isoformat()}" + (f" (HC put in ${inv:.2f}M)" if inv else "") for d, kind, inv in raised]
+        raised_txt = (f" A financing closed this quarter — {'; '.join(parts)} — and the cash figure may predate it; the round "
+                      "size is not in the workbook, so the runway here is pre-raise.")
     if rw is not None:
         aged = rw - cfg.metrics.reporting_lag_months
         if aged < x.runway.review_below_mo:
             w.flag("X-304", "liquidity", Severity.REVIEW,
                    f"About {aged:.1f} months of cash left (${p.cash:.1f}M against ${p.net_burn:.2f}M a month, aged "
                    f"{cfg.metrics.reporting_lag_months} month for the reporting lag). The company has to raise before the next "
-                   "close, and the round that saves it may well be priced below this mark.",
+                   "close, and the round that saves it may well be priced below this mark." + raised_txt,
                    points=(f"About **{aged:.1f} months of cash** left (${p.cash:.1f}M against ${p.net_burn:.2f}M a month).",
-                           f"Aged {cfg.metrics.reporting_lag_months} month for the reporting lag — the company **must raise before the next close**.",
+                           (f"A **financing closed this quarter** ({raised[0][1].lower()}, {raised[0][0].isoformat()}); the cash figure may **predate it**."
+                            if raised else
+                            f"Aged {cfg.metrics.reporting_lag_months} month for the reporting lag — the company **must raise before the next close**."),
                            "The round that saves it **may be priced below this mark**."),
                    suggestions=(
                        Suggest("as_proposed", "Keep the mark as proposed.", ("Cash on hand does not change the last-round price.", "The runway is tracked; the next round will reprice it."), "proposed"),
                        Suggest("to_cost", "Mark down to invested cost pending the raise.", ("A rescue round before the next close is likely to be priced down.", "Cost is a defensible floor when a company must raise to survive."), "cost"),
                    ),
-                   action=f"Confirm the mark reflects a company with {aged:.1f} months of cash.",
-                   runway_months_aged=round(aged, 2))
+                   action=(f"Confirm the post-raise cash position; the {aged:.1f}-month runway is measured before this quarter's financing."
+                           if raised else f"Confirm the mark reflects a company with {aged:.1f} months of cash."),
+                   runway_months_aged=round(aged, 2),
+                   financings_in_quarter=[{"date": d.isoformat(), "event": kind, "hc_investment": inv} for d, kind, inv in raised])
         elif aged < x.runway.monitor_below_mo:
             w.flag("X-303", "liquidity", Severity.MONITOR,
-                   f"About {aged:.1f} months of cash left — enough to reach a raise, worth watching.", runway_months_aged=round(aged, 2))
+                   f"About {aged:.1f} months of cash left — enough to reach a raise, worth watching." + raised_txt,
+                   runway_months_aged=round(aged, 2),
+                   financings_in_quarter=[{"date": d.isoformat(), "event": kind, "hc_investment": inv} for d, kind, inv in raised])
 
     # ---- X-401 / X-402 / X-403 mark vs performance (a screen, not a valuation → MONITOR)
     arr = p.arr
@@ -97,21 +124,24 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
             hi, lo = x.multiple.absolute_high, x.multiple.absolute_low
             comp = market.comps.get(p.sector)
             comp_txt = ""
-            if x.multiple.mode == "relative_to_comps" and comp is not None:
+            usable = comp is not None and (not x.multiple.require_live_comps or comp.source.startswith("live:"))
+            if x.multiple.mode == "relative_to_comps" and usable:
                 hi, lo = comp.ev_to_arr * x.multiple.high_x_comp, comp.ev_to_arr * x.multiple.low_x_comp
-                comp_txt = f" (sector comp {comp.ev_to_arr:.1f}×)"
+                comp_txt = f" (bounds {lo:.1f}×–{hi:.1f}× around the {comp.ev_to_arr:.1f}× live sector median)"
             elif comp is not None:
                 comp_txt = f" (sector comp {comp.ev_to_arr:.1f}×)"
             if mult > hi:
                 w.flag("X-401", "valuation", Severity.MONITOR,
                        f"Carried at {mult:.0f}× revenue{comp_txt}" + (f", growing {g:+.0%}" if g is not None else "")
                        + ". On this screen the mark looks generous — a rough cross-check, not a valuation.",
-                       implied_multiple=round(mult, 2), threshold=hi)
+                       implied_multiple=round(mult, 2), threshold=hi,
+                       basis=("live sector median" if (x.multiple.mode == "relative_to_comps" and usable) else "absolute policy bound"))
             elif mult < lo:
                 w.flag("X-402", "valuation", Severity.MONITOR,
                        f"Carried at {mult:.1f}× revenue{comp_txt}" + (f", growing {g:+.0%}" if g is not None else "")
                        + ". On this screen the mark looks understated — undermarking is the same failure with the opposite sign.",
-                       implied_multiple=round(mult, 2), threshold=lo)
+                       implied_multiple=round(mult, 2), threshold=lo,
+                       basis=("live sector median" if (x.multiple.mode == "relative_to_comps" and usable) else "absolute policy bound"))
 
     # ---- X-404 MOIC outlier on a stale round
     inv = w.invested
@@ -164,8 +194,30 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
 
 # A lock-up is the expected consequence of a listing, and M-040 already carries it as an open
 # item; on any other event the word means a restriction the schema does not hold.
-_LISTING_EVENTS = frozenset({EventType.IPO.value, EventType.DIRECT_LISTING.value})
-_LISTING_EXEMPT_TERMS = frozenset({"lock-up", "lockup", "lock up"})
+# Fallback when the policy names no exemptions: a listing's lock-up is M-040's open item.
+_DEFAULT_EXEMPT = {EventType.IPO.value: ("lock-up",), EventType.DIRECT_LISTING.value: ("lock-up",)}
+
+
+_NEGATIONS = ("no ", "not in ", "without ", "no longer in ")
+
+
+def _term_in(term: str, text: str) -> bool:
+    """Whole-word match: `warrant` does not fire on `warranty`, `cram` not on `scramble`; and a
+    term the note negates — "no default", "without escrow" — does not fire either. A hyphenated
+    term matches with a hyphen, a space or nothing between its parts (`earn-out`, `earn out`)."""
+    pattern = r"(?<![\w-])" + r"[\s-]?".join(re.escape(part) for part in re.split(r"[\s-]+", term)) + r"(?![\w-])"
+    for m in re.finditer(pattern, text):
+        before = text[max(0, m.start() - 16):m.start()]
+        if any(before.endswith(n) for n in _NEGATIONS):
+            continue
+        return True
+    return False
+
+
+def _exempted(term: str, exempt: set[str]) -> bool:
+    """`lock-up` in the exemptions covers `lockup` and `lock up`; `warrant` covers `warrants`."""
+    norm = lambda t: re.sub(r"[\s-]+", "", t)  # noqa: E731
+    return any(norm(term).startswith(norm(x)) or norm(x).startswith(norm(term)) for x in exempt)
 
 
 def screen_notes(w: Working, events: list[Event], cfg: RuleConfig) -> None:
@@ -173,12 +225,15 @@ def screen_notes(w: Working, events: list[Event], cfg: RuleConfig) -> None:
     if not cfg.note_screen.enabled or not cfg.note_screen.terms:
         return
     terms = [t.lower() for t in cfg.note_screen.terms]
+    exempt_map = cfg.note_screen.exempt or _DEFAULT_EXEMPT
     for e in events:
         text = f"{e.detail} {e.notes}".lower()
-        hits = [t for t in terms if t in text
-                and not (t in _LISTING_EXEMPT_TERMS and e.event_type in _LISTING_EVENTS)]
+        # a term that names the event type itself ("Earn-out True-up", a promoted custom rule) is
+        # the treatment, not an unhandled one
+        exempt = {x.lower() for x in exempt_map.get(e.event_type, ())} | {e.event_type.lower()}
+        hits = [t for t in terms if _term_in(t, text) and not _exempted(t, exempt) and not _term_in(t, e.event_type.lower())]
         if hits:
-            w.flag("X-105", "treatment", Severity.REVIEW,
+            w.flag("X-105", "notes", Severity.REVIEW,
                    f"The note on this row mentions {', '.join(hits)} — terms the columns cannot represent, so no rule has taken "
                    f"account of them: \"{e.notes or e.detail}\"",
                    points=(f"The row note mentions **{', '.join(hits)}** — terms the columns cannot represent.",
@@ -205,9 +260,9 @@ def disposition(flags: list[Flag], terminal: bool, cfg: RuleConfig,
         blocks = [f for f in blocks if f.rule_id not in addressed]
     if blocks:
         return Disposition.BLOCK          # a block survives even a terminal event (e.g. exit with no proceeds)
-    if terminal:
-        return Disposition.CLEAR
     review_families = {f.family for f in flags if f.severity == Severity.REVIEW and f.rule_id not in addressed}
+    if terminal and not review_families and not any(f.severity == Severity.MONITOR for f in flags):
+        return Disposition.CLEAR          # realized or written off, nothing left to check (post-exit cash stays a watch item)
     if len(review_families) >= cfg.exceptions.escalation.review_rules_to_block and not overridden:
         return Disposition.BLOCK
     if review_families:

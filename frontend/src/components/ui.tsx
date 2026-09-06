@@ -20,11 +20,12 @@ export function escalatedReviewFamilies(c: Pick<CompanyResult, "disposition" | "
 }
 
 /** "escalated · 2 review items" — sits beside the BLOCK chip so the reader knows no single rule blocked. */
-export function EscalatedChip({ n, className = "" }: { n: number; className?: string }) {
+export function EscalatedChip({ n, className = "", short = false }: { n: number; className?: string; short?: boolean }) {
   if (n <= 0) return null;
+  const long = `escalated · ${n} review item${n === 1 ? "" : "s"}`;
   return (
-    <span className={`chip no-dot escalated disp-BLOCK hint ${className}`} title={ESCALATION_HINT}>
-      escalated · {n} review item{n === 1 ? "" : "s"}
+    <span className={`chip no-dot escalated disp-BLOCK hint ${className}`} title={`${long}. ${ESCALATION_HINT}`}>
+      {short ? `${n}× review` : long}
     </span>
   );
 }

@@ -54,7 +54,7 @@ function StatusBadge({ view, compact = false }: { view: ExecView; compact?: bool
 
 export function TopBar({ view }: { view: ExecView }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-hair" style={{ background: "color-mix(in srgb, var(--ground) 88%, transparent)", backdropFilter: "blur(10px)" }}>
+    <header className="sticky top-0 z-20 border-b border-hair" style={{ background: "var(--ground)" }}>
       <div className="max-w-page mx-auto px-8 h-12 flex items-center gap-6">
         <a href="#top" className="flex items-baseline gap-2 text-ink hover:no-underline shrink-0">
           <span className="display font-bold text-[14px] tracking-[-0.01em]">Human Capital</span>
@@ -92,6 +92,13 @@ export function Masthead({ view }: { view: ExecView }) {
             {proposed ? "Proposed" : "Final"} marks as at <span className="text-ink font-medium">{longDate(m.measurement_date)}</span>, moved from the{" "}
             {longDate(m.prior_close)} close, shown after any committee override.
           </div>
+          {proposed && (
+            <div className="mt-2 text-[12.5px] text-muted max-w-[68ch]">
+              A pre-read released before the committee sat: the review tool's own Publish stays locked until every decision and
+              confirmation is recorded, so this snapshot was released deliberately as <span className="text-ink2">proposed</span>{" "}
+              (from the command line) for the reading ahead of the meeting.
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-start gap-2 text-[12px] text-muted">
           <StatusBadge view={view} />

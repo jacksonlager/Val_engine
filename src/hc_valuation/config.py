@@ -56,12 +56,21 @@ class CalibrationCfg(_Strict):
     round_month_tolerance: int = 3      # months either side of the round month the history may be read at
 
 
+class DownRoundCfg(_Strict):
+    """M-012: ownership × post-money on a down round or recap is a ceiling — the preference
+    stack and pay-to-play the schema cannot see only lower it. The haircut is a policy
+    placeholder for that structure, offered as a priced option beside the ceiling; the round
+    documents replace it with a waterfall when they are read."""
+    structure_haircut_pct: float = 0.25
+
+
 class MarkingCfg(_Strict):
     secondary: SecondaryCfg = SecondaryCfg()
     ipo: IpoCfg = IpoCfg()
     announced: AnnouncedCfg = AnnouncedCfg()
     convertible: ConvertibleCfg = ConvertibleCfg()
     calibration: CalibrationCfg = CalibrationCfg()
+    down_round: DownRoundCfg = DownRoundCfg()
 
 
 class StalenessCfg(_Strict):
@@ -94,6 +103,9 @@ class MultipleCfg(_Strict):
     high_x_comp: float = 2.0
     low_x_comp: float = 0.5
     min_arr: float
+    # in relative mode, screen against a sector multiple only when it is an observed public history
+    # (source live:*); a sector whose comps are the fixture, or has none, falls back to the absolute bounds
+    require_live_comps: bool = True
 
 
 class MoicCfg(_Strict):
@@ -110,7 +122,18 @@ class EscalationCfg(_Strict):
     review_rules_to_block: int = 2
 
 
+class IndicationsCfg(_Strict):
+    """Non-binding or related-party prices that are context (MONITOR) until they move far enough
+    from the carried price that a reviewer could change the number (REVIEW)."""
+    term_sheet_review_below: float = 0.80      # indicated post ≤ this × last round -> X-109 REVIEW
+    insider_round_review_step_up: float = 2.0  # insider-led round post ≥ this × prior post -> X-118 REVIEW
+    step_up_review_at: float = 3.0             # any round ≥ this × prior post: X-122 REVIEW unless an outside investor is named
+    cheque_price_tolerance: float = 0.10       # hc_investment ÷ Δownership vs the stated post beyond this -> X-119 REVIEW
+    cheque_check_min_ownership_delta: float = 0.01   # ... only when the stake bought is ≥ 1.0% (3-dp ownership rounding)
+
+
 class ExceptionsCfg(_Strict):
+    indications: IndicationsCfg = IndicationsCfg()
     staleness: StalenessCfg
     arr_growth: ArrGrowthCfg
     runway: RunwayCfg
@@ -165,6 +188,9 @@ class NormalizationCfg(_Strict):
 class NoteScreenCfg(_Strict):
     enabled: bool = True
     terms: list[str] = Field(default_factory=list)
+    # event type -> terms its own rule already handles, so the screen does not re-raise them
+    # ("lock-up" on an IPO row is M-040's open item; "warrant" on an Ownership Adjustment is M-013)
+    exempt: dict[str, list[str]] = Field(default_factory=dict)
 
 
 class OpenItemsCfg(_Strict):
@@ -210,6 +236,12 @@ class CustomRuleSpec(_Strict):
     terminal: bool = False
 
 
+class PublishCfg(_Strict):
+    """Four eyes on the release: the person publishing may not be the approver on any override
+    recorded this quarter. Segregation of duties at the one place a number leaves the back office."""
+    require_second_approver: bool = True
+
+
 class RuleConfig(_Strict):
     policy_version: str
     inherits: str | None = None
@@ -225,6 +257,7 @@ class RuleConfig(_Strict):
     open_items: OpenItemsCfg = OpenItemsCfg()
     adjudication: AdjudicationCfg = AdjudicationCfg()
     recommendation: RecommendationCfg = RecommendationCfg()
+    publish: PublishCfg = PublishCfg()
     custom_rules: list[CustomRuleSpec] = Field(default_factory=list)
 
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)

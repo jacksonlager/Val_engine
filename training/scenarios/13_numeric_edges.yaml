@@ -37,4 +37,4 @@ expect:
     Solvantra:            { disposition: BLOCK, flags_must_not: [X-102] }
     Ambercrest:           { disposition: BLOCK }
     Kilnbrook:            { disposition: BLOCK, flags_must_not: [X-102] }
-    Oxbowlane:            { disposition: BLOCK, rules: [M-050], proposed: 38700.0, flags_must: [X-101] }
+    Oxbowlane:            { disposition: BLOCK, rules: [M-050], proposed: 38701.3, flags_must: [X-101] }

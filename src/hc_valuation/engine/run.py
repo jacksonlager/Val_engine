@@ -37,7 +37,7 @@ from ..config import RuleConfig
 from . import declarative, marking, precedence
 from .exceptions import assess_carry_side, disposition, screen_notes
 from .inputs import ActivityFeed, Event, EventType, PortfolioSnapshot, Position, Status
-from .models import (
+from .models import (OpenItemKind,
     CompanyResult, MarketData, OpenItem, OverrideLedger, RunManifest, Severity, ValidationIssue, ValuationRun,
 )
 from .open_items import RESOLVES, carry_prior_items
@@ -61,6 +61,10 @@ LISTED_STAGE = "public"
 def is_listed(p: Position) -> bool:
     """A position the book already carries as a public security (M-041 applies on the carry side)."""
     return p.stage.strip().lower() == LISTED_STAGE
+
+
+# Screens that only mean something for a going concern; dropped from a terminal position.
+CARRY_SIDE_FAMILIES = frozenset({"staleness", "growth", "liquidity", "valuation"})
 
 
 def _dispatch(w: Working, e: Event, registry: Registry, config: RuleConfig, market: MarketData, md: date) -> None:
@@ -247,15 +251,21 @@ def run_valuation(
         marking.calibrate_stale(w, config, market)
 
         booked, override = apply_override(w, overrides, quarter, config.tolerances.prior_mark_reconciliation_musd)
-        disp = disposition(w.flags, w.terminal, config,
-                           addressed=set(override.rule_ids_addressed) if override else None,
-                           overridden=override is not None)
         realized_cum = p.realized + w.realized_quarter
         invested_after = w.invested
-        # Suggestions get their numbers only now, when the proposal is final; then a terminal position
-        # drops its carry-side noise but never a BLOCK: an exit with no proceeds must surface.
+        # Suggestions get their numbers only now, when the proposal is final. A terminal position
+        # then drops its carry-side screens (staleness, growth, runway, multiples mean nothing for a
+        # company that no longer exists) but keeps every BLOCK and every event-driven REVIEW: an
+        # exit with no proceeds must surface, and so must an exit whose cash is short of the deal
+        # value — an escrow receivable is a number a reviewer could change.
         final_flags = w.resolved_flags(w.proposed_mark, p.prior_mark, invested_after)
-        flags = tuple(f for f in final_flags if f.severity == Severity.BLOCK) if w.terminal else tuple(final_flags)
+        if w.terminal:
+            flags = tuple(f for f in final_flags if f.severity == Severity.BLOCK or f.family not in CARRY_SIDE_FAMILIES)
+        else:
+            flags = tuple(final_flags)
+        disp = disposition(flags, w.terminal, config,
+                           addressed=set(override.rule_ids_addressed) if override else None,
+                           overridden=override is not None)
         aged_runway = (p.runway_months - config.metrics.reporting_lag_months) if p.runway_months is not None else None
         implied_mult = (w.latest_post / p.arr) if (p.arr and p.arr >= config.exceptions.multiple.min_arr and w.latest_post and not w.terminal) else None
 
@@ -268,7 +278,8 @@ def run_valuation(
             invested_before=p.invested, invested_after=round(invested_after, 6),
             realized_quarter=round(w.realized_quarter, 6), realized_cumulative=round(realized_cum, 6),
             latest_post_money=w.latest_post, staleness_anchor=w.staleness_anchor, fv_level=w.fv_level,
-            multiple_exposed=is_multiple_exposed(w.fv_level, p.arr, config),
+            multiple_exposed=is_multiple_exposed(w.fv_level, p.arr, config,
+                                                 deal_priced=any(i.kind == OpenItemKind.PENDING_ACQUISITION for i in w.open_items)),
             arr=p.arr, arr_growth=p.arr_growth,
             runway_months_aged=(round(aged_runway, 2) if aged_runway is not None else None),
             implied_multiple=(round(implied_mult, 2) if implied_mult else None),
@@ -293,7 +304,13 @@ def run_valuation(
     decisions = hashlib.sha256((overrides.model_dump_json() + "|" + json.dumps(
         [o.model_dump(mode="json") for o in prior_open_items] + [{k: v.isoformat() for k, v in sorted((prior_staleness_anchors or {}).items())}],
         sort_keys=True)).encode()).hexdigest()[:12]
-    run_id = hashlib.sha256(f"{input_sha256}|{config.policy_version}|{ENGINE_VERSION}|{decisions}".encode()).hexdigest()[:12]
+    # The policy is hashed by content, not by its version string: an edited threshold under an
+    # unbumped policy_version still yields a different run. The market-data source is part of the
+    # identity too — the same book marked against the fixture and against the live cache are
+    # different runs, and the archive must say which one was published.
+    policy_sha = hashlib.sha256(config.model_dump_json().encode()).hexdigest()[:12]
+    run_id = hashlib.sha256(f"{input_sha256}|{config.policy_version}|{policy_sha}|{ENGINE_VERSION}|{decisions}|{market_data_source}"
+                            .encode()).hexdigest()[:12]
     manifest = RunManifest(
         run_id=run_id, input_sha256=input_sha256, input_file=input_file,
         policy_version=config.policy_version, engine_version=ENGINE_VERSION,

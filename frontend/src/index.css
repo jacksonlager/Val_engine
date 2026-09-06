@@ -120,6 +120,25 @@ body {
 .chip::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--c); flex: none; }
 .chip.no-dot::before { display: none; }
 
+/* last quarter's disposition beside this quarter's: the heads-up pill */
+.prior-pill { opacity: .92; border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); padding-top: 0; padding-bottom: 0; }
+.prior-pill .prior-q { font-family: var(--mono, ui-monospace, monospace); font-size: 10px; letter-spacing: .02em; opacity: .8; }
+.prior-pill .prior-arrow { margin-left: 2px; opacity: .7; }
+/* the flag-history rows in the detail panel */
+.fh { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.fh-row { display: grid; grid-template-columns: 44px auto 1fr auto; align-items: center; gap: 6px; padding: 3px 0; border-top: 1px solid var(--hairline); }
+.fh-row:first-child { border-top: 0; }
+.fh-now { background: color-mix(in srgb, var(--hairline) 45%, transparent); border-radius: 4px; padding: 3px 4px; }
+.fh-q { font-family: var(--mono, ui-monospace, monospace); font-size: 10.5px; color: var(--muted); }
+.fh-flags { display: flex; flex-wrap: wrap; gap: 3px; }
+.fh-src { font-size: 10px; color: var(--muted); font-style: italic; white-space: nowrap; }
+.fh-new { font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-left: 4px; padding: 0 4px; border-radius: 3px; background: var(--c); color: #fff; }
+
+/* provenance of a rule: named in the brief, or our own call */
+.rtag { display:inline-block; font-size:10px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; padding:1px 6px; border-radius:3px; white-space:nowrap; line-height:1.5; }
+.rtag-brief { color: var(--clear-text, var(--clear)); border:1px solid var(--clear); background: color-mix(in srgb, var(--clear) 10%, transparent); }
+.rtag-ours { color: var(--muted); border:1px dashed var(--muted); background: transparent; }
+
 /* BLOCK reached by compounding REVIEW findings rather than by a single BLOCK rule */
 .chip.escalated { background: transparent; border: 1px dashed var(--c); padding-top: 0; padding-bottom: 0; font-weight: 500; }
 

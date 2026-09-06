@@ -41,7 +41,7 @@ expect:
   totals: { events: 5, positions: 100 }
   companies:
     Kolvani Health:       { disposition: BLOCK, rules: [M-000, M-022, M-000], proposed: 0.0, realized_quarter: 0.8, status: Acquired, ownership_after: 0.071,
-                            flags_must: [X-900], flags_must_not: [M-999, X-111] }
+                            flags_must: [X-900, X-111], flags_must_not: [M-999] }   # the clean release stays a watch item
     Everbrook Analytics:  { disposition: BLOCK, rules: [M-000, M-000], proposed: 0.0, realized_quarter: 0.0, status: "Shut Down",
                             flags_must: [X-900], flags_must_not: [M-999, X-115] }
     Zerocrest:            { disposition: BLOCK, rules: [M-000, M-000], proposed: 0.0, realized_quarter: 0.0, status: "Shut Down",

@@ -83,12 +83,17 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
   const colorOf = (k: Bridge["kind"]) => (k === "up" ? th.up : k === "down" ? th.down : th.neutral);
 
   const s = run.sensitivity;
+  // one headline: the brief's "software multiples"; the wider scope is a secondary line and the slider's switch
+  const soft = typeof s["nav_if_software_multiples_-20pct"] === "number";
+  const loKey = soft ? "nav_if_software_multiples_-20pct" : "nav_if_multiples_-20pct";
+  const hiKey = soft ? "nav_if_software_multiples_+20pct" : "nav_if_multiples_+20pct";
+  const exposedNav = soft ? s.software_exposed_nav : s.multiple_exposed_nav;
   const sens = [
-    { name: "Multiples −20%", value: s["nav_if_multiples_-20pct"], key: "down" },
+    { name: "Multiples −20%", value: s[loKey], key: "down" },
     { name: "Base (booked)", value: s.base_nav, key: "base" },
-    { name: "Multiples +20%", value: s["nav_if_multiples_+20pct"], key: "up" },
+    { name: "Multiples +20%", value: s[hiKey], key: "up" },
   ].filter((x) => x.value !== undefined);
-  const exposedShare = s.base_nav ? s.multiple_exposed_nav / s.base_nav : null;
+  const exposedShare = s.base_nav ? exposedNav / s.base_nav : null;
   const sensMin = Math.min(...sens.map((x) => x.value));
   const sensMax = Math.max(...sens.map((x) => x.value));
   const sFloor = Math.floor((sensMin - (sensMax - sensMin) * 0.4) / 100) * 100;
@@ -212,11 +217,11 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
             </button>
           }
         >
-          Sensitivity · revenue multiples ±20%
+          Sensitivity · {soft ? "software" : "revenue"} multiples ±20%
         </SectionTitle>
         <p className="text-[11px] text-muted mb-2 num">
-          Shock applied to Level 3 positions with ARR above the screening floor: {musd(s.multiple_exposed_nav, 1)} of {musd(s.base_nav, 1)} (
-          {pct(exposedShare)}). Level 1, pre-revenue and terminal positions held flat. $M.
+          Shock applied to {soft ? "software-sector " : ""}Level 3 positions with ARR above the screening floor: {musd(exposedNav, 1)} of{" "}
+          {musd(s.base_nav, 1)} ({pct(exposedShare)}). Level 1, pre-revenue and terminal positions held flat. $M.
         </p>
         <div style={{ height: 150 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -251,6 +256,12 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
         </div>
         <div className="text-[11px] text-ink2 mt-1 num">
           Range {signed(sens[0].value - s.base_nav, 1)} / {signed(sens[sens.length - 1].value - s.base_nav, 1)} around base. Axis starts at {musd(sFloor, 0)}.
+          {soft && typeof s["nav_if_multiples_-20pct"] === "number" && (
+            <>
+              {" "}
+              Every multiple-exposed position: {signed(s["nav_if_multiples_-20pct"] - s.base_nav, 1)} / {signed(s["nav_if_multiples_+20pct"] - s.base_nav, 1)}.
+            </>
+          )}
         </div>
         {run.comps_move && <CompsMoveCard m={run.comps_move} />}
       </div>

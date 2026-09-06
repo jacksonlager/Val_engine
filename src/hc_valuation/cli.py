@@ -16,6 +16,8 @@ on a screen.
 """
 from __future__ import annotations
 
+import os
+
 import json
 import re
 import sys
@@ -39,6 +41,10 @@ def _package_version() -> str:
     except PackageNotFoundError:  # running from a checkout without an install
         return "unknown"
 
+DEFAULT_HOST = os.environ.get("HC_HOST", "127.0.0.1")
+DEFAULT_PORT = int(os.environ.get("HC_PORT", "8765"))
+DASHBOARD_URL = os.environ.get("HC_DASHBOARD_URL", f"http://{DEFAULT_HOST}:{DEFAULT_PORT}")
+
 app = typer.Typer(
     add_completion=False, no_args_is_help=True, rich_markup_mode=None,
     help="HC valuation engine: roll the portfolio forward through the quarter's activity, propose marks, "
@@ -51,6 +57,11 @@ ProviderOpt = typer.Option(None, "--provider", help="Market-data provider overri
 RefreshMarketOpt = typer.Option(False, "--refresh-market", help="Refetch the live market feed over its cache (provider live)")
 RecommenderOpt = typer.Option(None, "--recommender", help="Who picks the one resolution shown first per flag: policy | claude "
                                                         "(default: the policy file's recommendation.provider)")
+
+
+def _load_rationale(root: Path):
+    from .rationale import load_rationale
+    return load_rationale(root)
 
 
 def _paths(input_path: Optional[Path], policy: Optional[Path]):
@@ -204,8 +215,9 @@ def export(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Polic
     try:
         from .api.sources import build_sources
         sources = build_sources(r)          # so the Audit Trail cites the cell behind every input
-    except Exception:
+    except Exception as exc:  # noqa: BLE001
         sources = None
+        typer.echo(f"warning: cell provenance unavailable ({type(exc).__name__}: {exc}); the Audit Trail will cite no cells", err=True)
     xlsx = write_workbook(r.run, out / f"valuation_{_slug(r.run.manifest.quarter_label)}.xlsx", sources)
     csvs = write_csvs(r.run, out, sources)
     typer.echo(_headline(r.run))
@@ -233,31 +245,58 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
     try:
         from .api.sources import build_sources
         sources = build_sources(r)     # cell provenance, inlined as window.__HC_SOURCES__
-    except Exception:
-        sources = None                 # optional everywhere: the report just shows no cell refs
-    history = build_history(run, paths.root)   # the per-company archive, inlined as window.__HC_HISTORY__
+    except Exception as exc:  # noqa: BLE001
+        sources = None                 # the report still renders, but say so: an audit trail without cells is a downgrade
+        typer.echo(f"warning: cell provenance unavailable ({type(exc).__name__}: {exc}); the report and Audit Trail will cite no cells", err=True)
+    from .prior_screen import prior_screen_for
+    history = build_history(run, paths.root, prior_screen=prior_screen_for(r))   # the per-company archive, inlined as window.__HC_HISTORY__
     try:
         from .api.signals import build_signals
         signals = build_signals(r)             # vendor context (Foresight / AlphaSense stubs), window.__HC_SIGNALS__
     except Exception:
         signals = None                         # optional: a missing fixture just means no vendor card
+    blocking = [i for i in run.validation if i.blocking]
     written = [
-        write_static_report(run, out / "report.html", STATIC_DIR, sources, r.market_report, history, signals),
+        write_static_report(run, out / "report.html", STATIC_DIR, sources, r.market_report, history, signals,
+                            _load_rationale(paths.root)),
         write_workbook(run, out / f"valuation_{q}.xlsx", sources),
         *write_csvs(run, out, sources),
         write_history_csv(history, out / "mark_history.csv"),
-        write_next_quarter_workbook(run, paths.workbook, out / f"portfolio_{_slug(next_quarter_label(r.config.quarter.label))}.xlsx", r.config),
-        out / "open_items_carry.yaml",
     ]
+    if blocking:
+        # A book the reader refused rows of is reviewable (the report shows every X-9xx issue) but not
+        # rollable: the next-quarter input is not emitted from a position the engine could not read.
+        typer.echo(f"refused: {len(blocking)} blocking ingest issue(s); the next-quarter workbook is not emitted "
+                   "until the cells are fixed (see report.html › validation, or `hc-valuation validate`):", err=True)
+        for i in blocking[:20]:
+            typer.echo(f"  {i.rule_id} {i.company or ''}: {i.message}", err=True)
+    else:
+        written += [
+            write_next_quarter_workbook(run, paths.workbook, out / f"portfolio_{_slug(next_quarter_label(r.config.quarter.label))}.xlsx", r.config),
+            out / "open_items_carry.yaml",
+        ]
     (out / "run.json").write_text(run.model_dump_json(indent=2))
     (out / "manifest.json").write_text(run.manifest.model_dump_json(indent=2))
     written += [out / "run.json", out / "manifest.json"]
+    # the IC pack: the executive report for the quarter's published snapshot, when one exists
+    try:
+        from .api.publish import exec_payload
+        from .export.exec_report import write_exec_report
+        view = exec_payload(paths.root)
+        if view is not None:
+            written.append(write_exec_report(view, out / "exec_report.html"))
+        else:
+            typer.echo("note: no published snapshot yet, so no exec_report.html — `hc-valuation publish --approver …` releases one")
+    except Exception as exc:  # noqa: BLE001 — the IC pack is a convenience over the review deliverables
+        typer.echo(f"warning: exec_report.html not written ({type(exc).__name__}: {exc})", err=True)
     typer.echo(_headline(run))
     typer.echo("")
     for p in written:
         typer.echo(f"wrote {p}")
     if not (STATIC_DIR / "index.html").is_file():
         typer.echo("note: no dashboard bundle in api/static; report.html is the plain fallback page")
+    if blocking:
+        raise typer.Exit(code=2)
 
 
 @app.command()
@@ -269,14 +308,18 @@ def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
                                           "decision gate; the dashboard button never does this)")) -> None:
     """Freeze the current run as the executive snapshot for its quarter (the publish gate). Refuses while any
     position is still BLOCK or REVIEW: every one must be decided or confirmed from the queue first."""
-    from .api.publish import PublishBlocked, exec_payload, publish_run
+    from .api.publish import PublishBlocked, SecondApproverRequired, exec_payload, publish_run
     from .export.exec_report import write_exec_report
     from .pipeline import execute
 
     paths = _paths(input_path, policy)
-    r = execute(paths)
+    r = execute(paths, provider=_default_provider(paths, None))
     try:
-        rec = publish_run(r.run, paths.root, approver=approver, note=note, require_decisions=not proposed)
+        rec = publish_run(r.run, paths.root, approver=approver, note=note, require_decisions=not proposed,
+                          require_second_approver=r.config.publish.require_second_approver)
+    except SecondApproverRequired as exc:
+        typer.echo(f"refused: {exc}", err=True)
+        raise typer.Exit(2)
     except PublishBlocked as exc:
         typer.echo(f"refused: {exc}", err=True)
         for i in exc.items:
@@ -284,7 +327,7 @@ def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
         raise typer.Exit(2)
     typer.echo(f"published {rec['quarter']} as {rec['status'].upper()} by {rec['published_by']} "
                f"(run {rec['run_id']}, booked NAV {rec['booked_nav']:,.1f}, {len(rec['open_blocks'])} open block(s))")
-    typer.echo(f"executive dashboard: http://127.0.0.1:8765/exec/  (after `hc-valuation run`)")
+    typer.echo(f"executive dashboard: {DASHBOARD_URL}/exec/  (after `hc-valuation run`)")
     if out is not None:
         view = exec_payload(paths.root)
         p = write_exec_report(view, Path(out) / "exec_report.html")
@@ -341,7 +384,8 @@ def history(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
 
     paths = _paths(input_path, policy)
     r = execute(paths)
-    hist = build_history(r.run, paths.root)
+    from .prior_screen import prior_screen_for
+    hist = build_history(r.run, paths.root, prior_screen=prior_screen_for(r))
     if company is not None:
         if company not in hist["companies"]:
             raise typer.BadParameter(f"no company named {company!r}; known: {', '.join(hist['companies'])}")
@@ -428,7 +472,7 @@ def _open_when_up(url: str, health: str, timeout: float = 30.0) -> None:
 
 @app.command()
 def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
-        port: int = typer.Option(8765, "--port"), host: str = typer.Option("127.0.0.1", "--host"),
+        port: int = typer.Option(DEFAULT_PORT, "--port"), host: str = typer.Option(DEFAULT_HOST, "--host"),
         no_browser: bool = typer.Option(False, "--no-browser", help="Do not open a browser tab"),
         watch: bool = typer.Option(False, "--watch", help="Recompute when the workbook, policy or a ledger changes; "
                                                           "the open dashboard reloads itself"),

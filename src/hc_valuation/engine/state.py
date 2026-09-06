@@ -75,6 +75,9 @@ class Working:
     open_items: list[OpenItem] = field(default_factory=list)
     alternative_marks: dict[str, float] = field(default_factory=dict)
     applied_rules: list[str] = field(default_factory=list)
+    # financings that closed this quarter (a priced round, a funded note, a new investment) with the
+    # date and HC's cheque — the runway screen says when the cash figure predates them
+    financings: list[tuple[date, str, float]] = field(default_factory=list)
 
     @classmethod
     def from_position(cls, p: Position, quarter_label: str, sheet_name: str) -> "Working":
@@ -106,6 +109,13 @@ class Working:
         ))
         if rule_id not in self.applied_rules:
             self.applied_rules.append(rule_id)
+
+    def drop_flag(self, index: int) -> None:
+        """Remove a flag a later event resolved (an escrow released against an exit's proceeds gap),
+        keeping the suggestion table aligned to the remaining flags."""
+        del self.flags[index]
+        rest = {k: v for k, v in self._suggestions.items() if k != index}
+        self._suggestions = {(k - 1 if k > index else k): v for k, v in rest.items()}
 
     def flag(self, rule_id: str, family: str, severity: Severity, message: str, action: str = "",
              points: tuple[str, ...] = (), suggestions: tuple[Suggest, ...] = (), **evidence: Any) -> None:

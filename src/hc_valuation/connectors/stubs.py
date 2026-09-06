@@ -154,19 +154,6 @@ class StubCompsProvider:
         return out
 
 
-class StubIndexProvider:
-    """S&P Capital IQ-shaped aggregate software index from `sp_capiq/index_multiples.json`.
-    Used as the reference level when re-basing sector spreads on a live index."""
-
-    def __init__(self, root: Path | None = None) -> None:
-        payload = _load(root, "sp_capiq/index_multiples.json")
-        self.series: dict[str, float] = {o["period"]: float(o["value"]) for o in payload.get("observations", [])}
-        self.name: str = payload.get("index", {}).get("name", "index")
-
-    def level(self, as_of: date) -> tuple[str, float] | None:
-        return latest_at_or_before(self.series, as_of)
-
-
 # ---------------------------------------------------------------- metrics / news
 
 class StubCompanyMetricsProvider:

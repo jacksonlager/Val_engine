@@ -37,4 +37,4 @@ expect:
     Solvantra:            { rules_contains: [M-010], proposed: 11.0, ownership_after: 0.11, flags_must_not: [M-999] }
     Ambercrest:           { rules_contains: [M-020], proposed: 0.0, realized_quarter: 16.8, status: Acquired }
     Willowmere Compute:   { disposition: MONITOR, rules: [M-070], proposed: 4.7 }
-    Oxbowlane:            { disposition: BLOCK, rules: [M-050], proposed: 19.35 }
+    Oxbowlane:            { disposition: BLOCK, rules: [M-050], proposed: 20.65 }

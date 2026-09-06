@@ -159,7 +159,7 @@ def test_outstanding_lists_every_block_and_review_with_its_flags(result):
         assert i["rules"], f"{i['company']} is waiting but lists no flag to decide"
         assert all(r["severity"] in ("BLOCK", "REVIEW") for r in i["rules"])
     gry = next(i for i in items if i["company"] == "Gryphonel")
-    assert [r["rule_id"] for r in gry["rules"]] == ["X-101", "X-202"]
+    assert [r["rule_id"] for r in gry["rules"]] == ["X-101"]      # the stale-round question is superseded by the signed deal
     assert all(c.disposition.value in ("MONITOR", "CLEAR") for c in result.run.companies
                if c.company not in {i["company"] for i in items})
 
@@ -209,6 +209,26 @@ def test_api_gate_opens_only_after_every_item_is_decided(root):
     assert c.get("/api/exec").json()["meta"]["status"] == "final"
 
 
+def test_publish_needs_a_second_pair_of_eyes(root):
+    """The person who approved this quarter's overrides may not be the one who releases them."""
+    from hc_valuation.api.publish import SecondApproverRequired
+    c = TestClient(create_app(RunPaths.default(root)))
+    _decide_everything(c, approver="Jackson Lagerwey")
+    r = c.post("/api/publish", json={"approver": "jackson lagerwey", "note": ""})       # same person, case-folded
+    assert r.status_code == 409 and r.json()["detail"]["second_approver"] is True
+    assert "27 position(s)" in r.json()["detail"]["message"] and "second person" in r.json()["detail"]["message"]
+    assert c.get("/api/exec").status_code == 404
+    r = c.post("/api/publish", json={"approver": "Tom Moore", "note": "released after review"})
+    assert r.status_code == 200 and r.json()["published_by"] == "Tom Moore" and r.json()["status"] == "final"
+    # the library call says the same thing, and the policy switch turns it off
+    run = c.get("/api/run").json()
+    from hc_valuation.pipeline import execute
+    res = execute(RunPaths.default(root), adjudicate=False)
+    with pytest.raises(SecondApproverRequired):
+        publish_run(res.run, root, approver="Jackson Lagerwey")
+    publish_run(res.run, root, approver="Jackson Lagerwey", require_second_approver=False)
+
+
 def test_api_gate_names_the_last_undecided_position(root):
     c = TestClient(create_app(RunPaths.default(root)))
     run = c.get("/api/run").json()
@@ -243,7 +263,7 @@ def test_api_publish_then_exec(root):
     r = c.post("/api/publish", json={"approver": "Jackson Lagerwey", "note": "Q3 final"})
     assert r.status_code == 200 and r.json()["status"] == "final"
     v = c.get("/api/exec").json()
-    assert v["headline"]["booked_nav"] == pytest.approx(1183.93, abs=0.01)
+    assert v["headline"]["booked_nav"] == pytest.approx(1184.28, abs=0.01)
     assert c.get("/api/exec/2026Q3").status_code == 200
     assert c.get("/api/exec/nope").status_code == 404
     assert [p["quarter"] for p in c.get("/api/published").json()] == ["Q3 2026"]

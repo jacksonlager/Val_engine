@@ -34,4 +34,4 @@ hc_valuation = ["api/static/**/*", "api/static_exec/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-ra"    # the summary line stays visible; add -q by hand for dots only

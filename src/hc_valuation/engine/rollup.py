@@ -57,11 +57,18 @@ def portfolio_totals(results: list[CompanyResult]) -> PortfolioTotals:
     )
 
 
-def is_multiple_exposed(fv_level: int | None, arr: float | None, cfg: RuleConfig) -> bool:
+def is_multiple_exposed(fv_level: int | None, arr: float | None, cfg: RuleConfig, *, deal_priced: bool = False) -> bool:
     """The one exposure test shared by the ±X% shock, `comps_move` and M-080: a Level 3 mark with
-    an ARR at or above the screening floor. Level 1, pre-revenue and terminal positions are
-    held flat under any multiple regime."""
-    return fv_level == 3 and (arr or 0) >= cfg.exceptions.multiple.min_arr
+    an ARR at or above the screening floor whose price rests on a round. Level 1, pre-revenue and
+    terminal positions are held flat under any multiple regime — and so is a mark that rests on a
+    signed deal price (M-050): a buyer's contract does not re-rate with software multiples."""
+    return fv_level == 3 and (arr or 0) >= cfg.exceptions.multiple.min_arr and not deal_priced
+
+
+def exposed_amount(c: CompanyResult) -> float:
+    """The part of a booked mark a multiple regime drives: the equity leg. A note leg carried at
+    cost (M-060) is a receivable, not a multiple of revenue."""
+    return c.booked_mark - c.note_at_cost if c.multiple_exposed else 0.0
 
 
 def sensitivity(results: list[CompanyResult], cfg: RuleConfig) -> dict[str, float]:
@@ -70,9 +77,9 @@ def sensitivity(results: list[CompanyResult], cfg: RuleConfig) -> dict[str, floa
     tool interpolates any shock from `multiple_exposed_nav` / `software_exposed_nav` and each
     company's `multiple_exposed` flag; the ±X% points here are the ones the policy names."""
     base = sum(c.booked_mark for c in results)
-    exposed = sum(c.booked_mark for c in results if c.multiple_exposed)
+    exposed = sum(exposed_amount(c) for c in results)
     software = set(cfg.sensitivity.software_sectors)
-    soft = sum(c.booked_mark for c in results if c.multiple_exposed and c.sector in software)
+    soft = sum(exposed_amount(c) for c in results if c.sector in software)
     out = {"base_nav": round(base, 6), "multiple_exposed_nav": round(exposed, 6), "software_exposed_nav": round(soft, 6)}
     for s in cfg.sensitivity.multiple_shock_pct:
         tag = f"{s:+.0%}".replace("%", "pct")
@@ -109,7 +116,7 @@ def comps_move(results: list[CompanyResult], cfg: RuleConfig, market: MarketData
         comp = market.comps.get(sector)
         source = comp.source if comp is not None else "unknown"
         counts = market.comp_counts.get(sector) or {}
-        exposed = sum(c.booked_mark for c in by_sector[sector])
+        exposed = sum(exposed_amount(c) for c in by_sector[sector])
         q = now / prior - 1
         moves.append(SectorMove(sector=sector, multiple_prior=round(prior, 2), multiple_now=round(now, 2), qoq_pct=round(q, 4),
                                 exposed_nav=round(exposed, 6), delta=round(exposed * q, 6), positions=len(by_sector[sector]),
@@ -120,6 +127,6 @@ def comps_move(results: list[CompanyResult], cfg: RuleConfig, market: MarketData
     delta = sum(m.delta for m in moves)
     covered = sum(m.exposed_nav for m in moves)
     return CompsMove(prior_month=prior_key, now_month=now_key, base_nav=round(base, 6),
-                     exposed_nav=round(sum(c.booked_mark for c in exposed_all), 6), covered_nav=round(covered, 6),
+                     exposed_nav=round(sum(exposed_amount(c) for c in exposed_all), 6), covered_nav=round(covered, 6),
                      delta=round(delta, 6), nav_if_marked_with_comps=round(base + delta, 6),
                      sectors=tuple(sorted(moves, key=lambda m: -abs(m.delta))), all_live=all(m.live for m in moves))

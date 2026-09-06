@@ -39,13 +39,32 @@ def test_build_produces_files(tmp_path: Path):
     r = runner.invoke(app, ["build", "--out", str(out)])
     assert r.exit_code == 0, r.output
     for name in ("report.html", "valuation_Q3_2026.xlsx", "marks.csv", "exceptions.csv", "audit_trail.csv",
-                 "open_items.csv", "portfolio_Q4_2026.xlsx", "open_items_carry.yaml", "run.json", "manifest.json"):
+                 "open_items.csv", "portfolio_Q4_2026.xlsx", "open_items_carry.yaml", "run.json", "manifest.json",
+                 "exec_report.html"):            # the IC pack rides along whenever a published snapshot exists
         assert (out / name).exists(), name
-    assert "proposed 1,183.9" in r.output
+    assert "proposed 1,184.3" in r.output
     run = json.loads((out / "run.json").read_text())
     assert run["totals"]["positions"] == 100
     manifest = json.loads((out / "manifest.json").read_text())
     assert manifest["quarter_label"] == "Q3 2026"
+
+
+def test_build_refuses_to_roll_a_book_with_a_blocking_ingest_issue(tmp_path: Path):
+    """A row the reader refused is reviewable but not rollable: report and workbook are written,
+    the next-quarter input is not, and the exit code says so."""
+    import openpyxl
+    from conftest import WORKBOOK_PATH
+    bad = tmp_path / "bad.xlsx"
+    wb = openpyxl.load_workbook(WORKBOOK_PATH)
+    ws = wb["Q3 2026 Activity"]
+    ws.cell(row=2, column=2).value = "Zorblax Industries"       # a company not in the book -> X-901 BLOCK
+    wb.save(bad)
+    out = tmp_path / "dist"
+    r = runner.invoke(app, ["build", "--out", str(out), "-i", str(bad)])
+    assert r.exit_code == 2, r.output
+    assert "refused" in r.output and "X-901" in r.output and "next-quarter workbook is not emitted" in r.output
+    assert (out / "report.html").exists() and (out / "valuation_Q3_2026.xlsx").exists() and (out / "run.json").exists()
+    assert not (out / "portfolio_Q4_2026.xlsx").exists() and not (out / "open_items_carry.yaml").exists()
 
 
 def test_export_subset(tmp_path: Path):

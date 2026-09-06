@@ -98,6 +98,10 @@ def test_m012_down_round_blocks(build):
     f = _flag(c, "X-102")
     assert f.severity == Severity.BLOCK and f.evidence["prior_post_money"] == 100.0 and f.evidence["post_money"] == 50.0
     assert "Down round" in f.message and c.disposition == Disposition.BLOCK
+    # the priced placeholder for structure the columns cannot see: a policy haircut, offered beside the ceiling
+    assert c.alternative_marks["structure_adjusted"] == pytest.approx(4.5 * 0.75) and f.evidence["structure_haircut_pct"] == 0.25
+    assert [sg.key for sg in f.suggestions] == ["as_proposed", "structure_adjusted", "hold_prior"]
+    assert f.suggestions[1].booked == pytest.approx(3.375) and c.steps[-1].inputs["structure_adjusted"] == pytest.approx(3.375)
 
 
 def test_m012_recap_keyword_blocks_even_when_post_is_up(build):
@@ -273,7 +277,7 @@ _ANN = event(EventType.ACQ_ANNOUNCED, detail="Definitive agreement signed, all c
 
 
 @pytest.mark.parametrize("treatment,expected", [
-    ("probability_weighted", 36.0),
+    ("probability_weighted", 37.0),     # 0.9 × 40 (closes) + 0.1 × 10 (breaks: the standalone mark), not 0.9 × 40
     ("full_deal_value", 40.0),
     ("hold_prior", 10.0),
 ])
@@ -285,7 +289,8 @@ def test_m050_treatments(build, cfg, treatment, expected):
     assert c.proposed_mark == pytest.approx(expected)
     assert c.steps[-1].inputs["treatment"] == treatment and c.steps[-1].inputs["close_probability"] == 0.90
     assert c.alternative_marks == {"at_full_deal_value": pytest.approx(40.0), "hold_prior": pytest.approx(10.0),
-                                   "probability_weighted": pytest.approx(36.0)}
+                                   "probability_weighted": pytest.approx(37.0)}
+    assert c.steps[-1].inputs["standalone_if_deal_breaks"] == pytest.approx(10.0)
     f = _flag(c, "X-101")
     assert f.severity == Severity.BLOCK and f.evidence["treatment"] == treatment
     assert c.disposition == Disposition.BLOCK and c.status_after == Status.ACTIVE and c.fv_level == 3
@@ -296,7 +301,7 @@ def test_m050_treatments(build, cfg, treatment, expected):
 def test_m050_close_probability_from_config(build, cfg):
     alt = with_policy(cfg, **{"marking.announced.close_probability": 0.5})
     run, _ = build([position()], [_ANN], cfg_=alt)
-    assert only(run).proposed_mark == pytest.approx(20.0)
+    assert only(run).proposed_mark == pytest.approx(25.0)               # 0.5 × 40 + 0.5 × 10
 
 
 # =================================================================== M-060
@@ -335,17 +340,30 @@ def test_m060_note_without_parsable_cap_must_not_crash(build):
 
 # =================================================================== M-070
 
-def test_m070_term_sheet(build):
-    run, _ = build([position()], [event(EventType.TERM_SHEET, detail="Series B term sheet at ~$50.0M post", value=50.0,
+def test_m070_term_sheet(build, cfg):
+    # above the policy's 80% line: context only
+    run, _ = build([position()], [event(EventType.TERM_SHEET, detail="Series B term sheet at ~$90.0M post", value=90.0,
                                         notes="Not closed; diligence underway.")])
     c = only(run)
     _chain_ok(c, "M-070")
     assert c.proposed_mark == pytest.approx(10.0) and c.latest_post_money == 100.0 and c.staleness_anchor == date(2025, 6, 15)
-    assert c.alternative_marks == {"term_sheet_indicated": pytest.approx(5.0)}
+    assert c.alternative_marks == {"term_sheet_indicated": pytest.approx(9.0)}
     f = _flag(c, "X-109")
-    assert f.severity == Severity.MONITOR and f.evidence["indicated_mark"] == pytest.approx(5.0)
+    assert f.severity == Severity.MONITOR and f.evidence["indicated_mark"] == pytest.approx(9.0) and f.evidence["ratio_to_last_round"] == 0.9
     assert c.disposition == Disposition.MONITOR
-    assert [i.kind for i in c.open_items] == [OpenItemKind.TERM_SHEET] and c.open_items[0].amount_musd == 50.0
+    assert [i.kind for i in c.open_items] == [OpenItemKind.TERM_SHEET] and c.open_items[0].amount_musd == 90.0
+    # at half the round: a lower price in writing is evidence a reviewer could mark down on
+    run, _ = build([position()], [event(EventType.TERM_SHEET, detail="Series B term sheet at ~$50.0M post", value=50.0,
+                                        notes="Not closed; diligence underway.")])
+    c = only(run)
+    f = _flag(c, "X-109")
+    assert f.severity == Severity.REVIEW and c.disposition == Disposition.REVIEW and f.evidence["threshold"] == 0.8
+    assert c.proposed_mark == pytest.approx(10.0), "still not booked"
+    assert [sg.key for sg in f.suggestions] == ["as_proposed", "at_indication"] and f.suggestions[1].booked == pytest.approx(5.0)
+    # the line is policy
+    loose = with_policy(cfg, **{"exceptions.indications.term_sheet_review_below": 0.4})
+    run, _ = build([position()], [event(EventType.TERM_SHEET, detail="term sheet", value=50.0)], cfg_=loose)
+    assert _flag(only(run), "X-109").severity == Severity.MONITOR
 
 
 def test_m070_term_sheet_without_value(build):
@@ -462,12 +480,24 @@ def test_x40x_no_arr_no_multiple_screen(build):
 
 
 def test_x401_relative_to_comps_mode(build, cfg):
+    """Policy 0.2 screens against the live sector median (2.0× / 0.5× around it); a sector whose
+    comps are the fixture, or has none, falls back to the absolute 30× / 3× bounds."""
     from hc_valuation.engine.models import SectorComp
-    alt = with_policy(cfg, **{"exceptions.multiple.mode": "relative_to_comps"})
-    comps = MarketData(comps={"SaaS": SectorComp(sector="SaaS", ev_to_arr=4.0, as_of=MD, source="test")}, as_of=MD)
-    run, _ = build([position()], [], cfg_=alt, market=comps)   # 10x vs 2 × 4 = 8x ceiling
+    assert cfg.exceptions.multiple.mode == "relative_to_comps" and cfg.exceptions.multiple.require_live_comps
+    live = MarketData(comps={"SaaS": SectorComp(sector="SaaS", ev_to_arr=4.0, as_of=MD, source="live:edgar+yahoo@2026-09")}, as_of=MD)
+    run, _ = build([position()], [], market=live)                                   # 10x vs 2 × 4 = 8x ceiling
     f = _flag(only(run), "X-401")
-    assert f.evidence["threshold"] == pytest.approx(8.0) and "sector comp 4.0" in f.message
+    assert f.evidence["threshold"] == pytest.approx(8.0) and f.evidence["basis"] == "live sector median"
+    assert "4.0× live sector median" in f.message
+    fixture = MarketData(comps={"SaaS": SectorComp(sector="SaaS", ev_to_arr=4.0, as_of=MD, source="fixture:pitchbook@2026-09")}, as_of=MD)
+    run, _ = build([position()], [], market=fixture)                                # gated: absolute 30× bound, 10× passes
+    assert "X-401" not in flag_ids(only(run))
+    loose = with_policy(cfg, **{"exceptions.multiple.require_live_comps": False})
+    run, _ = build([position()], [], cfg_=loose, market=fixture)
+    assert _flag(only(run), "X-401").evidence["threshold"] == pytest.approx(8.0)
+    absolute = with_policy(cfg, **{"exceptions.multiple.mode": "absolute"})
+    run, _ = build([position()], [], cfg_=absolute, market=live)
+    assert "X-401" not in flag_ids(only(run))
 
 
 def test_x404_moic_outlier_on_stale_round(build):
@@ -538,12 +568,20 @@ def test_two_review_families_escalate_to_block(build):
 
 
 def test_two_reviews_in_one_family_stay_review(build):
-    """Two REVIEW flags from the same family are one concern, not two."""
+    """Two REVIEW flags from the same family are one concern, not two — and a note the schema
+    cannot hold is its own family, so a note *plus* a treatment question is two."""
     run, _ = build([position()], [event(detail="Series A extension (same terms)", value=100.0, ownership_after=0.11,
-                                        notes="escrow arrangement")])   # X-106 + X-105, both 'treatment'
+                                        notes="led by HC")])                  # X-106 + X-117: treatment + related_party
     c = only(run)
-    assert {f.rule_id for f in c.flags if f.severity == Severity.REVIEW} == {"X-105", "X-106"}
-    assert c.disposition == Disposition.REVIEW
+    assert {f.rule_id for f in c.flags if f.severity == Severity.REVIEW} == {"X-106", "X-117"}
+    assert c.disposition == Disposition.BLOCK                                 # two independent judgments
+    run, _ = build([position()], [event(detail="Series A extension (same terms)", value=100.0, ownership_after=0.11,
+                                        notes="escrow arrangement")])         # X-106 (treatment) + X-105 (notes)
+    c = only(run)
+    assert {f.family for f in c.flags if f.severity == Severity.REVIEW} == {"treatment", "notes"}
+    assert c.disposition == Disposition.BLOCK
+    run, _ = build([position()], [event(detail="Series A extension (same terms)", value=100.0, ownership_after=0.11)])
+    assert {f.rule_id for f in only(run).flags if f.severity == Severity.REVIEW} == {"X-106"} and only(run).disposition == Disposition.REVIEW
 
 
 def test_one_review_family_is_review(build):
@@ -557,11 +595,17 @@ def test_monitor_only_is_monitor(build):
     assert all(f.severity == Severity.MONITOR for f in c.flags) and c.disposition == Disposition.MONITOR
 
 
-def test_terminal_clears_and_empties_flags(build):
+def test_terminal_clears_and_drops_carry_side_flags(build):
+    run, _ = build([position(arr_growth=-0.20, cash=5.0, net_burn=1.0)], [event(EventType.SHUTDOWN, detail="Ceased operations")])
+    c = only(run)
+    assert c.flags == () and c.disposition == Disposition.CLEAR and c.status_after == Status.SHUT_DOWN
+    # ...but an event-driven REVIEW survives: a note about escrow on the row that ended the position is
+    # exactly a number a reviewer could still change
     run, _ = build([position(arr_growth=-0.20, cash=5.0, net_burn=1.0)],
                    [event(EventType.SHUTDOWN, detail="Ceased operations", notes="escrow holdback")])
     c = only(run)
-    assert c.flags == () and c.disposition == Disposition.CLEAR and c.status_after == Status.SHUT_DOWN
+    assert [f.rule_id for f in c.flags] == ["X-105"] and c.disposition == Disposition.REVIEW
+    assert not any(f.family in {"growth", "liquidity", "staleness", "valuation"} for f in c.flags)
 
 
 def test_escalation_threshold_from_config(build, cfg):

@@ -26,6 +26,8 @@ marking:
     close_probability: 0.90
   convertible:
     new_money_basis: cost
+  down_round:
+    structure_haircut_pct: 0.25      # M-012: a priced placeholder for preference / pay-to-play the columns cannot see
   calibration:                       # M-080: the stale-round adjustment (docs/valuation-policy.md §2b)
     enabled: true
     min_age_months: 24
@@ -48,7 +50,8 @@ exceptions:
   secondary:
     spread_tolerance_pct: 0.05
   multiple:
-    mode: absolute                   # absolute | relative_to_comps
+    mode: relative_to_comps          # absolute | relative_to_comps — relative screens against the live sector median
+    require_live_comps: true         # ... only where the sector's comps are observed (live:*); else the absolute bounds
     absolute_high: 30
     absolute_low: 3
     high_x_comp: 2.0
@@ -58,6 +61,12 @@ exceptions:
     monitor_above: 5.0
   performance_gap:
     enabled: true                    # X-405: stale price + a live performance screen against it -> REVIEW
+  indications:                       # X-109 / X-118: context until the price moves far enough to matter
+    term_sheet_review_below: 0.80    # a term sheet at ≤ 80% of the last round is evidence the mark is high
+    insider_round_review_step_up: 2.0  # insiders re-pricing their own position ≥ 2× is not a market test
+    step_up_review_at: 3.0             # X-122: a ≥ 3× step-up with no outside investor named on the row
+    cheque_price_tolerance: 0.10       # X-119: HC's cheque ÷ stake bought vs the stated post, beyond ±10%
+    cheque_check_min_ownership_delta: 0.01   # ... only where the stake bought is ≥ 1.0% (ownership is 3 dp)
   escalation:
     review_rules_to_block: 2         # distinct REVIEW families needed to escalate to BLOCK
 
@@ -81,7 +90,15 @@ schema:
 
 note_screen:
   enabled: true
-  # "lock-up" is exempt on an IPO / Direct Listing row (M-040 carries it as an open item).
+  # Whole-word matches; a negated term ("no default", "without escrow") does not fire. `exempt`
+  # lists, per event type, the terms that row's own rule already handles.
+  exempt:
+    "IPO": [lock-up]
+    "Direct Listing": [lock-up]
+    "Ownership Adjustment": [warrant, conversion]
+    "Convertible Note": [conversion]
+    "Note Repaid": [conversion]
+    "Distribution": [escrow, holdback, earn-out, earnout, milestone, contingent]   # a distribution is their resolution
   terms: [escrow, holdback, earn-out, earnout, milestone, contingent, participating,
           ratchet, preference, litigation, restated, bankruptcy, conversion,
           warrant, pay-to-play, cram, cram-down, lock-up, related party, going concern,
@@ -117,6 +134,10 @@ adjudication:
   allowed_fields: [ownership_before, ownership_after, post_money, deal_value,
                    proceeds, prior_mark, hc_investment, close_probability, note_at_cost]
   allowed_operators: ["*", "/", "+", "-", "min", "max"]
+
+# Four eyes on the release: the publisher may not be the approver on any override this quarter.
+publish:
+  require_second_approver: true
 
 # Who picks the one resolution shown first on each BLOCK/REVIEW flag. `claude` chooses among the
 # engine's priced suggestions (never a number of its own) and caches answers in data/recommendations/;

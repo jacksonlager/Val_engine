@@ -16,6 +16,7 @@
 import { Fragment, useState } from "react";
 import type { CompanyResult, Flag, Recommendation, Suggestion } from "../types";
 import { postOverride } from "../lib/api";
+import { useRuleRationale } from "../lib/rationale";
 import { isoDate, musd, signClass, signed } from "../lib/format";
 import { DispChip, Field, Modal, WriteButton } from "./ui";
 
@@ -47,16 +48,36 @@ export function FlagPoints({ f, className = "" }: { f: Flag; className?: string 
 /** The long form: what the engine wrote in full, plus the inputs it recorded. */
 export function FlagDetailModal({ f, company, onClose }: { f: Flag; company: string; onClose: () => void }) {
   const ev = Object.entries(f.evidence);
+  const why = useRuleRationale(f.rule_id);
   return (
     <Modal title={`${f.rule_id} · ${company}`} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <DispChip d={f.severity} />
         <span className="text-[11px] text-muted">{f.family}</span>
+        {why && (
+          <>
+            <span className="text-[12px] font-medium">{why.name}</span>
+            <span className={`rtag ${why.source === "brief" ? "rtag-brief" : "rtag-ours"} ml-auto`}
+                  title={why.source === "brief" ? `The brief names this exception: “${why.brief_text}”` : "A rule we added; the bullets below are its defence"}>
+              {why.source === "brief" ? "in the brief" : "our call"}
+            </span>
+          </>
+        )}
       </div>
       {f.action && <p className="text-[13.5px] font-semibold leading-snug mb-2">{f.action}</p>}
       {f.points.length > 0 && <FlagPoints f={f} className="mb-3" />}
       <div className="text-[11px] uppercase tracking-wider text-muted mt-3 mb-1">In full</div>
       <p className="text-[12.5px] text-ink2 leading-[1.55] m-0 whitespace-normal">{f.message}</p>
+      {why && (
+        <>
+          <div className="text-[11px] uppercase tracking-wider text-muted mt-3 mb-1">Why this rule, why this severity</div>
+          <ul className="flag-points m-0">
+            <li><b>Why it is a flag.</b> {why.why_flag}</li>
+            <li><b>Why {f.severity}.</b> {why.why_severity}</li>
+          </ul>
+          <div className="mono text-[10.5px] text-muted mt-1">reads {why.reads}</div>
+        </>
+      )}
       {typeof f.evidence.price_source_note === "string" && (
         <p className="text-[11.5px] text-muted italic leading-snug mt-2">{f.evidence.price_source_note}</p>
       )}

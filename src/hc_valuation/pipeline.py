@@ -106,6 +106,8 @@ class PipelineResult:
     proposals: list  # list[TreatmentProposal] from adjudication, may be empty
     market_report: dict = field(default_factory=dict)   # docs/market-feed.md §3, served at /api/market
     recommender: Any = None                              # the chooser that filled Flag.recommendation (recommend.py)
+    snapshot: Any = None                                 # the PortfolioSnapshot the run started from (prior_screen reads it)
+    prior_screen: Any = None                             # memo: prior_screen.screen_prior_close, filled on first use
 
 
 def execute(paths: RunPaths | None = None, *, provider: str | None = None, generated_at: datetime | None = None,
@@ -139,7 +141,8 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
 
     # One recommendation per actionable flag — chosen among the engine's priced suggestions by
     # the policy default or by Claude (recommend.py). Outside the engine, after it, like E-09.
-    result = PipelineResult(run=run, config=cfg, paths=paths, market=market, proposals=proposals, market_report=market_report)
+    result = PipelineResult(run=run, config=cfg, paths=paths, market=market, proposals=proposals, market_report=market_report,
+                            snapshot=snapshot)
     from .recommend import make_chooser, recommend_run
     chooser = make_chooser(cfg, paths.root, recommender, refresh=refresh_recommendations)
     signals = None

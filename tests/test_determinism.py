@@ -64,7 +64,7 @@ def test_a_decision_changes_the_run_id(run_real):
     from hc_valuation.engine.run import run_valuation
     from conftest import execute_real
     r = execute_real()
-    rec = OverrideRecord(company="Gryphonel", quarter=r.config.quarter.label, proposed=4.3092, booked=4.0,
+    rec = OverrideRecord(company="Gryphonel", quarter=r.config.quarter.label, proposed=4.6592, booked=4.0,
                          reason="test", approver="t", created_at=r.config.quarter.measurement_date, rule_ids_addressed=("X-101",))
     from hc_valuation.ingest.reader import read_workbook
     snapshot, feed = read_workbook(r.paths.workbook, r.config)

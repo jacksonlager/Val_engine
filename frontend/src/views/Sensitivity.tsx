@@ -20,6 +20,9 @@ function exposedUnder(run: ValuationRun, scope: Scope): CompanyResult[] {
   return run.companies.filter((c) => c.multiple_exposed && (scope === "all" || soft.has(c.sector)));
 }
 
+/** the part of a booked mark a multiple regime drives — the equity leg; a note carried at cost is a receivable */
+const exposedOf = (c: CompanyResult) => c.booked_mark - (c.note_at_cost ?? 0);
+
 function groupSum<T>(rows: T[], key: (r: T) => string, val: (r: T) => number): { name: string; value: number; n: number }[] {
   const m = new Map<string, { value: number; n: number }>();
   for (const r of rows) {
@@ -40,7 +43,7 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
   const base = run.sensitivity.base_nav ?? run.totals.booked_nav;
 
   const exposed = useMemo(() => exposedUnder(run, scope), [run, scope]);
-  const exposedNav = exposed.reduce((a, c) => a + c.booked_mark, 0);
+  const exposedNav = exposed.reduce((a, c) => a + exposedOf(c), 0);
   const delta = exposedNav * s;
   const navAt = base + delta;
   const unexposed = run.companies.length - exposed.length;
@@ -51,10 +54,10 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
     return pts;
   }, [base, exposedNav]);
 
-  const bySector = useMemo(() => groupSum(exposed, (c) => c.sector, (c) => c.booked_mark), [exposed]);
-  const byFund = useMemo(() => groupSum(exposed, (c) => c.fund, (c) => c.booked_mark), [exposed]);
+  const bySector = useMemo(() => groupSum(exposed, (c) => c.sector, exposedOf), [exposed]);
+  const byFund = useMemo(() => groupSum(exposed, (c) => c.fund, exposedOf), [exposed]);
   const fundBase = useMemo(() => groupSum(run.companies, (c) => c.fund, (c) => c.booked_mark), [run]);
-  const movers = useMemo(() => [...exposed].sort((a, b) => b.booked_mark - a.booked_mark).slice(0, 10), [exposed]);
+  const movers = useMemo(() => [...exposed].sort((a, b) => exposedOf(b) - exposedOf(a)).slice(0, 10), [exposed]);
 
   const lo = Math.min(curve[0].nav, curve[curve.length - 1].nav);
   const hi = Math.max(curve[0].nav, curve[curve.length - 1].nav);
@@ -81,9 +84,10 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
           Sensitivity · what the book looks like if multiples move
         </SectionTitle>
         <p className="text-[11px] text-muted num mb-3">
-          The shock is applied one-for-one to booked Level 3 marks with ARR at or above the ${run.sensitivity_meta?.min_arr ?? 0.5}M screening
-          floor — {exposed.length} positions, {musd(exposedNav, 1)} of {musd(base, 1)} ({pct(exposedNav / base)}) under {scopeLabel}. The other{" "}
-          {unexposed} (Level 1, pre-revenue, terminal{scope === "software" ? ", non-software" : ""}) are held flat. Nothing here changes a mark.
+          The shock is applied one-for-one to the equity leg of booked Level 3 marks with ARR at or above the ${run.sensitivity_meta?.min_arr ?? 0.5}M
+          screening floor — {exposed.length} positions, {musd(exposedNav, 1)} of {musd(base, 1)} ({pct(exposedNav / base)}) under {scopeLabel}. The other{" "}
+          {unexposed} (Level 1, pre-revenue, terminal, deal-priced{scope === "software" ? ", non-software" : ""}) and any note leg at cost are held flat.
+          Nothing here changes a mark.
         </p>
 
         <div className="sens-slider">
@@ -279,8 +283,8 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
                     <span className="text-muted text-[11px]">{c.sector}</span>
                   </td>
                   <td className="r num">{musd(c.booked_mark, 1)}</td>
-                  <td className={`r num ${signClass(c.booked_mark * s)}`}>
-                    {musd(c.booked_mark * (1 + s), 1)} <span className="text-muted">({signed(c.booked_mark * s, 1)})</span>
+                  <td className={`r num ${signClass(exposedOf(c) * s)}`}>
+                    {musd(c.booked_mark + exposedOf(c) * s, 1)} <span className="text-muted">({signed(exposedOf(c) * s, 1)})</span>
                   </td>
                 </tr>
               ))}

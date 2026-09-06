@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from ..engine.models import Disposition, Severity, ValuationRun
+from ..fsutil import write_atomically
 from .exec_view import build_exec_view
 
 WAITING = {Disposition.BLOCK: "Decision required before booking",
@@ -45,6 +46,10 @@ def outstanding(run: ValuationRun) -> list[dict[str, Any]]:
                     "proposed_mark": c.proposed_mark, "booked_mark": c.booked_mark,
                     "rules": [{"rule_id": f.rule_id, "severity": f.severity.value, "action": f.action} for f in flags]})
     return out
+
+
+class SecondApproverRequired(ValueError):
+    """The publisher is also the approver on this quarter's overrides; a second person must release."""
 
 
 class PublishBlocked(ValueError):
@@ -72,16 +77,30 @@ def _escape(payload: str) -> str:
     return payload.replace("<", "\\u003c")
 
 
+def _norm(name: str) -> str:
+    return " ".join(name.split()).casefold()
+
+
 def publish_run(run: ValuationRun, root: Path, *, approver: str, note: str = "",
-                published_at: datetime | None = None, require_decisions: bool = True) -> dict[str, Any]:
+                published_at: datetime | None = None, require_decisions: bool = True,
+                require_second_approver: bool = True) -> dict[str, Any]:
     """Freeze `run` as the executive snapshot for its quarter. Returns the publish record.
-    Refuses (PublishBlocked) while any position is BLOCK or REVIEW unless `require_decisions` is off."""
+    Refuses (PublishBlocked) while any position is BLOCK or REVIEW unless `require_decisions` is
+    off, and (SecondApproverRequired) when the publisher approved any of this quarter's overrides
+    and `require_second_approver` is on — four eyes at the one place a number leaves the back office."""
     if not approver or not approver.strip():
         raise ValueError("a publish must carry the name of the person releasing it")
     if require_decisions:
         waiting = outstanding(run)
         if waiting:
             raise PublishBlocked(waiting)
+    if require_second_approver:
+        own = sorted({c.company for c in run.companies if c.override and _norm(c.override.approver) == _norm(approver)})
+        if own:
+            raise SecondApproverRequired(
+                f"{approver.strip()} approved the override on {len(own)} position(s) this quarter "
+                f"({', '.join(own[:6])}{'…' if len(own) > 6 else ''}); the release needs a second person's name "
+                "(policy publish.require_second_approver).")
     ts = (published_at or datetime.now(timezone.utc)).replace(microsecond=0)
     open_blocks = [c.company for c in run.companies if c.disposition == Disposition.BLOCK]
     record = {
@@ -108,8 +127,8 @@ def publish_run(run: ValuationRun, root: Path, *, approver: str, note: str = "",
         stamp = str(prev.get("publish", {}).get("published_at", "prev")).replace(":", "-")
         target.replace(hist / f"{record['slug']}_{stamp}.json")
     payload = {"publish": record, "run": json.loads(run.model_dump_json())}
-    target.write_text(json.dumps(payload, indent=1))
-    (d / "latest.json").write_text(json.dumps({"slug": record["slug"], "quarter": record["quarter"]}))
+    write_atomically(target, json.dumps(payload, indent=1))
+    write_atomically(d / "latest.json", json.dumps({"slug": record["slug"], "quarter": record["quarter"]}))
     return record
 
 

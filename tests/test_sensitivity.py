@@ -66,11 +66,17 @@ def test_shock_on_the_real_book_holds_level_1_and_terminal_flat():
     run = r.run
     s = run.sensitivity
     exposed = [c for c in run.companies if c.multiple_exposed]
-    assert all(c.fv_level == 3 and (c.arr or 0) >= 0.5 for c in exposed) and len(exposed) == 88
-    assert s["multiple_exposed_nav"] == pytest.approx(sum(c.booked_mark for c in exposed), abs=1e-6)
+    assert all(c.fv_level == 3 and (c.arr or 0) >= 0.5 for c in exposed) and len(exposed) == 87
+    # a deal-priced position (pending acquisition) is not driven by a multiple, and a note leg
+    # held at cost is not either: both stay out of the exposed base
+    by = run.by_company()
+    assert not by["Gryphonel"].multiple_exposed and any(i.kind.value == "pending_acquisition" for i in by["Gryphonel"].open_items)
+    exposed_of = lambda c: c.booked_mark - c.note_at_cost  # noqa: E731
+    assert s["multiple_exposed_nav"] == pytest.approx(sum(exposed_of(c) for c in exposed), abs=1e-6)
+    assert s["multiple_exposed_nav"] < sum(c.booked_mark for c in exposed), "note legs at cost are excluded from the shock"
     assert not any(c.multiple_exposed for c in run.companies if c.listed or c.fv_level != 3)
     soft = set(run.sensitivity_meta["software_sectors"])
-    assert s["software_exposed_nav"] == pytest.approx(sum(c.booked_mark for c in exposed if c.sector in soft), abs=1e-6)
+    assert s["software_exposed_nav"] == pytest.approx(sum(exposed_of(c) for c in exposed if c.sector in soft), abs=1e-6)
     assert 0 < s["software_exposed_nav"] < s["multiple_exposed_nav"] < s["base_nav"]
     assert s["nav_if_multiples_+20pct"] - s["base_nav"] == pytest.approx(0.2 * s["multiple_exposed_nav"], abs=1e-6)
     assert sensitivity(list(run.companies), r.config) == s

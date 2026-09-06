@@ -424,6 +424,11 @@ export interface MarkHistoryPoint {
   run_id: string | null;
   published_at: string | null; // ISO datetime
   note: string | null; // a disagreement between sources, or the backfill entry's own note
+  /** The flags the position carried that quarter (slim), and where they came from:
+      published = a released snapshot; backfill = HC's own records; reconstructed = the
+      prior-close book re-screened by the current policy; live = this run. */
+  flags: { rule_id: string; severity: Severity | null; family: string | null }[];
+  flags_source: "published" | "backfill" | "reconstructed" | "live" | null;
 }
 
 export interface MarkHistory {
@@ -474,9 +479,36 @@ export interface Signals {
   companies: Record<string, CompanySignals>;
 }
 
+/** Why a rule exists and why it carries its severity — rules/rationale.yaml, served at
+    /api/rationale. `source` says whether the brief named the exception or we added it. */
+export interface RuleRationale {
+  id: string;
+  name: string;
+  family: string;
+  severity: Severity[];
+  source: "brief" | "policy";
+  brief_text?: string | null;
+  reads: string;
+  why_flag: string;
+  why_severity: string;
+}
+
+export interface RationaleGroup {
+  key: string;
+  title: string;
+  brief_text: string | null;
+}
+
+export interface Rationale {
+  version: string | null;
+  groups: RationaleGroup[];
+  rules: RuleRationale[];
+}
+
 declare global {
   interface Window {
     __HC_RUN__?: ValuationRun;
+    __HC_RATIONALE__?: Rationale;
     __HC_PROPOSALS__?: TreatmentProposal[];
     __HC_SOURCES__?: Sources;
     __HC_MARKET__?: MarketReport;

@@ -20,7 +20,7 @@ expect:
     "Synth-0039": { disposition: REVIEW,  rules: [M-060], proposed: 22.04761, note_at_cost: 0.3, flags_must: [X-107] }   # 21.74761 + 0.3
     "Synth-0179": { disposition: BLOCK,   rules: [M-040], proposed: 14.93394, fv_level: 1, listed: true }      # 6.51% × $229.4M
     "Synth-0310": { disposition: CLEAR,   rules: [M-020], proposed: 0.0, realized_quarter: 27.2355, status: Acquired, flags_must_not: [X-101] }
-    "Synth-0437": { disposition: BLOCK,   rules: [M-050], proposed: 68.206212 }                                # 12.69% × $597.2M × 0.90
+    "Synth-0437": { disposition: BLOCK,   rules: [M-050], proposed: 73.258082 }                                # 0.90 × 12.69% × $597.2M + 0.10 × standalone
     "Synth-0314": { disposition: CLEAR,   rules: [M-021], proposed: 0.0, status: "Shut Down" }
     "Synth-0149": { disposition: CLEAR,   rules: [M-030], proposed: 3.149205, realized_quarter: 3.149205, ownership_after: 0.01065, flags_must_not: [X-104] }
     "Synth-0045": { disposition: MONITOR, rules: [M-070], proposed: 12.28225, flags_must: [X-109] }

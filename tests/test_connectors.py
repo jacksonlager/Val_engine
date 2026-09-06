@@ -50,7 +50,7 @@ def _policy_copy(tmp_path: Path, mutate) -> RunPaths:
 
 # ---------------------------------------------------------------- fixtures are vendor-shaped
 
-@pytest.mark.parametrize("rel", ["pitchbook/comps_software.json", "sp_capiq/index_multiples.json",
+@pytest.mark.parametrize("rel", ["pitchbook/comps_software.json",
                                  "foresight/company_metrics.json", "alphasense/news_signals.json"])
 def test_fixtures_carry_envelopes_and_synthetic_note(rel):
     d = json.loads((FIXTURES / rel).read_text())
@@ -129,14 +129,20 @@ def test_provider_resolution(monkeypatch):
 
 
 def test_relative_to_comps_changes_valuation_flags(tmp_path, baseline):
+    """Policy 0.2 is relative_to_comps but gated to a live history, so on the fixture the screens are the
+    absolute bounds (the baseline). Waiving the gate lets the fixture's sector multiples set the bounds."""
+    gated = execute(RunPaths.default(ROOT), adjudicate=False)
+    assert {(c.company, f.rule_id) for c in gated.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402")} == \
+        {(c.company, f.rule_id) for c in baseline.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402")}
+
     def mutate(raw):
-        raw["exceptions"]["multiple"]["mode"] = "relative_to_comps"
+        raw["exceptions"]["multiple"]["require_live_comps"] = False
     paths = _policy_copy(tmp_path, mutate)
     rel = execute(paths, adjudicate=False)
     base_flags = {(c.company, f.rule_id) for c in baseline.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402")}
     rel_flags = {(c.company, f.rule_id) for c in rel.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402")}
     assert rel_flags != base_flags
-    assert any("sector comp" in f.message for c in rel.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402"))
+    assert any("sector median" in f.message for c in rel.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402"))
     # comps are a screen, never a mark
     assert [c.proposed_mark for c in rel.run.companies] == [c.proposed_mark for c in baseline.run.companies]
 

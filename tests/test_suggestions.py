@@ -71,8 +71,9 @@ def test_the_announced_deal_offers_weighted_full_and_hold(run):
 def test_the_recap_offers_proposed_and_hold(run):
     t = run.by_company()["Tarnwick Aerospace"]
     f = next(f for f in t.flags if f.rule_id == "X-102")
-    assert [s.key for s in f.suggestions] == ["as_proposed", "hold_prior"]
-    assert f.suggestions[0].booked == pytest.approx(t.proposed_mark) and f.suggestions[1].booked == pytest.approx(t.prior_mark)
+    assert [s.key for s in f.suggestions] == ["as_proposed", "structure_adjusted", "hold_prior"]
+    assert f.suggestions[0].booked == pytest.approx(t.proposed_mark) and f.suggestions[2].booked == pytest.approx(t.prior_mark)
+    assert f.suggestions[1].booked == pytest.approx(t.proposed_mark * 0.75)      # the policy's structure haircut
 
 
 # ---------------------------------------------------------------- resolution rules

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Disposition, Sources, ValuationRun } from "./types";
+import type { Disposition, Rationale, Sources, ValuationRun } from "./types";
 import { DISPOSITION_HINT, DISPOSITIONS } from "./types";
-import { currentRunStamp, loadHistory, loadProposals, loadRun, loadSignals, STATIC_REASON, type Mode } from "./lib/api";
+import { currentRunStamp, loadHistory, loadProposals, loadRationale, loadRun, loadSignals, STATIC_REASON, type Mode } from "./lib/api";
 import { HistoryProvider, type HistoryState } from "./lib/history";
 import { SourcesProvider } from "./lib/sources";
+import { RationaleProvider } from "./lib/rationale";
 import { isoDateTime, shortSha } from "./lib/format";
 import { DispChip } from "./components/ui";
 import { PublishControls } from "./components/Publish";
@@ -14,8 +15,9 @@ import { FundsView } from "./views/Funds";
 import { OpenItemsView } from "./views/OpenItems";
 import { ProposalsView } from "./views/Proposals";
 import { MarketView } from "./views/Market";
+import { RulesView } from "./views/Rules";
 
-type View = "queue" | "companies" | "movement" | "funds" | "market" | "open" | "proposals";
+type View = "queue" | "companies" | "movement" | "funds" | "market" | "rules" | "open" | "proposals";
 // The four views the brief asks for: the decisions, the auditor's table, what moved and why,
 // and where the market numbers came from. Funds lives on the executive dashboard; open items
 // sit at the foot of the Queue; Proposals appears only when the engine actually has one.
@@ -25,8 +27,9 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "companies", label: "Companies" },
   { id: "movement", label: "Movement" },
   { id: "market", label: "Market" },
+  { id: "rules", label: "Rules" },
 ];
-const ALL_VIEWS: View[] = ["queue", "companies", "movement", "funds", "market", "open", "proposals"];
+const ALL_VIEWS: View[] = ["queue", "companies", "movement", "funds", "market", "rules", "open", "proposals"];
 
 function viewFromHash(): View {
   const h = window.location.hash.replace("#", "");
@@ -37,6 +40,8 @@ export default function App() {
   const [state, setState] = useState<{ run?: ValuationRun; mode?: Mode; sources?: Sources; error?: string; stale?: boolean }>({});
   // the per-company mark archive; refetched with the run because an override moves the live point
   const [history, setHistory] = useState<HistoryState>({});
+  // why every rule exists (rules/rationale.yaml); shown on the Rules tab and beside each flag
+  const [rationale, setRationale] = useState<Rationale | undefined>(undefined);
   // E-09 drafts for events no rule recognises; the tab exists only while there are some
   const [proposalCount, setProposalCount] = useState(0);
   const [view, setView] = useState<View>(viewFromHash);
@@ -56,6 +61,7 @@ export default function App() {
           ([h, signals]) => setHistory({ ...h, signals }),
         );
         loadProposals(mode).then((p) => setProposalCount(p.length), () => setProposalCount(0));
+        loadRationale(mode).then(setRationale, () => setRationale(undefined));
       },
       (e) => setState((s) => ({ ...s, error: String(e?.message ?? e), stale: false })),
     );
@@ -109,6 +115,7 @@ export default function App() {
 
   return (
     <SourcesProvider value={state.sources}>
+    <RationaleProvider value={rationale}>
     <HistoryProvider value={history}>
     <div className={`min-h-full flex flex-col ${state.stale ? "opacity-70 transition-opacity" : ""}`}>
       <header className="sticky top-0 z-30 bg-surface border-b border-line">
@@ -188,6 +195,7 @@ export default function App() {
         {view === "movement" && <MovementView run={run} onGoto={gotoCompany} />}
         {view === "funds" && <FundsView run={run} gotoCompany={gotoCompany} />}
         {view === "market" && <MarketView mode={mode} run={run} onGoto={gotoCompany} />}
+        {view === "rules" && <RulesView run={run} gotoCompany={gotoCompany} />}
         {view === "open" && <OpenItemsView run={run} gotoCompany={gotoCompany} />}
         {view === "proposals" && <ProposalsView run={run} mode={mode} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />}
       </main>
@@ -264,6 +272,7 @@ export default function App() {
       )}
     </div>
     </HistoryProvider>
+    </RationaleProvider>
     </SourcesProvider>
   );
 }

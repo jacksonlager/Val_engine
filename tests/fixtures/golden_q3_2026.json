@@ -27,6 +27,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 37.79,
       "threshold": 30.0
      },
@@ -114,6 +115,7 @@
     {
      "action": "Confirm the mark reflects a company with 5.0 months of cash.",
      "evidence": {
+      "financings_in_quarter": [],
       "runway_months_aged": 4.96
      },
      "family": "liquidity",
@@ -286,6 +288,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 41.52,
       "threshold": 30.0
      },
@@ -373,6 +376,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 32.14,
       "threshold": 30.0
      },
@@ -508,14 +512,14 @@
    "alternative_marks": {
     "at_full_deal_value": 4.788,
     "hold_prior": 3.5,
-    "probability_weighted": 4.3092
+    "probability_weighted": 4.6592
    },
    "arr": 14.0,
    "arr_growth": 0.51,
-   "booked_mark": 4.3092,
+   "booked_mark": 4.6592,
    "company": "Gryphonel",
    "disposition": "BLOCK",
-   "equity_mark": 4.3092,
+   "equity_mark": 4.6592,
    "flags": [
     {
      "action": "Ratify the 0.90 close probability, or choose full deal value or hold at prior.",
@@ -525,17 +529,17 @@
       "treatment": "probability_weighted"
      },
      "family": "treatment",
-     "message": "A buyer has signed for $133M but the deal has not closed and still needs approval. Booking the full deal value ignores that contingency; holding the old mark ignores a signed agreement. Policy splits the difference at 0.90, giving $4.31M against $4.79M at full value and $3.50M if held.",
+     "message": "A buyer has signed for $133M but the deal has not closed and still needs approval. Booking the full deal value ignores that contingency; holding the old mark ignores a signed agreement. Policy weights the two outcomes at 0.90 \u2014 the deal price if it closes, the standalone mark if it breaks \u2014 giving $4.66M against $4.79M at full value and $3.50M if held.",
      "points": [
       "Buyer signed for **$133M**, but the deal has **not closed** and still needs approval.",
-      "Policy weights it at **0.90** \u2192 **$4.31M**.",
+      "Policy weights **0.90 \u00d7 deal price + 0.10 \u00d7 standalone** \u2192 **$4.66M**.",
       "Alternatives: **$4.79M** at full value, **$3.50M** held at prior."
      ],
      "recommendation": {
-      "booked": 4.3092,
+      "booked": 4.6592,
       "confidence": null,
       "key": "as_proposed",
-      "label": "Ratify the 0.90-weighted mark of $4.31M.",
+      "label": "Ratify the 0.90-weighted mark of $4.66M.",
       "model": null,
       "note": null,
       "rationale": null,
@@ -549,9 +553,9 @@
      "severity": "BLOCK",
      "suggestions": [
       {
-       "booked": 4.3092,
+       "booked": 4.6592,
        "key": "as_proposed",
-       "label": "Ratify the 0.90-weighted mark of $4.31M.",
+       "label": "Ratify the 0.90-weighted mark of $4.66M.",
        "reasons": [
         "Reflects a signed agreement with a real chance of not closing.",
         "Policy default for an announced, unclosed deal."
@@ -578,45 +582,19 @@
      ]
     },
     {
-     "action": "Decide whether a price set 72.7 months ago is still fair value.",
+     "action": "",
      "evidence": {
       "anchor": "2020-09-07",
-      "months": 72.7
+      "months": 72.7,
+      "superseded_by": "pending acquisition"
      },
      "family": "staleness",
-     "message": "The mark rests on a round that closed 72.7 months ago, on 2020-09-07. Companies at this stage normally reprice every 18\u201324 months, so this valuation predates two funding cycles and probably the business it describes.",
-     "points": [
-      "The mark rests on a round **72.7 months old** (2020-09-07).",
-      "Companies at this stage normally **reprice every 18\u201324 months**.",
-      "This price **predates two funding cycles** \u2014 and probably the business it describes."
-     ],
-     "recommendation": {
-      "booked": 4.3092,
-      "confidence": null,
-      "key": "as_proposed",
-      "label": "Keep the mark as proposed.",
-      "model": null,
-      "note": null,
-      "rationale": null,
-      "reasons": [
-       "No transaction or metric in the file says the value moved.",
-       "Staleness alone is not evidence of a decline."
-      ],
-      "source": "policy"
-     },
-     "rule_id": "X-202",
-     "severity": "REVIEW",
-     "suggestions": [
-      {
-       "booked": 4.3092,
-       "key": "as_proposed",
-       "label": "Keep the mark as proposed.",
-       "reasons": [
-        "No transaction or metric in the file says the value moved.",
-        "Staleness alone is not evidence of a decline."
-       ]
-      }
-     ]
+     "message": "Last priced 72.7 months ago (2020-09-07); the signed acquisition this quarter is the price test now, so the age of the round is context only while the deal is pending.",
+     "points": [],
+     "recommendation": null,
+     "rule_id": "X-201",
+     "severity": "MONITOR",
+     "suggestions": []
     }
    ],
    "fund": "Fund I",
@@ -626,8 +604,8 @@
    "invested_before": 4.0,
    "latest_post_money": 97.0,
    "listed": false,
-   "moic_after": 1.0773,
-   "multiple_exposed": true,
+   "moic_after": 1.1648,
+   "multiple_exposed": false,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -646,7 +624,7 @@
    "ownership_after": 0.036,
    "ownership_before": 0.036,
    "prior_mark": 3.5,
-   "proposed_mark": 4.3092,
+   "proposed_mark": 4.6592,
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 24.0,
@@ -670,12 +648,13 @@
       "detail": "Definitive agreement signed, all cash",
       "hold_prior": 3.5,
       "ownership": 0.036,
-      "probability_weighted": 4.3092,
+      "probability_weighted": 4.659199999999999,
+      "standalone_if_deal_breaks": 3.5,
       "treatment": "probability_weighted"
      },
-     "new_value": 4.3092,
+     "new_value": 4.6592,
      "prior_value": 3.5,
-     "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Treatment 'probability_weighted': 3.6% \u00d7 $133M \u00d7 0.90 = $4.31M. Alternatives: full $4.79M, hold $3.50M.",
+     "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Treatment 'probability_weighted': 0.90 \u00d7 $4.79M (closes at 3.6% \u00d7 $133M) + 0.10 \u00d7 $3.50M (breaks; standalone at the last round) = $4.66M. Alternatives: full $4.79M, hold $3.50M.",
      "rule_id": "M-050",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -697,7 +676,8 @@
      "action": "",
      "evidence": {
       "indicated_mark": 4.25,
-      "indicated_post_money": 50.0
+      "indicated_post_money": 50.0,
+      "ratio_to_last_round": 1.5974
      },
      "family": "treatment",
      "message": "A term sheet indicates ~$50.0M against the $31.3M the mark rests on. It is non-binding and diligence is open, so nothing is booked from it \u2014 this is disclosure only.",
@@ -894,6 +874,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 35.83,
       "threshold": 30.0
      },
@@ -941,6 +922,7 @@
      "inputs": {
       "detail": "Series A",
       "hc_investment": 1.3,
+      "implied_post_from_hc_cheque": 433.333333,
       "ownership_after": 0.111,
       "ownership_before": 0.108,
       "post_money": 43.0,
@@ -1131,6 +1113,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 50.11,
       "threshold": 30.0
      },
@@ -1178,6 +1161,7 @@
      "inputs": {
       "detail": "Series A",
       "hc_investment": 0.9,
+      "implied_post_from_hc_cheque": 300.0,
       "ownership_after": 0.068,
       "ownership_before": 0.065,
       "post_money": 45.1,
@@ -1591,7 +1575,9 @@
    ]
   },
   {
-   "alternative_marks": {},
+   "alternative_marks": {
+    "structure_adjusted": 0.852
+   },
    "arr": 1.4,
    "arr_growth": -0.16,
    "booked_mark": 1.136,
@@ -1600,18 +1586,20 @@
    "equity_mark": 1.136,
    "flags": [
     {
-     "action": "Read the round documents and confirm the preference stack before booking this mark.",
+     "action": "Read the round documents and allocate the post-money across the classes before booking this mark.",
      "evidence": {
+      "hc_funded_new_class": true,
       "insider_led": true,
       "post_money": 14.2,
-      "prior_post_money": 23.9
+      "prior_post_money": 23.9,
+      "structure_haircut_pct": 0.25
      },
      "family": "treatment",
-     "message": "Recap: the round priced at $14.2M against $23.9M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook.",
+     "message": "Recap: the round priced at $14.2M against $23.9M last time. Ownership \u00d7 post-money assumes every class shares pro rata; rounds like this almost always carry a liquidation preference and pay-to-play that move HC's share \u2014 down if HC's class sits behind the new money, up if HC funded the senior class. The allocation is in the round documents, not the workbook.",
      "points": [
       "Recap: priced at **$14.2M** against $23.9M last round.",
-      "Ownership \u00d7 post-money **ignores liquidation preference** and pay-to-play.",
-      "So the mark is a **ceiling**, not an estimate \u2014 the terms sit in the round documents."
+      "Ownership \u00d7 post-money **assumes pro rata**; preference and pay-to-play **move HC's share either way**.",
+      "The **allocation is unknown** until the round documents are read."
      ],
      "recommendation": {
       "booked": 1.136,
@@ -1623,7 +1611,7 @@
       "rationale": null,
       "reasons": [
        "It is the only priced transaction and reflects the new capital structure.",
-       "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+       "Right if HC's class shares roughly pro rata with the new money."
       ],
       "source": "policy"
      },
@@ -1636,7 +1624,16 @@
        "label": "Book the recap figure as proposed.",
        "reasons": [
         "It is the only priced transaction and reflects the new capital structure.",
-        "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+        "Right if HC's class shares roughly pro rata with the new money."
+       ]
+      },
+      {
+       "booked": 0.852,
+       "key": "structure_adjusted",
+       "label": "Apply the policy's 25% junior-class haircut: $0.85M.",
+       "reasons": [
+        "A placeholder for a preference stack that sits ahead of HC's class.",
+        "Replace it with the waterfall \u2014 which may also raise the mark \u2014 once the documents are read."
        ]
       },
       {
@@ -1654,9 +1651,10 @@
      "action": "",
      "evidence": {
       "insider_led": true,
-      "rule": "M-012"
+      "rule": "M-012",
+      "step_up": 0.594
      },
-     "family": "treatment",
+     "family": "related_party",
      "message": "The notes say the round was insider-led (M-012). Existing investors re-pricing their own position is weaker evidence than a new lead, though not a related-party price for HC itself.",
      "points": [],
      "recommendation": null,
@@ -1743,11 +1741,13 @@
       "ownership_after": 0.08,
       "ownership_before": 0.083,
       "post_money": 14.2,
-      "prior_post_money": 23.9
+      "prior_post_money": 23.9,
+      "structure_adjusted": 0.852,
+      "structure_haircut_pct": 0.25
      },
      "new_value": 1.136,
      "prior_value": 2.0,
-     "rationale": "Recap at $14.2M post vs $23.9M prior. Priced mechanically at 8.0% \u00d7 $14.2M; treated as an UPPER BOUND on junior-equity value because the headline post-money ignores preference and pay-to-play structure the schema cannot see.",
+     "rationale": "Recap at $14.2M post vs $23.9M prior. Priced mechanically at 8.0% \u00d7 $14.2M, which assumes every class shares the post-money pro rata. The allocation is unknown: the preference stack and pay-to-play the schema cannot see move HC's share down if HC's class is junior to the new money and up if HC funded the senior class.",
      "rule_id": "M-012",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -1780,6 +1780,7 @@
     {
      "action": "Confirm the mark reflects a company with 3.1 months of cash.",
      "evidence": {
+      "financings_in_quarter": [],
       "runway_months_aged": 3.12
      },
      "family": "liquidity",
@@ -2204,6 +2205,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 30.29,
       "threshold": 30.0
      },
@@ -2426,6 +2428,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 53.88,
       "threshold": 30.0
      },
@@ -2491,7 +2494,7 @@
    "equity_mark": 110.068,
    "flags": [
     {
-     "action": "Confirm the 30 Sep closing price, then ratify or change the 0% lock-up discount.",
+     "action": "Obtain the 30 Sep closing price (none is on file) and confirm the $3,931M stand-in, then ratify or change the 0% lock-up discount.",
      "evidence": {
       "ipo_print_mark": 110.068,
       "lockup_end": "2027-03-19",
@@ -2499,23 +2502,23 @@
       "price_source_note": "Synthetic ticker; no live feed can price it. Seeded to the IPO print \u2014 replace with the measurement-date close."
      },
      "family": "treatment",
-     "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round, and it should be the closing price on 2026-09-30 \u2014 not the $3,931M the shares priced at on listing day. HC also cannot sell until 2027-03-19. ASC 820 disfavors blockage discounts for a Level 1 holding, so policy applies 0%, but that is a committee call rather than an arithmetic one.",
+     "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round. No exchange quote is on file for the 2026-09-30 close: the quote in this run is stub:seeded_to_ipo_print ($3,931M market cap), so the proposed mark is the listing-day market cap of $3,931M and stands in for the close until the actual 30 Sep price is confirmed. HC also cannot sell until 2027-03-19. Under ASU 2022-03 a contractual sale restriction is not a characteristic of the security and takes no discount, so policy applies 0%; the committee ratifies that.",
      "points": [
-      "Now **listed**: the mark is the **2026-09-30 close**, not the $3,931M listing-day price.",
+      "Now **listed**: the mark should be the **2026-09-30 close**; no quote is on file, so the **$3,931M listing-day market cap** stands in (stub:seeded_to_ipo_print).",
       "HC **cannot sell until 2027-03-19**.",
-      "Policy applies a **0%** lock-up discount (ASC 820 disfavors blockage on Level 1) \u2014 a committee call, not arithmetic."
+      "Policy applies a **0%** lock-up discount (ASU 2022-03: a contractual restriction takes no discount) \u2014 ratified by the committee."
      ],
      "recommendation": {
       "booked": 110.068,
       "confidence": null,
       "key": "as_proposed",
-      "label": "Book the 30 Sep close with the 0% lock-up discount, as proposed.",
+      "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
       "model": null,
       "note": null,
       "rationale": null,
       "reasons": [
        "Level 1: the quoted price is fair value under ASC 820.",
-       "Blockage discounts on quoted prices are disfavored."
+       "ASU 2022-03: a contractual lock-up is not a characteristic of the security, so no discount."
       ],
       "source": "policy"
      },
@@ -2525,10 +2528,10 @@
       {
        "booked": 110.068,
        "key": "as_proposed",
-       "label": "Book the 30 Sep close with the 0% lock-up discount, as proposed.",
+       "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
        "reasons": [
         "Level 1: the quoted price is fair value under ASC 820.",
-        "Blockage discounts on quoted prices are disfavored."
+        "ASU 2022-03: a contractual lock-up is not a characteristic of the security, so no discount."
        ]
       }
      ]
@@ -2589,7 +2592,7 @@
      },
      "new_value": 110.068,
      "prior_value": 80.3,
-     "rationale": "Listed (Listed on Nasdaq). Mark = 2.8% \u00d7 $3,931M market cap at measurement date (source: stub:seeded_to_ipo_print) with no lock-up discount (ASC 820 disfavors blockage factors for Level 1). Fair value hierarchy: Level 3 \u2192 Level 1.",
+     "rationale": "Listed (Listed on Nasdaq). Mark = 2.8% \u00d7 $3,931M market cap at measurement date (source: stub:seeded_to_ipo_print) with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security). Fair value hierarchy: Level 3 \u2192 Level 1.",
      "rule_id": "M-040",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -2608,6 +2611,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 2.33,
       "threshold": 3.0
      },
@@ -2947,6 +2951,7 @@
     {
      "action": "Confirm the mark reflects a company with 3.4 months of cash.",
      "evidence": {
+      "financings_in_quarter": [],
       "runway_months_aged": 3.4
      },
      "family": "liquidity",
@@ -3286,7 +3291,9 @@
    ]
   },
   {
-   "alternative_marks": {},
+   "alternative_marks": {
+    "structure_adjusted": 1.74825
+   },
    "arr": 3.6,
    "arr_growth": -0.08,
    "booked_mark": 2.331,
@@ -3295,18 +3302,20 @@
    "equity_mark": 2.331,
    "flags": [
     {
-     "action": "Read the round documents and confirm the preference stack before booking this mark.",
+     "action": "Read the round documents and allocate the post-money across the classes before booking this mark.",
      "evidence": {
+      "hc_funded_new_class": false,
       "insider_led": true,
       "post_money": 37.0,
-      "prior_post_money": 71.0
+      "prior_post_money": 71.0,
+      "structure_haircut_pct": 0.25
      },
      "family": "treatment",
-     "message": "Recap: the round priced at $37.0M against $71.0M last time. Ownership \u00d7 post-money ignores liquidation preference and pay-to-play, which rounds like this almost always carry, so this figure is a ceiling on what the common equity is worth rather than an estimate of it. The terms are in the round documents, not the workbook.",
+     "message": "Recap: the round priced at $37.0M against $71.0M last time. Ownership \u00d7 post-money assumes every class shares pro rata; rounds like this almost always carry a liquidation preference and pay-to-play that move HC's share \u2014 down if HC's class sits behind the new money, up if HC funded the senior class. The allocation is in the round documents, not the workbook.",
      "points": [
       "Recap: priced at **$37.0M** against $71.0M last round.",
-      "Ownership \u00d7 post-money **ignores liquidation preference** and pay-to-play.",
-      "So the mark is a **ceiling**, not an estimate \u2014 the terms sit in the round documents."
+      "Ownership \u00d7 post-money **assumes pro rata**; preference and pay-to-play **move HC's share either way**.",
+      "The **allocation is unknown** until the round documents are read."
      ],
      "recommendation": {
       "booked": 2.331,
@@ -3318,7 +3327,7 @@
       "rationale": null,
       "reasons": [
        "It is the only priced transaction and reflects the new capital structure.",
-       "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+       "Right if HC's class shares roughly pro rata with the new money."
       ],
       "source": "policy"
      },
@@ -3331,7 +3340,16 @@
        "label": "Book the recap figure as proposed.",
        "reasons": [
         "It is the only priced transaction and reflects the new capital structure.",
-        "The preference stack can only lower it \u2014 a ceiling beats a stale higher mark."
+        "Right if HC's class shares roughly pro rata with the new money."
+       ]
+      },
+      {
+       "booked": 1.74825,
+       "key": "structure_adjusted",
+       "label": "Apply the policy's 25% junior-class haircut: $1.75M.",
+       "reasons": [
+        "A placeholder for a preference stack that sits ahead of HC's class.",
+        "Replace it with the waterfall \u2014 which may also raise the mark \u2014 once the documents are read."
        ]
       },
       {
@@ -3364,9 +3382,10 @@
      "action": "",
      "evidence": {
       "insider_led": true,
-      "rule": "M-012"
+      "rule": "M-012",
+      "step_up": 0.521
      },
-     "family": "treatment",
+     "family": "related_party",
      "message": "The notes say the round was insider-led (M-012). Existing investors re-pricing their own position is weaker evidence than a new lead, though not a related-party price for HC itself.",
      "points": [],
      "recommendation": null,
@@ -3426,11 +3445,13 @@
       "ownership_after": 0.063,
       "ownership_before": 0.08,
       "post_money": 37.0,
-      "prior_post_money": 71.0
+      "prior_post_money": 71.0,
+      "structure_adjusted": 1.74825,
+      "structure_haircut_pct": 0.25
      },
      "new_value": 2.331,
      "prior_value": 5.7,
-     "rationale": "Recap at $37.0M post vs $71.0M prior. Priced mechanically at 6.3% \u00d7 $37.0M; treated as an UPPER BOUND on junior-equity value because the headline post-money ignores preference and pay-to-play structure the schema cannot see.",
+     "rationale": "Recap at $37.0M post vs $71.0M prior. Priced mechanically at 6.3% \u00d7 $37.0M, which assumes every class shares the post-money pro rata. The allocation is unknown: the preference stack and pay-to-play the schema cannot see move HC's share down if HC's class is junior to the new money and up if HC funded the senior class.",
      "rule_id": "M-012",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -3463,6 +3484,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 31.32,
       "threshold": 30.0
      },
@@ -3736,6 +3758,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 39.86,
       "threshold": 30.0
      },
@@ -4058,6 +4081,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 1.03,
       "threshold": 3.0
      },
@@ -4535,15 +4559,22 @@
      "suggestions": []
     },
     {
-     "action": "Confirm the mark reflects a company with 4.1 months of cash.",
+     "action": "Confirm the post-raise cash position; the 4.1-month runway is measured before this quarter's financing.",
      "evidence": {
+      "financings_in_quarter": [
+       {
+        "date": "2026-08-28",
+        "event": "Convertible Note",
+        "hc_investment": 0.5
+       }
+      ],
       "runway_months_aged": 4.11
      },
      "family": "liquidity",
-     "message": "About 4.1 months of cash left ($2.3M against $0.45M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+     "message": "About 4.1 months of cash left ($2.3M against $0.45M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark. A financing closed this quarter \u2014 convertible note on 2026-08-28 (HC put in $0.50M) \u2014 and the cash figure may predate it; the round size is not in the workbook, so the runway here is pre-raise.",
      "points": [
       "About **4.1 months of cash** left ($2.3M against $0.45M a month).",
-      "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+      "A **financing closed this quarter** (convertible note, 2026-08-28); the cash figure may **predate it**.",
       "The round that saves it **may be priced below this mark**."
      ],
      "recommendation": {
@@ -4657,6 +4688,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 47.85,
       "threshold": 30.0
      },
@@ -4736,6 +4768,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 32.56,
       "threshold": 30.0
      },
@@ -5404,6 +5437,7 @@
     {
      "action": "Confirm the mark reflects a company with 2.5 months of cash.",
      "evidence": {
+      "financings_in_quarter": [],
       "runway_months_aged": 2.5
      },
      "family": "liquidity",
@@ -5683,6 +5717,7 @@
     {
      "action": "Confirm the mark reflects a company with 3.7 months of cash.",
      "evidence": {
+      "financings_in_quarter": [],
       "runway_months_aged": 3.67
      },
      "family": "liquidity",
@@ -6154,6 +6189,7 @@
     {
      "action": "",
      "evidence": {
+      "financings_in_quarter": [],
       "runway_months_aged": 11.62
      },
      "family": "liquidity",
@@ -6771,6 +6807,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 1.71,
       "threshold": 3.0
      },
@@ -7098,6 +7135,7 @@
     {
      "action": "",
      "evidence": {
+      "financings_in_quarter": [],
       "runway_months_aged": 7.12
      },
      "family": "liquidity",
@@ -7252,6 +7290,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 32.29,
       "threshold": 30.0
      },
@@ -7317,6 +7356,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 35.47,
       "threshold": 30.0
      },
@@ -7624,6 +7664,7 @@
     {
      "action": "",
      "evidence": {
+      "basis": "absolute policy bound",
       "implied_multiple": 45.5,
       "threshold": 30.0
      },
@@ -7729,11 +7770,11 @@
  ],
  "comps_move": {
   "all_live": false,
-  "base_nav": 1183.9263,
-  "covered_nav": 1067.5583,
-  "delta": 1.786533,
-  "exposed_nav": 1067.5583,
-  "nav_if_marked_with_comps": 1185.712833,
+  "base_nav": 1184.2763,
+  "covered_nav": 1062.7491,
+  "delta": 1.749103,
+  "exposed_nav": 1062.7491,
+  "nav_if_marked_with_comps": 1186.025403,
   "now_month": "2026-09",
   "prior_month": "2026-06",
   "sectors": [
@@ -7790,14 +7831,14 @@
     "source": "fixture:pitchbook@2026-09"
    },
    {
-    "delta": 1.588689,
-    "exposed_nav": 210.548,
+    "delta": 1.556174,
+    "exposed_nav": 206.2388,
     "live": false,
     "multiple_now": 22.7,
     "multiple_prior": 22.53,
     "n_now": null,
     "n_prior": null,
-    "positions": 15,
+    "positions": 14,
     "qoq_pct": 0.0075,
     "sector": "AI/ML",
     "source": "fixture:pitchbook@2026-09"
@@ -7868,8 +7909,8 @@
     "source": "fixture:pitchbook@2026-09"
    },
    {
-    "delta": 0.401072,
-    "exposed_nav": 40.8,
+    "delta": 0.396157,
+    "exposed_nav": 40.3,
     "live": false,
     "multiple_now": 11.3,
     "multiple_prior": 11.19,
@@ -7907,7 +7948,7 @@
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
   "recommender": "policy",
-  "run_id": "d8c66a873f51"
+  "run_id": "fa8280e29ff7"
  },
  "open_items": [
   {
@@ -7969,16 +8010,16 @@
  "rollups": [
   {
    "active": 29,
-   "booked_nav": 725.3385,
+   "booked_nav": 725.6885,
    "companies": 30,
    "dpi": 0.1049,
    "fund": "Fund I",
    "invested": 268.9,
    "prior_nav": 656.8,
-   "proposed_nav": 725.3385,
+   "proposed_nav": 725.6885,
    "realized_cumulative": 28.2,
    "realized_quarter": 28.2,
-   "rvpi": 2.6974,
+   "rvpi": 2.6987,
    "top_positions": [
     [
      "Drayvenn",
@@ -7986,7 +8027,7 @@
     ],
     [
      "Fernwave",
-     0.1014
+     0.1013
     ],
     [
      "Mardellan",
@@ -7998,10 +8039,10 @@
     ],
     [
      "Knollward",
-     0.0673
+     0.0672
     ]
    ],
-   "tvpi": 2.8023
+   "tvpi": 2.8036
   },
   {
    "active": 34,
@@ -8077,13 +8118,13 @@
   }
  ],
  "sensitivity": {
-  "base_nav": 1183.9263,
-  "multiple_exposed_nav": 1067.5583,
-  "nav_if_multiples_+20pct": 1397.43796,
-  "nav_if_multiples_-20pct": 970.41464,
-  "nav_if_software_multiples_+20pct": 1345.23062,
-  "nav_if_software_multiples_-20pct": 1022.62198,
-  "software_exposed_nav": 806.5216
+  "base_nav": 1184.2763,
+  "multiple_exposed_nav": 1062.7491,
+  "nav_if_multiples_+20pct": 1396.82612,
+  "nav_if_multiples_-20pct": 971.72648,
+  "nav_if_software_multiples_+20pct": 1344.61878,
+  "nav_if_software_multiples_-20pct": 1023.93382,
+  "software_exposed_nav": 801.7124
  },
  "sensitivity_meta": {
   "min_arr": 0.5,
@@ -8103,7 +8144,7 @@
  },
  "totals": {
   "active_after": 93,
-  "booked_nav": 1183.9263,
+  "booked_nav": 1184.2763,
   "dispositions": {
    "BLOCK": 7,
    "CLEAR": 34,
@@ -8112,13 +8153,13 @@
   },
   "exited_at_prior_mark": 18.2,
   "level1_positions": 1,
-  "net_movement": 44.6263,
+  "net_movement": 44.9763,
   "positions": 100,
   "prior_nav": 1139.3,
-  "proposed_nav": 1183.9263,
+  "proposed_nav": 1184.2763,
   "realized_cumulative": 49.6,
   "realized_quarter": 32.5,
-  "top10_concentration": 0.4461,
+  "top10_concentration": 0.4459,
   "written_off": 21.4
  },
  "validation": []

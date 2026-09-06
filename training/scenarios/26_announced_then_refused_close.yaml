@@ -36,10 +36,10 @@ expect:
   validation_blocking: true
   totals: { events: 6, positions: 100 }
   companies:
-    Oxbowlane:   { disposition: BLOCK, rules: [M-050, M-000], proposed: 19.35, realized_quarter: 0.0, status: Active, ownership_after: 0.043,
+    Oxbowlane:   { disposition: BLOCK, rules: [M-050, M-000], proposed: 20.65, realized_quarter: 0.0, status: Active, ownership_after: 0.043,
                    flags_must: [X-101, X-900], flags_must_not: [M-999], open_items_must: [pending_acquisition], open_items_count: 1,
                    alternative_marks: { at_full_deal_value: 21.5, hold_prior: 13.0 } }
-    Inkmoor:     { disposition: BLOCK, rules: [M-050, M-000], proposed: 6.48, status: Active, ownership_after: 0.12,
+    Inkmoor:     { disposition: BLOCK, rules: [M-050, M-000], proposed: 6.78, status: Active, ownership_after: 0.12,
                    flags_must: [X-101, X-900], flags_must_not: [X-114, M-999], open_items_must: [pending_acquisition], open_items_count: 1 }
     Ambercrest:  { disposition: CLEAR, rules: [M-000, M-020], proposed: 0.0, realized_quarter: 16.8, status: Acquired, open_items_count: 0,
                    flags_must_not: [X-101, X-900] }

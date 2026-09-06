@@ -730,7 +730,7 @@ def test_assembler_keeps_the_two_tuple_and_carries_the_report():
     assert isinstance(asm, MarketAssembly)
     market, label = asm
     assert label == "stub" and market.as_of == AS_OF and asm.report["provider"] == "stub"
-    assert asm.report["used_by"]["multiple_mode"] == "absolute" and asm.report["used_by"]["calibration_enabled"] is True
+    assert asm.report["used_by"]["multiple_mode"] == "relative_to_comps" and asm.report["used_by"]["calibration_enabled"] is True
     assert "relative_to_comps" in asm.report["used_by"]["note"]
 
 
@@ -786,8 +786,18 @@ def test_api_market_live_from_cache_without_network(tmp_path: Path, monkeypatch)
     assert not any("fetch failed" in e for e in rep["errors"])
     run = client.get("/api/run").json()
     assert run["manifest"]["market_data_source"] == LIVE_LABEL
-    # the rest of the run is untouched: comps are a screen, never a mark
-    assert run["totals"]["dispositions"] == BASELINE
+    # comps are a screen, never a mark: no number moves; the screens on the one live sector re-bound to its
+    # live median (relative_to_comps), every other sector keeps the absolute bounds
+    stub = execute(_paths(tmp_path, root), provider="stub").run
+    assert run["totals"]["proposed_nav"] == pytest.approx(stub.totals.proposed_nav) and run["totals"]["booked_nav"] == pytest.approx(stub.totals.booked_nav)
+    live_flags = [f for c in run["companies"] for f in c["flags"] if f["rule_id"] in ("X-401", "X-402") and c["sector"] == "AI/ML"]
+    other_flags = [f for c in run["companies"] for f in c["flags"] if f["rule_id"] in ("X-401", "X-402") and c["sector"] != "AI/ML"]
+    assert live_flags and all(f["evidence"]["basis"] == "live sector median" for f in live_flags)
+    assert all(f["evidence"]["basis"] == "absolute policy bound" for f in other_flags)
+    by_stub = {c.company: {f.rule_id for f in c.flags} for c in stub.companies}
+    for c in run["companies"]:
+        if c["sector"] != "AI/ML":
+            assert {f["rule_id"] for f in c["flags"]} == by_stub[c["company"]], c["company"]
 
 
 def test_static_report_inlines_the_market_report(tmp_path: Path):

@@ -33,6 +33,7 @@ import yaml
 
 from ..config import CustomRuleSpec, RuleConfig, load_config
 from ..engine.run import build_registry
+from ..fsutil import write_atomically
 from . import load_proposal, proposal_path, save_proposal
 from .schema import Decision, TreatmentProposal, to_custom_rule_spec
 
@@ -63,7 +64,7 @@ def _read_yaml(path: Path) -> dict[str, Any]:
 
 def _write_yaml(path: Path, data: dict[str, Any], header: str = "") -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    Path(path).write_text((header + "\n" if header else "") + _dump(data), encoding="utf-8")
+    write_atomically(Path(path), (header + "\n" if header else "") + _dump(data))
 
 
 def _spec_dict(spec: CustomRuleSpec) -> dict[str, Any]:
@@ -92,7 +93,7 @@ def append_custom_rule(policy_path: Path, spec: CustomRuleSpec) -> None:
         raise ValueError(f"{policy_path.name} already carries rule {spec.rule_id}")
     existing.append(_spec_dict(spec))
     block = _dump({"custom_rules": existing})
-    policy_path.write_text(_replace_top_level_block(policy_path.read_text(encoding="utf-8"), "custom_rules", block), encoding="utf-8")
+    write_atomically(policy_path, _replace_top_level_block(policy_path.read_text(encoding="utf-8"), "custom_rules", block))
 
 
 # ---------------------------------------------------------------- quarters

@@ -11,7 +11,7 @@ from datetime import date
 
 import pytest
 
-from conftest import event, flag_ids, make_workbook, only, position, rule_ids
+from conftest import event, flag_ids, make_workbook, only, position, rule_ids, with_policy
 from hc_valuation.api.exec_view import DRIVERS, _driver_for
 from hc_valuation.connectors.stubs import CARRIED_LISTING_SOURCE, StubMarketDataProvider
 from hc_valuation.engine import precedence
@@ -55,8 +55,9 @@ def test_m013_warrant_exercise_remarks_on_last_round_basis(build):
     f = _flag(c, "X-110")
     assert f.severity == Severity.REVIEW and f.action and f.evidence["ownership_after"] == pytest.approx(0.06)
     assert c.disposition == Disposition.REVIEW and c.status_after == Status.ACTIVE and c.fv_level == 3
-    # "warrant" is also a note-screen term (SPEC §3); same family, so the position stays REVIEW rather than BLOCK
-    assert "X-105" in flag_ids(c)
+    # "warrant" is a note-screen term, but on an Ownership Adjustment row it is the treatment M-013 just applied,
+    # not an unhandled one: the policy exempts it, so the position is one REVIEW, not two
+    assert "X-105" not in flag_ids(c)
 
 
 def test_m013_without_ownership_after_keeps_ownership(build):
@@ -136,7 +137,8 @@ def test_m022_distribution_on_acquired_company_is_applied(build):
     assert rule_ids(c) == ["M-000", "M-022"]
     assert c.proposed_mark == 0.0 and c.status_after == Status.ACQUIRED
     assert c.realized_quarter == pytest.approx(1.5) and c.realized_cumulative == pytest.approx(29.7)
-    assert c.flags == () and c.disposition == Disposition.CLEAR, "terminal: carry-side noise dropped, nothing blocks"
+    # terminal: carry-side noise dropped; the post-exit cash stays a watch item so DPI arriving after the exit is visible
+    assert [f.rule_id for f in c.flags] == ["X-111"] and c.disposition == Disposition.MONITOR
     assert "after the exit" in c.steps[-1].rationale
     assert run.totals.realized_quarter == pytest.approx(1.5)
 
@@ -163,7 +165,8 @@ def test_distribution_after_a_same_quarter_exit_is_applied(build):
     ])
     c = only(run)
     assert rule_ids(c) == ["M-020", "M-022"]
-    assert c.realized_quarter == pytest.approx(30.0) and c.proposed_mark == 0.0 and c.disposition == Disposition.CLEAR
+    assert c.realized_quarter == pytest.approx(30.0) and c.proposed_mark == 0.0 and c.disposition == Disposition.MONITOR
+    assert [f.rule_id for f in c.flags] == ["X-111"], "the escrow release closed the exit's proceeds gap; the cash stays visible"
 
 
 # =================================================================== M-024 stock-consideration exit
@@ -433,7 +436,8 @@ def test_cap_regex_forms(detail, cap):
 @pytest.mark.parametrize("notes", ["Round led by HC.", "HC-led Series B.", "HC led the round with two insiders.",
                                    "Human Capital led; insider round."])
 def test_x117_hc_led_round_is_review(build, notes):
-    run, _ = build([position()], [event(detail="Series B", value=200.0, ownership_after=0.12, hc_investment=3.0, notes=notes)])
+    # $4.0M for +2.0% is $200M: the cheque reconciles to the stated post, so only the related-party question is open
+    run, _ = build([position()], [event(detail="Series B", value=200.0, ownership_after=0.12, hc_investment=4.0, notes=notes)])
     c = only(run)
     assert c.proposed_mark == pytest.approx(24.0), "the mark is still mechanical"
     f = _flag(c, "X-117")
@@ -452,11 +456,24 @@ def test_x117_on_flat_extension_and_recap_paths(build):
 
 @pytest.mark.parametrize("notes", ["$7.8M insider-led round. HC did not participate.", "Insider round; existing investors only."])
 def test_x118_insider_led_not_hc_is_monitor(build, notes):
-    run, _ = build([position()], [event(detail="Series B", value=200.0, ownership_after=0.09, notes=notes)])
+    run, _ = build([position()], [event(detail="Series B", value=150.0, ownership_after=0.09, notes=notes)])   # 1.5× step-up
     c = only(run)
     f = _flag(c, "X-118")
-    assert f.severity == Severity.MONITOR and f.action == "" and f.evidence["insider_led"] is True
-    assert "X-117" not in flag_ids(c) and c.disposition == Disposition.MONITOR
+    assert f.severity == Severity.MONITOR and f.action == "" and f.evidence["insider_led"] is True and f.evidence["step_up"] == 1.5
+    assert f.family == "related_party" and "X-117" not in flag_ids(c) and c.disposition == Disposition.MONITOR
+
+
+def test_x118_insider_step_up_at_or_above_the_line_is_review(build, cfg):
+    """Insiders re-pricing their own position 2× with nobody outside testing it: a reviewer could book less."""
+    run, _ = build([position()], [event(detail="Series B", value=200.0, ownership_after=0.09, notes="Insider round; existing investors only.")])
+    c = only(run)
+    f = _flag(c, "X-118")
+    assert f.severity == Severity.REVIEW and f.evidence["step_up"] == 2.0 and f.evidence["threshold"] == 2.0
+    assert c.disposition == Disposition.REVIEW and c.proposed_mark == pytest.approx(18.0), "still priced at the round"
+    assert [sg.key for sg in f.suggestions] == ["as_proposed", "hold_prior"] and f.suggestions[1].booked == pytest.approx(10.0)
+    strict = with_policy(cfg, **{"exceptions.indications.insider_round_review_step_up": 3.0})
+    run, _ = build([position()], [event(detail="Series B", value=200.0, ownership_after=0.09, notes="Insider round; existing investors only.")], cfg_=strict)
+    assert _flag(only(run), "X-118").severity == Severity.MONITOR
 
 
 def test_arms_length_round_raises_neither(build):
