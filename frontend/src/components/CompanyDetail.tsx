@@ -397,11 +397,20 @@ export function CompanyDetail({
           </div>
         </section>
 
-        {/* ------------------------------------------------ the position, in support */}
-        <aside className="min-w-0 space-y-3">
+        {/* ------------------------------------------------ what this position has been, beside the story.
+            Only the two histories ride here: a rail much taller than the story leaves a hole beside it,
+            and a rail much shorter leaves one beside the flags. It sticks so a long flag list still has
+            the prior-quarter context in view. Everything else is reference data and sits below. */}
+        <aside className="min-w-0 space-y-3 xl:sticky xl:top-[76px] xl:self-start">
           <FlagHistoryCard c={c} />
           <MarkHistoryCard company={c.company} />
+        </aside>
+      </div>
 
+      {/* ------------------------------------------------ reference, across the full width: the numbers
+          behind the position, the vendor context, and the cells a workpaper cites. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-5 gap-y-3 mt-4">
+        <div className="min-w-0 space-y-3">
           <div className="card p-3">
             <Label>Position</Label>
             <div className="facts">
@@ -461,8 +470,6 @@ export function CompanyDetail({
             )}
           </div>
 
-          <VendorSignalsCard company={c.company} />
-
           <details className="card p-3">
             <summary className="text-[11px] uppercase tracking-wider text-muted cursor-pointer select-none">
               Source cells (for the workpaper)
@@ -471,7 +478,9 @@ export function CompanyDetail({
               <SourceCard c={c} />
             </div>
           </details>
-        </aside>
+        </div>
+
+        <VendorSignalsCard company={c.company} />
       </div>
 
       {flagDetail !== null && c.flags[flagDetail] && (
