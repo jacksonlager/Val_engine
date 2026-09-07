@@ -743,6 +743,7 @@
       "deal_value": 133.0,
       "detail": "Definitive agreement signed, all cash",
       "hold_prior": 3.5,
+      "non_binding": false,
       "ownership": 0.036,
       "probability_weighted": 4.659199999999999,
       "standalone_if_deal_breaks": 3.5,

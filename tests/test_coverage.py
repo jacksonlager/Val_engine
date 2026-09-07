@@ -63,9 +63,18 @@ def test_unknown_event_type_falls_to_m999(registry, cfg):
     assert meta.rule_id == "M-999"
 
 
-def test_rule_not_yet_effective_is_not_dispatched(registry):
+def test_base_rules_are_in_force_for_every_quarter(registry):
+    """The built-in rules are the base policy: a Q2 2026 book that arrives after the Q3 base policy
+    is valued by them, and so would a 2020 one. Only a promoted (declarative) rule carries a real
+    effective date — test_edge_cases covers one dated in the future falling back to M-999. Before
+    this, every built-in was dated 2026-07-01 and a 30 Jun 2026 run raised: no rule, not even M-999."""
     from datetime import date
-    assert registry.handler_for(EventType.IPO.value, date(2020, 1, 1)) is None
+    meta, _ = registry.handler_for(EventType.IPO.value, date(2020, 1, 1))
+    assert meta.rule_id == "M-040"
+    meta, _ = registry.handler_for(EventType.ACQ_ANNOUNCED.value, date(2026, 6, 30))
+    assert meta.rule_id == "M-050"
+    meta, _ = registry.handler_for("SPAC Merger", date(2026, 6, 30))
+    assert meta.rule_id == "M-999"
 
 
 # ---------------------------------------------------------------- (b) documented rule ids

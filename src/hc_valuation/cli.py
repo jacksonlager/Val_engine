@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from datetime import date
 
 from .config import default_policy_path, load_config
 from .engine.models import Severity, ValuationRun
@@ -146,13 +147,15 @@ def version(policy: Optional[Path] = PolicyOpt) -> None:
 
 @app.command("next-policy")
 def next_policy(policy: Optional[Path] = PolicyOpt,
-                note: str = typer.Option("", "--note", help="One-line reason recorded at the top of the file")) -> None:
-    """Write the next quarter's policy file (inherits everything, new window only). Step 4 of a refresh."""
+                note: str = typer.Option("", "--note", help="One-line reason recorded at the top of the file"),
+                quarter: Optional[str] = typer.Option(None, "--for", help="Write the file for this quarter instead of the next one, e.g. \"Q2 2026\"")) -> None:
+    """Write the next quarter's policy file (inherits everything, new window only). Step 4 of a refresh.
+    `--for "Q2 2026"` writes the file for any quarter, for a workbook that arrives out of order."""
     from .config import write_next_policy
 
     src = (policy or default_policy_path()).resolve()
     try:
-        out = write_next_policy(src, note=note)
+        out = write_next_policy(src, note=note, quarter=quarter)
     except FileExistsError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1)
@@ -203,7 +206,8 @@ def rules(policy: Optional[Path] = PolicyOpt) -> None:
     cfg = load_config((policy or default_policy_path()).resolve())
     rows = []
     for m in build_registry(cfg).all():
-        rows.append([m.rule_id, m.version, m.severity.value if m.severity else "-", m.effective_from.isoformat(),
+        rows.append([m.rule_id, m.version, m.severity.value if m.severity else "-",
+                     "base" if m.effective_from == date.min else m.effective_from.isoformat(),
                      m.source, ", ".join(m.applies_to) or "-", m.description])
     typer.echo(_table(["id", "version", "severity", "effective", "source", "applies to", "description"], rows))
 

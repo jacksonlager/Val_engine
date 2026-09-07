@@ -318,10 +318,26 @@ def load_config(path: str | Path) -> RuleConfig:
     return RuleConfig.model_validate(_load_raw(p))
 
 
-def next_quarter_window(q: QuarterCfg) -> dict[str, Any]:
-    """The `quarter:` block for the period after `q`, derived from its label and window —
-    'Q4 2026' rolls to 'Q1 2027'. Nothing about a year or a month is hardcoded."""
+def quarter_window(label: str) -> dict[str, Any]:
+    """The `quarter:` block for any calendar quarter, from its label alone — 'Q2 2026' is 1 Apr to
+    30 Jun 2026 against the 31 Mar close. Nothing about a year or a month is hardcoded."""
     import calendar
+    import re
+    from datetime import timedelta
+
+    m = re.match(r"^\s*Q([1-4])\s+(\d{4})\s*$", label)
+    if not m:
+        raise ValueError(f"quarter label {label!r} is not of the form 'Qn YYYY'")
+    n, y = int(m.group(1)), int(m.group(2))
+    start = date(y, 3 * n - 2, 1)
+    end_month = 3 * n
+    end = date(y, end_month, calendar.monthrange(y, end_month)[1])
+    return {"label": f"Q{n} {y}", "measurement_date": end, "prior_close": start - timedelta(days=1),
+            "window_start": start, "window_end": end}
+
+
+def next_quarter_window(q: QuarterCfg) -> dict[str, Any]:
+    """The `quarter:` block for the period after `q` — 'Q4 2026' rolls to 'Q1 2027'."""
     import re
 
     m = re.match(r"^\s*Q([1-4])\s+(\d{4})\s*$", q.label)
@@ -329,19 +345,16 @@ def next_quarter_window(q: QuarterCfg) -> dict[str, Any]:
         raise ValueError(f"quarter label {q.label!r} is not of the form 'Qn YYYY'")
     n, y = int(m.group(1)), int(m.group(2))
     n, y = (1, y + 1) if n == 4 else (n + 1, y)
-    start = date(y, 3 * n - 2, 1)
-    end_month = 3 * n
-    end = date(y, end_month, calendar.monthrange(y, end_month)[1])
-    return {"label": f"Q{n} {y}", "measurement_date": end, "prior_close": q.window_end,
-            "window_start": start, "window_end": end}
+    return quarter_window(f"Q{n} {y}")
 
 
-def write_next_policy(current: Path, out_dir: Path | None = None, note: str = "") -> Path:
+def write_next_policy(current: Path, out_dir: Path | None = None, note: str = "", quarter: str | None = None) -> Path:
     """Write `rules/<next>.yaml` inheriting from `current` with only the quarter window
-    changed. Refuses to overwrite: a policy that already exists may carry deliberate
-    changes. Returns the path written."""
+    changed — or, with `quarter`, the file for that quarter (a back-quarter that arrives after
+    the base policy, say). Refuses to overwrite: a policy that already exists may carry
+    deliberate changes. Returns the path written."""
     cfg = load_config(current)
-    window = next_quarter_window(cfg.quarter)
+    window = quarter_window(quarter) if quarter else next_quarter_window(cfg.quarter)
     slug = window["label"].split()[1] + window["label"].split()[0]        # 'Q4 2026' -> '2026Q4'
     out = (out_dir or current.parent) / f"{slug}.yaml"
     if out.exists():

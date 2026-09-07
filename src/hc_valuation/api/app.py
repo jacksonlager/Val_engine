@@ -147,7 +147,9 @@ def rule_catalogue(result: PipelineResult) -> list[dict[str, Any]]:
     return [
         {
             "id": m.rule_id, "version": m.version, "applies_to": list(m.applies_to),
-            "severity": m.severity.value if m.severity else None, "effective_from": m.effective_from.isoformat(),
+            "severity": m.severity.value if m.severity else None,
+            # the base policy's rules are undated (in force for every quarter); a promoted rule carries its date
+            "effective_from": None if m.effective_from == date.min else m.effective_from.isoformat(),
             "description": m.description, "source": m.source, "terminal": m.terminal, "tier": m.tier,
         }
         for m in build_registry(result.config).all()

@@ -21,7 +21,7 @@ import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
 
 from ..config import NormalizationCfg, RuleConfig
-from ..engine.inputs import Correction
+from ..engine.inputs import Correction, EventType
 from . import normalize as nz
 from .schema import (
     ACTIVITY_COLUMNS, ACTIVITY_HEADER_ALIASES, GROWTH_COLUMNS, MUSD_COLUMNS, PERCENT_COLUMNS,
@@ -345,6 +345,16 @@ def _read_activity(ws, sheet_name: str, config: RuleConfig, snapshot: PortfolioS
         if ecorr is not None:
             cells._record([ecorr], "Event")
         extra = sheet.extras(row)
+        # A priced round on a company the Portfolio tab does not have, with HC's cheque on the row,
+        # is HC's first investment in it — the row `New Investment` describes, filed under the round's
+        # name. Read it as one (recorded as X-912, like any other event-type reading) so the position
+        # is created (M-014, X-918) instead of the row being refused as an unknown company (X-901).
+        # Found by the Q2 2026 test file, whose two new holdings arrived exactly this way.
+        if (company not in book and event_type == EventType.PRICED_ROUND.value
+                and (cells.number("HC Investment ($M)") or 0) > 0):
+            cells._record([Correction(kind="event_type", original=str(raw_type), resolved=EventType.NEW_INVESTMENT.value, method="context",
+                                      detail=f"{company} is not in the Portfolio tab and HC's cheque is on the row: read as an initial investment")], "Event")
+            event_type = EventType.NEW_INVESTMENT.value
         if raw_type is not None and str(raw_type) != event_type:
             extra["raw_event_type"] = str(raw_type)
         if str(raw_company) != company:

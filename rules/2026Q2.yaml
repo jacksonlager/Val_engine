@@ -1,0 +1,13 @@
+# HC Valuation Engine — policy 2026Q2 (v0.1)
+# Generated from 2026Q3.yaml: inherits every threshold; override below only what moved,
+# bump policy_version, and record why in the commit.
+# Q2 2026 test fixture (training/HC_Q2_2026_Test_Portfolio.xlsx) arrived after the Q3 base policy
+policy_version: "2026Q2-0.1"
+inherits: 2026Q3
+
+quarter:
+  label: "Q2 2026"
+  measurement_date: 2026-06-30
+  prior_close: 2026-03-31
+  window_start: 2026-04-01
+  window_end: 2026-06-30

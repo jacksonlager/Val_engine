@@ -19,7 +19,13 @@ from .registry import rule
 from .state import Suggest, Working
 from .textscreen import any_term_in
 
-EFFECTIVE = date(2026, 7, 1)   # policy 2026Q3 in force from the start of the quarter
+# The built-in rules are the base policy and are in force for every quarter the engine is asked to
+# value, earlier ones included: a Q2 2026 book that arrives after the Q3 base policy is valued by the
+# same rules (found by that exact file — dated 2026-07-01, no rule applied on 30 Jun 2026, not even
+# the M-999 fallback, and the engine raised instead of reporting). Only a rule promoted from
+# adjudication carries a real `effective_from`, so that a Q4 rule never rewrites a Q3 re-run.
+EFFECTIVE = date.min
+BASE_RULE_EFFECTIVE = EFFECTIVE
 V = "2026Q3.1"
 
 # The config keys are stable identifiers; a rationale a reviewer reads should not contain one.
@@ -663,6 +669,13 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
 
 # --------------------------------------------------------------------------- M-050
 
+# An announced deal that the row itself says is not a signed agreement. A letter of intent or an
+# indicative offer is a term sheet for an exit: real information, no contract, so the policy's
+# close probability does not apply and the mark holds until a definitive agreement is signed.
+# (Found by the Q2 2026 test file: an LOI at $120M was weighted at 90% like a signed deal.)
+_NON_BINDING_TERMS = ("non-binding", "nonbinding", "letter of intent", "loi", "indicative offer", "indicative proposal")
+
+
 @rule(rule_id="M-050", version=V, applies_to=(EventType.ACQ_ANNOUNCED.value,), severity=Severity.BLOCK,
       effective_from=EFFECTIVE, tier=5,
       description="Announced, unclosed acquisition: probability-weighted deal value by default; always blocks.")
@@ -676,31 +689,53 @@ def announced(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
     # break branch at the standalone value — the carrying mark, not zero. A deal that fails
     # leaves HC holding the company it held before.
     weighted = p * full + (1 - p) * hold
+    non_binding = any_term_in(_NON_BINDING_TERMS, _text(e))
+    if non_binding:
+        treatment = "hold_prior"
     new_equity = {"probability_weighted": weighted, "full_deal_value": full, "hold_prior": hold}[treatment]
     w.step("M-050", V, {"deal_value": deal, "ownership": w.ownership, "treatment": treatment, "close_probability": p,
                         "at_full_deal_value": full, "standalone_if_deal_breaks": hold, "probability_weighted": weighted,
-                        "hold_prior": hold, "detail": e.detail},
+                        "hold_prior": hold, "detail": e.detail, "non_binding": non_binding},
            w.proposed_mark, new_equity + w.note_at_cost,
-           f"Definitive agreement at ${deal:.0f}M, not closed ({e.notes or 'no closing detail'}). "
-           f"Marked {TREATMENT_WORDS[treatment]}: "
-           + (f"{p:.2f} × ${full:.2f}M (closes at {w.ownership:.1%} × ${deal:.0f}M) + {1 - p:.2f} × ${hold:.2f}M (breaks; standalone at the last round)"
-              if treatment == "probability_weighted" else f"{w.ownership:.1%} × ${deal:.0f}M")
-           + f" = ${new_equity:.2f}M. Alternatives: full ${full:.2f}M, hold ${hold:.2f}M.", e)
-    w.flag("X-101", "treatment", Severity.BLOCK,
-           f"A buyer has signed for ${deal:.0f}M but the deal has not closed and still needs approval. Booking the full deal value "
-           "ignores that contingency; holding the old mark ignores a signed agreement. Policy weights the two outcomes at "
-           f"{p:.2f} — the deal price if it closes, the standalone mark if it breaks — giving ${weighted:.2f}M against "
-           f"${full:.2f}M at full value and ${hold:.2f}M if held.",
-           points=(f"Buyer signed for **${deal:.0f}M**, but the deal has **not closed** and still needs approval.",
-                   f"Policy weights **{p:.2f} × deal price + {1 - p:.2f} × standalone** → **${weighted:.2f}M**.",
-                   f"Alternatives: **${full:.2f}M** at full value, **${hold:.2f}M** held at prior."),
-           suggestions=(
-               Suggest("as_proposed", f"Ratify the {p:.2f}-weighted mark of ${weighted:.2f}M.", ("Reflects a signed agreement with a real chance of not closing.", "Policy default for an announced, unclosed deal."), "proposed"),
-               Suggest("full_value", f"Book the full deal value, ${full:.2f}M.", ("The buyer has signed; only approval remains.", "Right if the closing conditions are formalities."), "value", value=full),
-               Suggest("hold_prior", f"Hold the prior mark, ${hold:.2f}M, until the deal closes.", ("Nothing is realised until closing; a signed deal can still break.", "Right if approval is uncertain or the buyer is stretched."), "value", value=hold),
-           ),
-           action=f"Ratify the {p:.2f} close probability, or choose full deal value or hold at prior.",
-           deal_value=deal, close_probability=p, treatment=treatment)
+           (f"Non-binding offer at ${deal:.0f}M ({e.detail}): a letter of intent is not a signed agreement, so the "
+            f"{p:.2f} close probability does not apply and the mark holds at ${hold:.2f}M. The offer is disclosed: "
+            f"${weighted:.2f}M if weighted as a signed deal, ${full:.2f}M at full value." if non_binding else
+            f"Definitive agreement at ${deal:.0f}M, not closed ({e.notes or 'no closing detail'}). "
+            f"Marked {TREATMENT_WORDS[treatment]}: "
+            + (f"{p:.2f} × ${full:.2f}M (closes at {w.ownership:.1%} × ${deal:.0f}M) + {1 - p:.2f} × ${hold:.2f}M (breaks; standalone at the last round)"
+               if treatment == "probability_weighted" else f"{w.ownership:.1%} × ${deal:.0f}M")
+            + f" = ${new_equity:.2f}M. Alternatives: full ${full:.2f}M, hold ${hold:.2f}M."), e)
+    if non_binding:
+        w.flag("X-101", "treatment", Severity.BLOCK,
+               f"A buyer has put ${deal:.0f}M in writing, but the row says the offer is non-binding: no signed agreement, no "
+               f"closing conditions to satisfy, nothing HC can enforce. Policy holds the mark at ${hold:.2f}M and discloses the "
+               f"offer; weighting it like a signed deal would give ${weighted:.2f}M, full value ${full:.2f}M.",
+               points=(f"**Non-binding** offer at **${deal:.0f}M** — a letter of intent, not a signed agreement.",
+                       f"Mark **held at ${hold:.2f}M**; the offer is disclosed, not booked.",
+                       f"If it were a signed deal: **${weighted:.2f}M** weighted, **${full:.2f}M** at full value."),
+               suggestions=(
+                   Suggest("as_proposed", f"Hold the prior mark, ${hold:.2f}M; the offer is not a contract.", ("Nothing is signed; execution risk is the whole question.", "Policy default for a non-binding offer."), "proposed"),
+                   Suggest("weighted", f"Weight it like a signed deal, ${weighted:.2f}M.", ("Right if the parties are effectively committed and diligence is a formality.", "The policy's close probability, applied to an unsigned offer."), "value", value=weighted),
+                   Suggest("full_value", f"Book the full offer, ${full:.2f}M.", ("Right only if the offer is as good as closed.", "Aggressive for a letter of intent."), "value", value=full),
+               ),
+               action="Confirm the offer is non-binding and hold the mark, or treat it as a signed deal.",
+               deal_value=deal, close_probability=p, treatment=treatment, non_binding=True)
+    else:
+        w.flag("X-101", "treatment", Severity.BLOCK,
+               f"A buyer has signed for ${deal:.0f}M but the deal has not closed and still needs approval. Booking the full deal value "
+               "ignores that contingency; holding the old mark ignores a signed agreement. Policy weights the two outcomes at "
+               f"{p:.2f} — the deal price if it closes, the standalone mark if it breaks — giving ${weighted:.2f}M against "
+               f"${full:.2f}M at full value and ${hold:.2f}M if held.",
+               points=(f"Buyer signed for **${deal:.0f}M**, but the deal has **not closed** and still needs approval.",
+                       f"Policy weights **{p:.2f} × deal price + {1 - p:.2f} × standalone** → **${weighted:.2f}M**.",
+                       f"Alternatives: **${full:.2f}M** at full value, **${hold:.2f}M** held at prior."),
+               suggestions=(
+                   Suggest("as_proposed", f"Ratify the {p:.2f}-weighted mark of ${weighted:.2f}M.", ("Reflects a signed agreement with a real chance of not closing.", "Policy default for an announced, unclosed deal."), "proposed"),
+                   Suggest("full_value", f"Book the full deal value, ${full:.2f}M.", ("The buyer has signed; only approval remains.", "Right if the closing conditions are formalities."), "value", value=full),
+                   Suggest("hold_prior", f"Hold the prior mark, ${hold:.2f}M, until the deal closes.", ("Nothing is realised until closing; a signed deal can still break.", "Right if approval is uncertain or the buyer is stretched."), "value", value=hold),
+               ),
+               action=f"Ratify the {p:.2f} close probability, or choose full deal value or hold at prior.",
+               deal_value=deal, close_probability=p, treatment=treatment)
     w.alternative_marks.update({"at_full_deal_value": full, "hold_prior": hold, "probability_weighted": weighted})
     w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.PENDING_ACQUISITION, opened=e.date,
                                  opened_quarter=w.quarter_label, amount_musd=deal, detail=e.notes or e.detail))
