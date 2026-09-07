@@ -209,9 +209,8 @@ export default function App() {
               : "Nothing has been uploaded yet."}
           </p>
           <p className="text-[13px] text-ink2 mb-6 leading-relaxed">
-            Upload the quarter's portfolio workbook — a <span className="mono">Portfolio</span> tab with the book at the prior close and a{" "}
-            <span className="mono">Qn YYYY Activity</span> tab with every event in the quarter. The engine rolls every position forward, proposes a
-            mark, and puts in front of you everything a person must decide before the quarter can be published.
+            Upload the quarter's workbook. The engine proposes a mark for every position and puts in front of you everything a person
+            must decide before the quarter can be published.
           </p>
           <UploadButton onLoaded={reload} primary />
         </main>

@@ -12,7 +12,7 @@ export function UploadButton({ onLoaded, primary = false }: { onLoaded: () => vo
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button className={`btn ${primary ? "btn-primary" : ""}`} onClick={() => setOpen(true)} title="Upload a portfolio workbook (.xlsx) and run it">
+      <button className={`btn ${primary ? "btn-primary px-5 py-2 text-[14px]" : "px-3 py-1.5 text-[13px]"}`} onClick={() => setOpen(true)} title="Upload a portfolio workbook (.xlsx) and run it">
         Upload workbook
       </button>
       {open && <UploadDialog onClose={() => setOpen(false)} onLoaded={onLoaded} />}
@@ -70,23 +70,20 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
     <Modal title="Upload a portfolio workbook" onClose={busy ? () => undefined : onClose}>
       {!job && (
         <>
-          <p className="text-[12px] text-ink2 mb-3">
-            An .xlsx in the portfolio schema: a <span className="mono">Portfolio</span> tab (the book at the prior close) and a{" "}
-            <span className="mono">Qn YYYY Activity</span> tab (every event in the quarter). The quarter is read from the activity tab's name; its policy
-            file is created from the base policy if none exists. Nothing is booked — the result is a new run to review.
+          <p className="text-[13px] text-ink2 mb-4">
+            The quarter's workbook (.xlsx) with its Portfolio and Activity tabs. Nothing is booked; the result is a new run to review.
           </p>
-          <input
-            type="file"
-            accept=".xlsx"
-            className="block text-[12px] mb-3"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
+          <label className="block mb-4">
+            <span className="btn btn-primary inline-block px-5 py-2 text-[13px] cursor-pointer">Choose workbook</span>
+            <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <span className="ml-3 text-[12px] text-ink2">{file ? file.name : "No file chosen"}</span>
+          </label>
           {err && <div className="text-[12px] down mb-2">{err}</div>}
           <div className="flex justify-end gap-2">
             <button className="btn" onClick={onClose}>
               Cancel
             </button>
-            <button className="btn btn-primary" disabled={!file || busy} onClick={start}>
+            <button className="btn btn-primary px-5 py-2 text-[13px]" disabled={!file || busy} onClick={start}>
               Upload and run
             </button>
           </div>
