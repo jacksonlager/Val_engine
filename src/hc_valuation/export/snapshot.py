@@ -134,6 +134,22 @@ def _style_header(ws, ncols: int, freeze: str) -> None:
     ws.freeze_panes = freeze
 
 
+def _entered_from_activity(c: CompanyResult, run: ValuationRun) -> Position:
+    """A position the quarter created from a `New Investment` row (M-014 on a company the Portfolio
+    tab did not have, X-918). The source workbook has no row to carry metrics from, so the emitted
+    row is built from the run's own figures — fund, sector and stage as the row named them, the
+    entry date as first investment and latest round, the entry price as the last post-money — and
+    the operating metrics are left blank: they are not on file, and a blank is honest where a guess
+    is not. Found by the synthetic Q4 2026 chain, where one such company stopped `build` outright."""
+    entry = next((s.evidence.date for s in c.steps if s.rule_id == "M-014" and s.evidence), None) or c.staleness_anchor
+    return Position(
+        company=c.company, sector=c.sector, fund=c.fund, stage=c.stage, status=c.status_after,
+        first_investment=entry, latest_round=entry, latest_post_money=c.latest_post_money,
+        invested=c.invested_after, ownership=c.ownership_after, prior_mark=c.booked_mark, realized=c.realized_cumulative,
+        row_index=0, extra={"entered_from_activity": run.manifest.quarter_label},
+    )
+
+
 def _write_portfolio(wb: Workbook, run: ValuationRun, sources: dict[str, Position], tol: float) -> list[tuple[str, str]]:
     ws = wb.active
     ws.title = "Portfolio"
@@ -143,7 +159,10 @@ def _write_portfolio(wb: Workbook, run: ValuationRun, sources: dict[str, Positio
     for i, c in enumerate(run.companies, start=2):
         src = sources.get(c.company)
         if src is None:
-            raise ValueError(f"{c.company} is in the run but not in the source workbook; cannot carry its metrics")
+            src = _entered_from_activity(c, run)
+            notes.append((c.company, f"Entered the book in {run.manifest.quarter_label} from a New Investment row (M-014, X-918): "
+                                     f"fund, sector and stage are as that row named them, and the operating metrics (ARR, growth, "
+                                     "margin, burn, cash, headcount) are blank because nothing is on file. Fill them before the next run."))
         row, note = _portfolio_row(c, src, i, tol)
         ws.append(row)
         if note:
@@ -220,11 +239,26 @@ def _write_notes(wb: Workbook, notes: list[tuple[str, str]]) -> None:
     _style_header(ws, 2, "A2")
 
 
+def note_legs(run: ValuationRun) -> list[dict[str, Any]]:
+    """Positions whose booked mark carries a convertible-note leg at cost (M-060). The Portfolio
+    tab has one `Prior Mark` column, so next quarter the leg would otherwise be read as equity —
+    and a note repaid in that quarter would then be counted twice: the cash as realized and the
+    principal still inside the mark (found by the synthetic Q1 2027 chain, HARDENING_REPORT.md
+    D-5). The sidecar carries the leg as a number the next run seeds `note_at_cost` from."""
+    out = []
+    for c in run.companies:
+        if c.status_after == Status.ACTIVE and c.note_at_cost > 0:
+            out.append({"company": c.company, "amount_musd": round(c.note_at_cost, 6),
+                        "reason": f"note leg ${c.note_at_cost:.2f}M carried at cost inside the ${c.booked_mark:.2f}M prior mark (M-060)"})
+    return out
+
+
 def write_open_items_sidecar(run: ValuationRun, path: str | Path, mark_basis: list[tuple[str, str]] | None = None,
                              staleness_anchors: list[dict[str, str]] | None = None) -> Path:
     """`open_items_carry.yaml`: what the pipeline loads next quarter — `open_items` as
-    `prior_open_items`, `mark_basis` as the explained departures X-904 accepts, and
-    `staleness_anchors` for clocks that outlive the `Latest Round` column."""
+    `prior_open_items`, `mark_basis` as the explained departures X-904 accepts,
+    `staleness_anchors` for clocks that outlive the `Latest Round` column, and `note_legs` for
+    the part of a prior mark that is a note at cost rather than equity."""
     p = Path(path)
     payload = {
         "source_run_id": run.manifest.run_id,
@@ -232,6 +266,7 @@ def write_open_items_sidecar(run: ValuationRun, path: str | Path, mark_basis: li
         "open_items": [o.model_dump(mode="json") for o in run.open_items],
         "mark_basis": [{"company": c, "reason": r} for c, r in (mark_basis or [])],
         "staleness_anchors": list(staleness_anchors or []),
+        "note_legs": note_legs(run),
     }
     p.write_text(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True))
     return p

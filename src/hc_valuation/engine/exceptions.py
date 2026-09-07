@@ -199,20 +199,7 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
 _DEFAULT_EXEMPT = {EventType.IPO.value: ("lock-up",), EventType.DIRECT_LISTING.value: ("lock-up",)}
 
 
-_NEGATIONS = ("no ", "not in ", "without ", "no longer in ")
-
-
-def _term_in(term: str, text: str) -> bool:
-    """Whole-word match: `warrant` does not fire on `warranty`, `cram` not on `scramble`; and a
-    term the note negates — "no default", "without escrow" — does not fire either. A hyphenated
-    term matches with a hyphen, a space or nothing between its parts (`earn-out`, `earn out`)."""
-    pattern = r"(?<![\w-])" + r"[\s-]?".join(re.escape(part) for part in re.split(r"[\s-]+", term)) + r"(?![\w-])"
-    for m in re.finditer(pattern, text):
-        before = text[max(0, m.start() - 16):m.start()]
-        if any(before.endswith(n) for n in _NEGATIONS):
-            continue
-        return True
-    return False
+from .textscreen import NEGATIONS as _NEGATIONS, term_in as _term_in  # noqa: E402,F401 — one reader of free text, shared with marking.py
 
 
 def _exempted(term: str, exempt: set[str]) -> bool:

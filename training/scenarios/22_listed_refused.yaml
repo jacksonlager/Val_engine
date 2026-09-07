@@ -3,12 +3,13 @@ description: >
   Positions the book already carries as Public (Stage = Public; the stub seeds their quote to the
   market cap the book carries, so ownership × cap is checkable). Vexmoor: a priced round with no
   post-money (X-902) is refused, so the carry side must still apply M-041 at the quote —
-  0.057 × 398.1 = 22.6917, Level 1 — and the position is BLOCK on X-900 alone (no X-113, no
-  staleness flag). Thornmill Systems: a secondary with negative proceeds (X-903) is refused AND the
+  0.057 × 398.1 = 22.6917, Level 1 — and the position is BLOCK on X-900 and on X-113 (the stub
+  quote is a stand-in, so the close is missing; no staleness flag). Thornmill Systems: a secondary with negative proceeds (X-903) is refused AND the
   quote has been removed — chain M-000 (refused) then M-000 (no quote), prior mark 28.2 carried,
   both X-900 and X-113. Vinecroft: a clean Distribution of 0.5 is applied — but a listed position
   is worth its close whatever else happened in the quarter, so M-041 must still re-mark it to
-  0.016 × 1390.7 = 22.2512 (not the 22.3 prior mark), realized 0.5, Level 1, MONITOR.
+  0.016 × 1390.7 = 22.2512 (not the 22.3 prior mark), realized 0.5, Level 1 — and BLOCK on X-113
+  because the seeded quote is not a measurement-date close (HARDENING_REPORT.md D-3).
 base: HC_Mock_Portfolio_Data.xlsx
 policy: 2026Q3
 portfolio_mutations:
@@ -36,8 +37,8 @@ expect:
   totals: { events: 3, positions: 100 }
   companies:
     Vexmoor:            { disposition: BLOCK, rules: [M-000, M-041], proposed: 22.6917, fv_level: 1, listed: true, stage: Public, ownership_after: 0.057, latest_post_money: 398.1,
-                          flags_must: [X-900], flags_must_not: [X-113, X-201, X-202, M-999, X-102] }
+                          flags_must: [X-900, X-113], flags_must_not: [X-201, X-202, M-999, X-102] }
     Thornmill Systems:  { disposition: BLOCK, rules: [M-000, M-000], proposed: 28.2, fv_level: 1, listed: true, realized_quarter: 0.0, ownership_after: 0.013,
                           flags_must: [X-900, X-113], flags_must_not: [X-104, X-101, X-201] }
-    Vinecroft:          { disposition: MONITOR, rules: [M-022, M-041], proposed: 22.2512, fv_level: 1, listed: true, realized_quarter: 0.5, ownership_after: 0.016,
-                          flags_must: [X-111], flags_must_not: [X-900, X-113, X-201, X-202] }
+    Vinecroft:          { disposition: BLOCK, rules: [M-022, M-041], proposed: 22.2512, fv_level: 1, listed: true, realized_quarter: 0.5, ownership_after: 0.016,
+                          flags_must: [X-111, X-113], flags_must_not: [X-900, X-201, X-202] }

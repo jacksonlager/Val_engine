@@ -110,6 +110,23 @@ def load_staleness_anchors(path: Path) -> dict[str, date]:
     return out
 
 
+def load_note_legs(path: Path) -> dict[str, float]:
+    """company -> the part of its prior mark that is a convertible-note leg at cost (M-060),
+    written by the prior quarter's build so the leg is not read as equity (see snapshot.note_legs)."""
+    if not path.exists():
+        return {}
+    raw = yaml.safe_load(path.read_text()) or {}
+    out: dict[str, float] = {}
+    for m in raw.get("note_legs", []) or []:
+        try:
+            amount = float(m["amount_musd"])
+        except (KeyError, ValueError, TypeError):
+            continue
+        if amount > 0:
+            out[str(m["company"])] = amount
+    return out
+
+
 def load_mark_basis(path: Path) -> dict[str, str]:
     """company -> reason, for prior marks that deliberately depart from last-round pricing."""
     if not path.exists():
@@ -150,6 +167,7 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
         snapshot, feed, market, ledger, cfg,
         validation=tuple(issues), prior_open_items=prior_items,
         prior_staleness_anchors=load_staleness_anchors(paths.open_items_carry),
+        prior_note_legs=load_note_legs(paths.open_items_carry),
         input_sha256=file_sha256(paths.workbook), input_file=paths.workbook.name,
         generated_at=generated_at or datetime.now(timezone.utc).replace(microsecond=0),
         market_data_source=source,

@@ -3,7 +3,10 @@ description: >
   The emitted Q4 book (base: snapshot:2026Q3) run under a 2026Q4 policy. Drayvenn listed in Q3
   and has no Q4 event: a public position is worth its measurement-date close, not last quarter's
   number, so the carry side must apply M-041 with the stub quote (seeded to the market cap the
-  book carries, $3,931M → 2.8% × 3,931 = 110.068), Level 1, no staleness flag. The two prior
+  book carries, $3,931M → 2.8% × 3,931 = 110.068), Level 1, no staleness flag — and, because that
+  quote is a stand-in no feed observed, X-113 BLOCK says the 31 Dec close is missing (the finding a
+  reviewer's closing-price decision names; before HARDENING_REPORT.md D-3 the position was Blocked
+  with no flag at all and could not be cleared from the dashboard). The two prior
   marks that deliberately depart from ownership × last round (Duskfern's note leg, Gryphonel's
   probability-weighted deal) are explained by the sidecar and must not block.
 base: snapshot:2026Q3
@@ -22,6 +25,6 @@ expect:
   manifest: { quarter_label: "Q4 2026" }
   totals: { events: 1, positions: 100 }
   companies:
-    Drayvenn:   { disposition_in: [CLEAR, MONITOR], rules: [M-041], proposed: 110.068, fv_level: 1, listed: true, stage: Public, ownership_after: 0.028, flags_must_not: [X-113, X-201, X-202, M-999], open_items_must: [{ kind: ipo_lockup, age_quarters: 1 }] }
+    Drayvenn:   { disposition: BLOCK, rules: [M-041], proposed: 110.068, fv_level: 1, listed: true, stage: Public, ownership_after: 0.028, flags_must: [X-113], flags_must_not: [X-201, X-202, M-999], open_items_must: [{ kind: ipo_lockup, age_quarters: 1 }] }
     Solvantra:  { disposition: CLEAR, rules: [M-010], proposed: 11.0 }
     Cindral:    { rules: [M-000], proposed: 0.0, status: Acquired }

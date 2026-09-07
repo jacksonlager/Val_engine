@@ -62,6 +62,7 @@ class Working:
     latest_round: date = date.min
     staleness_anchor: date = date.min
     carried_anchor: date | None = None   # a staleness anchor restored from the prior quarter's sidecar
+    carried_note_leg: float | None = None   # the note-at-cost leg the sidecar restored from last quarter's mark
     status: Status = Status.ACTIVE
     listed: bool = False
     fv_level: int | None = 3

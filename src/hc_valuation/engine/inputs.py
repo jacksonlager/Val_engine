@@ -103,7 +103,9 @@ class Position(BaseModel):
         """Cash / burn, recomputed. None when burn is zero/absent (breakeven or inactive)."""
         if self.net_burn is None or self.net_burn <= 0 or self.cash is None:
             return None
-        return self.cash / self.net_burn
+        # $1.4M over $0.2M a month is seven months, not 6.999999999999999: the screens compare this
+        # against whole-month thresholds, and a company exactly at the line must not fall under it.
+        return round(self.cash / self.net_burn, 6)
 
     @property
     def moic(self) -> float | None:

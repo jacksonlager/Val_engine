@@ -3920,7 +3920,7 @@
       "relative_change": -0.2125
      },
      "family": "treatment",
-     "message": "HC did not follow its pro rata, so ownership fell 8.0% \u2192 6.3% (-21.3%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
+     "message": "HC did not follow its pro rata, so ownership fell 8.0% \u2192 6.3% (-21.2%). The mark itself comes from the new round and is unaffected \u2014 this is a reserves question, not a valuation one.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-103",
@@ -8969,7 +8969,7 @@
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "recommendation": null,
-   "runway_months_aged": 30.87,
+   "runway_months_aged": 30.88,
    "sector": "Developer Tools",
    "stage": "Seed",
    "staleness_anchor": "2025-11-21",

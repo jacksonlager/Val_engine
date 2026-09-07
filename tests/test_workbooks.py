@@ -41,7 +41,13 @@ def _synthetic_copy(root: Path, rel: str, *, activity: str = "Q4 2026 Activity",
 
 @pytest.fixture()
 def root(tmp_path: Path) -> Path:
+    """A scratch root with the base policy only: the repo may carry later quarters' policy files
+    (the synthetic chain writes rules/2026Q4.yaml and on), and these tests build that state
+    themselves with write_next_policy where they need it."""
     shutil.copytree(ROOT / "rules", tmp_path / "rules")
+    for p in (tmp_path / "rules").glob("*.yaml"):
+        if p.name not in ("2026Q3.yaml", "comps_baskets.yaml", "rationale.yaml"):
+            p.unlink()
     (tmp_path / "data").mkdir()
     shutil.copy(REAL, tmp_path / "data" / REAL.name)
     shutil.copytree(ROOT / "data" / "mock_responses", tmp_path / "data" / "mock_responses")

@@ -231,11 +231,6 @@ def _positions_to_roll(portfolio: PortfolioSnapshot, activity: ActivityFeed) -> 
     return positions
 
 
-# `ipo_print`: M-040 with no measurement-date quote uses the listing-day cap itself — the same
-# stand-in whether or not a stub feed labelled it. `stub:` / `seeded`: a fixture quote.
-_STANDIN_PRICE = ("stub:", "seeded", "ipo_print")
-
-
 def _provisional(w, measurement_date) -> tuple[str | None, str | None]:
     """A mark is provisional when a rule had to stand something in for an input that is not on
     file. Today that is one case — a listed holding with no measurement-date quote, where the
@@ -243,7 +238,9 @@ def _provisional(w, measurement_date) -> tuple[str | None, str | None]:
     rule's, because it is the first thing the card has to say."""
     for step in w.steps:
         src = str(step.inputs.get("price_source") or "")
-        if src.startswith(_STANDIN_PRICE) or "seeded" in src:
+        # `ipo_print`: M-040 with no measurement-date quote uses the listing-day cap itself; `stub:` /
+        # `seeded`: a fixture quote. One definition, shared with M-041 (marking.is_standin_price).
+        if marking.is_standin_price(src):
             cap = step.inputs.get("measurement_date_market_cap")
             rule = next((f.rule_id for f in w.flags if f.family == "treatment"), step.rule_id)
             return rule, (f"Missing the {measurement_date.strftime('%d %b %Y')} closing price. The mark "
@@ -263,6 +260,7 @@ def run_valuation(
     validation: tuple[ValidationIssue, ...] = (),
     prior_open_items: tuple[OpenItem, ...] = (),
     prior_staleness_anchors: Mapping[str, date] | None = None,
+    prior_note_legs: Mapping[str, float] | None = None,
     input_sha256: str = "",
     input_file: str = "",
     generated_at: datetime | None = None,
@@ -287,6 +285,16 @@ def run_valuation(
         if carried is not None and carried < w.staleness_anchor:
             w.staleness_anchor = carried
             w.carried_anchor = carried
+        # A note HC funded last quarter sits inside `Prior Mark` at cost (M-060 keeps it on its own
+        # leg, the Portfolio tab has one column). The sidecar says how much; the leg is restored so
+        # the mark still splits into equity and note, and a repayment this quarter clears the leg
+        # rather than counting the principal twice. Bounded by the prior mark: a leg the book
+        # cannot hold is ignored and the X-904 reconciliation says the prior mark is unexplained.
+        leg = float((prior_note_legs or {}).get(p.company) or 0.0)
+        if p.status == Status.ACTIVE and 0 < leg <= p.prior_mark:
+            w.note_at_cost = round(leg, 6)
+            w.equity_mark = round(p.prior_mark - leg, 6)
+            w.carried_note_leg = leg
         listed = is_listed(p) and p.status == Status.ACTIVE
         if listed:
             w.listed, w.fv_level = True, 1
@@ -425,7 +433,8 @@ def run_valuation(
     # committee override after a publish therefore changes the run_id, so the review tool's
     # "changes since" indicator can tell that executives are looking at an older book.
     decisions = hashlib.sha256((overrides.model_dump_json() + "|" + json.dumps(
-        [o.model_dump(mode="json") for o in prior_open_items] + [{k: v.isoformat() for k, v in sorted((prior_staleness_anchors or {}).items())}],
+        [o.model_dump(mode="json") for o in prior_open_items] + [{k: v.isoformat() for k, v in sorted((prior_staleness_anchors or {}).items())}]
+        + ([{k: float(v) for k, v in sorted(prior_note_legs.items())}] if prior_note_legs else []),   # absent -> the id a run without legs always had
         sort_keys=True)).encode()).hexdigest()[:12]
     # The policy is hashed by content, not by its version string: an edited threshold under an
     # unbumped policy_version still yields a different run. The market-data source is part of the

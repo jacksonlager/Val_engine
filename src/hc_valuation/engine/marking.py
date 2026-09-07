@@ -17,6 +17,7 @@ from .inputs import Event, EventType, Position, Status
 from .models import MarketData, OpenItem, OpenItemKind, Severity
 from .registry import rule
 from .state import Suggest, Working
+from .textscreen import any_term_in
 
 EFFECTIVE = date(2026, 7, 1)   # policy 2026Q3 in force from the start of the quarter
 V = "2026Q3.1"
@@ -34,6 +35,24 @@ def months_between(a: date, b: date) -> float:
     2026-09-30 — older than 48 — where calendar-month arithmetic would have said 48 and let it
     slip under a ">48 months" threshold. 30.4375 days per month (365.25 / 12)."""
     return round((b - a).days / 30.4375, 1)
+
+
+# Every threshold in the policy is a ratio ("beyond 5%", "at or below 80%", "−20% relative",
+# "≥ 2×"), and a ratio of two workbook figures is a binary float: 1929.795 / 1837.9 − 1 is
+# 0.05000000000000004, so a print stated at exactly the tolerance would fire a "beyond 5%" screen.
+# The workbook's own precision is 0.1 $M on a post-money and three decimals on ownership; six
+# places is far below either, and the flag already records the ratio to four.
+RATIO_PLACES = 6
+
+
+def ratio(numerator: float, denominator: float) -> float:
+    """`numerator / denominator` at the precision a policy comparison can honestly claim."""
+    return round(numerator / denominator, RATIO_PLACES)
+
+
+def ratio_change(numerator: float, denominator: float) -> float:
+    """`numerator / denominator − 1`, rounded the same way."""
+    return round(numerator / denominator - 1, RATIO_PLACES)
 
 
 _CAP_PATTERNS = (
@@ -95,7 +114,7 @@ def _related_party_flags(w: Working, e: Event, rid: str, cfg: RuleConfig, post: 
                action="Confirm an independent investor set or validated this price.",
                rule=rid, hc_led=True, insider_led=insider)
     elif insider:
-        step = (post / prior_post) if (post and prior_post) else None
+        step = ratio(post, prior_post) if (post and prior_post) else None
         limit = cfg.exceptions.indications.insider_round_review_step_up
         if step is not None and step >= limit:
             w.flag("X-118", "related_party", Severity.REVIEW,
@@ -133,7 +152,7 @@ def _primary_price_checks(w: Working, e: Event, cfg: RuleConfig, *, post: float,
     MONITOR — a fact worth seeing, not a judgment."""
     ind = cfg.exceptions.indications
     if implied is not None and delta_own >= ind.cheque_check_min_ownership_delta and post:
-        gap = implied / post - 1
+        gap = ratio_change(implied, post)
         if abs(gap) > ind.cheque_price_tolerance:
             w.flag("X-119", "treatment", Severity.REVIEW,
                    f"HC's own cheque says a different price: ${float(e.hc_investment):.2f}M bought {delta_own:.1%}, which is "
@@ -149,10 +168,10 @@ def _primary_price_checks(w: Working, e: Event, cfg: RuleConfig, *, post: float,
                    action=f"Reconcile the round price: HC's cheque implies ${implied:.1f}M post against ${post:.1f}M stated.",
                    implied_post_from_hc_cheque=round(implied, 6), stated_post_money=post, gap_pct=round(gap, 4),
                    ownership_delta=round(delta_own, 6))
-    if prior_post and post / prior_post >= ind.step_up_review_at:
-        step = post / prior_post
+    if prior_post and ratio(post, prior_post) >= ind.step_up_review_at:
+        step = ratio(post, prior_post)
         text = _text(e)
-        outside = any(t in text for t in _NEW_LEAD_TERMS)
+        outside = any_term_in(_NEW_LEAD_TERMS, text)     # "no new investor" names nobody
         if outside:
             w.flag("X-122", "treatment", Severity.MONITOR,
                    f"A {step:.1f}× step-up (${prior_post:.1f}M → ${post:.1f}M) set by an outside investor the row names. "
@@ -186,7 +205,7 @@ def _dilution_check(w: Working, e: Event, cfg: RuleConfig, before: float, after:
     signal, not a valuation one; the mark comes from a fresh arm's-length round."""
     if before <= 0 or after is None:
         return
-    rel = after / before - 1
+    rel = ratio_change(after, before)
     funded = bool(e.hc_investment)
     # X-123 — the stake rose with no cheque. Anti-dilution, a ratchet or a warrant can do that;
     # so can a mis-typed cell, and the row cannot say which. The mark moves with the stated
@@ -221,9 +240,14 @@ def carry_forward(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> 
 
 
 def apply_carry(w: Working, reason: str = "No activity in the quarter") -> None:
-    w.step("M-000", V, {"prior_mark": w.pos.prior_mark, "ownership": w.ownership, "latest_post_money": w.latest_post},
-           w.equity_mark, w.equity_mark,
-           f"{reason}; the most recent priced round remains the best evidence of value.")
+    # The mark carried is equity plus any note leg restored from last quarter's sidecar; the step
+    # records both parts so the chain shows the split rather than a single number.
+    inputs = {"prior_mark": w.pos.prior_mark, "ownership": w.ownership, "latest_post_money": w.latest_post}
+    if w.note_at_cost:
+        inputs.update(equity_mark=round(w.equity_mark, 6), note_at_cost=round(w.note_at_cost, 6))
+    w.step("M-000", V, inputs, w.proposed_mark, w.proposed_mark,
+           f"{reason}; the most recent priced round remains the best evidence of value."
+           + (f" ${w.note_at_cost:.2f}M of the mark is a note carried at cost (M-060), restored from the prior quarter." if w.note_at_cost else ""))
 
 
 # --------------------------------------------------------------------------- M-010 / 011 / 012
@@ -500,7 +524,7 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
     at_last_round = after * w.latest_post
     at_secondary = after * implied_post if implied_post else None
     new_equity = at_secondary if (basis == "secondary_price" and at_secondary is not None) else at_last_round
-    spread = (implied_post / w.latest_post - 1) if (implied_post and w.latest_post) else None
+    spread = ratio_change(implied_post, w.latest_post) if (implied_post and w.latest_post) else None
 
     if implied_post is None:
         # Nothing sold (ownership unchanged) or a proceeds-only row: the arithmetic has no meaning.
@@ -739,30 +763,30 @@ def term_sheet(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
            w.proposed_mark, w.proposed_mark,
            f"Term sheet signed ({e.detail}); not closed. No enforceable transaction — mark unchanged"
            + (f"; indicated value ${indicated:.2f}M disclosed, not booked." if indicated else "."), e)
-    ratio = (float(e.value) / w.latest_post) if (e.value and w.latest_post) else None
+    ratio_ = ratio(float(e.value), w.latest_post) if (e.value and w.latest_post) else None
     limit = cfg.exceptions.indications.term_sheet_review_below
     if indicated is not None:
         w.alternative_marks["term_sheet_indicated"] = indicated
-    if ratio is not None and ratio <= limit:
+    if ratio_ is not None and ratio_ <= limit:
         w.flag("X-109", "treatment", Severity.REVIEW,
-               f"A signed term sheet indicates ~${float(e.value):.1f}M, {ratio - 1:+.0%} against the ${w.latest_post:.1f}M the mark "
+               f"A signed term sheet indicates ~${float(e.value):.1f}M, {ratio_ - 1:+.0%} against the ${w.latest_post:.1f}M the mark "
                "rests on. It is non-binding, so nothing is booked from it — but a buyer putting a lower price in writing is "
                "evidence a market participant would not pay the carried price today, and a reviewer could book less.",
-               points=(f"Term sheet at **${float(e.value):.1f}M**, **{ratio - 1:+.0%}** against the ${w.latest_post:.1f}M round price.",
+               points=(f"Term sheet at **${float(e.value):.1f}M**, **{ratio_ - 1:+.0%}** against the ${w.latest_post:.1f}M round price.",
                        "Non-binding — but a **lower price in writing** is evidence the mark is high.",
                        f"On the indicated price the position would be **${indicated:.2f}M**."),
                suggestions=(
                    Suggest("as_proposed", "Keep the mark at the last round; the term sheet is not a transaction.", ("Nothing has closed and diligence is open.", "Policy default — the indicated value is disclosed as an alternative."), "proposed"),
-                   Suggest("at_indication", f"Mark down to the indicated price ({ratio - 1:+.0%}).", ("The most recent price a market participant put in writing.", "Right if the term sheet is likely to close near its terms."), "alternative", value="term_sheet_indicated"),
+                   Suggest("at_indication", f"Mark down to the indicated price ({ratio_ - 1:+.0%}).", ("The most recent price a market participant put in writing.", "Right if the term sheet is likely to close near its terms."), "alternative", value="term_sheet_indicated"),
                ),
                action="Decide whether a term sheet below the carried price is evidence to mark down on.",
-               indicated_post_money=e.value, indicated_mark=indicated, ratio_to_last_round=round(ratio, 4), threshold=limit)
+               indicated_post_money=e.value, indicated_mark=indicated, ratio_to_last_round=round(ratio_, 4), threshold=limit)
     else:
         w.flag("X-109", "treatment", Severity.MONITOR,
                f"A term sheet indicates ~${float(e.value or 0):.1f}M against the ${w.latest_post:.1f}M the mark rests on. It is "
                "non-binding and diligence is open, so nothing is booked from it — this is disclosure only.",
                indicated_post_money=e.value, indicated_mark=indicated,
-               ratio_to_last_round=(round(ratio, 4) if ratio is not None else None))
+               ratio_to_last_round=(round(ratio_, 4) if ratio_ is not None else None))
     w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.TERM_SHEET, opened=e.date,
                                  opened_quarter=w.quarter_label, amount_musd=e.value, detail=e.notes or e.detail))
 
@@ -945,7 +969,7 @@ def secondary_purchase(w: Working, e: Event, cfg: RuleConfig, market: MarketData
     implied_post = inv / bought if (bought > 1e-12 and inv) else None
     at_last_round = after * w.latest_post
     at_implied = after * implied_post if implied_post else None
-    spread = (implied_post / w.latest_post - 1) if (implied_post and w.latest_post) else None
+    spread = ratio_change(implied_post, w.latest_post) if (implied_post and w.latest_post) else None
 
     if bought <= 1e-12:
         w.step("M-031", V, {"ownership_before": before, "ownership_after": after, "hc_investment": inv,
@@ -1011,9 +1035,23 @@ def _m041_doc(w, e, cfg, market):  # pragma: no cover - carry-side step applied 
     raise NotImplementedError
 
 
+# A quote the feed could not observe: the fixture's seed (`stub:`), a listing-day print standing in
+# for the close (`ipo_print`), anything labelled seeded. The mark that rests on one is provisional
+# (run.py), and a listed carry on one raises X-113 so the missing close is a finding a decision can
+# name — found by the synthetic Q4 2026 chain, where the quarter after an IPO blocked with no flag.
+STANDIN_PRICE_SOURCES = ("stub:", "seeded", "ipo_print")
+
+
+def is_standin_price(source: object) -> bool:
+    src = str(source or "")
+    return src.startswith(STANDIN_PRICE_SOURCES) or "seeded" in src
+
+
 def listed_carry(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     """A listed position has a daily price; carrying last quarter's number forward is a stale mark,
-    not a carry. With a quote: ownership × market cap, Level 1. Without: M-000 and X-113 BLOCK."""
+    not a carry. With a quote: ownership × market cap, Level 1. Without: M-000 and X-113 BLOCK.
+    With a stand-in quote (no feed can price a fictional ticker; the fixture seeds the prior close):
+    the stand-in is used so the chain shows the arithmetic, and X-113 BLOCK says the close is missing."""
     md = cfg.quarter.measurement_date
     quote = market.quotes.get(w.pos.company)
     w.listed = True
@@ -1048,6 +1086,19 @@ def listed_carry(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     w.latest_post = cap
     w.staleness_anchor = md
     w.fv_level = 1
+    if is_standin_price(quote.source):
+        w.flag("X-113", "treatment", Severity.BLOCK,
+               f"{w.pos.company} is listed, and the market data has no {md.isoformat()} close for it: the ${cap:,.0f}M market "
+               f"cap behind the mark is a stand-in ({quote.source}), not a price. A Level 1 security is worth its close, so "
+               "the position cannot be booked until the quarter-end market capitalisation is supplied.",
+               points=(f"Listed, but the market data has **no close at {md.isoformat()}**.",
+                       f"The **${cap:,.0f}M market cap** in the mark is a **stand-in** ({quote.source}), not a price.",
+                       "A **Level 1** security is worth its close; supply it to book the position."),
+               suggestions=(
+                   Suggest("hold_prior", "Hold last quarter's mark until the close is supplied.", ("The only stopgap without a quote; a stale Level 1 mark is still wrong.", "Rerun once the market cap is in the feed."), "prior"),
+               ),
+               action=f"Supply the {md.strftime('%d %b %Y')} closing market capitalisation.",
+               measurement_date=md, price_source=quote.source, stand_in_market_cap=cap, prior_mark=round(w.pos.prior_mark, 6))
 
 
 # --------------------------------------------------------------------------- M-051

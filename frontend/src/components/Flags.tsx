@@ -91,13 +91,19 @@ export function actionableFlags(c: CompanyResult): Flag[] {
 const MISSING_INPUT_RULES = new Set(["X-900", "X-112", "X-113", "X-116", "X-918", "M-999"]);
 export function missingInput(c: CompanyResult, f: Flag): boolean {
   if (MISSING_INPUT_RULES.has(f.rule_id)) return true;
-  return f.rule_id === "X-101" && c.provisional && f.evidence.price_source !== undefined;
+  return isStandInPrice(c, f);
+}
+
+/** The finding that carries the stand-in price: X-101 in the listing quarter (M-040), X-113 in every
+    quarter after it (M-041 on a quote no feed could observe). Both record `price_source`. */
+function isStandInPrice(c: CompanyResult, f: Flag): boolean {
+  return (f.rule_id === "X-101" || f.rule_id === "X-113") && c.provisional && f.evidence.price_source !== undefined;
 }
 
 /** A missing quarter-end quote is the one blocker a reviewer can clear by supplying the
     input, rather than by deciding around it. */
 export function needsClosingPrice(c: CompanyResult, f: Flag): boolean {
-  return c.listed && f.rule_id === "X-101" && f.evidence.price_source !== undefined && c.provisional;
+  return c.listed && isStandInPrice(c, f);
 }
 
 /** The headline: why this position stopped, in one plain line. A missing input outranks
