@@ -57,7 +57,7 @@ export function PublishControls({
 
   useEffect(() => {
     if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 6000);
+    const t = window.setTimeout(() => setToast(null), 12000);
     return () => window.clearTimeout(t);
   }, [toast]);
 
@@ -140,7 +140,9 @@ export function PublishControls({
           onClose={() => setOpen(false)}
           onDone={(rec) => {
             setOpen(false);
-            setToast(`Published ${rec.quarter} as ${publishStatusLabel(rec.status)}, released by ${rec.published_by}.`);
+            const next = rec.next_quarter_input ? ` Next quarter's workbook written: ${rec.next_quarter_input.split("/").pop()} — it is in the Workbook select.` : "";
+            const failed = rec.next_quarter_input_error ? ` The next-quarter workbook could not be written (${rec.next_quarter_input_error}); run hc-valuation build.` : "";
+            setToast(`Published ${rec.quarter} as ${publishStatusLabel(rec.status)}, released by ${rec.published_by}.${next}${failed}`);
             published.refetch();
           }}
         />

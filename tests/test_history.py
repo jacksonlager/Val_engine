@@ -84,7 +84,8 @@ def scratch(tmp_path: Path) -> RunPaths:
     starts from the run alone and each test adds what it needs."""
     root = repo_root()
     data = tmp_path / "data"
-    shutil.copytree(root / "data", data, ignore=shutil.ignore_patterns("sample_run.json", "published", "mark_cache"))
+    shutil.copytree(root / "data", data, ignore=shutil.ignore_patterns("sample_run.json", "published", "mark_cache", "overrides.yaml", "published", "open_items_carry.yaml", "Q? ???? *.xlsx"))
+    (data / "overrides.yaml").write_text("overrides: []\n")
     return RunPaths(
         root=tmp_path, policy=root / "rules" / "2026Q3.yaml", workbook=data / "HC_Mock_Portfolio_Data.xlsx",
         overrides=data / "overrides.yaml", proposals_dir=data / "proposals", precedent=data / "precedent.yaml",

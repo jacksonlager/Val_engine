@@ -50,8 +50,16 @@ class RunPaths:
                 overrides: Path | None = None, ledger_dir: Path | None = None) -> "RunPaths":
         """`ledger_dir` moves every decision record — overrides, proposals, precedent, published
         snapshots — under one folder; `overrides` alone moves just the E-01 file. Neither is set
-        for the real book, which keeps `data/`. The market cache is not a ledger and never moves."""
+        for the real book, which keeps `data/`. The market cache is not a ledger and never moves.
+        `HC_LEDGER_DIR` / `HC_OVERRIDES` in the environment stand in for the arguments when they are
+        not given — the test suite pins an empty ledger that way, so a close recorded in `data/`
+        never changes what the tests see."""
+        import os
         root = root or repo_root()
+        if ledger_dir is None and os.environ.get("HC_LEDGER_DIR"):
+            ledger_dir = Path(os.environ["HC_LEDGER_DIR"])
+        if overrides is None and os.environ.get("HC_OVERRIDES"):
+            overrides = Path(os.environ["HC_OVERRIDES"])
         workbook = workbook or root / "data" / "HC_Mock_Portfolio_Data.xlsx"
         # The prior quarter's sidecar travels with the workbook `build` emitted it beside; a copy
         # in data/ is the fallback so the documented refresh steps keep working either way.
@@ -73,6 +81,54 @@ class RunPaths:
             open_items_carry=carry,
             published_dir=ledger / "published",
         )
+
+
+_QUARTER_RX = __import__("re").compile(r"^\s*Q([1-4])\s+(\d{4})\s*$")
+
+
+def previous_quarter_label(label: str) -> str:
+    m = _QUARTER_RX.match(label)
+    if not m:
+        raise ValueError(f"quarter label {label!r} is not of the form 'Qn YYYY'")
+    q, y = int(m.group(1)), int(m.group(2))
+    return f"Q4 {y - 1}" if q == 1 else f"Q{q - 1} {y}"
+
+
+def sidecar_for(paths: "RunPaths", cfg: RuleConfig) -> Path:
+    """The `open_items_carry.yaml` this run may read: the one the *previous* quarter's close emitted.
+    A sidecar records the quarter it came from; one from any other quarter — this quarter's own,
+    written when it was published and left beside the workbook — is not this run's prior state and
+    is ignored, so a book can be re-run after its own close without ageing its own open items."""
+    path = paths.open_items_carry
+    if not path.exists():
+        return path
+    try:
+        raw = yaml.safe_load(path.read_text()) or {}
+    except yaml.YAMLError:
+        return path
+    source = raw.get("quarter")
+    if source and str(source).strip() != previous_quarter_label(cfg.quarter.label):
+        return path.parent / f"{path.name}.not-for-{cfg.quarter.label.replace(' ', '_')}"   # a path that does not exist
+    return path
+
+
+def next_quarter_input_name(source_workbook: Path, next_label: str) -> str:
+    """`Q4 2026 HC Mock Portfolio Data.xlsx` from `HC_Mock_Portfolio_Data.xlsx`; a stem that already
+    starts with a quarter label is re-labelled, so the chain reads Q4 → Q1 2027 → ..."""
+    stem = _QUARTER_RX.sub("", source_workbook.stem.replace("_", " ")).strip()
+    stem = __import__("re").sub(r"^Q[1-4] \d{4}\s+", "", stem)
+    return f"{next_label} {stem}.xlsx"
+
+
+def emit_next_quarter(result: "PipelineResult") -> Path:
+    """After a FINAL publish: next quarter's input workbook — the booked marks as Prior Mark, ownership,
+    invested and realized post-activity, an empty activity tab for the new quarter — beside the workbook
+    that was just closed, with its `open_items_carry.yaml`. The file appears in the review tool's
+    Workbook select; the reviewer fills the activity tab in Excel and switches to it."""
+    from .export.snapshot import next_quarter_label, write_next_quarter_workbook
+    src = Path(result.paths.workbook)
+    out = src.parent / next_quarter_input_name(src, next_quarter_label(result.config.quarter.label))
+    return write_next_quarter_workbook(result.run, src, out, result.config)
 
 
 def load_overrides(path: Path) -> OverrideLedger:
@@ -161,18 +217,19 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
     paths = paths or RunPaths.default()
     cfg = load_config(paths.policy)
     snapshot, feed = read_workbook(paths.workbook, cfg)
-    issues = validate(snapshot, feed, cfg, explained_departures=load_mark_basis(paths.open_items_carry))
+    sidecar = sidecar_for(paths, cfg)
+    issues = validate(snapshot, feed, cfg, explained_departures=load_mark_basis(sidecar))
     assembled = assemble_market_data(cfg, paths.root, snapshot, feed, provider=provider, refresh=refresh_market)
     market, source = assembled
     market_report = dict(getattr(assembled, "report", None) or {})
     ledger = load_overrides(paths.overrides)
-    prior_items = load_prior_open_items(paths.open_items_carry)
+    prior_items = load_prior_open_items(sidecar)
 
     run = run_valuation(
         snapshot, feed, market, ledger, cfg,
         validation=tuple(issues), prior_open_items=prior_items,
-        prior_staleness_anchors=load_staleness_anchors(paths.open_items_carry),
-        prior_note_legs=load_note_legs(paths.open_items_carry),
+        prior_staleness_anchors=load_staleness_anchors(sidecar),
+        prior_note_legs=load_note_legs(sidecar),
         input_sha256=file_sha256(paths.workbook), input_file=paths.workbook.name,
         generated_at=generated_at or datetime.now(timezone.utc).replace(microsecond=0),
         market_data_source=source,

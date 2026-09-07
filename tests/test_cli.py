@@ -36,6 +36,8 @@ def test_validate_missing_file_exit_one(tmp_path: Path):
 
 def test_build_produces_files(tmp_path: Path):
     out = tmp_path / "dist"
+    # the IC pack rides along whenever a published snapshot exists: release one into the suite's own ledger first
+    assert runner.invoke(app, ["publish", "--approver", "IC", "--proposed"]).exit_code == 0
     r = runner.invoke(app, ["build", "--out", str(out)])
     assert r.exit_code == 0, r.output
     for name in ("report.html", "valuation_Q3_2026.xlsx", "marks.csv", "exceptions.csv", "audit_trail.csv",

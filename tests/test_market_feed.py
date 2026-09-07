@@ -744,7 +744,7 @@ def test_assembler_keeps_the_two_tuple_and_carries_the_report():
 def _paths(tmp_path: Path, root: Path | None = None) -> RunPaths:
     data = tmp_path / "data"
     if not data.exists():
-        shutil.copytree(ROOT / "data", data, ignore=shutil.ignore_patterns("sample_run.json", "market_cache"))
+        shutil.copytree(ROOT / "data", data, ignore=shutil.ignore_patterns("sample_run.json", "market_cache", "overrides.yaml", "published", "open_items_carry.yaml", "Q? ???? *.xlsx"))
     return RunPaths(root=root or ROOT, policy=ROOT / "rules" / "2026Q3.yaml", workbook=data / "HC_Mock_Portfolio_Data.xlsx",
                     overrides=data / "overrides.yaml", proposals_dir=data / "proposals", precedent=data / "precedent.yaml",
                     open_items_carry=data / "open_items_carry.yaml")
@@ -838,7 +838,7 @@ def test_cli_market_live_prints_collapsed_errors(monkeypatch, tmp_path: Path):
     (scratch / "rules").mkdir(parents=True)
     for f in (ROOT / "rules").glob("*.yaml"):
         shutil.copy(f, scratch / "rules" / f.name)
-    shutil.copytree(ROOT / "data", scratch / "data", ignore=shutil.ignore_patterns("sample_run.json", "market_cache", "published"))
+    shutil.copytree(ROOT / "data", scratch / "data", ignore=shutil.ignore_patterns("sample_run.json", "market_cache", "published", "overrides.yaml", "published", "open_items_carry.yaml", "Q? ???? *.xlsx"))
     import hc_valuation.pipeline as pipeline_mod
     monkeypatch.setattr(pipeline_mod, "repo_root", lambda: scratch)
     import hc_valuation.config as config_mod

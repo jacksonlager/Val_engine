@@ -51,7 +51,7 @@ def root(tmp_path: Path) -> Path:
     (tmp_path / "data").mkdir()
     shutil.copy(REAL, tmp_path / "data" / REAL.name)
     shutil.copytree(ROOT / "data" / "mock_responses", tmp_path / "data" / "mock_responses")
-    shutil.copy(ROOT / "data" / "overrides.yaml", tmp_path / "data" / "overrides.yaml")
+    (tmp_path / "data" / "overrides.yaml").write_text("overrides: []\n")    # never the working ledger
     return tmp_path
 
 

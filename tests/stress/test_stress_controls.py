@@ -59,8 +59,9 @@ def scratch(tmp_path: Path) -> RunPaths:
     written freely. The policy is copied too (unlike test_suggestions' fixture) so a test can
     flip a switch in it and rerun."""
     data = tmp_path / "data"
-    shutil.copytree(ROOT / "data", data, ignore=shutil.ignore_patterns("sample_run.json", "published", "market_cache"))
+    shutil.copytree(ROOT / "data", data, ignore=shutil.ignore_patterns("sample_run.json", "published", "market_cache", "overrides.yaml", "published", "open_items_carry.yaml", "Q? ???? *.xlsx"))
     shutil.copytree(ROOT / "rules", tmp_path / "rules")
+    (data / "overrides.yaml").write_text("overrides: []\n")
     return RunPaths(
         root=tmp_path, policy=tmp_path / "rules" / "2026Q3.yaml", workbook=data / "HC_Mock_Portfolio_Data.xlsx",
         overrides=data / "overrides.yaml", proposals_dir=data / "proposals", precedent=data / "precedent.yaml",
@@ -321,6 +322,7 @@ def cli(scratch: RunPaths, monkeypatch):
     import hc_valuation.pipeline as pipeline_mod
     monkeypatch.setattr(pipeline_mod, "repo_root", lambda: scratch.root)
     monkeypatch.delenv("HC_MARKET_PROVIDER", raising=False)
+    monkeypatch.delenv("HC_LEDGER_DIR", raising=False)     # the scratch root's data/ is the ledger here
     runner = CliRunner()
 
     def invoke(*args: str):

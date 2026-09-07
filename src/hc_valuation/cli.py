@@ -166,7 +166,7 @@ def validate(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Pol
     """Ingest the workbook and run the X-9xx integrity checks. Exit 1 if anything blocks."""
     from .ingest.reader import IngestError, read_workbook
     from .ingest.validate import validate as _validate
-    from .pipeline import load_mark_basis
+    from .pipeline import load_mark_basis, sidecar_for
 
     paths = _paths(input_path, policy, overrides, ledger_dir)
     cfg = load_config(paths.policy)
@@ -177,9 +177,10 @@ def validate(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Pol
         raise typer.Exit(code=1)
     # Same inputs as a run: the prior quarter's sidecar explains marks that deliberately depart
     # from ownership × post-money, so `validate` must not block what `run` would accept.
-    issues = _validate(snapshot, feed, cfg, explained_departures=load_mark_basis(paths.open_items_carry))
-    if paths.open_items_carry.exists():
-        typer.echo(f"open items carried from {paths.open_items_carry}")
+    sidecar = sidecar_for(paths, cfg)
+    issues = _validate(snapshot, feed, cfg, explained_departures=load_mark_basis(sidecar))
+    if sidecar.exists():
+        typer.echo(f"open items carried from {sidecar}")
     typer.echo(f"{paths.workbook.name}: {len(snapshot.positions)} positions, {len(feed.events)} events "
                f"on '{feed.sheet_name}'; {len(issues)} issue(s)")
     for sev in (Severity.BLOCK, Severity.REVIEW, Severity.MONITOR):
@@ -335,6 +336,10 @@ def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
     typer.echo(f"published {rec['quarter']} as {rec['status'].upper()} by {rec['published_by']} "
                f"(run {rec['run_id']}, booked NAV {rec['booked_nav']:,.1f}, "
                f"{len(rec.get('open_positions', rec['open_blocks']))} position(s) not ready, {len(rec['open_blocks'])} blocked)")
+    if rec["status"] == "final":
+        from .pipeline import emit_next_quarter
+        nxt = emit_next_quarter(r)
+        typer.echo(f"next quarter's input: {nxt}  (sidecar {nxt.parent / 'open_items_carry.yaml'})")
     typer.echo(f"executive dashboard: {DASHBOARD_URL}/exec/  (after `hc-valuation run`)")
     if out is not None:
         view = exec_payload(paths.root, published=paths.published_dir)

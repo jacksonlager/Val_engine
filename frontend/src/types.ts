@@ -378,6 +378,9 @@ export interface PublishRecord {
   open_blocks?: string[];
   run_id?: string;
   booked_nav: number;
+  /** a FINAL publish emits next quarter's input workbook beside the one just closed */
+  next_quarter_input?: string;
+  next_quarter_input_error?: string;
 }
 
 // ---------------------------------------------------------------- provenance (GET /api/sources)

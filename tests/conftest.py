@@ -30,6 +30,25 @@ from hc_valuation.ingest.reader import read_workbook
 from hc_valuation.ingest.schema import ACTIVITY_COLUMNS, PORTFOLIO_COLUMNS
 from hc_valuation.ingest.validate import validate
 
+# The suite never reads the working ledger. `data/overrides.yaml` and `data/published/` fill as a
+# quarter is decided and closed — that is the product working, not a regression — so every
+# `RunPaths.default()` in the suite is pointed at an empty ledger folder through the environment
+# (pipeline.RunPaths.default honours HC_LEDGER_DIR / HC_OVERRIDES), one for the session-scoped
+# fixtures and a fresh one per test so nothing a test records leaks into the next.
+import os as _os
+import tempfile as _tempfile
+
+_SESSION_LEDGER = Path(_tempfile.mkdtemp(prefix="hc-test-ledger-"))
+_os.environ["HC_LEDGER_DIR"] = str(_SESSION_LEDGER)
+_os.environ.pop("HC_OVERRIDES", None)
+
+
+@pytest.fixture(autouse=True)
+def _isolated_ledger(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("HC_LEDGER_DIR", str(tmp_path / "ledger"))
+    monkeypatch.delenv("HC_OVERRIDES", raising=False)
+
+
 ROOT = Path(__file__).resolve().parents[1]
 POLICY_PATH = ROOT / "rules" / "2026Q3.yaml"
 WORKBOOK_PATH = ROOT / "data" / "HC_Mock_Portfolio_Data.xlsx"

@@ -346,6 +346,14 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
             raise HTTPException(409, {"message": str(exc), "outstanding": [], "second_approver": True}) from exc
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
+        if rec["status"] == "final":
+            # The close is done: next quarter's input falls out of it, beside the workbook just closed.
+            from ..pipeline import emit_next_quarter
+            try:
+                nxt = emit_next_quarter(r)
+                rec["next_quarter_input"] = str(nxt)
+            except Exception as exc:  # noqa: BLE001 — the publish stands; the roll-forward can be rerun with `build`
+                rec["next_quarter_input_error"] = f"{type(exc).__name__}: {exc}"
         return JSONResponse(rec)
 
     @app.post("/api/rerun")

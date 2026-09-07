@@ -37,7 +37,8 @@ def _snapshot_real_ledger() -> tuple[bytes, list[str]]:
 
 # ------------------------------------------------------------------ RunPaths
 
-def test_default_paths_keep_the_real_ledger_under_data():
+def test_default_paths_keep_the_real_ledger_under_data(monkeypatch):
+    monkeypatch.delenv("HC_LEDGER_DIR", raising=False)
     p = RunPaths.default(root=ROOT)
     assert p.overrides == ROOT / "data" / "overrides.yaml"
     assert p.published_dir == ROOT / "data" / "published"
@@ -56,7 +57,8 @@ def test_ledger_dir_moves_every_decision_record_together(tmp_path: Path):
     assert p.policy == ROOT / "rules" / "2026Q3.yaml"
 
 
-def test_overrides_alone_moves_only_the_e01_file(tmp_path: Path):
+def test_overrides_alone_moves_only_the_e01_file(tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("HC_LEDGER_DIR", raising=False)
     p = RunPaths.default(root=ROOT, overrides=tmp_path / "mine.yaml")
     assert p.overrides == tmp_path / "mine.yaml"
     assert p.published_dir == ROOT / "data" / "published"
@@ -71,6 +73,14 @@ def test_older_seven_field_construction_still_publishes_under_data(tmp_path: Pat
                  overrides=tmp_path / "o.yaml", proposals_dir=tmp_path / "p", precedent=tmp_path / "pr.yaml",
                  open_items_carry=tmp_path / "carry.yaml")
     assert p.published_dir == tmp_path / "data" / "published"
+
+
+def test_environment_stands_in_for_the_flags(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("HC_LEDGER_DIR", str(tmp_path / "env-ledger"))
+    assert RunPaths.default(root=ROOT).overrides == tmp_path / "env-ledger" / "overrides.yaml"
+    monkeypatch.setenv("HC_OVERRIDES", str(tmp_path / "mine.yaml"))
+    assert RunPaths.default(root=ROOT).overrides == tmp_path / "mine.yaml"
+    assert RunPaths.default(root=ROOT, ledger_dir=tmp_path / "explicit").overrides == tmp_path / "mine.yaml"   # the file flag still wins
 
 
 # ------------------------------------------------------------------ the writers
