@@ -76,7 +76,7 @@ Then the position is put in one **readiness bucket** — Blocked, Needs Review o
 
 ### Stage 4 — Human review
 
-**What it does:** the review tool (`hc-valuation run`) opens on the **Queue**, whose first group is every position the Activity tab touched — with the row, the rule that applied it and the mark it produced, Blocked first — followed by the rest of the book that still needs a person. Each card has one primary action that addresses the actual blocker ("Add closing price" on a listing with no quarter-end quote; otherwise the suggested step), and Override as the secondary route. Every route ends in the same confirmation, which will not close without a name and a reason. The decision is appended to `data/overrides.yaml` and the run recomputes.
+**What it does:** the review tool (`hc-valuation run`) opens on the **Activity** tab (the review queue), whose first group is every position the Activity tab touched — with the row, the rule that applied it and the mark it produced, Blocked first — followed by the rest of the book that still needs a person. Each card has one primary action that addresses the actual blocker ("Add closing price" on a listing with no quarter-end quote; otherwise the suggested step), and Override as the secondary route. Every route ends in the same confirmation, which will not close without a name and a reason. The decision is appended to `data/overrides.yaml` and the run recomputes.
 
 Publishing is the final gate: `Publish` refuses while any position is Blocked or Needs Review, and can require a second named approver (`publish.require_second_approver`).
 
@@ -114,7 +114,7 @@ All three are real positions in the current run.
 
 **Checks.** Two MONITOR findings, nothing to decide. X-103: HC did not follow its pro rata, so ownership fell 7.6% → 5.5% (−27.6%) — a reserves question, not a valuation one. X-401: at $2.5M ARR the mark implies 42× revenue against a 2.8× Fintech median — a cross-check, not a valuation, and the round price stands.
 
-**Readiness: Ready.** Approval pending. It appears at the top of the Queue, in the new-activity group, with the row and the arithmetic. Nobody has to do anything except read it.
+**Readiness: Ready.** Approval pending. It appears at the top of the Activity tab, in the new-activity group, with the row and the arithmetic. Nobody has to do anything except read it.
 
 ### No activity, but a concerning metric — Umberly
 
@@ -148,7 +148,7 @@ python3.12 -m hc_valuation.cli market --provider live --refresh   # once per qua
 python3.12 -m hc_valuation.cli run                 # serve the review tool at 127.0.0.1:8765
 ```
 
-Work the Queue top to bottom: the new-activity group first, then the rest. When nothing is Blocked or Needs Review, **Publish** from the header (name required; a second name if the policy asks). Then:
+Work the Activity tab top to bottom: the new-activity group first, then the rest. When nothing is Blocked or Needs Review, **Publish** from the header (name required; a second name if the policy asks). Then:
 
 ```
 python3.12 -m hc_valuation.cli build               # workbook, CSVs, report, next quarter's input file → dist/

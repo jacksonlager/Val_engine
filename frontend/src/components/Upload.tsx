@@ -49,7 +49,7 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
           if (j.done) {
             if (timer.current) window.clearInterval(timer.current);
             if (clock.current) window.clearInterval(clock.current);
-            setBusy(false);      // the summary stays on screen; "Open the queue" loads the new run
+            setBusy(false);      // the summary stays on screen; "Open Activity" loads the new run
           }
         } catch (e) {
           if (timer.current) window.clearInterval(timer.current);
@@ -170,7 +170,7 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
                 onClose();
               }}
             >
-              {job.error ? "Close" : "Open the queue"}
+              {job.error ? "Close" : "Open Activity"}
             </button>
           </div>
         </>

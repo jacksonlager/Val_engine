@@ -28,7 +28,7 @@ type View = "queue" | "companies" | "movement" | "funds" | "market" | "rules" | 
 // The other routes still answer to their hash (#funds, #open) for anyone who bookmarked them;
 // #activity, the former New Activity tab, lands on the Queue.
 const VIEWS: { id: View; label: string }[] = [
-  { id: "queue", label: "Queue" },
+  { id: "queue", label: "Activity" },   // the review queue: what the quarter brought in, then the rest of the book
   { id: "companies", label: "Companies" },
   { id: "movement", label: "Movement" },
   { id: "market", label: "Market" },
@@ -240,7 +240,12 @@ export default function App() {
               <button
                 key={v.id}
                 onClick={() => go(v.id)}
-                className={`px-2.5 py-1 rounded-md text-[12px] ${view === v.id ? "bg-accent text-[var(--accent-ink)] font-medium" : "text-ink2 hover:bg-hair"}`}
+                className={
+                  v.id === "queue"
+                    // Activity is where the work is: a size up and semibold, and outlined when it is not the current view
+                    ? `px-3 py-1 rounded-md text-[13px] font-semibold ${view === v.id ? "bg-accent text-[var(--accent-ink)]" : "text-ink border border-[var(--accent)] hover:bg-hair"}`
+                    : `px-2.5 py-1 rounded-md text-[12px] ${view === v.id ? "bg-accent text-[var(--accent-ink)] font-medium" : "text-ink2 hover:bg-hair"}`
+                }
                 aria-current={view === v.id ? "page" : undefined}
               >
                 {v.label}
