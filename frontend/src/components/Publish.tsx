@@ -123,17 +123,20 @@ export function PublishControls({
           "Publish"
         )}
       </WriteButton>
-      <span title={writeDisabled ? EXEC_STATIC_REASON : "Open the executive dashboard (published snapshots only)"} className="inline-block">
-        {writeDisabled ? (
-          <a className="btn btn-ghost" aria-disabled="true" tabIndex={-1} role="link">
-            Executive dashboard ↗
-          </a>
-        ) : (
-          <a className="btn btn-ghost" href="/exec/" target="_blank" rel="noopener">
-            Executive dashboard ↗
-          </a>
-        )}
-      </span>
+      {/* the executive page reads only published snapshots: until one exists there is nothing to open */}
+      {(writeDisabled || (published.data ?? []).length > 0) && (
+        <span title={writeDisabled ? EXEC_STATIC_REASON : "Open the executive dashboard (published snapshots only)"} className="inline-block">
+          {writeDisabled ? (
+            <a className="btn btn-ghost" aria-disabled="true" tabIndex={-1} role="link">
+              Executive dashboard ↗
+            </a>
+          ) : (
+            <a className="btn btn-ghost" href="/exec/" target="_blank" rel="noopener">
+              Executive dashboard ↗
+            </a>
+          )}
+        </span>
+      )}
 
       {gate && (
         <GateModal

@@ -1,7 +1,0 @@
-# Precedent ledger (E-09): every adjudication decision — reject, accept once, promote — with
-# the proposal id and the reasoning behind it (`decisions`), and a per-signature count of how
-# often the same treatment has been accepted (`precedents`), which `suggest_promotion` reads.
-# Appended by the adjudication module; committed with the quarter's close. Empty: nothing
-# has been adjudicated yet.
-decisions: []
-precedents: {}

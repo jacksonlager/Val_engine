@@ -182,10 +182,11 @@ flags waiting on it, and a *Decide* / *Confirm* link to its row — and can only
 the server refuses the request (409) as well, so an undecided book cannot reach executives
 by any path. Once the list is empty the same button publishes the quarter as **FINAL**.
 (`hc-valuation publish --proposed` is the one deliberate bypass, for a preview from the
-command line; the dashboard never uses it. **The snapshot committed in this repository was
-released that way** — an IC pre-read with 7 decisions and 20 confirmations still open, and
-the executive page says so in its first paragraph.) `hc-valuation build` writes the same
-executive page as a self-contained `dist/exec_report.html` whenever a snapshot exists.
+command line; the dashboard never uses it.) The repository ships with nothing published and an
+empty committee ledger — the state a new user starts from; **Reset** in the top bar (or
+`hc-valuation reset --yes`) returns a working copy to it, keeping only the inputs, the policy
+files and the market cache. `hc-valuation build` writes the same executive page as a
+self-contained `dist/exec_report.html` whenever a snapshot exists.
 Re-publishing replaces the snapshot and keeps the previous one under
 `data/published/history/`, so what executives were shown is itself auditable.
 
