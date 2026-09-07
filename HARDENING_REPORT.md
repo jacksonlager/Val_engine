@@ -235,7 +235,7 @@ After the fixes, **two consecutive full passes** over all three quarters give 0 
   was decided, and `require_second_approver` refused the decider's own name.
 - **AI cannot bypass a control:** the recommender ran as policy default throughout (no key; the card says so). Every
   scripted decision books a number from the engine's own suggestion list or a closing-price evidence record
-  validated by the API; `tests/stress/` (213 tests) still pass.
+  validated by the API; `tests/stress/` (226 tests) still pass.
 - **Changed inputs trigger renewed review:** a Q3 decision does not carry into Q4 (Tarnwick, Jupelan, Birchhollow
   were Needs Review again); an override whose proposal moved raises E-01 drift (existing tests).
 - **Audit history across screens and exports:** the mark archive assembled from the chain's publish ledger has
@@ -362,7 +362,7 @@ c7bacce  Synthetic chain: Q4 2026 and Q1 2027 run, decided and published; Q2 202
 ```
 
 - **Suite:** `python3 -m pytest -q tests/` → **1,116 passed** (was 1,047 at the start, of which 34 failed until D-0
-  was fixed); `tests/stress/` → 213 passed. 68 new tests in twelve new files. No test was deleted, skipped, xfailed
+  was fixed); `tests/stress/` → 226 passed. 68 new tests in twelve new files. No test was deleted, skipped, xfailed
   or loosened; the two golden regenerations and the three gauntlet-scenario updates are each explained above and
   in their commit messages.
 - **Frontend:** rebuilt after every change; one bundle pair in `src/hc_valuation/api/static/assets/`.
