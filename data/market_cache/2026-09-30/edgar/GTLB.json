@@ -123,7 +123,7 @@
  ],
  "cik": "0001653482",
  "debt": [],
- "extract_version": 2,
+ "extract_version": 3,
  "name": "GITLAB INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"
@@ -481,5 +481,99 @@
    "value": 168.703
   }
  ],
+ "shares_by_concept": {
+  "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding": [
+   {
+    "end": "2020-10-31",
+    "filed": "2021-12-07",
+    "value": 50.306
+   },
+   {
+    "end": "2021-04-30",
+    "filed": "2022-06-07",
+    "value": 52.744
+   },
+   {
+    "end": "2021-07-31",
+    "filed": "2022-09-07",
+    "value": 53.424
+   },
+   {
+    "end": "2021-10-31",
+    "filed": "2021-12-07",
+    "value": 67.018
+   },
+   {
+    "end": "2022-04-30",
+    "filed": "2022-06-07",
+    "value": 146.643
+   },
+   {
+    "end": "2022-07-31",
+    "filed": "2022-09-07",
+    "value": 147.797
+   },
+   {
+    "end": "2022-10-31",
+    "filed": "2022-12-06",
+    "value": 148.883
+   },
+   {
+    "end": "2023-04-30",
+    "filed": "2023-06-06",
+    "value": 151.692
+   },
+   {
+    "end": "2023-07-31",
+    "filed": "2023-09-06",
+    "value": 153.644
+   },
+   {
+    "end": "2023-10-31",
+    "filed": "2023-12-05",
+    "value": 155.123
+   },
+   {
+    "end": "2024-04-30",
+    "filed": "2024-06-04",
+    "value": 158.157
+   },
+   {
+    "end": "2024-07-31",
+    "filed": "2024-09-04",
+    "value": 166.346
+   },
+   {
+    "end": "2024-10-31",
+    "filed": "2024-12-06",
+    "value": 167.436
+   },
+   {
+    "end": "2025-04-30",
+    "filed": "2025-06-11",
+    "value": 164.491
+   },
+   {
+    "end": "2025-07-31",
+    "filed": "2025-09-04",
+    "value": 165.953
+   },
+   {
+    "end": "2025-10-31",
+    "filed": "2025-12-03",
+    "value": 167.407
+   },
+   {
+    "end": "2026-04-30",
+    "filed": "2026-06-02",
+    "value": 169.948
+   },
+   {
+    "end": "2026-07-31",
+    "filed": "2026-09-02",
+    "value": 168.703
+   }
+  ]
+ },
  "shares_concept": "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding"
 }

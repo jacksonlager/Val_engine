@@ -38,11 +38,32 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 class OverrideIn(BaseModel):
     company: str
-    booked: float
+    booked: float = Field(ge=0.0)   # a fair value; zero is a write-off, below zero is a typo
     reason: str = Field(min_length=1)
     approver: str = Field(min_length=1)
     rule_ids_addressed: list[str] = Field(default_factory=list)
     source_suggestion: str | None = None   # "<rule_id>/<key>" when the reviewer accepted an engine suggestion
+    evidence: dict[str, Any] | None = None  # the input the reviewer supplied, e.g. a closing price the engine lacked
+
+
+def check_evidence(evidence: dict[str, Any] | None) -> None:
+    """Light validation: every kind names itself; a closing price must carry the two things the
+    ledger cannot do without — the market cap and where it came from. Other kinds are not
+    second-guessed here."""
+    if evidence is None:
+        return
+    kind = evidence.get("kind")
+    if not isinstance(kind, str) or not kind.strip():
+        raise HTTPException(422, {"message": "evidence needs a string 'kind' saying what it is (e.g. 'closing_price')"})
+    if kind == "closing_price":
+        cap = evidence.get("market_cap_musd")
+        if isinstance(cap, bool) or not isinstance(cap, (int, float)) or cap <= 0:
+            raise HTTPException(422, {"message": "closing-price evidence needs a positive market_cap_musd "
+                                                 "(the measurement-date market capitalisation, in $M)"})
+        source = evidence.get("source")
+        if not isinstance(source, str) or not source.strip():
+            raise HTTPException(422, {"message": "closing-price evidence needs a non-empty source "
+                                                 "(where the price was read, e.g. 'Nasdaq close via Bloomberg')"})
 
 
 class PublishIn(BaseModel):
@@ -293,6 +314,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
                                       "flags": sorted(known)})
         if not body.reason.strip() or not body.approver.strip():
             raise HTTPException(422, {"message": "an override needs a reason and an approver"})
+        check_evidence(body.evidence)
         record = {
             "company": body.company, "quarter": r.config.quarter.label,
             "proposed": float(c.proposed_mark), "booked": float(body.booked),
@@ -300,6 +322,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
             "created_at": date.today().isoformat(),
             "rule_ids_addressed": list(body.rule_ids_addressed),
             **({"source_suggestion": body.source_suggestion} if body.source_suggestion else {}),
+            **({"evidence": body.evidence} if body.evidence is not None else {}),   # omitted, not null, on the ledger
         }
         r2 = write_then_recompute(lambda: append_override(paths.overrides, record))
         return _json(r2.run.by_company()[body.company])

@@ -29,10 +29,11 @@ from ..engine.models import SectorComp
 from .baskets import BASKETS_FILE, Baskets
 from .cache import MarketCache
 from .edgar import (
-    MAX_REQUESTS_PER_S, EdgarClient, ExtractionError, RevenueHistory, extract, net_cash_at, resolve_ciks, slim, value_at,
+    MAX_REQUESTS_PER_S, EdgarClient, ExtractionError, RevenueHistory, extract, net_cash_at, resolve_ciks,
+    shares_at, slim, value_at,
 )
 from .fetch import DEFAULT_TIMEOUT_S, FetchError, FetchText, LiveFeedError
-from .prices import PriceProvider, month_end_closes, price_provider
+from .prices import PriceProvider, cumulative_split_factor, month_end_closes, price_provider
 from .stubs import StubCompsProvider, latest_at_or_before
 
 log = logging.getLogger(__name__)
@@ -129,6 +130,13 @@ class Constituent:
     price: float | None = None
     price_month: str | None = None
     shares_m: float | None = None
+    shares_basis: str | None = None        # what the count is: outstanding (cover page / balance sheet) or a diluted average
+    shares_as_of: str | None = None        # the filing date the count is taken from
+    shares_age_days: int | None = None     # measurement date minus that date — a count is evidence about *today*
+    shares_rejected: list[str] = field(default_factory=list)   # concepts passed over, and why
+    months_negative_ev: int = 0            # months excluded from the basket: net cash above market cap
+    months_unverified_splits: int = 0      # months excluded: no split history, so the two inputs may differ in basis
+    splits_known: bool = False             # split events are on file for this constituent
     market_cap_musd: float | None = None
     net_cash_musd: float | None = None
     ttm_revenue_musd: float | None = None
@@ -251,6 +259,10 @@ class PublicCompsProvider:
         for t in missing_prices:
             try:
                 cache.write_prices(t, month_end_closes(self._prices.daily_closes(t), self.as_of))
+                try:
+                    cache.write_splits(t, self._prices.splits(t))
+                except Exception:  # noqa: BLE001 — a provider without split events is not an error
+                    pass
                 fetched = True
                 priced_now.add(t)
             except LiveFeedError as ex:
@@ -288,6 +300,7 @@ class PublicCompsProvider:
     def _value_one(self, t: str) -> Constituent:
         ext = self._cache.read_edgar(t)
         closes = self._cache.read_prices(t)
+        splits = self._cache.read_splits(t)   # None: the cache predates split capture
         row = self._names.get(t) or {}
         c = Constituent(ticker=t, name=(ext or {}).get("name") or row.get("title"), cik=(ext or {}).get("cik"))
         if t in self._ticker_errors:
@@ -300,19 +313,50 @@ class PublicCompsProvider:
             c.error = f"no closes in the cache ({self.price_source})"
             return c
         periods = ext.get("revenue_periods") or []
-        shares, cash, debt = ext.get("shares") or [], ext.get("cash") or [], ext.get("debt") or []
+        cash, debt = ext.get("cash") or [], ext.get("debt") or []
+        # v3 extracts cache every share concept and choose at the measurement date; a v2 extract
+        # cached only the winner of a first-with-any-data rule, so fall back to it as one concept.
+        by_concept = ext.get("shares_by_concept")
+        if not by_concept:
+            by_concept = {ext["shares_concept"]: ext["shares"]} if ext.get("shares_concept") and ext.get("shares") else {}
         if not periods:
             return self._fail(c, "EDGAR has no revenue periods under any known concept (foreign private issuer?)")
-        if not shares:
+        if not by_concept:
             return self._fail(c, "EDGAR has no shares-outstanding facts")
+
+        pick = shares_at(by_concept, self.as_of)
+        c.shares_basis, c.shares_as_of = pick.basis, pick.as_of
+        c.shares_age_days, c.shares_rejected = pick.age_days, list(pick.rejected)
+        if pick.value is None:
+            why = "; ".join(pick.rejected) or "no usable share count"
+            return self._fail(c, f"no share count close enough to {self.as_of.isoformat()} to price a market cap — {why}")
 
         # Point in time: every month is valued on what had been *filed* by that month's end — the
         # revenue, share count and balance sheet a reader of the market had then — so the multiple
         # in a round month is the one the market saw when the round was priced.
         for m in self._months:
             on = min(month_end(m), self.as_of)
-            px, sh = closes.get(m), value_at(shares, on, filed_by=on)
+            # The share count is chosen *for that month*, not once for today: a 2020 market cap
+            # must use the count a reader had in 2020. Choosing once at the measurement date and
+            # looking it up historically silently drops every constituent that had not yet begun
+            # tagging today's concept, which thins the basket in exactly the old months M-080
+            # divides by — and a thin historical median is what produced 17x calibration factors.
+            monthly_pick = shares_at(by_concept, on)
+            px, sh = closes.get(m), monthly_pick.value
             if px is None or not sh:
+                continue
+            # Closes are split-adjusted to today; the share count is on the basis of the day it
+            # was *filed*. Put them on one basis before multiplying — every split after the
+            # filing, not after the month: a count filed in May and priced in June is still a
+            # pre-split count if the split fell in between (NVDA's 10:1 of June 2024 left two
+            # months at 3.5x revenue instead of 38x until the August 10-Q caught up).
+            if splits is not None:
+                sh *= cumulative_split_factor(splits, monthly_pick.basis_date or on)
+            elif m != month_key(self.as_of):
+                # No split history on file. An earlier month may sit across a split, and pricing
+                # it anyway is what put Palo Alto into the October 2020 basket at 0.85x revenue
+                # instead of ~6x (two splits since). Withheld until the history is fetched.
+                c.months_unverified_splits += 1
                 continue
             try:
                 ttm, _through = RevenueHistory(periods, filed_by=on).ttm_at(on)
@@ -320,15 +364,26 @@ class PublicCompsProvider:
                 continue
             if ttm <= 0:
                 continue
-            c.monthly[m] = round((px * sh - net_cash_at(cash, debt, on, filed_by=on)) / ttm, 4)
+            mult = (px * sh - net_cash_at(cash, debt, on, filed_by=on)) / ttm
+            # A negative enterprise value is a real state (net cash above market cap) and is not
+            # rejected as an input — but a negative EV/revenue is not a *comparable multiple*, so
+            # it cannot sit in a median used to price a private company's revenue. The month is
+            # dropped for that constituent and counted, rather than dragging the basket to zero.
+            if mult <= 0:
+                c.months_negative_ev = getattr(c, "months_negative_ev", 0) + 1
+                continue
+            c.monthly[m] = round(mult, 4)
 
         m0 = month_key(self.as_of)
         px = closes.get(m0)
         if px is None:
             return self._fail(c, f"no close in {m0} ({self.price_source})")
-        sh = value_at(shares, self.as_of, filed_by=self.as_of)
-        if not sh:
-            return self._fail(c, f"no shares outstanding filed on or before {self.as_of.isoformat()}")
+        sh = pick.value
+        # The measurement month is not exempt: a count filed before a split that fell earlier in
+        # the quarter is still pre-split. With no split history on file it is used as filed and
+        # `splits_known` says so.
+        if splits is not None:
+            sh *= cumulative_split_factor(splits, pick.basis_date or self.as_of)
         try:
             ttm, through = RevenueHistory(periods, filed_by=self.as_of).ttm_at(self.as_of)
         except ExtractionError as ex:
@@ -337,6 +392,7 @@ class PublicCompsProvider:
             return self._fail(c, f"TTM revenue through {through} is not positive ({ttm})")
         nc = net_cash_at(cash, debt, self.as_of, filed_by=self.as_of)
         c.status, c.error = "ok", None
+        c.splits_known = splits is not None
         c.price, c.price_month, c.shares_m = px, m0, sh
         c.market_cap_musd = round(px * sh, 3)
         c.net_cash_musd, c.ttm_revenue_musd = nc, ttm

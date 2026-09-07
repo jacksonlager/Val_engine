@@ -220,7 +220,7 @@ src/hc_valuation/
   __main__.py                python3 -m hc_valuation ... == hc-valuation ...
 frontend/                    React + Vite source for the review tool (builds into api/static)
 frontend-exec/               React + Vite source for the executive dashboard (builds into api/static_exec)
-tests/                       golden file, determinism, rules, ingest, normalize, edge cases, connectors, market
+tests/                       golden file, determinism, rules, ingest, normalize, edge cases, connectors, market; stress/ — boundaries, overlapping events, controls, carries
                              feed, adjudication, export, api, cli, publish, history, flag points, suggestions, gauntlet
 training/                    SPEC.md (the hardening contract), scenario corpus, workbook generator, gauntlet
 docs/valuation-policy.md     the marking policy the rules implement
@@ -242,7 +242,7 @@ quarter's file can `inherits: 2026Q3` and override only what moved; rules carry 
 
 ```bash
 pip install -e ".[dev]"             # adds pytest and httpx to the install above
-pytest                              # 760+ tests (767 at the time of writing), ~40 s, no network
+pytest                              # 1,000+ tests (1,034 at the time of writing), ~90 s, no network; tests/stress/ is the adversarial suite
 python training/run_gauntlet.py     # 44 dirty-workbook scenarios, 1,785 checks -> training/report.md
 ```
 
@@ -351,8 +351,12 @@ fills the same slot honestly:
   `EV / TTM revenue`; per sector, the median of the basket. Revenue is read from each
   filer's own reported periods across every revenue concept it has ever used, so a
   January or April fiscal year (NVIDIA, Salesforce, C3.ai) and a concept switch under
-  ASC 606 price correctly. The full contract — what is read, how a multi-class filer is
-  handled, and the exact JSON the review tool renders — is `docs/market-feed.md`.
+  ASC 606 price correctly. A share count the filer stopped reporting more than 450 days
+  before the date valued is refused rather than used, a month whose split-adjusted close and
+  as-filed share count cannot be put on one basis is withheld, and a negative enterprise
+  value leaves the median — each counted on the constituent with its reason. The full
+  contract — what is read, how a multi-class filer is handled, and the exact JSON the
+  review tool renders — is `docs/market-feed.md`.
 - **What the live history buys.** Two of the brief's stretch items run on it. **M-080**
   calibrates every stale Level 3 mark to the movement in its sector's public multiple since
   the round month (bounded ±35%, alternative only, on by default but gated to an observed
@@ -381,7 +385,9 @@ fills the same slot honestly:
   directory exists only once a live run has been made); with a complete cache a run makes
   no network call and is deterministic offline, so commit the directory after a real run
   and a reviewer gets live-shaped data without a network. `--refresh-market` (or
-  `market --refresh`) refetches; a partial cache fetches only what is missing.
+  `market --refresh`) refetches closes and split histories together — a cache written
+  before splits were captured prices the measurement date but has no monthly history
+  until it is refreshed; a partial cache fetches only what is missing.
 - **`hc-valuation market [--provider live|stub] [--price-source yahoo|stooq] [--refresh] [--json]`**
   prints one line per sector (multiple, source, month, constituents ok/total) and the
   errors — a source-wide outage is one line, not one per ticker; `--json` dumps the

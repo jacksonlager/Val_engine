@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import date, datetime, timezone
+from collections.abc import Mapping
 from typing import Any, Protocol, runtime_checkable
 
 from . import fetch as _fetch
@@ -35,7 +36,8 @@ log = logging.getLogger(__name__)
 PRICE_SOURCES = ("yahoo", "stooq")
 DEFAULT_PRICE_SOURCE = "yahoo"
 
-YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=10y&interval=1d"
+YAHOO_URL = ("https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+             "?range=10y&interval=1d&events=split")
 STOOQ_URL = "https://stooq.com/q/d/l/?s={symbol}&i=d"
 
 
@@ -49,6 +51,18 @@ class PriceProvider(Protocol):
     def symbol_for(self, ticker: str) -> str: ...
 
     def daily_closes(self, ticker: str) -> dict[str, float]: ...
+
+    def splits(self, ticker: str) -> dict[str, float]:
+        """`{YYYY-MM-DD: ratio}` — 3-for-1 is 3.0. Empty when the provider reports none.
+
+        Closes come back split-adjusted; share counts from EDGAR are on the basis of the day
+        they were filed and are never restated for a later split. Multiplying one by the other
+        understates every historical market cap by the splits since — Palo Alto's October 2020
+        basket entry came out at 0.85x revenue instead of ~6x, a sixth of the true figure across
+        the 3-for-1 of September 2022 and the 2-for-1 of December 2024. The cumulative ratio
+        after the *filing* date is what puts the two on the same basis; a provider that cannot
+        supply it says so and the months go unverified."""
+        return {}
 
 
 def _package_version() -> str:
@@ -69,6 +83,7 @@ class _Base:
         self._fetch = fetch_text
         self.timeout_s = timeout_s
         self._limiter = RateLimiter(self.MAX_PER_S if max_per_s is None else max_per_s)
+        self._payloads: dict[str, str] = {}
 
     @property
     def headers(self) -> dict[str, str] | None:
@@ -79,6 +94,19 @@ class _Base:
 
     def symbol_for(self, ticker: str) -> str:  # pragma: no cover — overridden
         raise NotImplementedError
+
+    def _payload_text(self, ticker: str) -> str:
+        """One response per ticker per run. Closes and split events come out of the same Yahoo
+        payload, so asking for them separately would double every request for no new data."""
+        cached = self._payloads.get(ticker)
+        if cached is None:
+            cached = self._payloads[ticker] = self._get_text(ticker)
+        return cached
+
+    def splits(self, ticker: str) -> dict[str, float]:
+        """No split events from this provider; historical months stay unverified rather than
+        being priced with a share count that may be on the other side of a split."""
+        return {}
 
     def _get_text(self, ticker: str) -> str:
         self._limiter.wait()
@@ -91,6 +119,40 @@ class _Base:
 
 
 # ---------------------------------------------------------------- Yahoo Finance
+
+def parse_yahoo_splits(payload: Any, symbol: str = "") -> dict[str, float]:
+    """`events.splits` -> `{YYYY-MM-DD: ratio}`. Yahoo gives `numerator`/`denominator`
+    (3-for-1 is 3/1) and a `splitRatio` string; the numbers are used, the string ignored."""
+    try:
+        result = (payload.get("chart") or {}).get("result") or []
+        events = (result[0].get("events") or {}) if result else {}
+    except AttributeError:
+        return {}
+    out: dict[str, float] = {}
+    for row in (events.get("splits") or {}).values():
+        try:
+            num, den = float(row["numerator"]), float(row["denominator"])
+            when = datetime.fromtimestamp(int(row["date"]), tz=timezone.utc).date().isoformat()
+        except (KeyError, TypeError, ValueError):
+            continue
+        if den > 0 and num > 0:
+            out[when] = round(num / den, 6)
+    return dict(sorted(out.items()))
+
+
+def cumulative_split_factor(splits: Mapping[str, float], after: date) -> float:
+    """How many of today's shares one share held on `after` has become — the product of every
+    split strictly after that date. 1.0 when there have been none.
+
+    `after` is the date the share count's basis belongs to — for an EDGAR fact, the day it was
+    filed (`SharesPick.basis_date`), not the month being priced: a count filed before a split
+    is pre-split however late the month it is used in."""
+    factor = 1.0
+    for when, ratio in splits.items():
+        if when > after.isoformat():
+            factor *= ratio
+    return factor
+
 
 def parse_yahoo_chart(payload: Any, symbol: str = "") -> dict[str, float]:
     """`YYYY-MM-DD -> close` from one chart payload. Raises `LiveFeedError` when the envelope
@@ -138,12 +200,21 @@ class YahooPrices(_Base):
 
     def daily_closes(self, ticker: str) -> dict[str, float]:
         symbol = self.symbol_for(ticker)
-        text = self._get_text(ticker)
+        text = self._payload_text(ticker)
         try:
             payload = json.loads(text)
         except ValueError as ex:
             raise LiveFeedError(f"{symbol}: response is not JSON ({text[:60]!r})") from ex
         return parse_yahoo_chart(payload, symbol)
+
+    def splits(self, ticker: str) -> dict[str, float]:
+        """The same payload the closes came from: `&events=split` is already on the URL, so this
+        costs no extra request when the response is fetched once per ticker."""
+        symbol = self.symbol_for(ticker)
+        try:
+            return parse_yahoo_splits(json.loads(self._payload_text(ticker)), symbol)
+        except ValueError:
+            return {}
 
 
 # ---------------------------------------------------------------- Stooq

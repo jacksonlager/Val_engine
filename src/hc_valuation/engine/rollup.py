@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from ..config import RuleConfig
 from .inputs import Status
-from .models import CompanyResult, CompsMove, Disposition, FundRollup, MarketData, PortfolioTotals, SectorMove
+from .models import Readiness, CompanyResult, CompsMove, Disposition, FundRollup, MarketData, PortfolioTotals, SectorMove
 
 
 def _safe_div(a: float, b: float) -> float:
@@ -41,6 +41,7 @@ def portfolio_totals(results: list[CompanyResult]) -> PortfolioTotals:
     exited = sum(c.prior_mark for c in results
                  if c.status_before == Status.ACTIVE and c.status_after == Status.ACQUIRED)
     disp = {d.value: sum(1 for c in results if c.disposition == d) for d in Disposition}
+    ready = {r.value: sum(1 for c in results if c.readiness == r) for r in Readiness}
     top10 = sorted((c.booked_mark for c in results), reverse=True)[:10]
     return PortfolioTotals(
         positions=len(results),
@@ -49,6 +50,10 @@ def portfolio_totals(results: list[CompanyResult]) -> PortfolioTotals:
         net_movement=round(proposed - prior, 6),
         realized_quarter=round(sum(c.realized_quarter for c in results), 6),
         realized_cumulative=round(sum(c.realized_cumulative for c in results), 6),
+        new_investment=round(sum(c.new_investment_quarter for c in results), 6),
+        valuation_change=round(sum(c.valuation_change_quarter for c in results), 6),
+        readiness=ready,
+        monitor_positions=sum(1 for c in results if c.monitor),
         written_off=round(written_off, 6),
         exited_at_prior_mark=round(exited, 6),
         dispositions=disp,

@@ -71,6 +71,10 @@ class OverrideRecord(_Frozen):
     rule_ids_addressed: tuple[str, ...] = ()
     source_proposal: str | None = None
     source_suggestion: str | None = None   # "<rule_id>/<suggestion key>" when a suggestion was accepted
+    # The input the reviewer supplied when the override fills a gap rather than asserts a number —
+    # e.g. the measurement-date closing price the engine had no quote for. Free-shape, keyed by
+    # `kind`, so the ledger shows what produced the booked figure, not just the figure.
+    evidence: dict[str, Any] | None = None
 
 
 class OverrideLedger(_Frozen):
@@ -192,6 +196,39 @@ class ValidationIssue(_Frozen):
 
 # ---------------------------------------------------------------- results
 
+class Readiness(str, Enum):
+    """Can this position be booked, and if not, why not — three states, one per position.
+
+    Distinct from `Disposition`, which counts *findings*. A position with four flags has one
+    readiness. The line between the two unready states is whether the engine had what it needed:
+    BLOCKED means a required input is missing or contradictory, so no supported final mark
+    exists at any price; NEEDS_REVIEW means the inputs are there and the treatment is a judgment
+    a reviewer must make or confirm."""
+    BLOCKED = "Blocked"
+    NEEDS_REVIEW = "Needs Review"
+    READY = "Ready"
+
+
+class ValuationAction(str, Enum):
+    """What happened to the position this quarter — the accounting shape of the move, which is
+    a different question from whether anyone has reviewed it."""
+    CARRY = "Carry"
+    REVALUE = "Revalue"
+    NEW_INVESTMENT = "New investment"
+    PARTIAL_EXIT = "Partial exit"
+    FULL_EXIT = "Full exit"
+    WRITE_OFF = "Write-off"
+
+
+class Approval(str, Enum):
+    """Whether a person has actually signed the number. A proposal is never "booked" until the
+    quarter is published, and a mark with a decision recorded against it is still only proposed
+    until then."""
+    NONE = "Not approved"
+    DECIDED = "Decision recorded"
+    PUBLISHED = "Approved and published"
+
+
 class CompanyResult(_Frozen):
     company: str
     fund: str
@@ -225,9 +262,20 @@ class CompanyResult(_Frozen):
     implied_multiple: float | None = None
     moic_after: float | None = None
 
+    # The quarter's movement, split so capital activity never reads as performance:
+    #     closing = prior + new investment + valuation gain/loss - realized proceeds
+    new_investment_quarter: float = 0.0     # cash HC put in this quarter (rounds, notes, secondaries bought)
+    valuation_change_quarter: float = 0.0   # what is left once capital in and cash out are taken off
+    provisional: bool = False               # the mark rests on a stand-in for an input that is not on file
+    provisional_reason: str | None = None   # what is missing, in the reviewer's words
+
     steps: tuple[MarkStep, ...]
     flags: tuple[Flag, ...] = ()
     disposition: Disposition = Disposition.CLEAR
+    readiness: Readiness = Readiness.READY
+    action: ValuationAction = ValuationAction.CARRY
+    approval: Approval = Approval.NONE
+    monitor: bool = False                   # a watch item rides alongside any readiness, including Ready
     open_items: tuple[OpenItem, ...] = ()
     alternative_marks: dict[str, float] = Field(default_factory=dict)  # e.g. calibrated, secondary_price
 
@@ -278,6 +326,12 @@ class PortfolioTotals(_Frozen):
     dispositions: dict[str, int]
     level1_positions: int
     top10_concentration: float
+    # Defaulted so a snapshot published before these existed still loads: the archive has to keep
+    # opening, and an older quarter simply has no readiness breakdown to show.
+    new_investment: float = 0.0   # cash HC put into the book this quarter
+    valuation_change: float = 0.0 # closing - opening - new investment + realized: performance, not capital activity
+    readiness: dict[str, int] = Field(default_factory=dict)   # companies per bucket; `dispositions` counts findings
+    monitor_positions: int = 0    # companies carrying a watch item, whatever their readiness
 
 
 class RunManifest(_Frozen):

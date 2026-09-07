@@ -103,7 +103,11 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
           {/* this quarter, for contrast: which flags are new and which were already there */}
           <div className="fh-row fh-now">
             <span className="fh-q">{data?.as_of_quarter ? shortQuarter(data.as_of_quarter) : "now"}</span>
-            <DispChip d={c.disposition} />
+            {/* this quarter reads as readiness — the vocabulary the card uses; earlier rows keep the
+                disposition that was on record, because that is what was released */}
+            <span className={`badge ${c.readiness === "Needs Review" ? "rd-NeedsReview" : `rd-${c.readiness}`}`} title={`Disposition of the findings: ${c.disposition}`}>
+              {c.readiness}
+            </span>
             <span className="fh-flags">
               {c.flags.length === 0 && <span className="text-[11px] text-muted">no flags</span>}
               {c.flags.map((f) => (

@@ -144,7 +144,7 @@
    "value": 2476.0
   }
  ],
- "extract_version": 2,
+ "extract_version": 3,
  "name": "Airbnb, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"
@@ -597,5 +597,124 @@
    "value": 597.0
   }
  ],
+ "shares_by_concept": {
+  "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding": [
+   {
+    "end": "2020-03-31",
+    "filed": "2021-05-14",
+    "value": 262.509
+   },
+   {
+    "end": "2020-06-30",
+    "filed": "2021-08-13",
+    "value": 263.517
+   },
+   {
+    "end": "2020-09-30",
+    "filed": "2021-11-05",
+    "value": 299.206
+   },
+   {
+    "end": "2021-03-31",
+    "filed": "2021-05-14",
+    "value": 600.96
+   },
+   {
+    "end": "2021-06-30",
+    "filed": "2021-08-13",
+    "value": 611.739
+   },
+   {
+    "end": "2021-09-30",
+    "filed": "2021-11-05",
+    "value": 681.916
+   },
+   {
+    "end": "2022-03-31",
+    "filed": "2022-05-09",
+    "value": 635.314
+   },
+   {
+    "end": "2022-03-31",
+    "filed": "2023-05-09",
+    "value": 635.0
+   },
+   {
+    "end": "2022-06-30",
+    "filed": "2022-08-03",
+    "value": 683.536
+   },
+   {
+    "end": "2022-06-30",
+    "filed": "2023-08-03",
+    "value": 684.0
+   },
+   {
+    "end": "2022-09-30",
+    "filed": "2022-11-03",
+    "value": 680.059
+   },
+   {
+    "end": "2022-09-30",
+    "filed": "2023-11-01",
+    "value": 680.0
+   },
+   {
+    "end": "2023-03-31",
+    "filed": "2023-05-09",
+    "value": 670.0
+   },
+   {
+    "end": "2023-06-30",
+    "filed": "2023-08-03",
+    "value": 665.0
+   },
+   {
+    "end": "2023-09-30",
+    "filed": "2023-11-01",
+    "value": 660.0
+   },
+   {
+    "end": "2024-03-31",
+    "filed": "2024-05-08",
+    "value": 654.0
+   },
+   {
+    "end": "2024-06-30",
+    "filed": "2024-08-06",
+    "value": 649.0
+   },
+   {
+    "end": "2024-09-30",
+    "filed": "2024-11-07",
+    "value": 642.0
+   },
+   {
+    "end": "2025-03-31",
+    "filed": "2025-05-01",
+    "value": 632.0
+   },
+   {
+    "end": "2025-06-30",
+    "filed": "2025-08-06",
+    "value": 626.0
+   },
+   {
+    "end": "2025-09-30",
+    "filed": "2025-11-06",
+    "value": 621.0
+   },
+   {
+    "end": "2026-03-31",
+    "filed": "2026-05-07",
+    "value": 608.0
+   },
+   {
+    "end": "2026-06-30",
+    "filed": "2026-08-06",
+    "value": 597.0
+   }
+  ]
+ },
  "shares_concept": "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding"
 }

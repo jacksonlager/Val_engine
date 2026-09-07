@@ -123,7 +123,9 @@ def test_composition_shares_sum_to_one(result):
 def test_publish_writes_snapshot_and_latest(result, root):
     rec = publish_run(result.run, root, approver="Jackson Lagerwey", note="IC pack",
                       published_at=datetime(2026, 10, 2, 17, 0, tzinfo=timezone.utc), require_decisions=False)
-    assert rec["slug"] == "2026Q3" and rec["status"] == "proposed" and len(rec["open_blocks"]) == 7
+    assert rec["slug"] == "2026Q3" and rec["status"] == "proposed"
+    # status follows readiness: one position is Blocked (a missing input), 27 are not Ready
+    assert len(rec["open_blocks"]) == 1 and len(rec["open_positions"]) == 27
     assert (root / "data" / "published" / "2026Q3.json").exists()
     assert json.loads((root / "data" / "published" / "latest.json").read_text())["slug"] == "2026Q3"
     pub, run = load_published(root)
@@ -154,7 +156,16 @@ def test_outstanding_lists_every_block_and_review_with_its_flags(result):
     for i in items:
         by_disp.setdefault(i["disposition"], []).append(i)
     assert len(by_disp["BLOCK"]) == 7 and len(by_disp["REVIEW"]) == 20
-    assert {i["why"] for i in items} == {"Decision required before booking", "Check required to confirm the mark"}
+    by_ready = {}
+    for i in items:
+        by_ready.setdefault(i["readiness"], []).append(i)
+    # readiness splits the seven BLOCKs: one is missing an input, six are judgments
+    assert len(by_ready["Blocked"]) == 1 and len(by_ready["Needs Review"]) == 26
+    blocked = by_ready["Blocked"][0]
+    assert blocked["company"] == "Drayvenn" and blocked["provisional"]
+    assert "closing price" in blocked["why"], "a blocked item names the input it is missing"
+    assert {i["why"] for i in items if not i["provisional"]} == {
+        "Decision required before booking", "Check required to confirm the mark"}
     for i in items:
         assert i["rules"], f"{i['company']} is waiting but lists no flag to decide"
         assert all(r["severity"] in ("BLOCK", "REVIEW") for r in i["rules"])

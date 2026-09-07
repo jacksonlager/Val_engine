@@ -54,7 +54,11 @@ LIVE_STOOQ = "live:edgar+stooq"
 BASELINE = {"BLOCK": 7, "REVIEW": 20, "MONITOR": 39, "CLEAR": 34}
 
 CONSTITUENT_KEYS = {"ticker", "name", "cik", "status", "price", "price_month", "shares_m", "market_cap_musd",
-                    "net_cash_musd", "ttm_revenue_musd", "revenue_through", "ev_to_revenue", "error"}
+                    "net_cash_musd", "ttm_revenue_musd", "revenue_through", "ev_to_revenue", "error",
+                     # input provenance and quality, added when the share-count and split defects
+                     # were found in the committed cache (tests/test_market_inputs.py)
+                     "shares_basis", "shares_as_of", "shares_age_days", "shares_rejected",
+                     "months_negative_ev", "months_unverified_splits", "splits_known"}
 SECTOR_KEYS = {"sector", "positions", "ev_to_revenue", "as_of_month", "source", "live", "prior_quarter", "qoq_pct",
                "history", "counts", "constituents"}
 REPORT_KEYS = {"provider", "source", "reached_live", "as_of", "fetched_at", "cache", "used_by", "baskets_file",
@@ -272,8 +276,9 @@ def test_net_cash_fallbacks():
 
 def test_extract_is_trimmed_and_cacheable():
     x = extract(facts("AAA"))
-    assert set(x) == {"extract_version", "cik", "name", "revenue_concepts", "revenue_periods", "shares_concept", "shares", "cash", "debt"}
-    assert x["extract_version"] == 2
+    assert set(x) == {"extract_version", "cik", "name", "revenue_concepts", "revenue_periods",
+                          "shares_concept", "shares", "shares_by_concept", "cash", "debt"}
+    assert x["extract_version"] == 3        # v3 caches every share concept; the pick happens at read time
     assert x["cik"] == "0001000001" and x["name"] == "Alpha Analytics Corp"
     assert len(json.dumps(x)) < 8000 < len(json.dumps(facts("AAA")))
     # the slim companyfacts keeps only the concepts read, with the fields read, and re-derives the same extract

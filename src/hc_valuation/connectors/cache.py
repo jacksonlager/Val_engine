@@ -142,6 +142,18 @@ class MarketCache:
     def write_prices(self, ticker: str, closes: dict[str, float]) -> None:
         _write_json(self.prices_path(ticker), closes)
 
+    def splits_path(self, ticker: str) -> Path:
+        return self.dir / "splits" / f"{ticker}.json"
+
+    def read_splits(self, ticker: str) -> dict[str, float] | None:
+        """`{YYYY-MM-DD: ratio}`, or None when the cache predates split capture — which is not
+        the same as "this company never split", and the caller must treat it that way."""
+        raw = _read_json(self.splits_path(ticker))
+        return {k: float(v) for k, v in raw.items()} if isinstance(raw, dict) else None
+
+    def write_splits(self, ticker: str, splits: dict[str, float]) -> None:
+        _write_json(self.splits_path(ticker), splits)
+
     def missing(self, tickers: list[str]) -> tuple[list[str], list[str]]:
         """(tickers with no EDGAR extract, tickers with no cached closes)."""
         return ([t for t in tickers if not self._extract_current(_read_json(self.edgar_path(t)))],

@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from ..engine.models import Disposition, Severity, ValuationRun
+from ..engine.models import Disposition, Readiness, Severity, ValuationRun
 from ..fsutil import write_atomically
 from .exec_view import build_exec_view
 
@@ -34,16 +34,23 @@ WAITING = {Disposition.BLOCK: "Decision required before booking",
 
 
 def outstanding(run: ValuationRun) -> list[dict[str, Any]]:
-    """Every position a human still has to decide (BLOCK) or confirm (REVIEW) before the book
-    can be published, with the flags that put it there. Empty means the gate is open."""
+    """Every position that is not Ready, with what is holding it and the flags behind that.
+    Empty means the gate is open.
+
+    Keyed on readiness rather than disposition: a Blocked position is missing an input and a
+    Needs Review one is waiting on judgment, and the release note should say which."""
     out = []
     for c in run.companies:
-        if c.disposition not in WAITING:
+        if c.readiness is Readiness.READY:
             continue
         addressed = set(c.override.rule_ids_addressed) if c.override else set()
         flags = [f for f in c.flags if f.severity in (Severity.BLOCK, Severity.REVIEW) and f.rule_id not in addressed]
-        out.append({"company": c.company, "disposition": c.disposition.value, "why": WAITING[c.disposition],
+        out.append({"company": c.company, "readiness": c.readiness.value,
+                    "disposition": c.disposition.value,
+                    "why": (c.provisional_reason if c.readiness is Readiness.BLOCKED and c.provisional_reason
+                            else WAITING.get(c.disposition, "waiting on a reviewer")),
                     "proposed_mark": c.proposed_mark, "booked_mark": c.booked_mark,
+                    "provisional": c.provisional,
                     "rules": [{"rule_id": f.rule_id, "severity": f.severity.value, "action": f.action} for f in flags]})
     return out
 
@@ -102,15 +109,20 @@ def publish_run(run: ValuationRun, root: Path, *, approver: str, note: str = "",
                 f"({', '.join(own[:6])}{'…' if len(own) > 6 else ''}); the release needs a second person's name "
                 "(policy publish.require_second_approver).")
     ts = (published_at or datetime.now(timezone.utc)).replace(microsecond=0)
-    open_blocks = [c.company for c in run.companies if c.disposition == Disposition.BLOCK]
+    # "final" means every position was Ready when released. A --proposed release of a book with
+    # anything still Needs Review is a proposal, whatever its dispositions say; the two words on
+    # the executive dashboard are the only signal a reader has of which they are looking at.
+    open_positions = [c.company for c in run.companies if c.readiness is not Readiness.READY]
+    open_blocks = [c.company for c in run.companies if c.readiness is Readiness.BLOCKED]
     record = {
         "quarter": run.manifest.quarter_label,
         "slug": _slug(run.manifest.quarter_label),
         "published_at": ts.isoformat(),
         "published_by": approver.strip(),
         "note": note.strip(),
-        "status": "final" if not open_blocks else "proposed",
-        "open_blocks": open_blocks,
+        "status": "final" if not open_positions else "proposed",
+        "open_blocks": open_blocks,          # positions with a missing input
+        "open_positions": open_positions,    # every position not Ready at release: the reason status is "proposed"
         "run_id": run.manifest.run_id,
         "policy_version": run.manifest.policy_version,
         "engine_version": run.manifest.engine_version,

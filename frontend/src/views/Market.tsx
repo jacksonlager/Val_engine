@@ -11,7 +11,7 @@ import {
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { CompanyResult, ConstituentStatus, MarketConstituent, MarketReport, MarketSector, ValuationRun } from "../types";
 import { loadMarket, type Mode } from "../lib/api";
-import { isoDateTime, mult, musd, pct, signClass } from "../lib/format";
+import { isoDateTime, mult, musd, pct, shortDate, signClass } from "../lib/format";
 import { useChartTheme } from "../lib/theme";
 import { SectionTitle, useAsync } from "../components/ui";
 
@@ -117,6 +117,179 @@ function HeaderStrip({ rep }: { rep: MarketReport }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- data quality
+
+/** One caveat that applies to this run: a short title and one or two sentences. */
+interface Caveat {
+  key: string;
+  title: string;
+  text: string;
+  /** a check that passed, listed for the record; not counted as a caveat */
+  ok?: boolean;
+}
+
+/** Whole days from `a` to `b` (positive when `b` is later); null when either does not parse. */
+function daysBetween(a: string | null | undefined, b: string | null | undefined): number | null {
+  if (!a || !b) return null;
+  const ta = Date.parse(a), tb = Date.parse(b);
+  if (!Number.isFinite(ta) || !Number.isFinite(tb)) return null;
+  return Math.round((tb - ta) / 86400000);
+}
+
+/** "2026-09" -> "September 2026". */
+function monthLabel(ym: string): string {
+  const t = Date.parse(`${ym}-01T00:00:00Z`);
+  if (!Number.isFinite(t)) return ym;
+  return new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(t));
+}
+
+function median(xs: number[]): number | null {
+  if (!xs.length) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+/** A share count from a diluted weighted average is an approximation of the count outstanding, and labelled as one. */
+function isDilutedBasis(c: MarketConstituent): boolean {
+  const b = (c.shares_basis ?? "").toLowerCase();
+  return b.includes("diluted") || b.includes("average");
+}
+
+/** Each ticker once, whichever sectors it sits in — the run-level counts are per name, not per seat. */
+function distinctPriced(rep: MarketReport): MarketConstituent[] {
+  const seen = new Map<string, MarketConstituent>();
+  for (const s of rep.sectors) for (const c of s.constituents) if (c.status === "ok" && !seen.has(c.ticker)) seen.set(c.ticker, c);
+  return [...seen.values()];
+}
+
+/** The caveats that apply to this run, computed from the report. Only the ones that apply are returned. */
+function qualityCaveats(rep: MarketReport): Caveat[] {
+  const out: Caveat[] = [];
+  if (!rep.reached_live) return out;
+  const priced = distinctPriced(rep);
+  const live = rep.sectors.filter((s) => s.live);
+  const obsMonth = live[0]?.as_of_month ?? rep.as_of.slice(0, 7);
+
+  // 1 — the close was retrieved before the valuation date: it is the last close on file, not an as-of print
+  const lag = daysBetween(rep.fetched_at, `${rep.as_of}T00:00:00Z`);
+  if (lag !== null && lag > 0)
+    out.push({
+      key: "asof",
+      title: "Close not dated to the valuation date",
+      text: `The ${monthLabel(obsMonth)} close was retrieved ${lag} day${lag === 1 ? "" : "s"} before ${shortDate(rep.as_of)} (on ${shortDate(
+        rep.fetched_at,
+      )}). It is the last close on file at retrieval, not a ${shortDate(rep.as_of)} print.`,
+    });
+
+  // 2 — share-count provenance
+  const rejected = priced.filter((c) => (c.shares_rejected?.length ?? 0) > 0);
+  const diluted = priced.filter(isDilutedBasis);
+  const ages = priced.map((c) => c.shares_age_days).filter((n): n is number => typeof n === "number");
+  const medAge = median(ages);
+  if (rejected.length || diluted.length || medAge !== null)
+    out.push({
+      key: "shares",
+      title: "Share counts",
+      text: `${rejected.length} of ${priced.length} priced names passed over a concept the filer had abandoned or left at zero; ${
+        diluted.length
+      } ${diluted.length === 1 ? "is" : "are"} priced on a diluted weighted average rather than a count outstanding. Median count age ${
+        medAge === null ? "—" : `${Math.round(medAge)} days`
+      }; no count older than 450 days is used at all.`,
+    });
+
+  // 3 — negative enterprise value: the inputs stand, the month leaves the median
+  const negMonths = priced.reduce((a, c) => a + (c.months_negative_ev ?? 0), 0);
+  const negNow = priced.filter((c) => (c.ev_to_revenue ?? 1) < 0);
+  if (negMonths > 0 || negNow.length)
+    out.push({
+      key: "negev",
+      title: "Negative enterprise value",
+      text: `${negMonths} constituent-month${negMonths === 1 ? "" : "s"} with net cash above market cap${
+        negNow.length ? ` (${negNow.map((c) => c.ticker).join(", ")} at ${obsMonth})` : ""
+      }. Such a month is excluded from the median because a negative multiple is not a comparable; the inputs are kept and counted, not deleted.`,
+    });
+
+  // 4 — split basis: closes come back split-adjusted, EDGAR counts are as filed
+  if (priced.length) {
+    const unverifiedNames = priced.filter((c) => c.splits_known !== true);
+    const withheld = priced.reduce((a, c) => a + (c.months_unverified_splits ?? 0), 0);
+    out.push(
+      unverifiedNames.length === 0
+        ? {
+            key: "splits",
+            title: "Split basis verified",
+            text: "Split events are on file for every priced name, so each month's close and share count sit on one basis.",
+            ok: true,
+          }
+        : {
+            key: "splits",
+            title: "Split basis unverified",
+            text: `${unverifiedNames.length} of ${priced.length} priced names have no split history on file, so ${withheld.toLocaleString()} constituent-month${
+              withheld === 1 ? " was" : "s were"
+            } withheld rather than priced on two bases (closes are split-adjusted; EDGAR counts are as filed).`,
+          },
+    );
+  }
+
+  // 5 — basket depth: a five-name median is one name
+  const depths = live.map((s) => s.counts?.[s.as_of_month] ?? s.constituents.filter((c) => c.status === "ok").length);
+  if (depths.length) {
+    const minDepth = Math.min(...depths);
+    const thinnest = live.filter((_, i) => depths[i] === minDepth).map((s) => s.sector);
+    out.push({
+      key: "depth",
+      title: "Basket depth",
+      text: `Thinnest live basket at ${obsMonth}: ${minDepth} name${minDepth === 1 ? "" : "s"} (${
+        thinnest.length === live.length ? "every sector" : thinnest.join(", ")
+      }). A five-name median is set by its third name — read a sector multiple as one company's multiple, not a market's.`,
+    });
+  }
+
+  return out;
+}
+
+/** The caveats behind one priced constituent, as short lines for a tooltip. */
+function constituentCaveats(c: MarketConstituent): string[] {
+  const out: string[] = [];
+  if (c.status !== "ok") return out;
+  for (const r of c.shares_rejected ?? []) out.push(`shares: passed over ${r}`);
+  if (isDilutedBasis(c)) out.push(`shares: ${c.shares_basis} used as the count outstanding`);
+  if ((c.ev_to_revenue ?? 1) < 0) out.push("negative EV at as-of: net cash above market cap, not in the median");
+  const neg = c.months_negative_ev ?? 0;
+  if (neg > 0) out.push(`${neg} month${neg === 1 ? "" : "s"} excluded: negative EV`);
+  if (c.splits_known === false) {
+    const w = c.months_unverified_splits ?? 0;
+    out.push(w > 0 ? `splits unverified: ${w} month${w === 1 ? "" : "s"} withheld` : "splits unverified");
+  }
+  return out;
+}
+
+function DataQuality({ rep }: { rep: MarketReport }) {
+  const caveats = useMemo(() => qualityCaveats(rep), [rep]);
+  if (!caveats.length) return null;
+  const n = caveats.filter((c) => !c.ok).length;
+  return (
+    <div className="card p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="eyebrow text-muted">Data quality</span>
+        <span className={`chip ${n ? "disp-REVIEW" : "disp-CLEAR"} no-dot`}>{n}</span>
+        <span className="text-[11px] text-muted">
+          {n === 1 ? "caveat" : "caveats"} on this run · per-name detail in the constituents table
+        </span>
+      </div>
+      <dl className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2 m-0">
+        {caveats.map((c) => (
+          <div key={c.key} className="text-[11.5px] leading-snug">
+            <dt className={`font-semibold ${c.ok ? "text-[var(--clear-text)]" : "text-ink2"}`}>{c.title}</dt>
+            <dd className="m-0 text-muted">{c.text}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
@@ -358,12 +531,51 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
       }),
       ccol.accessor("status", { header: "Status", cell: (i) => <StatusChip s={i.getValue()} /> }),
       ccol.accessor("price", { header: "Price", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={2} /> }),
-      ccol.accessor("shares_m", { header: "Shares (M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} /> }),
+      ccol.accessor("shares_m", {
+        header: "Shares (M)",
+        meta: { r: true },
+        cell: (i) => {
+          const c = i.row.original;
+          const basis = c.shares_basis ?? null;
+          const tip = basis
+            ? `${basis}${c.shares_as_of ? ` as of ${c.shares_as_of}` : ""}${typeof c.shares_age_days === "number" ? ` (${c.shares_age_days} days before the valuation date)` : ""}`
+            : undefined;
+          return (
+            <span className="block" title={tip}>
+              <Num v={i.getValue()} d={1} />
+              {basis && (
+                <span className={`block text-[10.5px] whitespace-nowrap ${isDilutedBasis(c) ? "text-[var(--review-text)]" : "text-muted"}`}>
+                  {basis.replace("outstanding, ", "")}
+                  {c.shares_as_of && <span className="mono"> · {c.shares_as_of}</span>}
+                </span>
+              )}
+            </span>
+          );
+        },
+      }),
       ccol.accessor("market_cap_musd", { header: "Market cap ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
       ccol.accessor("net_cash_musd", { header: "Net cash ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
       ccol.accessor("ttm_revenue_musd", { header: "TTM revenue ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
       ccol.accessor("revenue_through", { header: "Revenue through", cell: (i) => <span className="mono">{i.getValue() ?? "—"}</span> }),
       ccol.accessor("ev_to_revenue", { header: "EV/Rev", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} x /> }),
+      ccol.accessor((c) => constituentCaveats(c).length, {
+        id: "quality",
+        header: "Quality",
+        cell: (i) => {
+          const c = i.row.original;
+          if (c.status !== "ok") return <span className="text-muted">—</span>;
+          const lines = constituentCaveats(c);
+          return lines.length ? (
+            <span className="chip disp-REVIEW no-dot" title={lines.join("\n")}>
+              {lines.length} caveat{lines.length === 1 ? "" : "s"}
+            </span>
+          ) : (
+            <span className="chip disp-CLEAR no-dot" title="Share count current and outstanding; split basis verified; no month excluded">
+              clean
+            </span>
+          );
+        },
+      }),
     ],
     [],
   );
@@ -608,6 +820,7 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
   return (
     <div className="space-y-4">
       <HeaderStrip rep={rep} />
+      <DataQuality rep={rep} />
 
       {rep.sectors.length === 0 ? (
         <div className="card p-6 text-center text-muted text-[12px]">No sectors in the market report.</div>

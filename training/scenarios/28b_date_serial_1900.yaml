@@ -2,9 +2,10 @@ name: 28b_date_serial_1900
 description: >
   A Date cell holding the bare integer 1 — the Excel serial for 1 January 1900, what a formula
   that lost its reference collapses to. It is outside the serial range the reader accepts
-  (20000..80000, SPEC §2.3), so it is not a date in any accepted form and the file is refused
-  with a message naming the sheet, the row, the column and the range (SPEC §2.5) — never a
-  silent blank and never a 1900 event.
+  (20000..80000, SPEC §2.3), so it is not a date in any accepted form. The ROW is refused with
+  X-902 naming the sheet, the row, the column and the value, and the position blocks (X-900)
+  until it is corrected — never a silent blank, never a 1900 event, and never a whole file
+  refused for one cell: the other rows roll.
 base: HC_Mock_Portfolio_Data.xlsx
 policy: 2026Q3
 activity:
@@ -13,5 +14,13 @@ activity:
   - { date: 1, company: "Coppermoss Energy", event: "Secondary Sale", detail: "HC sold half of its position", value: 25.5, ownership_after: 0.0505, proceeds: 1.28775,
       notes: "Date cell holds serial 1." }
 expect:
-  ingest_ok: false
-  error_contains: ["serial"]
+  ingest_ok: true
+  no_crash: true
+  validation_ids: { must: [X-902], must_not: [X-901, X-909, X-914] }
+  validation_must:
+    - { id: X-902, company: "Coppermoss Energy", blocking: true, count: 1 }
+  validation_blocking: true
+  totals: { events: 2, positions: 100 }
+  companies:
+    Solvantra:            { disposition: CLEAR, rules: [M-010], proposed: 11.0, invested_after: 6.1, ownership_after: 0.11 }
+    Coppermoss Energy:    { disposition: BLOCK, rules: [M-000, M-000], flags_must: [X-900], flags_must_not: [M-999], realized_quarter: 0.0 }

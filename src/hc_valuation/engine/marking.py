@@ -181,6 +181,23 @@ def _dilution_check(w: Working, e: Event, cfg: RuleConfig, before: float, after:
         return
     rel = after / before - 1
     funded = bool(e.hc_investment)
+    # X-123 — the stake rose with no cheque. Anti-dilution, a ratchet or a warrant can do that;
+    # so can a mis-typed cell, and the row cannot say which. The mark moves with the stated
+    # ownership either way, so a person confirms the mechanism before it is booked.
+    if not funded and after - before >= cfg.exceptions.indications.cheque_check_min_ownership_delta:
+        w.flag("X-123", "treatment", Severity.REVIEW,
+               f"HC's ownership rose {before:.1%} → {after:.1%} in a round HC did not fund. Anti-dilution, a ratchet or a "
+               f"warrant exercise can do that; so can a wrong cell. The mark of {after:.1%} × the new post-money rests on "
+               "the stated stake until the mechanism is confirmed.",
+               points=(f"Ownership **rose {before:.1%} → {after:.1%}** with **no HC cheque** on the row.",
+                       "Anti-dilution, a ratchet or a warrant explains it — **or a wrong cell** does.",
+                       "The mark rests on the **stated stake** until the mechanism is confirmed."),
+               suggestions=(
+                   Suggest("as_proposed", "Book at the stated ownership; the protection or warrant is real.", ("The row's ownership is the fund's own record.", "Right when the round documents show the mechanism."), "proposed"),
+                   Suggest("prior_stake", f"Book at the prior stake, {before:.1%}, against the new post-money.", ("Removes the unexplained increase from the mark.", "Right if the cell is wrong or the mechanism is unconfirmed."), "value", value=before * float(e.value)),
+               ),
+               action=f"Confirm what raised HC's stake from {before:.1%} to {after:.1%} without a cheque before booking it.",
+               ownership_before=before, ownership_after=after, relative_change=round(rel, 4))
     if not funded and rel < -cfg.exceptions.dilution.monitor_relative_drop:
         w.flag("X-103", "treatment", Severity.MONITOR,
                f"HC did not follow its pro rata, so ownership fell {before:.1%} → {after:.1%} ({rel:+.1%}). The mark itself "

@@ -193,3 +193,138 @@ def test_a_second_suggestion_on_the_same_company_keeps_earlier_rules_addressed(s
                                              "source_suggestion": "X-302/as_proposed"}).json()
     assert c2["disposition"] == "MONITOR"
     assert set(c2["override"]["rule_ids_addressed"]) == {"X-102", "X-302"}
+
+
+# ---------------------------------------------------------------- the approver's own two routes
+
+def _e01(company: dict) -> dict:
+    return next(s for s in company["steps"] if s["rule_id"] == "E-01")
+
+
+def test_a_mark_the_approver_typed_is_booked_and_the_chain_says_who_chose_it(scratch: RunPaths, tmp_path: Path):
+    """The Decide panel's manual route: a number that is not one of the engine's options. The
+    ledger keeps it under the approver's name with the reason they wrote, and the E-01 step
+    says the number was entered by hand rather than picked from a priced option."""
+    client = TestClient(create_app(scratch, static_dir=tmp_path / "no-static"))
+    before = client.get("/api/run").json()
+    g = next(c for c in before["companies"] if c["company"] == "Gryphonel")
+    typed = round(g["proposed_mark"] * 0.9, 2)
+    assert all(abs(s["booked"] - typed) > 1e-6 for f in g["flags"] for s in f["suggestions"])
+
+    r = client.post("/api/overrides", json={
+        "company": "Gryphonel", "booked": typed, "approver": "IC chair",
+        "reason": "Haircut for the escrow dispute the engine cannot see; counsel's estimate.",
+        "rule_ids_addressed": ["X-101"], "source_suggestion": "X-101/manual",
+    })
+    assert r.status_code == 200, r.text
+    c = r.json()
+    assert c["booked_mark"] == pytest.approx(typed) and c["proposed_mark"] == pytest.approx(g["proposed_mark"])
+    step = _e01(c)
+    assert step["inputs"]["chosen_by"] == "mark entered by the approver"
+    assert step["inputs"]["approver"] == "IC chair" and "counsel" in step["inputs"]["reason"]
+    assert "mark entered by the approver" in step["rationale"]
+    ledger = yaml.safe_load(scratch.overrides.read_text())["overrides"][-1]
+    assert ledger["booked"] == pytest.approx(typed) and ledger["source_suggestion"] == "X-101/manual"
+    assert ledger["approver"] == "IC chair"
+
+
+def test_accepting_the_proposal_as_it_stands_records_a_decision_without_moving_the_mark(scratch: RunPaths, tmp_path: Path):
+    """The Decide panel's accept route: booked equals proposed, so the total does not move, but
+    the flag is now decided under a name and the block clears."""
+    client = TestClient(create_app(scratch, static_dir=tmp_path / "no-static"))
+    before = client.get("/api/run").json()
+    g = next(c for c in before["companies"] if c["company"] == "Gryphonel")
+    r = client.post("/api/overrides", json={
+        "company": "Gryphonel", "booked": g["proposed_mark"], "approver": "IC chair",
+        "reason": "Accepted the engine's proposed mark for X-101; no adjustment.",
+        "rule_ids_addressed": ["X-101"], "source_suggestion": "X-101/proposed",
+    })
+    assert r.status_code == 200, r.text
+    c = r.json()
+    assert c["booked_mark"] == pytest.approx(g["proposed_mark"])
+    assert c["disposition"] != "BLOCK"
+    assert _e01(c)["inputs"]["chosen_by"] == "proposed mark accepted"
+    after = client.get("/api/run").json()
+    assert after["totals"]["booked_nav"] == pytest.approx(before["totals"]["booked_nav"], abs=1e-6)
+
+
+def test_a_manual_mark_still_needs_a_reason_and_a_name(scratch: RunPaths, tmp_path: Path):
+    """The confirmation cannot be skipped server-side either."""
+    client = TestClient(create_app(scratch, static_dir=tmp_path / "no-static"))
+    for body in ({"reason": "", "approver": "IC chair"}, {"reason": "because", "approver": ""}):
+        r = client.post("/api/overrides", json={"company": "Gryphonel", "booked": 4.0, "rule_ids_addressed": ["X-101"],
+                                                "source_suggestion": "X-101/manual", **body})
+        assert r.status_code == 422, r.text
+
+
+# ---------------------------------------------------------------- supplying the missing price
+
+_CLOSE = {"kind": "closing_price", "as_of": "2026-09-30", "market_cap_musd": 3712.0, "price": 41.2,
+          "shares_m": 90.1, "source": "Nasdaq close via Bloomberg", "ownership": 0.028}
+
+
+def test_a_closing_price_supplied_by_the_reviewer_travels_with_the_override(scratch: RunPaths, tmp_path: Path):
+    """Drayvenn is Blocked because no quarter-end quote is on file (X-101 on a stub price). The
+    reviewer's price is evidence, not an assertion: the ledger keeps the input, the E-01 step
+    names the route and carries the evidence, and the rationale says where the price came from."""
+    client = TestClient(create_app(scratch, static_dir=tmp_path / "no-static"))
+    before = client.get("/api/run").json()
+    d = next(c for c in before["companies"] if c["company"] == "Drayvenn")
+    assert d["disposition"] == "BLOCK"
+    flag = next(f for f in d["flags"] if f["rule_id"] == "X-101")
+    assert "price_source" in flag["evidence"] and "seeded_to_ipo_print" in flag["evidence"]["price_source"]
+
+    booked = round(_CLOSE["market_cap_musd"] * _CLOSE["ownership"], 3)
+    r = client.post("/api/overrides", json={
+        "company": "Drayvenn", "booked": booked, "approver": "IC chair",
+        "reason": "30 Sep close obtained; marks the listed position to the measurement-date price.",
+        "rule_ids_addressed": ["X-101"], "source_suggestion": "X-101/price", "evidence": _CLOSE,
+    })
+    assert r.status_code == 200, r.text
+    c = r.json()
+    assert c["booked_mark"] == pytest.approx(booked) and c["disposition"] != "BLOCK"
+    assert c["override"]["evidence"] == _CLOSE
+    step = _e01(c)
+    assert step["inputs"]["chosen_by"] == "closing price supplied"
+    assert step["inputs"]["evidence"] == _CLOSE
+    assert "closing price supplied: market cap $3,712M at 2026-09-30 from Nasdaq close via Bloomberg × 2.8% held" in step["rationale"]
+    ledger = yaml.safe_load(scratch.overrides.read_text())["overrides"][-1]
+    assert ledger["evidence"] == _CLOSE and ledger["source_suggestion"] == "X-101/price"
+    # an override without evidence writes no key at all, so older readers see the ledger they expect
+    client.post("/api/overrides", json={"company": "Gryphonel", "booked": 4.0, "approver": "A", "reason": "r",
+                                        "rule_ids_addressed": ["X-101"], "source_suggestion": "X-101/manual"})
+    assert "evidence" not in yaml.safe_load(scratch.overrides.read_text())["overrides"][-1]
+
+
+def test_closing_price_evidence_must_carry_a_positive_market_cap_and_a_source(scratch: RunPaths, tmp_path: Path):
+    client = TestClient(create_app(scratch, static_dir=tmp_path / "no-static"))
+    base = {"company": "Drayvenn", "booked": 100.0, "approver": "IC chair", "reason": "close obtained",
+            "rule_ids_addressed": ["X-101"], "source_suggestion": "X-101/price"}
+    bad = (
+        {**_CLOSE, "source": ""}, {k: v for k, v in _CLOSE.items() if k != "source"},
+        {**_CLOSE, "market_cap_musd": 0}, {**_CLOSE, "market_cap_musd": -5.0},
+        {k: v for k, v in _CLOSE.items() if k != "market_cap_musd"},
+        {**_CLOSE, "kind": ""}, {k: v for k, v in _CLOSE.items() if k != "kind"},
+    )
+    for evidence in bad:
+        r = client.post("/api/overrides", json={**base, "evidence": evidence})
+        assert r.status_code == 422, (evidence, r.text)
+        assert "message" in r.json()["detail"]
+    # other kinds are only asked to name themselves
+    r = client.post("/api/overrides", json={**base, "evidence": {"kind": "counsel_memo", "ref": "2026-09-14"}})
+    assert r.status_code == 200, r.text
+    assert not yaml.safe_load(scratch.overrides.read_text())["overrides"][-1].get("evidence", {}).get("source")
+
+
+def test_a_ledger_written_with_evidence_reloads_with_it_intact(scratch: RunPaths, tmp_path: Path):
+    from hc_valuation.api.app import append_override
+    append_override(scratch.overrides, {
+        "company": "Drayvenn", "quarter": "Q3 2026", "proposed": 110.068, "booked": 103.936,
+        "reason": "close obtained", "approver": "IC chair", "created_at": "2026-10-02",
+        "rule_ids_addressed": ["X-101"], "source_suggestion": "X-101/price", "evidence": _CLOSE,
+    })
+    client = TestClient(create_app(scratch, static_dir=tmp_path / "no-static"))
+    d = next(c for c in client.get("/api/run").json()["companies"] if c["company"] == "Drayvenn")
+    assert d["override"]["evidence"] == _CLOSE
+    assert d["override"]["evidence"]["as_of"] == "2026-09-30"          # stays a string through YAML
+    assert _e01(d)["inputs"]["chosen_by"] == "closing price supplied"

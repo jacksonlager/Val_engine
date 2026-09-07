@@ -46,4 +46,5 @@ expect:
                             flags_must: [X-900], flags_must_not: [M-999, X-115] }
     Zerocrest:            { disposition: BLOCK, rules: [M-000, M-000], proposed: 0.0, realized_quarter: 0.0, status: "Shut Down",
                             flags_must: [X-900], flags_must_not: [M-999, X-111] }
-    Hearthwick:           { rules: [M-000], rules_must_not: [M-010], proposed: 0.0, realized_quarter: 0.0, status: Acquired, flags_must_not: [X-900, M-999] }
+    # a priced round on an acquired company is refused *and said*: the row is recorded against the position (X-900), never dropped
+    Hearthwick:           { disposition: BLOCK, rules: [M-000, M-000], rules_must_not: [M-010], proposed: 0.0, realized_quarter: 0.0, status: Acquired, flags_must: [X-900], flags_must_not: [M-999] }

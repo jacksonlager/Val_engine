@@ -326,7 +326,8 @@ def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
             typer.echo(f"  {i['disposition']:<7} {i['company']:<22} {', '.join(x['rule_id'] for x in i['rules'])}", err=True)
         raise typer.Exit(2)
     typer.echo(f"published {rec['quarter']} as {rec['status'].upper()} by {rec['published_by']} "
-               f"(run {rec['run_id']}, booked NAV {rec['booked_nav']:,.1f}, {len(rec['open_blocks'])} open block(s))")
+               f"(run {rec['run_id']}, booked NAV {rec['booked_nav']:,.1f}, "
+               f"{len(rec.get('open_positions', rec['open_blocks']))} position(s) not ready, {len(rec['open_blocks'])} blocked)")
     typer.echo(f"executive dashboard: {DASHBOARD_URL}/exec/  (after `hc-valuation run`)")
     if out is not None:
         view = exec_payload(paths.root)

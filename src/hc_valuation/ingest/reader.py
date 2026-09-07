@@ -349,8 +349,19 @@ def _read_activity(ws, sheet_name: str, config: RuleConfig, snapshot: PortfolioS
             extra["raw_event_type"] = str(raw_type)
         if str(raw_company) != company:
             extra["raw_company"] = str(raw_company)
+        # A blank or unreadable date refuses this row (X-902, below in validate) rather than the
+        # whole workbook: the measurement date stands in only so the row can be carried through
+        # to the refusal, and `extra` says why, so no window check reads the stand-in as a fact.
+        try:
+            when = cells.day("Date", required=False)
+        except IngestError as ex:
+            when = None
+            extra["date_unreadable"] = str(ex).split(": ", 2)[-1]
+        if when is None:
+            extra.setdefault("date_missing", True)
+            when = config.quarter.measurement_date
         events.append(Event(
-            date=cells.day("Date"),
+            date=when,
             company=company,
             event_type=event_type,
             detail=cells.text("Detail"),

@@ -1,7 +1,9 @@
 {
  "companies": [
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 3.4,
    "arr_growth": 0.83,
    "booked_mark": 13.878,
@@ -48,7 +50,9 @@
    "latest_post_money": 128.5,
    "listed": false,
    "moic_after": 2.313,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -56,6 +60,9 @@
    "ownership_before": 0.136,
    "prior_mark": 6.9,
    "proposed_mark": 13.878,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 32.52,
@@ -87,10 +94,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 6.978
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 5.1,
    "arr_growth": 1.08,
    "booked_mark": 8.1,
@@ -171,7 +181,9 @@
    "latest_post_money": 61.3,
    "listed": false,
    "moic_after": 1.35,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -179,6 +191,9 @@
    "ownership_before": 0.132,
    "prior_mark": 8.1,
    "proposed_mark": 8.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 4.96,
@@ -202,10 +217,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Full exit",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 27.3,
    "arr_growth": 0.93,
    "booked_mark": 0.0,
@@ -221,7 +239,9 @@
    "latest_post_money": 209.5,
    "listed": false,
    "moic_after": 2.82,
+   "monitor": false,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -229,6 +249,9 @@
    "ownership_before": 0.087,
    "prior_mark": 18.2,
    "proposed_mark": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 28.2,
    "realized_quarter": 28.2,
    "runway_months_aged": 32.47,
@@ -259,10 +282,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 10.0
   },
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 2.5,
    "arr_growth": 1.86,
    "booked_mark": 5.709,
@@ -309,7 +335,9 @@
    "latest_post_money": 103.8,
    "listed": false,
    "moic_after": 1.4272,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -317,6 +345,9 @@
    "ownership_before": 0.076,
    "prior_mark": 4.1,
    "proposed_mark": 5.709,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 24.62,
@@ -348,10 +379,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 1.609
   },
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.7,
    "arr_growth": 2.07,
    "booked_mark": 1.8,
@@ -397,7 +431,9 @@
    "latest_post_money": 22.5,
    "listed": false,
    "moic_after": 0.72,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -417,6 +453,9 @@
    "ownership_before": 0.078,
    "prior_mark": 1.8,
    "proposed_mark": 1.8,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 12.08,
@@ -448,10 +487,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 80.1,
    "arr_growth": 0.69,
    "booked_mark": 73.516,
@@ -467,7 +509,9 @@
    "latest_post_money": 1837.9,
    "listed": false,
    "moic_after": 7.1375,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -475,6 +519,9 @@
    "ownership_before": 0.049,
    "prior_mark": 38.5,
    "proposed_mark": 73.516,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 31.09,
@@ -506,14 +553,17 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 35.016
   },
   {
+   "action": "Revalue",
    "alternative_marks": {
     "at_full_deal_value": 4.788,
     "hold_prior": 3.5,
     "probability_weighted": 4.6592
    },
+   "approval": "Not approved",
    "arr": 14.0,
    "arr_growth": 0.51,
    "booked_mark": 4.6592,
@@ -605,7 +655,9 @@
    "latest_post_money": 97.0,
    "listed": false,
    "moic_after": 1.1648,
+   "monitor": true,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -625,6 +677,9 @@
    "ownership_before": 0.036,
    "prior_mark": 3.5,
    "proposed_mark": 4.6592,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 24.0,
@@ -659,12 +714,15 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 1.1592
   },
   {
+   "action": "Revalue",
    "alternative_marks": {
     "term_sheet_indicated": 4.25
    },
+   "approval": "Not approved",
    "arr": 4.8,
    "arr_growth": 1.7,
    "booked_mark": 2.7,
@@ -737,7 +795,9 @@
    "latest_post_money": 31.3,
    "listed": false,
    "moic_after": 1.35,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -757,6 +817,9 @@
    "ownership_before": 0.085,
    "prior_mark": 2.7,
    "proposed_mark": 2.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 15.15,
@@ -786,10 +849,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 76.7,
    "arr_growth": 0.28,
    "booked_mark": 29.0396,
@@ -821,7 +887,9 @@
    "latest_post_money": 764.2,
    "listed": false,
    "moic_after": 4.8399,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -829,6 +897,9 @@
    "ownership_before": 0.052,
    "prior_mark": 15.8,
    "proposed_mark": 29.0396,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 13.49,
@@ -860,10 +931,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 13.2396
   },
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.2,
    "arr_growth": 2.71,
    "booked_mark": 4.773,
@@ -895,7 +969,9 @@
    "latest_post_money": 43.0,
    "listed": false,
    "moic_after": 1.2561,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 1.3,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -903,6 +979,9 @@
    "ownership_before": 0.108,
    "prior_mark": 2.9,
    "proposed_mark": 4.773,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 25.52,
@@ -935,10 +1014,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.573
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": null,
    "arr_growth": null,
    "booked_mark": 0.0,
@@ -954,7 +1036,9 @@
    "latest_post_money": 112.1,
    "listed": false,
    "moic_after": 2.7414,
+   "monitor": false,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -962,6 +1046,9 @@
    "ownership_before": 0.071,
    "prior_mark": 0.0,
    "proposed_mark": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 15.9,
    "realized_quarter": 0.0,
    "runway_months_aged": null,
@@ -984,10 +1071,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.8,
    "arr_growth": 2.86,
    "booked_mark": 0.4,
@@ -1003,7 +1093,9 @@
    "latest_post_money": 4.3,
    "listed": false,
    "moic_after": 0.8,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1011,6 +1103,9 @@
    "ownership_before": 0.099,
    "prior_mark": 0.4,
    "proposed_mark": 0.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 21.0,
@@ -1034,12 +1129,15 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Partial exit",
    "alternative_marks": {
     "at_secondary_price": 8.772
    },
+   "approval": "Not approved",
    "arr": 75.3,
    "arr_growth": 0.46,
    "booked_mark": 8.772,
@@ -1055,7 +1153,9 @@
    "latest_post_money": 516.0,
    "listed": false,
    "moic_after": 1.2185,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1063,6 +1163,9 @@
    "ownership_before": 0.025,
    "prior_mark": 12.9,
    "proposed_mark": 8.772,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 3.9,
    "realized_quarter": 3.9,
    "runway_months_aged": 15.75,
@@ -1099,10 +1202,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": -0.228
   },
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.9,
    "arr_growth": 1.25,
    "booked_mark": 3.0668,
@@ -1134,7 +1240,9 @@
    "latest_post_money": 45.1,
    "listed": false,
    "moic_after": 1.804,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.9,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1142,6 +1250,9 @@
    "ownership_before": 0.065,
    "prior_mark": 1.2,
    "proposed_mark": 3.0668,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 13.83,
@@ -1174,10 +1285,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.9668
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 121.2,
    "arr_growth": 0.27,
    "booked_mark": 13.9,
@@ -1235,7 +1349,9 @@
    "latest_post_money": 1157.1,
    "listed": false,
    "moic_after": 1.7375,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1243,6 +1359,9 @@
    "ownership_before": 0.012,
    "prior_mark": 13.9,
    "proposed_mark": 13.9,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 15.13,
@@ -1266,10 +1385,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 25.5,
    "arr_growth": 1.01,
    "booked_mark": 13.9277,
@@ -1368,7 +1490,9 @@
    "latest_post_money": 176.3,
    "listed": false,
    "moic_after": 2.7309,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 1.1,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1376,6 +1500,9 @@
    "ownership_before": 0.074,
    "prior_mark": 13.0,
    "proposed_mark": 13.9277,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 19.2,
@@ -1407,10 +1534,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": -0.1723
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 2.9,
    "arr_growth": 1.26,
    "booked_mark": 7.4,
@@ -1441,7 +1571,9 @@
    "latest_post_money": 61.1,
    "listed": false,
    "moic_after": 1.2333,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1449,6 +1581,9 @@
    "ownership_before": 0.121,
    "prior_mark": 7.4,
    "proposed_mark": 7.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 13.82,
@@ -1472,10 +1607,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.3,
    "arr_growth": 2.44,
    "booked_mark": 2.9,
@@ -1491,7 +1629,9 @@
    "latest_post_money": 23.9,
    "listed": false,
    "moic_after": 1.3182,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1499,6 +1639,9 @@
    "ownership_before": 0.12,
    "prior_mark": 2.9,
    "proposed_mark": 2.9,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 15.4,
@@ -1522,10 +1665,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 3.6,
    "arr_growth": 1.07,
    "booked_mark": 8.9,
@@ -1541,7 +1687,9 @@
    "latest_post_money": 75.5,
    "listed": false,
    "moic_after": 1.7451,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1549,6 +1697,9 @@
    "ownership_before": 0.118,
    "prior_mark": 8.9,
    "proposed_mark": 8.9,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 22.88,
@@ -1572,12 +1723,15 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Revalue",
    "alternative_marks": {
     "structure_adjusted": 0.852
    },
+   "approval": "Not approved",
    "arr": 1.4,
    "arr_growth": -0.16,
    "booked_mark": 1.136,
@@ -1711,7 +1865,9 @@
    "latest_post_money": 14.2,
    "listed": false,
    "moic_after": 0.8738,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.3,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1719,6 +1875,9 @@
    "ownership_before": 0.083,
    "prior_mark": 2.0,
    "proposed_mark": 1.136,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 32.45,
@@ -1752,10 +1911,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": -1.164
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 31.7,
    "arr_growth": 0.45,
    "booked_mark": 24.1,
@@ -1836,7 +1998,9 @@
    "latest_post_money": 279.8,
    "listed": false,
    "moic_after": 2.41,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1844,6 +2008,9 @@
    "ownership_before": 0.086,
    "prior_mark": 24.1,
    "proposed_mark": 24.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 3.12,
@@ -1867,10 +2034,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 71.8,
    "arr_growth": 0.29,
    "booked_mark": 22.7,
@@ -1886,7 +2056,9 @@
    "latest_post_money": 398.1,
    "listed": false,
    "moic_after": 3.7833,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1894,6 +2066,9 @@
    "ownership_before": 0.057,
    "prior_mark": 22.7,
    "proposed_mark": 22.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 17.86,
@@ -1917,10 +2092,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 78.7,
    "arr_growth": 0.75,
    "booked_mark": 12.4,
@@ -1951,7 +2129,9 @@
    "latest_post_money": 562.1,
    "listed": false,
    "moic_after": 2.0667,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -1959,6 +2139,9 @@
    "ownership_before": 0.022,
    "prior_mark": 12.4,
    "proposed_mark": 12.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 15.97,
@@ -1982,10 +2165,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 12.2,
    "arr_growth": 1.08,
    "booked_mark": 6.1,
@@ -2016,7 +2202,9 @@
    "latest_post_money": 97.6,
    "listed": false,
    "moic_after": 1.525,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2024,6 +2212,9 @@
    "ownership_before": 0.063,
    "prior_mark": 6.1,
    "proposed_mark": 6.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 25.54,
@@ -2047,10 +2238,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.8,
    "arr_growth": 1.49,
    "booked_mark": 1.3,
@@ -2081,7 +2275,9 @@
    "latest_post_money": 14.2,
    "listed": false,
    "moic_after": 1.0833,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2089,6 +2285,9 @@
    "ownership_before": 0.091,
    "prior_mark": 1.3,
    "proposed_mark": 1.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 14.62,
@@ -2112,10 +2311,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.5,
    "arr_growth": 1.02,
    "booked_mark": 1.1,
@@ -2146,7 +2348,9 @@
    "latest_post_money": 9.3,
    "listed": false,
    "moic_after": 0.44,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2154,6 +2358,9 @@
    "ownership_before": 0.116,
    "prior_mark": 1.1,
    "proposed_mark": 1.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 31.86,
@@ -2177,10 +2384,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.7,
    "arr_growth": 2.7,
    "booked_mark": 1.4,
@@ -2269,7 +2479,9 @@
    "latest_post_money": 21.2,
    "listed": false,
    "moic_after": 0.9333,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2277,6 +2489,9 @@
    "ownership_before": 0.064,
    "prior_mark": 1.4,
    "proposed_mark": 1.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 28.0,
@@ -2300,10 +2515,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 12.0,
    "arr_growth": -0.21,
    "booked_mark": 18.5,
@@ -2383,7 +2601,9 @@
    "latest_post_money": 246.7,
    "listed": false,
    "moic_after": 1.85,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2391,6 +2611,9 @@
    "ownership_before": 0.075,
    "prior_mark": 18.5,
    "proposed_mark": 18.5,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 24.11,
@@ -2414,10 +2637,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.6,
    "arr_growth": 1.94,
    "booked_mark": 6.2,
@@ -2449,7 +2675,9 @@
    "latest_post_money": 86.2,
    "listed": false,
    "moic_after": 1.5122,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2457,6 +2685,9 @@
    "ownership_before": 0.072,
    "prior_mark": 6.2,
    "proposed_mark": 6.2,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 17.31,
@@ -2480,12 +2711,15 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Revalue",
    "alternative_marks": {
     "at_ipo_print": 110.068
    },
+   "approval": "Not approved",
    "arr": 148.9,
    "arr_growth": 0.43,
    "booked_mark": 110.068,
@@ -2545,7 +2779,9 @@
    "latest_post_money": 3931.0,
    "listed": true,
    "moic_after": 5.5034,
+   "monitor": false,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [
     {
@@ -2565,6 +2801,9 @@
    "ownership_before": 0.034,
    "prior_mark": 80.3,
    "proposed_mark": 110.068,
+   "provisional": true,
+   "provisional_reason": "Missing the 30 Sep 2026 closing price. The mark stands in the listing-day market cap ($3,931M) until the close is obtained.",
+   "readiness": "Blocked",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 25.69,
@@ -2597,10 +2836,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 29.768
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 6.1,
    "arr_growth": 0.42,
    "booked_mark": 1.7,
@@ -2632,7 +2874,9 @@
    "latest_post_money": 14.2,
    "listed": false,
    "moic_after": 0.2833,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2640,6 +2884,9 @@
    "ownership_before": 0.122,
    "prior_mark": 1.7,
    "proposed_mark": 1.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 20.09,
@@ -2663,10 +2910,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 21.4,
    "arr_growth": 1.14,
    "booked_mark": 10.3,
@@ -2697,7 +2947,9 @@
    "latest_post_money": 258.1,
    "listed": false,
    "moic_after": 2.575,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2705,6 +2957,9 @@
    "ownership_before": 0.04,
    "prior_mark": 10.3,
    "proposed_mark": 10.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 24.85,
@@ -2728,10 +2983,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 39.1,
    "arr_growth": 0.73,
    "booked_mark": 14.3,
@@ -2762,7 +3020,9 @@
    "latest_post_money": 326.0,
    "listed": false,
    "moic_after": 1.0214,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2770,6 +3030,9 @@
    "ownership_before": 0.044,
    "prior_mark": 14.3,
    "proposed_mark": 14.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 27.52,
@@ -2793,10 +3056,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 74.7,
    "arr_growth": 0.62,
    "booked_mark": 30.4,
@@ -2827,7 +3093,9 @@
    "latest_post_money": 780.4,
    "listed": false,
    "moic_after": 2.5546,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2835,6 +3103,9 @@
    "ownership_before": 0.039,
    "prior_mark": 30.4,
    "proposed_mark": 30.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 23.35,
@@ -2858,10 +3129,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 26.1,
    "arr_growth": 0.78,
    "booked_mark": 14.6,
@@ -2892,7 +3166,9 @@
    "latest_post_money": 261.2,
    "listed": false,
    "moic_after": 1.46,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -2900,6 +3176,9 @@
    "ownership_before": 0.056,
    "prior_mark": 14.6,
    "proposed_mark": 14.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 19.4,
@@ -2923,10 +3202,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 28.6,
    "arr_growth": 0.84,
    "booked_mark": 14.3,
@@ -3007,7 +3289,9 @@
    "latest_post_money": 192.9,
    "listed": false,
    "moic_after": 1.43,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3015,6 +3299,9 @@
    "ownership_before": 0.074,
    "prior_mark": 14.3,
    "proposed_mark": 14.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 3.4,
@@ -3038,10 +3325,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.6,
    "arr_growth": 3.0,
    "booked_mark": 0.9,
@@ -3072,7 +3362,9 @@
    "latest_post_money": 12.0,
    "listed": false,
    "moic_after": 0.8182,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3080,6 +3372,9 @@
    "ownership_before": 0.078,
    "prior_mark": 0.9,
    "proposed_mark": 0.9,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 19.5,
@@ -3103,10 +3398,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Write-off",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 2.9,
    "arr_growth": 1.82,
    "booked_mark": 0.0,
@@ -3122,7 +3420,9 @@
    "latest_post_money": 86.9,
    "listed": false,
    "moic_after": 0.0667,
+   "monitor": false,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3130,6 +3430,9 @@
    "ownership_before": 0.131,
    "prior_mark": 11.4,
    "proposed_mark": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.4,
    "realized_quarter": 0.4,
    "runway_months_aged": 4.71,
@@ -3158,10 +3461,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": -11.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 227.3,
    "arr_growth": 0.48,
    "booked_mark": 30.2,
@@ -3192,7 +3498,9 @@
    "latest_post_money": 2012.1,
    "listed": false,
    "moic_after": 1.8875,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3200,6 +3508,9 @@
    "ownership_before": 0.015,
    "prior_mark": 30.2,
    "proposed_mark": 30.2,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 21.05,
@@ -3223,10 +3534,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.2,
    "arr_growth": 0.64,
    "booked_mark": 0.8,
@@ -3257,7 +3571,9 @@
    "latest_post_money": 9.8,
    "listed": false,
    "moic_after": 0.7273,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3265,6 +3581,9 @@
    "ownership_before": 0.079,
    "prior_mark": 0.8,
    "proposed_mark": 0.8,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 21.0,
@@ -3288,12 +3607,15 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Revalue",
    "alternative_marks": {
     "structure_adjusted": 1.74825
    },
+   "approval": "Not approved",
    "arr": 3.6,
    "arr_growth": -0.08,
    "booked_mark": 2.331,
@@ -3415,7 +3737,9 @@
    "latest_post_money": 37.0,
    "listed": false,
    "moic_after": 0.3951,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3423,6 +3747,9 @@
    "ownership_before": 0.08,
    "prior_mark": 5.7,
    "proposed_mark": 2.331,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 22.57,
@@ -3456,10 +3783,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": -3.369
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 2.8,
    "arr_growth": 0.51,
    "booked_mark": 7.3,
@@ -3557,7 +3887,9 @@
    "latest_post_money": 87.7,
    "listed": false,
    "moic_after": 1.2167,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3565,6 +3897,9 @@
    "ownership_before": 0.083,
    "prior_mark": 7.3,
    "proposed_mark": 7.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 26.73,
@@ -3588,10 +3923,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.4,
    "arr_growth": -0.32,
    "booked_mark": 1.6,
@@ -3648,7 +3986,9 @@
    "latest_post_money": 15.1,
    "listed": false,
    "moic_after": 0.8889,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3656,6 +3996,9 @@
    "ownership_before": 0.106,
    "prior_mark": 1.6,
    "proposed_mark": 1.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 27.28,
@@ -3679,10 +4022,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 2.0,
    "arr_growth": 1.11,
    "booked_mark": 2.2,
@@ -3713,7 +4059,9 @@
    "latest_post_money": 22.8,
    "listed": false,
    "moic_after": 0.5641,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3721,6 +4069,9 @@
    "ownership_before": 0.095,
    "prior_mark": 2.2,
    "proposed_mark": 2.2,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 14.0,
@@ -3744,10 +4095,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 2.2,
    "arr_growth": 1.16,
    "booked_mark": 5.4,
@@ -3779,7 +4133,9 @@
    "latest_post_money": 87.7,
    "listed": false,
    "moic_after": 0.931,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3787,6 +4143,9 @@
    "ownership_before": 0.062,
    "prior_mark": 5.4,
    "proposed_mark": 5.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 14.45,
@@ -3810,10 +4169,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.6,
    "arr_growth": 2.54,
    "booked_mark": 1.2,
@@ -3829,7 +4191,9 @@
    "latest_post_money": 12.0,
    "listed": false,
    "moic_after": 1.2,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3837,6 +4201,9 @@
    "ownership_before": 0.097,
    "prior_mark": 1.2,
    "proposed_mark": 1.2,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 30.52,
@@ -3860,10 +4227,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.3,
    "arr_growth": 2.88,
    "booked_mark": 1.0,
@@ -3893,7 +4263,9 @@
    "latest_post_money": 10.3,
    "listed": false,
    "moic_after": 0.5556,
+   "monitor": true,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3901,6 +4273,9 @@
    "ownership_before": 0.096,
    "prior_mark": 1.0,
    "proposed_mark": 1.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 18.09,
@@ -3924,10 +4299,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 5.7,
    "arr_growth": -0.11,
    "booked_mark": 11.8,
@@ -3957,7 +4335,9 @@
    "latest_post_money": 84.9,
    "listed": false,
    "moic_after": 1.9667,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -3965,6 +4345,9 @@
    "ownership_before": 0.139,
    "prior_mark": 11.8,
    "proposed_mark": 11.8,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 24.4,
@@ -3988,10 +4371,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 201.8,
    "arr_growth": 0.32,
    "booked_mark": 20.6,
@@ -4022,7 +4408,9 @@
    "latest_post_money": 2055.3,
    "listed": false,
    "moic_after": 1.03,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4030,6 +4418,9 @@
    "ownership_before": 0.01,
    "prior_mark": 20.6,
    "proposed_mark": 20.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 18.41,
@@ -4053,10 +4444,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 7.5,
    "arr_growth": 0.85,
    "booked_mark": 0.6,
@@ -4145,7 +4539,9 @@
    "latest_post_money": 7.7,
    "listed": false,
    "moic_after": 0.3,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4153,6 +4549,9 @@
    "ownership_before": 0.084,
    "prior_mark": 0.6,
    "proposed_mark": 0.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 29.87,
@@ -4176,10 +4575,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 2.0,
    "arr_growth": 1.68,
    "booked_mark": 3.7,
@@ -4210,7 +4612,9 @@
    "latest_post_money": 30.2,
    "listed": false,
    "moic_after": 0.7115,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4218,6 +4622,9 @@
    "ownership_before": 0.123,
    "prior_mark": 3.7,
    "proposed_mark": 3.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 16.69,
@@ -4241,10 +4648,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 10.8,
    "arr_growth": 0.79,
    "booked_mark": 10.6,
@@ -4260,7 +4670,9 @@
    "latest_post_money": 251.6,
    "listed": false,
    "moic_after": 1.8929,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4268,6 +4680,9 @@
    "ownership_before": 0.042,
    "prior_mark": 10.6,
    "proposed_mark": 10.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 29.53,
@@ -4291,10 +4706,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 129.4,
    "arr_growth": -0.2,
    "booked_mark": 43.3,
@@ -4401,7 +4819,9 @@
    "latest_post_money": 1494.5,
    "listed": false,
    "moic_after": 2.7756,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4409,6 +4829,9 @@
    "ownership_before": 0.029,
    "prior_mark": 43.3,
    "proposed_mark": 43.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 17.45,
@@ -4432,10 +4855,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 24.8,
    "arr_growth": 0.68,
    "booked_mark": 14.6,
@@ -4451,7 +4877,9 @@
    "latest_post_money": 260.3,
    "listed": false,
    "moic_after": 3.65,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4459,6 +4887,9 @@
    "ownership_before": 0.056,
    "prior_mark": 14.6,
    "proposed_mark": 14.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 26.78,
@@ -4482,10 +4913,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Revalue",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 7.0,
    "arr_growth": 1.12,
    "booked_mark": 6.6,
@@ -4623,7 +5057,9 @@
    "latest_post_money": 73.8,
    "listed": false,
    "moic_after": 1.082,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.5,
    "note_at_cost": 0.5,
    "open_items": [
     {
@@ -4643,6 +5079,9 @@
    "ownership_before": 0.082,
    "prior_mark": 6.1,
    "proposed_mark": 6.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 4.11,
@@ -4674,10 +5113,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 13.1,
    "arr_growth": 0.98,
    "booked_mark": 23.8,
@@ -4709,7 +5151,9 @@
    "latest_post_money": 626.9,
    "listed": false,
    "moic_after": 4.76,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4717,6 +5161,9 @@
    "ownership_before": 0.038,
    "prior_mark": 23.8,
    "proposed_mark": 23.8,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 23.62,
@@ -4740,10 +5187,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 19.4,
    "arr_growth": 1.03,
    "booked_mark": 26.5,
@@ -4856,7 +5306,9 @@
    "latest_post_money": 631.7,
    "listed": false,
    "moic_after": 6.625,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4864,6 +5316,9 @@
    "ownership_before": 0.042,
    "prior_mark": 26.5,
    "proposed_mark": 26.5,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 30.08,
@@ -4887,10 +5342,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 6.3,
    "arr_growth": 0.52,
    "booked_mark": 3.1,
@@ -4906,7 +5364,9 @@
    "latest_post_money": 30.3,
    "listed": false,
    "moic_after": 1.4762,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4914,6 +5374,9 @@
    "ownership_before": 0.102,
    "prior_mark": 3.1,
    "proposed_mark": 3.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 21.31,
@@ -4937,10 +5400,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": null,
    "arr_growth": null,
    "booked_mark": 0.0,
@@ -4956,7 +5422,9 @@
    "latest_post_money": 8.9,
    "listed": false,
    "moic_after": 1.7143,
+   "monitor": false,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -4964,6 +5432,9 @@
    "ownership_before": 0.084,
    "prior_mark": 0.0,
    "proposed_mark": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 1.2,
    "realized_quarter": 0.0,
    "runway_months_aged": null,
@@ -4986,10 +5457,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 6.6,
    "arr_growth": 1.28,
    "booked_mark": 3.0,
@@ -5020,7 +5494,9 @@
    "latest_post_money": 24.7,
    "listed": false,
    "moic_after": 0.5,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5028,6 +5504,9 @@
    "ownership_before": 0.12,
    "prior_mark": 3.0,
    "proposed_mark": 3.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 21.7,
@@ -5051,10 +5530,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 6.1,
    "arr_growth": 1.04,
    "booked_mark": 5.6,
@@ -5070,7 +5552,9 @@
    "latest_post_money": 79.0,
    "listed": false,
    "moic_after": 1.2174,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5078,6 +5562,9 @@
    "ownership_before": 0.071,
    "prior_mark": 5.6,
    "proposed_mark": 5.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 23.08,
@@ -5101,10 +5588,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 7.5,
    "arr_growth": 0.56,
    "booked_mark": 4.4,
@@ -5120,7 +5610,9 @@
    "latest_post_money": 63.6,
    "listed": false,
    "moic_after": 2.2,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5128,6 +5620,9 @@
    "ownership_before": 0.069,
    "prior_mark": 4.4,
    "proposed_mark": 4.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 29.83,
@@ -5151,10 +5646,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.4,
    "arr_growth": 0.68,
    "booked_mark": 1.1,
@@ -5170,7 +5668,9 @@
    "latest_post_money": 15.3,
    "listed": false,
    "moic_after": 0.7333,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5178,6 +5678,9 @@
    "ownership_before": 0.072,
    "prior_mark": 1.1,
    "proposed_mark": 1.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 22.81,
@@ -5201,10 +5704,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 26.0,
    "arr_growth": -0.05,
    "booked_mark": 6.6,
@@ -5300,7 +5806,9 @@
    "latest_post_money": 122.5,
    "listed": false,
    "moic_after": 1.65,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5308,6 +5816,9 @@
    "ownership_before": 0.054,
    "prior_mark": 6.6,
    "proposed_mark": 6.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 28.07,
@@ -5331,10 +5842,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 65.7,
    "arr_growth": 0.53,
    "booked_mark": 21.3,
@@ -5392,7 +5906,9 @@
    "latest_post_money": 820.2,
    "listed": false,
    "moic_after": 1.42,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5400,6 +5916,9 @@
    "ownership_before": 0.026,
    "prior_mark": 21.3,
    "proposed_mark": 21.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 17.32,
@@ -5423,10 +5942,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 22.1,
    "arr_growth": 0.59,
    "booked_mark": 7.3,
@@ -5493,7 +6015,9 @@
    "latest_post_money": 119.9,
    "listed": false,
    "moic_after": 1.825,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5501,6 +6025,9 @@
    "ownership_before": 0.061,
    "prior_mark": 7.3,
    "proposed_mark": 7.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 2.5,
@@ -5524,10 +6051,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 7.2,
    "arr_growth": 1.87,
    "booked_mark": 6.5,
@@ -5543,7 +6073,9 @@
    "latest_post_money": 54.3,
    "listed": false,
    "moic_after": 1.0833,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5551,6 +6083,9 @@
    "ownership_before": 0.12,
    "prior_mark": 6.5,
    "proposed_mark": 6.5,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 16.53,
@@ -5574,10 +6109,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 6.0,
    "arr_growth": 1.16,
    "booked_mark": 8.9,
@@ -5593,7 +6131,9 @@
    "latest_post_money": 66.1,
    "listed": false,
    "moic_after": 1.4833,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5601,6 +6141,9 @@
    "ownership_before": 0.135,
    "prior_mark": 8.9,
    "proposed_mark": 8.9,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 26.39,
@@ -5624,10 +6167,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 16.0,
    "arr_growth": 1.15,
    "booked_mark": 12.2,
@@ -5658,7 +6204,9 @@
    "latest_post_money": 298.3,
    "listed": false,
    "moic_after": 1.22,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5666,6 +6214,9 @@
    "ownership_before": 0.041,
    "prior_mark": 12.2,
    "proposed_mark": 12.2,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 24.43,
@@ -5689,10 +6240,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.0,
    "arr_growth": 2.99,
    "booked_mark": 1.7,
@@ -5773,7 +6327,9 @@
    "latest_post_money": 18.1,
    "listed": false,
    "moic_after": 1.2143,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5781,6 +6337,9 @@
    "ownership_before": 0.094,
    "prior_mark": 1.7,
    "proposed_mark": 1.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 3.67,
@@ -5804,10 +6363,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.4,
    "arr_growth": 1.43,
    "booked_mark": 1.2,
@@ -5823,7 +6385,9 @@
    "latest_post_money": 13.9,
    "listed": false,
    "moic_after": 0.8571,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5831,6 +6395,9 @@
    "ownership_before": 0.087,
    "prior_mark": 1.2,
    "proposed_mark": 1.2,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 19.0,
@@ -5854,10 +6421,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.2,
    "arr_growth": 0.65,
    "booked_mark": 1.5,
@@ -5901,7 +6471,9 @@
    "latest_post_money": 17.9,
    "listed": false,
    "moic_after": 1.1538,
+   "monitor": true,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5909,6 +6481,9 @@
    "ownership_before": 0.083,
    "prior_mark": 1.5,
    "proposed_mark": 1.5,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 25.96,
@@ -5932,10 +6507,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 127.7,
    "arr_growth": 0.45,
    "booked_mark": 22.3,
@@ -5951,7 +6529,9 @@
    "latest_post_money": 1390.7,
    "listed": false,
    "moic_after": 1.6519,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -5959,6 +6539,9 @@
    "ownership_before": 0.016,
    "prior_mark": 22.3,
    "proposed_mark": 22.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 25.07,
@@ -5982,10 +6565,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 5.5,
    "arr_growth": 0.45,
    "booked_mark": 4.7,
@@ -6001,7 +6587,9 @@
    "latest_post_money": 38.7,
    "listed": false,
    "moic_after": 0.7833,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6009,6 +6597,9 @@
    "ownership_before": 0.121,
    "prior_mark": 4.7,
    "proposed_mark": 4.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 16.46,
@@ -6032,10 +6623,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 204.3,
    "arr_growth": 0.18,
    "booked_mark": 57.1,
@@ -6066,7 +6660,9 @@
    "latest_post_money": 2282.4,
    "listed": false,
    "moic_after": 2.855,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6074,6 +6670,9 @@
    "ownership_before": 0.025,
    "prior_mark": 57.1,
    "proposed_mark": 57.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 16.58,
@@ -6097,10 +6696,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.1,
    "arr_growth": null,
    "booked_mark": 2.5,
@@ -6130,7 +6732,9 @@
    "latest_post_money": 21.3,
    "listed": false,
    "moic_after": 1.0,
+   "monitor": true,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6138,6 +6742,9 @@
    "ownership_before": 0.119,
    "prior_mark": 2.5,
    "proposed_mark": 2.5,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 18.26,
@@ -6161,10 +6768,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 9.8,
    "arr_growth": 0.52,
    "booked_mark": 3.4,
@@ -6209,7 +6819,9 @@
    "latest_post_money": 91.0,
    "listed": false,
    "moic_after": 0.85,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6217,6 +6829,9 @@
    "ownership_before": 0.037,
    "prior_mark": 3.4,
    "proposed_mark": 3.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 11.62,
@@ -6240,10 +6855,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.4,
    "arr_growth": 2.9,
    "booked_mark": 1.3,
@@ -6287,7 +6905,9 @@
    "latest_post_money": 12.5,
    "listed": false,
    "moic_after": 1.3,
+   "monitor": true,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6295,6 +6915,9 @@
    "ownership_before": 0.103,
    "prior_mark": 1.3,
    "proposed_mark": 1.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 13.0,
@@ -6318,10 +6941,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 64.1,
    "arr_growth": 0.31,
    "booked_mark": 8.7,
@@ -6352,7 +6978,9 @@
    "latest_post_money": 415.9,
    "listed": false,
    "moic_after": 1.45,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6360,6 +6988,9 @@
    "ownership_before": 0.021,
    "prior_mark": 8.7,
    "proposed_mark": 8.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 18.36,
@@ -6383,10 +7014,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.9,
    "arr_growth": 0.75,
    "booked_mark": 2.6,
@@ -6402,7 +7036,9 @@
    "latest_post_money": 25.5,
    "listed": false,
    "moic_after": 1.0833,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6410,6 +7046,9 @@
    "ownership_before": 0.101,
    "prior_mark": 2.6,
    "proposed_mark": 2.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 31.5,
@@ -6433,10 +7072,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 78.8,
    "arr_growth": 0.29,
    "booked_mark": 27.8,
@@ -6452,7 +7094,9 @@
    "latest_post_money": 677.3,
    "listed": false,
    "moic_after": 1.9306,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6460,6 +7104,9 @@
    "ownership_before": 0.041,
    "prior_mark": 27.8,
    "proposed_mark": 27.8,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 28.92,
@@ -6483,10 +7130,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": null,
    "arr_growth": null,
    "booked_mark": 0.0,
@@ -6502,7 +7152,9 @@
    "latest_post_money": 130.7,
    "listed": false,
    "moic_after": 0.0,
+   "monitor": false,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6510,6 +7162,9 @@
    "ownership_before": 0.037,
    "prior_mark": 0.0,
    "proposed_mark": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": null,
@@ -6532,10 +7187,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 68.6,
    "arr_growth": 0.53,
    "booked_mark": 10.8,
@@ -6566,7 +7224,9 @@
    "latest_post_money": 285.1,
    "listed": false,
    "moic_after": 0.871,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6574,6 +7234,9 @@
    "ownership_before": 0.038,
    "prior_mark": 10.8,
    "proposed_mark": 10.8,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 17.98,
@@ -6597,10 +7260,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.9,
    "arr_growth": 0.64,
    "booked_mark": 0.6,
@@ -6616,7 +7282,9 @@
    "latest_post_money": 10.1,
    "listed": false,
    "moic_after": 0.6,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6624,6 +7292,9 @@
    "ownership_before": 0.063,
    "prior_mark": 0.6,
    "proposed_mark": 0.6,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 20.36,
@@ -6647,10 +7318,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 3.9,
    "arr_growth": 1.73,
    "booked_mark": 6.1,
@@ -6666,7 +7340,9 @@
    "latest_post_money": 86.9,
    "listed": false,
    "moic_after": 1.1296,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6674,6 +7350,9 @@
    "ownership_before": 0.07,
    "prior_mark": 6.1,
    "proposed_mark": 6.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 23.86,
@@ -6697,10 +7376,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Write-off",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 12.7,
    "arr_growth": 0.75,
    "booked_mark": 0.0,
@@ -6716,7 +7398,9 @@
    "latest_post_money": 278.1,
    "listed": false,
    "moic_after": 0.0,
+   "monitor": false,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6724,6 +7408,9 @@
    "ownership_before": 0.036,
    "prior_mark": 10.0,
    "proposed_mark": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 7.02,
@@ -6752,10 +7439,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": -10.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 4.8,
    "arr_growth": 1.01,
    "booked_mark": 0.7,
@@ -6828,7 +7518,9 @@
    "latest_post_money": 8.2,
    "listed": false,
    "moic_after": 0.35,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6836,6 +7528,9 @@
    "ownership_before": 0.08,
    "prior_mark": 0.7,
    "proposed_mark": 0.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 25.59,
@@ -6859,10 +7554,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 54.5,
    "arr_growth": 0.72,
    "booked_mark": 48.8,
@@ -6920,7 +7618,9 @@
    "latest_post_money": 842.1,
    "listed": false,
    "moic_after": 3.4857,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6928,6 +7628,9 @@
    "ownership_before": 0.058,
    "prior_mark": 48.8,
    "proposed_mark": 48.8,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 17.32,
@@ -6951,10 +7654,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 74.0,
    "arr_growth": 0.55,
    "booked_mark": 37.3,
@@ -6970,7 +7676,9 @@
    "latest_post_money": 653.6,
    "listed": false,
    "moic_after": 2.4867,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -6978,6 +7686,9 @@
    "ownership_before": 0.057,
    "prior_mark": 37.3,
    "proposed_mark": 37.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 12.54,
@@ -7001,10 +7712,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 252.8,
    "arr_growth": 0.54,
    "booked_mark": 68.4,
@@ -7076,7 +7790,9 @@
    "latest_post_money": 5699.4,
    "listed": false,
    "moic_after": 6.2752,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7084,6 +7800,9 @@
    "ownership_before": 0.012,
    "prior_mark": 68.4,
    "proposed_mark": 68.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 14.92,
@@ -7107,10 +7826,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 12.8,
    "arr_growth": 0.79,
    "booked_mark": 24.1,
@@ -7155,7 +7877,9 @@
    "latest_post_money": 289.9,
    "listed": false,
    "moic_after": 2.41,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7163,6 +7887,9 @@
    "ownership_before": 0.083,
    "prior_mark": 24.1,
    "proposed_mark": 24.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 7.12,
@@ -7186,10 +7913,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 14.3,
    "arr_growth": 0.46,
    "booked_mark": 13.0,
@@ -7205,7 +7935,9 @@
    "latest_post_money": 302.2,
    "listed": false,
    "moic_after": 1.3,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7213,6 +7945,9 @@
    "ownership_before": 0.043,
    "prior_mark": 13.0,
    "proposed_mark": 13.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 20.39,
@@ -7236,10 +7971,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 0.7,
    "arr_growth": -0.3,
    "booked_mark": 1.7,
@@ -7311,7 +8049,9 @@
    "latest_post_money": 22.6,
    "listed": false,
    "moic_after": 0.9444,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7319,6 +8059,9 @@
    "ownership_before": 0.077,
    "prior_mark": 1.7,
    "proposed_mark": 1.7,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 18.26,
@@ -7342,10 +8085,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.7,
    "arr_growth": 0.62,
    "booked_mark": 7.8,
@@ -7377,7 +8123,9 @@
    "latest_post_money": 60.3,
    "listed": false,
    "moic_after": 1.3,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7385,6 +8133,9 @@
    "ownership_before": 0.13,
    "prior_mark": 7.8,
    "proposed_mark": 7.8,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 17.52,
@@ -7408,10 +8159,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.6,
    "arr_growth": 1.16,
    "booked_mark": 1.1,
@@ -7427,7 +8181,9 @@
    "latest_post_money": 15.6,
    "listed": false,
    "moic_after": 0.3793,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7435,6 +8191,9 @@
    "ownership_before": 0.073,
    "prior_mark": 1.1,
    "proposed_mark": 1.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 13.35,
@@ -7458,10 +8217,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 189.6,
    "arr_growth": 0.32,
    "booked_mark": 28.2,
@@ -7477,7 +8239,9 @@
    "latest_post_money": 2170.9,
    "listed": false,
    "moic_after": 1.41,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7485,6 +8249,9 @@
    "ownership_before": 0.013,
    "prior_mark": 28.2,
    "proposed_mark": 28.2,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 22.18,
@@ -7508,10 +8275,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 2.8,
    "arr_growth": 1.99,
    "booked_mark": 2.1,
@@ -7569,7 +8339,9 @@
    "latest_post_money": 17.4,
    "listed": false,
    "moic_after": 0.7778,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7577,6 +8349,9 @@
    "ownership_before": 0.121,
    "prior_mark": 2.1,
    "proposed_mark": 2.1,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 19.94,
@@ -7600,10 +8375,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.3,
    "arr_growth": 1.67,
    "booked_mark": 2.3,
@@ -7619,7 +8397,9 @@
    "latest_post_money": 22.1,
    "listed": false,
    "moic_after": 1.0952,
+   "monitor": false,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7627,6 +8407,9 @@
    "ownership_before": 0.103,
    "prior_mark": 2.3,
    "proposed_mark": 2.3,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 30.87,
@@ -7650,10 +8433,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": 1.2,
    "arr_growth": 1.99,
    "booked_mark": 7.4,
@@ -7685,7 +8471,9 @@
    "latest_post_money": 54.6,
    "listed": false,
    "moic_after": 2.0,
+   "monitor": true,
    "multiple_exposed": true,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7693,6 +8481,9 @@
    "ownership_before": 0.135,
    "prior_mark": 7.4,
    "proposed_mark": 7.4,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": 21.67,
@@ -7716,10 +8507,13 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   },
   {
+   "action": "Carry",
    "alternative_marks": {},
+   "approval": "Not approved",
    "arr": null,
    "arr_growth": null,
    "booked_mark": 0.0,
@@ -7735,7 +8529,9 @@
    "latest_post_money": 12.1,
    "listed": false,
    "moic_after": 0.0,
+   "monitor": false,
    "multiple_exposed": false,
+   "new_investment_quarter": 0.0,
    "note_at_cost": 0.0,
    "open_items": [],
    "override": null,
@@ -7743,6 +8539,9 @@
    "ownership_before": 0.082,
    "prior_mark": 0.0,
    "proposed_mark": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
+   "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
    "runway_months_aged": null,
@@ -7765,7 +8564,8 @@
      "rule_version": "2026Q3.1",
      "sequence": 1
     }
-   ]
+   ],
+   "valuation_change_quarter": 0.0
   }
  ],
  "comps_move": {
@@ -8153,13 +8953,21 @@
   },
   "exited_at_prior_mark": 18.2,
   "level1_positions": 1,
+  "monitor_positions": 57,
   "net_movement": 44.9763,
+  "new_investment": 4.1,
   "positions": 100,
   "prior_nav": 1139.3,
   "proposed_nav": 1184.2763,
+  "readiness": {
+   "Blocked": 1,
+   "Needs Review": 26,
+   "Ready": 73
+  },
   "realized_cumulative": 49.6,
   "realized_quarter": 32.5,
   "top10_concentration": 0.4459,
+  "valuation_change": 73.3763,
   "written_off": 21.4
  },
  "validation": []

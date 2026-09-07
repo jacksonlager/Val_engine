@@ -86,7 +86,8 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
         raised_txt = (f" A financing closed this quarter — {'; '.join(parts)} — and the cash figure may predate it; the round "
                       "size is not in the workbook, so the runway here is pre-raise.")
     if rw is not None:
-        aged = rw - cfg.metrics.reporting_lag_months
+        # aged for the reporting lag; a company already out of cash has zero months, not minus one
+        aged = max(0.0, rw - cfg.metrics.reporting_lag_months)
         if aged < x.runway.review_below_mo:
             w.flag("X-304", "liquidity", Severity.REVIEW,
                    f"About {aged:.1f} months of cash left (${p.cash:.1f}M against ${p.net_burn:.2f}M a month, aged "

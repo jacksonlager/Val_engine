@@ -63,6 +63,7 @@ def load_overrides(path: Path) -> OverrideLedger:
             rule_ids_addressed=tuple(r.get("rule_ids_addressed", []) or []),
             source_proposal=r.get("source_proposal"),
             source_suggestion=r.get("source_suggestion"),
+            evidence=dict(r["evidence"]) if isinstance(r.get("evidence"), dict) else None,   # absent on older ledgers
         ))
     return OverrideLedger(records=tuple(recs))
 

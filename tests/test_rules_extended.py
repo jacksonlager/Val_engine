@@ -155,7 +155,9 @@ def test_priced_round_on_acquired_company_is_still_not_applied(build):
     run, _ = build([position(status="Acquired", prior_mark=0.0, realized=28.2)],
                    [event(detail="Series B", value=200.0, ownership_after=0.09)])
     c = only(run)
-    assert rule_ids(c) == ["M-000"] and c.proposed_mark == 0.0
+    # refused and recorded: the carry step, then the refused row, and X-900 naming it
+    assert rule_ids(c) == ["M-000", "M-000"] and c.proposed_mark == 0.0
+    assert [f.rule_id for f in c.flags] == ["X-900"]
 
 
 def test_distribution_after_a_same_quarter_exit_is_applied(build):

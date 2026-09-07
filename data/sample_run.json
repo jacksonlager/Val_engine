@@ -1,6 +1,6 @@
 {
  "manifest": {
-  "run_id": "59b9dc6df4f4",
+  "run_id": "b36c794a9720",
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
   "input_file": "HC_Mock_Portfolio_Data.xlsx",
   "policy_version": "2026Q3-0.2",
@@ -8,9 +8,9 @@
   "quarter_label": "Q3 2026",
   "measurement_date": "2026-09-30",
   "prior_close": "2026-06-30",
-  "generated_at": "2026-09-06T23:28:16Z",
+  "generated_at": "2026-09-07T04:18:41Z",
   "adjudication_enabled": true,
-  "market_data_source": "stub",
+  "market_data_source": "live:edgar+yahoo",
   "recommender": "policy"
  },
  "companies": [
@@ -43,6 +43,10 @@
    "runway_months_aged": 32.52,
    "implied_multiple": 37.79,
    "moic_after": 2.313,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 6.978,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-010",
@@ -87,19 +91,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 38\u00d7 revenue (sector comp 7.1\u00d7), growing +83%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 38\u00d7 revenue (bounds 2.5\u00d7\u20139.8\u00d7 around the 4.9\u00d7 live sector median), growing +83%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 37.79,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 9.8,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -132,6 +140,10 @@
    "runway_months_aged": 4.96,
    "implied_multiple": 12.02,
    "moic_after": 1.35,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -145,6 +157,29 @@
      "prior_value": 8.1,
      "new_value": 8.1,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 2.79,
+      "comp_multiple_at_round": 3.33,
+      "round_month": "2024-07",
+      "comp_month_used": "2024-07",
+      "factor_raw": 0.8378,
+      "factor_bounded": 0.8378,
+      "bound_hit": false,
+      "age_months": 26.8,
+      "sector": "Fintech",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 8.1,
+     "new_value": 8.1,
+     "rationale": "Comps calibration (alternative only): sector Fintech multiple 3.3\u00d7 in 2024-07 \u2192 2.8\u00d7 now, -16.2% over 26.8 months. Calibrated alternative $6.79M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -212,11 +247,93 @@
       "runway_months_aged": 4.96,
       "financings_in_quarter": []
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 12\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +108%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 12.02,
+      "threshold": 5.58,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 26.8 months old, and the current numbers disagree with it: carried above the multiple screen (12\u00d7 revenue, growing +108%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **26.8 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (12\u00d7 revenue, growing +108%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 8.1
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 6.786486
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 6.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 8.1,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 26.8,
+      "screens": [
+       "X-401"
+      ]
+     }
     }
    ],
-   "disposition": "REVIEW",
+   "disposition": "BLOCK",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 6.786486
+   }
   },
   {
    "company": "Cindral",
@@ -247,6 +364,10 @@
    "runway_months_aged": 32.47,
    "implied_multiple": null,
    "moic_after": 2.82,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 10.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-020",
@@ -272,6 +393,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Full exit",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -304,6 +429,10 @@
    "runway_months_aged": 24.62,
    "implied_multiple": 41.52,
    "moic_after": 1.4272,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 1.609,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-010",
@@ -348,19 +477,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 42\u00d7 revenue (sector comp 9.2\u00d7), growing +186%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 42\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +186%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 41.52,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 5.58,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -393,6 +526,10 @@
    "runway_months_aged": 12.08,
    "implied_multiple": 32.14,
    "moic_after": 0.72,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-060",
@@ -436,19 +573,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 32\u00d7 revenue (sector comp 13.0\u00d7), growing +207%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 32\u00d7 revenue (bounds 7.4\u00d7\u201329.6\u00d7 around the 14.8\u00d7 live sector median), growing +207%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 32.14,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 29.62,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [
     {
      "company": "Emberfold",
@@ -493,6 +634,10 @@
    "runway_months_aged": 31.09,
    "implied_multiple": 22.95,
    "moic_after": 7.1375,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 35.016,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-010",
@@ -519,6 +664,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -551,6 +700,10 @@
    "runway_months_aged": 24.0,
    "implied_multiple": 6.93,
    "moic_after": 1.1648,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 1.1592,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-050",
@@ -656,6 +809,10 @@
     }
    ],
    "disposition": "BLOCK",
+   "readiness": "Needs Review",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [
     {
      "company": "Gryphonel",
@@ -704,6 +861,10 @@
    "runway_months_aged": 15.15,
    "implied_multiple": 6.52,
    "moic_after": 1.35,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-070",
@@ -724,6 +885,29 @@
       "event_type": "Term Sheet Signed",
       "date": "2026-09-17"
      }
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 14.81,
+      "comp_multiple_at_round": 6.94,
+      "round_month": "2020-10",
+      "comp_month_used": "2020-10",
+      "factor_raw": 2.134,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 71.0,
+      "sector": "Cybersecurity",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 3,
+      "n_constituents_now": 5
+     },
+     "prior_value": 2.7,
+     "new_value": 2.7,
+     "rationale": "Comps calibration (alternative only): sector Cybersecurity multiple 6.9\u00d7 in 2020-10 \u2192 14.8\u00d7 now, +113.4% bounded to +35% over 71.0 months. Calibrated alternative $3.65M recorded; base mark unchanged.",
+     "evidence": null
     }
    ],
    "flags": [
@@ -762,6 +946,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 2.7
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 3.645
       }
      ],
      "recommendation": {
@@ -782,9 +975,28 @@
       "months": 71.0,
       "anchor": "2020-10-30"
      }
+    },
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 6.5\u00d7 revenue (bounds 7.4\u00d7\u201329.6\u00d7 around the 14.8\u00d7 live sector median), growing +170%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 6.52,
+      "threshold": 7.405,
+      "basis": "live sector median"
+     }
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [
     {
      "company": "Halcyra",
@@ -799,7 +1011,8 @@
     }
    ],
    "alternative_marks": {
-    "term_sheet_indicated": 4.25
+    "term_sheet_indicated": 4.25,
+    "calibrated_to_comps": 3.645
    }
   },
   {
@@ -831,6 +1044,10 @@
    "runway_months_aged": 13.49,
    "implied_multiple": 9.96,
    "moic_after": 4.8399,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 13.2396,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-010",
@@ -873,6 +1090,10 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -905,6 +1126,10 @@
    "runway_months_aged": 25.52,
    "implied_multiple": 35.83,
    "moic_after": 1.2561,
+   "new_investment_quarter": 1.3,
+   "valuation_change_quarter": 0.573,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-010",
@@ -935,19 +1160,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 36\u00d7 revenue (sector comp 10.6\u00d7), growing +271%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 36\u00d7 revenue (bounds 2.4\u00d7\u20139.4\u00d7 around the 4.7\u00d7 live sector median), growing +271%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 35.83,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 9.42,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -980,6 +1209,10 @@
    "runway_months_aged": null,
    "implied_multiple": null,
    "moic_after": 2.7414,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -997,6 +1230,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -1029,6 +1266,10 @@
    "runway_months_aged": 21.0,
    "implied_multiple": 5.37,
    "moic_after": 0.8,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -1045,8 +1286,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 5.4\u00d7 revenue (bounds 6.8\u00d7\u201327.1\u00d7 around the 13.6\u00d7 live sector median), growing +286%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 5.37,
+      "threshold": 6.775,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -1079,6 +1340,10 @@
    "runway_months_aged": 15.75,
    "implied_multiple": 6.85,
    "moic_after": 1.2185,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": -0.228,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-030",
@@ -1110,6 +1375,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Partial exit",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {
     "at_secondary_price": 8.772
@@ -1144,6 +1413,10 @@
    "runway_months_aged": 13.83,
    "implied_multiple": 50.11,
    "moic_after": 1.804,
+   "new_investment_quarter": 0.9,
+   "valuation_change_quarter": 0.9668,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-010",
@@ -1174,19 +1447,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 50\u00d7 revenue (sector comp 22.7\u00d7), growing +125%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 50\u00d7 revenue (bounds 6.8\u00d7\u201327.1\u00d7 around the 13.6\u00d7 live sector median), growing +125%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 50.11,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 27.1,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -1219,6 +1496,10 @@
    "runway_months_aged": 15.13,
    "implied_multiple": 9.55,
    "moic_after": 1.7375,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -1232,6 +1513,29 @@
      "prior_value": 13.9,
      "new_value": 13.9,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 7.44,
+      "comp_multiple_at_round": 6.47,
+      "round_month": "2021-08",
+      "comp_month_used": "2021-08",
+      "factor_raw": 1.1499,
+      "factor_bounded": 1.1499,
+      "bound_hit": false,
+      "age_months": 61.4,
+      "sector": "Space & Defense",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 3,
+      "n_constituents_now": 5
+     },
+     "prior_value": 13.9,
+     "new_value": 13.9,
+     "rationale": "Comps calibration (alternative only): sector Space & Defense multiple 6.5\u00d7 in 2021-08 \u2192 7.4\u00d7 now, +15.0% over 61.4 months. Calibrated alternative $15.98M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -1256,6 +1560,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 13.9
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 15.983926
       }
      ],
      "recommendation": {
@@ -1279,8 +1592,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 15.983926
+   }
   },
   {
    "company": "Pellagrin",
@@ -1311,6 +1630,10 @@
    "runway_months_aged": 19.2,
    "implied_multiple": 6.91,
    "moic_after": 2.7309,
+   "new_investment_quarter": 1.1,
+   "valuation_change_quarter": -0.1723,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-011",
@@ -1333,6 +1656,29 @@
       "event_type": "Priced Equity Round",
       "date": "2026-08-11"
      }
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 4.9,
+      "comp_multiple_at_round": 13.34,
+      "round_month": "2021-10",
+      "comp_month_used": "2021-10",
+      "factor_raw": 0.3673,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 59.7,
+      "sector": "Climate & Energy",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 13.9277,
+     "new_value": 13.9277,
+     "rationale": "Comps calibration (alternative only): sector Climate & Energy multiple 13.3\u00d7 in 2021-10 \u2192 4.9\u00d7 now, -63.3% bounded to -35% over 59.7 months. Calibrated alternative $9.05M recorded; base mark unchanged.",
+     "evidence": null
     }
    ],
    "flags": [
@@ -1356,6 +1702,15 @@
         "Nothing in the file says the company is worth less."
        ],
        "booked": 13.9277
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps instead.",
+       "reasons": [
+        "The extension is not price discovery; comps have moved since the last round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 9.053005
       }
      ],
      "recommendation": {
@@ -1397,6 +1752,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 13.9277
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 9.053005
       }
      ],
      "recommendation": {
@@ -1420,8 +1784,14 @@
     }
    ],
    "disposition": "BLOCK",
+   "readiness": "Needs Review",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 9.053005
+   }
   },
   {
    "company": "Quindle",
@@ -1452,6 +1822,10 @@
    "runway_months_aged": 13.82,
    "implied_multiple": 21.07,
    "moic_after": 1.2333,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -1465,6 +1839,29 @@
      "prior_value": 7.4,
      "new_value": 7.4,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 13.23,
+      "comp_multiple_at_round": 5.37,
+      "round_month": "2023-11",
+      "comp_month_used": "2023-11",
+      "factor_raw": 2.4637,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 34.7,
+      "sector": "Infrastructure",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 7.4,
+     "new_value": 7.4,
+     "rationale": "Comps calibration (alternative only): sector Infrastructure multiple 5.4\u00d7 in 2023-11 \u2192 13.2\u00d7 now, +146.4% bounded to +35% over 34.7 months. Calibrated alternative $9.99M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -1485,8 +1882,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 9.99
+   }
   },
   {
    "company": "Rivenmark",
@@ -1517,6 +1920,10 @@
    "runway_months_aged": 15.4,
    "implied_multiple": 18.38,
    "moic_after": 1.3182,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -1535,6 +1942,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -1567,6 +1978,10 @@
    "runway_months_aged": 22.88,
    "implied_multiple": 20.97,
    "moic_after": 1.7451,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -1583,8 +1998,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 21\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +107%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 20.97,
+      "threshold": 5.58,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -1617,6 +2052,10 @@
    "runway_months_aged": 32.45,
    "implied_multiple": 10.14,
    "moic_after": 0.8738,
+   "new_investment_quarter": 0.3,
+   "valuation_change_quarter": -1.164,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-012",
@@ -1760,9 +2199,28 @@
      "evidence": {
       "arr_growth": -0.16
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 10\u00d7 revenue (bounds 2.4\u00d7\u20139.4\u00d7 around the 4.7\u00d7 live sector median), growing -16%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 10.14,
+      "threshold": 9.42,
+      "basis": "live sector median"
+     }
     }
    ],
    "disposition": "BLOCK",
+   "readiness": "Needs Review",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {
     "structure_adjusted": 0.852
@@ -1797,6 +2255,10 @@
    "runway_months_aged": 3.12,
    "implied_multiple": 8.83,
    "moic_after": 2.41,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -1810,6 +2272,29 @@
      "prior_value": 24.1,
      "new_value": 24.1,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 13.55,
+      "comp_multiple_at_round": 7.57,
+      "round_month": "2023-10",
+      "comp_month_used": "2023-10",
+      "factor_raw": 1.79,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 35.7,
+      "sector": "AI/ML",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 24.1,
+     "new_value": 24.1,
+     "rationale": "Comps calibration (alternative only): sector AI/ML multiple 7.6\u00d7 in 2023-10 \u2192 13.6\u00d7 now, +79.0% bounded to +35% over 35.7 months. Calibrated alternative $32.54M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -1880,8 +2365,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 32.535
+   }
   },
   {
    "company": "Vexmoor",
@@ -1912,6 +2403,10 @@
    "runway_months_aged": 17.86,
    "implied_multiple": 5.54,
    "moic_after": 3.7833,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -1930,6 +2425,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -1962,6 +2461,10 @@
    "runway_months_aged": 15.97,
    "implied_multiple": 7.14,
    "moic_after": 2.0667,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -1975,6 +2478,29 @@
      "prior_value": 12.4,
      "new_value": 12.4,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 2.79,
+      "comp_multiple_at_round": 2.63,
+      "round_month": "2023-02",
+      "comp_month_used": "2023-02",
+      "factor_raw": 1.0608,
+      "factor_bounded": 1.0608,
+      "bound_hit": false,
+      "age_months": 43.2,
+      "sector": "Fintech",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 12.4,
+     "new_value": 12.4,
+     "rationale": "Comps calibration (alternative only): sector Fintech multiple 2.6\u00d7 in 2023-02 \u2192 2.8\u00d7 now, +6.1% over 43.2 months. Calibrated alternative $13.15M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -1992,11 +2518,93 @@
       "months": 43.2,
       "anchor": "2023-02-23"
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 7\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +75%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 7.14,
+      "threshold": 5.58,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 43.2 months old, and the current numbers disagree with it: carried above the multiple screen (7\u00d7 revenue, growing +75%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **43.2 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (7\u00d7 revenue, growing +75%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 12.4
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 13.154373
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 6.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 12.4,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 43.2,
+      "screens": [
+       "X-401"
+      ]
+     }
     }
    ],
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 13.154373
+   }
   },
   {
    "company": "Xalorin",
@@ -2027,6 +2635,10 @@
    "runway_months_aged": 25.54,
    "implied_multiple": 8.0,
    "moic_after": 1.525,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2040,6 +2652,29 @@
      "prior_value": 6.1,
      "new_value": 6.1,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 13.23,
+      "comp_multiple_at_round": 5.1,
+      "round_month": "2023-08",
+      "comp_month_used": "2023-08",
+      "factor_raw": 2.5941,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 37.6,
+      "sector": "Infrastructure",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 6.1,
+     "new_value": 6.1,
+     "rationale": "Comps calibration (alternative only): sector Infrastructure multiple 5.1\u00d7 in 2023-08 \u2192 13.2\u00d7 now, +159.4% bounded to +35% over 37.6 months. Calibrated alternative $8.23M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2060,8 +2695,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 8.235
+   }
   },
   {
    "company": "Yondermist",
@@ -2092,6 +2733,10 @@
    "runway_months_aged": 14.62,
    "implied_multiple": 17.75,
    "moic_after": 1.0833,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2105,6 +2750,29 @@
      "prior_value": 1.3,
      "new_value": 1.3,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 6.81,
+      "comp_multiple_at_round": 10.77,
+      "round_month": "2024-06",
+      "comp_month_used": "2024-06",
+      "factor_raw": 0.6323,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 27.2,
+      "sector": "Healthcare",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 1.3,
+     "new_value": 1.3,
+     "rationale": "Comps calibration (alternative only): sector Healthcare multiple 10.8\u00d7 in 2024-06 \u2192 6.8\u00d7 now, -36.8% bounded to -35% over 27.2 months. Calibrated alternative $0.85M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2122,11 +2790,93 @@
       "months": 27.2,
       "anchor": "2024-06-23"
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 18\u00d7 revenue (bounds 3.4\u00d7\u201313.6\u00d7 around the 6.8\u00d7 live sector median), growing +149%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 17.75,
+      "threshold": 13.62,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 27.2 months old, and the current numbers disagree with it: carried above the multiple screen (18\u00d7 revenue, growing +149%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **27.2 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (18\u00d7 revenue, growing +149%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 1.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 0.845
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 1.2
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 1.3,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 27.2,
+      "screens": [
+       "X-401"
+      ]
+     }
     }
    ],
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 0.845
+   }
   },
   {
    "company": "Zephrine",
@@ -2157,6 +2907,10 @@
    "runway_months_aged": 31.86,
    "implied_multiple": 6.2,
    "moic_after": 0.44,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2170,6 +2924,29 @@
      "prior_value": 1.1,
      "new_value": 1.1,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 4.71,
+      "comp_multiple_at_round": 12.83,
+      "round_month": "2024-02",
+      "comp_month_used": "2024-02",
+      "factor_raw": 0.3671,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 31.5,
+      "sector": "Enterprise SaaS",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 1.1,
+     "new_value": 1.1,
+     "rationale": "Comps calibration (alternative only): sector Enterprise SaaS multiple 12.8\u00d7 in 2024-02 \u2192 4.7\u00d7 now, -63.3% bounded to -35% over 31.5 months. Calibrated alternative $0.72M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2190,8 +2967,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 0.715
+   }
   },
   {
    "company": "Arcfoundry",
@@ -2222,6 +3005,10 @@
    "runway_months_aged": 28.0,
    "implied_multiple": 30.29,
    "moic_after": 0.9333,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2235,6 +3022,29 @@
      "prior_value": 1.4,
      "new_value": 1.4,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 10.39,
+      "comp_multiple_at_round": 19.68,
+      "round_month": "2023-11",
+      "comp_month_used": "2023-11",
+      "factor_raw": 0.5279,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 34.7,
+      "sector": "Developer Tools",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 1.4,
+     "new_value": 1.4,
+     "rationale": "Comps calibration (alternative only): sector Developer Tools multiple 19.7\u00d7 in 2023-11 \u2192 10.4\u00d7 now, -47.2% bounded to -35% over 34.7 months. Calibrated alternative $0.91M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2257,15 +3067,15 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 30\u00d7 revenue (sector comp 11.3\u00d7), growing +270%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 30\u00d7 revenue (bounds 5.2\u00d7\u201320.8\u00d7 around the 10.4\u00d7 live sector median), growing +270%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 30.29,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 20.78,
+      "basis": "live sector median"
      }
     },
     {
@@ -2288,6 +3098,15 @@
         "The screen is a cross-check, not a valuation."
        ],
        "booked": 1.4
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 0.91
       }
      ],
      "recommendation": {
@@ -2313,8 +3132,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 0.91
+   }
   },
   {
    "company": "Brumewell",
@@ -2345,6 +3170,10 @@
    "runway_months_aged": 24.11,
    "implied_multiple": 20.56,
    "moic_after": 1.85,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2358,6 +3187,29 @@
      "prior_value": 18.5,
      "new_value": 18.5,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 13.55,
+      "comp_multiple_at_round": 19.82,
+      "round_month": "2024-06",
+      "comp_month_used": "2024-06",
+      "factor_raw": 0.6837,
+      "factor_bounded": 0.6837,
+      "bound_hit": false,
+      "age_months": 27.2,
+      "sector": "AI/ML",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 18.5,
+     "new_value": 18.5,
+     "rationale": "Comps calibration (alternative only): sector AI/ML multiple 19.8\u00d7 in 2024-06 \u2192 13.6\u00d7 now, -31.6% over 27.2 months. Calibrated alternative $12.65M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2427,8 +3279,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 12.647578
+   }
   },
   {
    "company": "Cascabel Labs",
@@ -2459,6 +3317,10 @@
    "runway_months_aged": 17.31,
    "implied_multiple": 53.88,
    "moic_after": 1.5122,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2480,19 +3342,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 54\u00d7 revenue (sector comp 22.7\u00d7), growing +194%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 54\u00d7 revenue (bounds 6.8\u00d7\u201327.1\u00d7 around the 13.6\u00d7 live sector median), growing +194%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 53.88,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 27.1,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -2525,6 +3391,10 @@
    "runway_months_aged": 25.69,
    "implied_multiple": 26.4,
    "moic_after": 5.5034,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 29.768,
+   "provisional": true,
+   "provisional_reason": "Missing the 30 Sep 2026 closing price. The mark stands in the listing-day market cap ($3,931M) until the close is obtained.",
    "steps": [
     {
      "rule_id": "M-040",
@@ -2593,9 +3463,28 @@
       "lockup_end": "2027-03-19",
       "ipo_print_mark": 110.068
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 26\u00d7 revenue (bounds 3.7\u00d7\u201314.9\u00d7 around the 7.4\u00d7 live sector median), growing +43%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 26.4,
+      "threshold": 14.88,
+      "basis": "live sector median"
+     }
     }
    ],
    "disposition": "BLOCK",
+   "readiness": "Blocked",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [
     {
      "company": "Drayvenn",
@@ -2642,6 +3531,10 @@
    "runway_months_aged": 20.09,
    "implied_multiple": 2.33,
    "moic_after": 0.2833,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2663,19 +3556,23 @@
      "rule_id": "X-402",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 2.3\u00d7 revenue (sector comp 10.6\u00d7), growing +42%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "message": "Carried at 2.3\u00d7 revenue (bounds 2.4\u00d7\u20139.4\u00d7 around the 4.7\u00d7 live sector median), growing +42%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 2.33,
-      "threshold": 3.0,
-      "basis": "absolute policy bound"
+      "threshold": 2.355,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -2708,6 +3605,10 @@
    "runway_months_aged": 24.85,
    "implied_multiple": 12.06,
    "moic_after": 2.575,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2721,6 +3622,29 @@
      "prior_value": 10.3,
      "new_value": 10.3,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 19.81,
+      "comp_multiple_at_round": 21.54,
+      "round_month": "2024-02",
+      "comp_month_used": "2024-02",
+      "factor_raw": 0.9197,
+      "factor_bounded": 0.9197,
+      "bound_hit": false,
+      "age_months": 31.3,
+      "sector": "Data & Analytics",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 10.3,
+     "new_value": 10.3,
+     "rationale": "Comps calibration (alternative only): sector Data & Analytics multiple 21.5\u00d7 in 2024-02 \u2192 19.8\u00d7 now, -8.0% over 31.3 months. Calibrated alternative $9.47M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2741,8 +3665,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 9.472748
+   }
   },
   {
    "company": "Glintworks",
@@ -2773,6 +3703,10 @@
    "runway_months_aged": 27.52,
    "implied_multiple": 8.34,
    "moic_after": 1.0214,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2786,6 +3720,29 @@
      "prior_value": 14.3,
      "new_value": 14.3,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 2.79,
+      "comp_multiple_at_round": 3.18,
+      "round_month": "2023-07",
+      "comp_month_used": "2023-07",
+      "factor_raw": 0.8774,
+      "factor_bounded": 0.8774,
+      "bound_hit": false,
+      "age_months": 38.7,
+      "sector": "Fintech",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 14.3,
+     "new_value": 14.3,
+     "rationale": "Comps calibration (alternative only): sector Fintech multiple 3.2\u00d7 in 2023-07 \u2192 2.8\u00d7 now, -12.3% over 38.7 months. Calibrated alternative $12.55M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2803,11 +3760,93 @@
       "months": 38.7,
       "anchor": "2023-07-09"
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 8\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +73%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 8.34,
+      "threshold": 5.58,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 38.7 months old, and the current numbers disagree with it: carried above the multiple screen (8\u00d7 revenue, growing +73%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **38.7 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (8\u00d7 revenue, growing +73%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 14.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 12.546226
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 14.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 14.3,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 38.7,
+      "screens": [
+       "X-401"
+      ]
+     }
     }
    ],
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 12.546226
+   }
   },
   {
    "company": "Hollowpine Robotics",
@@ -2838,6 +3877,10 @@
    "runway_months_aged": 23.35,
    "implied_multiple": 10.45,
    "moic_after": 2.5546,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2851,6 +3894,29 @@
      "prior_value": 30.4,
      "new_value": 30.4,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 13.55,
+      "comp_multiple_at_round": 13.09,
+      "round_month": "2023-12",
+      "comp_month_used": "2023-12",
+      "factor_raw": 1.0351,
+      "factor_bounded": 1.0351,
+      "bound_hit": false,
+      "age_months": 33.6,
+      "sector": "AI/ML",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 30.4,
+     "new_value": 30.4,
+     "rationale": "Comps calibration (alternative only): sector AI/ML multiple 13.1\u00d7 in 2023-12 \u2192 13.6\u00d7 now, +3.5% over 33.6 months. Calibrated alternative $31.47M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2871,8 +3937,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 31.468296
+   }
   },
   {
    "company": "Isoquill",
@@ -2903,6 +3975,10 @@
    "runway_months_aged": 19.4,
    "implied_multiple": 10.01,
    "moic_after": 1.46,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2916,6 +3992,29 @@
      "prior_value": 14.6,
      "new_value": 14.6,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 13.55,
+      "comp_multiple_at_round": 5.62,
+      "round_month": "2022-10",
+      "comp_month_used": "2022-10",
+      "factor_raw": 2.411,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 47.3,
+      "sector": "AI/ML",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 4,
+      "n_constituents_now": 5
+     },
+     "prior_value": 14.6,
+     "new_value": 14.6,
+     "rationale": "Comps calibration (alternative only): sector AI/ML multiple 5.6\u00d7 in 2022-10 \u2192 13.6\u00d7 now, +141.1% bounded to +35% over 47.3 months. Calibrated alternative $19.71M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -2936,8 +4035,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 19.71
+   }
   },
   {
    "company": "Jupelan",
@@ -2968,6 +4073,10 @@
    "runway_months_aged": 3.4,
    "implied_multiple": 6.74,
    "moic_after": 1.43,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -2981,6 +4090,29 @@
      "prior_value": 14.3,
      "new_value": 14.3,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 14.81,
+      "comp_multiple_at_round": 12.01,
+      "round_month": "2024-03",
+      "comp_month_used": "2024-03",
+      "factor_raw": 1.2331,
+      "factor_bounded": 1.2331,
+      "bound_hit": false,
+      "age_months": 30.9,
+      "sector": "Cybersecurity",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 14.3,
+     "new_value": 14.3,
+     "rationale": "Comps calibration (alternative only): sector Cybersecurity multiple 12.0\u00d7 in 2024-03 \u2192 14.8\u00d7 now, +23.3% over 30.9 months. Calibrated alternative $17.63M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -3048,11 +4180,93 @@
       "runway_months_aged": 3.4,
       "financings_in_quarter": []
      }
+    },
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 6.7\u00d7 revenue (bounds 7.4\u00d7\u201329.6\u00d7 around the 14.8\u00d7 live sector median), growing +84%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 6.74,
+      "threshold": 7.405,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 30.9 months old, and the current numbers disagree with it: carried below the multiple screen (7\u00d7 revenue, growing +84%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **30.9 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried below the multiple screen** (7\u00d7 revenue, growing +84%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 14.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 17.633888
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 10.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 14.3,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 30.9,
+      "screens": [
+       "X-402"
+      ]
+     }
     }
    ],
-   "disposition": "REVIEW",
+   "disposition": "BLOCK",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 17.633888
+   }
   },
   {
    "company": "Kestwick",
@@ -3083,6 +4297,10 @@
    "runway_months_aged": 19.5,
    "implied_multiple": 20.0,
    "moic_after": 0.8182,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3096,6 +4314,29 @@
      "prior_value": 0.9,
      "new_value": 0.9,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 2.79,
+      "comp_multiple_at_round": 3.28,
+      "round_month": "2024-06",
+      "comp_month_used": "2024-06",
+      "factor_raw": 0.8506,
+      "factor_bounded": 0.8506,
+      "bound_hit": false,
+      "age_months": 27.7,
+      "sector": "Fintech",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 0.9,
+     "new_value": 0.9,
+     "rationale": "Comps calibration (alternative only): sector Fintech multiple 3.3\u00d7 in 2024-06 \u2192 2.8\u00d7 now, -14.9% over 27.7 months. Calibrated alternative $0.77M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -3113,11 +4354,84 @@
       "months": 27.7,
       "anchor": "2024-06-08"
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 20\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +300%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 20.0,
+      "threshold": 5.58,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 27.7 months old, and the current numbers disagree with it: carried above the multiple screen (20\u00d7 revenue, growing +300%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **27.7 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (20\u00d7 revenue, growing +300%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 0.9
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 0.765549
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 0.9,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 27.7,
+      "screens": [
+       "X-401"
+      ]
+     }
     }
    ],
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 0.765549
+   }
   },
   {
    "company": "Larkspell",
@@ -3148,6 +4462,10 @@
    "runway_months_aged": 4.71,
    "implied_multiple": null,
    "moic_after": 0.0667,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": -11.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-021",
@@ -3171,6 +4489,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Write-off",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -3203,6 +4525,10 @@
    "runway_months_aged": 21.05,
    "implied_multiple": 8.85,
    "moic_after": 1.8875,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3216,6 +4542,29 @@
      "prior_value": 30.2,
      "new_value": 30.2,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 10.39,
+      "comp_multiple_at_round": 12.34,
+      "round_month": "2024-07",
+      "comp_month_used": "2024-07",
+      "factor_raw": 0.842,
+      "factor_bounded": 0.842,
+      "bound_hit": false,
+      "age_months": 26.2,
+      "sector": "Developer Tools",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 30.2,
+     "new_value": 30.2,
+     "rationale": "Comps calibration (alternative only): sector Developer Tools multiple 12.3\u00d7 in 2024-07 \u2192 10.4\u00d7 now, -15.8% over 26.2 months. Calibrated alternative $25.43M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -3236,8 +4585,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 25.427715
+   }
   },
   {
    "company": "Nightloom Security",
@@ -3268,6 +4623,10 @@
    "runway_months_aged": 21.0,
    "implied_multiple": 8.17,
    "moic_after": 0.7273,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3281,6 +4640,29 @@
      "prior_value": 0.8,
      "new_value": 0.8,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 4.71,
+      "comp_multiple_at_round": 10.53,
+      "round_month": "2023-05",
+      "comp_month_used": "2023-05",
+      "factor_raw": 0.4473,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 40.7,
+      "sector": "Enterprise SaaS",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 0.8,
+     "new_value": 0.8,
+     "rationale": "Comps calibration (alternative only): sector Enterprise SaaS multiple 10.5\u00d7 in 2023-05 \u2192 4.7\u00d7 now, -55.3% bounded to -35% over 40.7 months. Calibrated alternative $0.52M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -3301,8 +4683,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 0.52
+   }
   },
   {
    "company": "Oakenvale",
@@ -3333,6 +4721,10 @@
    "runway_months_aged": 22.57,
    "implied_multiple": 10.28,
    "moic_after": 0.3951,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": -3.369,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-012",
@@ -3467,6 +4859,10 @@
     }
    ],
    "disposition": "BLOCK",
+   "readiness": "Needs Review",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {
     "structure_adjusted": 1.74825
@@ -3501,6 +4897,10 @@
    "runway_months_aged": 26.73,
    "implied_multiple": 31.32,
    "moic_after": 1.2167,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3514,6 +4914,29 @@
      "prior_value": 7.3,
      "new_value": 7.3,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 14.81,
+      "comp_multiple_at_round": 12.64,
+      "round_month": "2023-12",
+      "comp_month_used": "2023-12",
+      "factor_raw": 1.1717,
+      "factor_bounded": 1.1717,
+      "bound_hit": false,
+      "age_months": 33.4,
+      "sector": "Cybersecurity",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 7.3,
+     "new_value": 7.3,
+     "rationale": "Comps calibration (alternative only): sector Cybersecurity multiple 12.6\u00d7 in 2023-12 \u2192 14.8\u00d7 now, +17.2% over 33.4 months. Calibrated alternative $8.55M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -3536,15 +4959,15 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 31\u00d7 revenue (sector comp 13.0\u00d7), growing +51%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 31\u00d7 revenue (bounds 7.4\u00d7\u201329.6\u00d7 around the 14.8\u00d7 live sector median), growing +51%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 31.32,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 29.62,
+      "basis": "live sector median"
      }
     },
     {
@@ -3567,6 +4990,15 @@
         "The screen is a cross-check, not a valuation."
        ],
        "booked": 7.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 8.553244
       },
       {
        "key": "to_cost",
@@ -3601,8 +5033,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 8.553244
+   }
   },
   {
    "company": "Quarrystone AI",
@@ -3633,6 +5071,10 @@
    "runway_months_aged": 27.28,
    "implied_multiple": 10.79,
    "moic_after": 0.8889,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3692,6 +5134,10 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -3724,6 +5170,10 @@
    "runway_months_aged": 14.0,
    "implied_multiple": 11.4,
    "moic_after": 0.5641,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3737,6 +5187,29 @@
      "prior_value": 2.2,
      "new_value": 2.2,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 9.14,
+      "comp_multiple_at_round": 5.42,
+      "round_month": "2023-08",
+      "comp_month_used": "2023-08",
+      "factor_raw": 1.6863,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 37.1,
+      "sector": "Robotics",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 2.2,
+     "new_value": 2.2,
+     "rationale": "Comps calibration (alternative only): sector Robotics multiple 5.4\u00d7 in 2023-08 \u2192 9.1\u00d7 now, +68.6% bounded to +35% over 37.1 months. Calibrated alternative $2.97M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -3757,8 +5230,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 2.97
+   }
   },
   {
    "company": "Saltmarsh Analytics",
@@ -3789,6 +5268,10 @@
    "runway_months_aged": 14.45,
    "implied_multiple": 39.86,
    "moic_after": 0.931,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3810,19 +5293,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 40\u00d7 revenue (sector comp 11.3\u00d7), growing +116%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 40\u00d7 revenue (bounds 6.6\u00d7\u201326.5\u00d7 around the 13.2\u00d7 live sector median), growing +116%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 39.86,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 26.46,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -3855,6 +5342,10 @@
    "runway_months_aged": 30.52,
    "implied_multiple": 20.0,
    "moic_after": 1.2,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3871,8 +5362,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 20\u00d7 revenue (bounds 3.4\u00d7\u201313.6\u00d7 around the 6.8\u00d7 live sector median), growing +254%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 20.0,
+      "threshold": 13.62,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -3905,6 +5416,10 @@
    "runway_months_aged": 18.09,
    "implied_multiple": null,
    "moic_after": 0.5556,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -3937,6 +5452,10 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -3969,6 +5488,10 @@
    "runway_months_aged": 24.4,
    "implied_multiple": 14.89,
    "moic_after": 1.9667,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4001,6 +5524,10 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -4033,6 +5560,10 @@
    "runway_months_aged": 18.41,
    "implied_multiple": 10.18,
    "moic_after": 1.03,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4046,6 +5577,29 @@
      "prior_value": 20.6,
      "new_value": 20.6,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 4.71,
+      "comp_multiple_at_round": 9.71,
+      "round_month": "2023-03",
+      "comp_month_used": "2023-03",
+      "factor_raw": 0.4851,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 42.8,
+      "sector": "Enterprise SaaS",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 20.6,
+     "new_value": 20.6,
+     "rationale": "Comps calibration (alternative only): sector Enterprise SaaS multiple 9.7\u00d7 in 2023-03 \u2192 4.7\u00d7 now, -51.5% bounded to -35% over 42.8 months. Calibrated alternative $13.39M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -4063,11 +5617,93 @@
       "months": 42.8,
       "anchor": "2023-03-06"
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 10\u00d7 revenue (bounds 2.4\u00d7\u20139.4\u00d7 around the 4.7\u00d7 live sector median), growing +32%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 10.18,
+      "threshold": 9.42,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 42.8 months old, and the current numbers disagree with it: carried above the multiple screen (10\u00d7 revenue, growing +32%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **42.8 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (10\u00d7 revenue, growing +32%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 20.6
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 13.39
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 20.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 20.6,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 42.8,
+      "screens": [
+       "X-401"
+      ]
+     }
     }
    ],
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 13.39
+   }
   },
   {
    "company": "Yarrowbank",
@@ -4098,6 +5734,10 @@
    "runway_months_aged": 29.87,
    "implied_multiple": 1.03,
    "moic_after": 0.3,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4111,6 +5751,29 @@
      "prior_value": 0.6,
      "new_value": 0.6,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 5.58,
+      "comp_multiple_at_round": 8.98,
+      "round_month": "2024-01",
+      "comp_month_used": "2024-01",
+      "factor_raw": 0.6214,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 32.9,
+      "sector": "Consumer",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 0.6,
+     "new_value": 0.6,
+     "rationale": "Comps calibration (alternative only): sector Consumer multiple 9.0\u00d7 in 2024-01 \u2192 5.6\u00d7 now, -37.9% bounded to -35% over 32.9 months. Calibrated alternative $0.39M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -4133,15 +5796,15 @@
      "rule_id": "X-402",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 1.0\u00d7 revenue (sector comp 5.8\u00d7), growing +85%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "message": "Carried at 1.0\u00d7 revenue (bounds 2.8\u00d7\u201311.2\u00d7 around the 5.6\u00d7 live sector median), growing +85%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 1.03,
-      "threshold": 3.0,
-      "basis": "absolute policy bound"
+      "threshold": 2.79,
+      "basis": "live sector median"
      }
     },
     {
@@ -4164,6 +5827,15 @@
         "The screen is a cross-check, not a valuation."
        ],
        "booked": 0.6
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 0.39
       }
      ],
      "recommendation": {
@@ -4189,8 +5861,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 0.39
+   }
   },
   {
    "company": "Zinniafold",
@@ -4221,6 +5899,10 @@
    "runway_months_aged": 16.69,
    "implied_multiple": 15.1,
    "moic_after": 0.7115,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4234,6 +5916,29 @@
      "prior_value": 3.7,
      "new_value": 3.7,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 6.81,
+      "comp_multiple_at_round": 10.96,
+      "round_month": "2024-02",
+      "comp_month_used": "2024-02",
+      "factor_raw": 0.6214,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 31.9,
+      "sector": "Healthcare",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 3.7,
+     "new_value": 3.7,
+     "rationale": "Comps calibration (alternative only): sector Healthcare multiple 11.0\u00d7 in 2024-02 \u2192 6.8\u00d7 now, -37.9% bounded to -35% over 31.9 months. Calibrated alternative $2.41M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -4251,11 +5956,84 @@
       "months": 31.9,
       "anchor": "2024-02-02"
      }
+    },
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 15\u00d7 revenue (bounds 3.4\u00d7\u201313.6\u00d7 around the 6.8\u00d7 live sector median), growing +168%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 15.1,
+      "threshold": 13.62,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 31.9 months old, and the current numbers disagree with it: carried above the multiple screen (15\u00d7 revenue, growing +168%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **31.9 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (15\u00d7 revenue, growing +168%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 3.7
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 2.405
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 3.7,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 31.9,
+      "screens": [
+       "X-401"
+      ]
+     }
     }
    ],
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 2.405
+   }
   },
   {
    "company": "Ambercrest",
@@ -4286,6 +6064,10 @@
    "runway_months_aged": 29.53,
    "implied_multiple": 23.3,
    "moic_after": 1.8929,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4304,6 +6086,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -4336,6 +6122,10 @@
    "runway_months_aged": 17.45,
    "implied_multiple": 11.55,
    "moic_after": 2.7756,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4349,6 +6139,29 @@
      "prior_value": 43.3,
      "new_value": 43.3,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 14.81,
+      "comp_multiple_at_round": 20.92,
+      "round_month": "2021-05",
+      "comp_month_used": "2021-05",
+      "factor_raw": 0.7079,
+      "factor_bounded": 0.7079,
+      "bound_hit": false,
+      "age_months": 64.7,
+      "sector": "Cybersecurity",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 4,
+      "n_constituents_now": 5
+     },
+     "prior_value": 43.3,
+     "new_value": 43.3,
+     "rationale": "Comps calibration (alternative only): sector Cybersecurity multiple 20.9\u00d7 in 2021-05 \u2192 14.8\u00d7 now, -29.2% over 64.7 months. Calibrated alternative $30.65M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -4373,6 +6186,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 43.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 30.653585
       }
      ],
      "recommendation": {
@@ -4445,8 +6267,14 @@
     }
    ],
    "disposition": "BLOCK",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 30.653585
+   }
   },
   {
    "company": "Covebright",
@@ -4477,6 +6305,10 @@
    "runway_months_aged": 26.78,
    "implied_multiple": 10.5,
    "moic_after": 3.65,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4493,8 +6325,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 10\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +68%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 10.5,
+      "threshold": 5.58,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -4527,6 +6379,10 @@
    "runway_months_aged": 4.11,
    "implied_multiple": 10.54,
    "moic_after": 1.082,
+   "new_investment_quarter": 0.5,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-060",
@@ -4549,6 +6405,29 @@
       "event_type": "Convertible Note",
       "date": "2026-08-28"
      }
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 19.81,
+      "comp_multiple_at_round": 14.23,
+      "round_month": "2023-05",
+      "comp_month_used": "2023-05",
+      "factor_raw": 1.3921,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 40.6,
+      "sector": "Data & Analytics",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 6.6,
+     "new_value": 6.6,
+     "rationale": "Comps calibration (alternative only): sector Data & Analytics multiple 14.2\u00d7 in 2023-05 \u2192 19.8\u00d7 now, +39.2% bounded to +35% over 40.6 months. Calibrated alternative $8.23M recorded; base mark unchanged.",
+     "evidence": null
     }
    ],
    "flags": [
@@ -4675,6 +6554,10 @@
     }
    ],
    "disposition": "BLOCK",
+   "readiness": "Needs Review",
+   "action": "Revalue",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [
     {
      "company": "Duskfern",
@@ -4688,7 +6571,9 @@
      "escalated": false
     }
    ],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 8.235
+   }
   },
   {
    "company": "Elmsworth Data",
@@ -4719,6 +6604,10 @@
    "runway_months_aged": 23.62,
    "implied_multiple": 47.85,
    "moic_after": 4.76,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4740,19 +6629,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 48\u00d7 revenue (sector comp 22.7\u00d7), growing +98%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 48\u00d7 revenue (bounds 6.8\u00d7\u201327.1\u00d7 around the 13.6\u00d7 live sector median), growing +98%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 47.85,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 27.1,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -4785,6 +6678,10 @@
    "runway_months_aged": 30.08,
    "implied_multiple": 32.56,
    "moic_after": 6.625,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4798,6 +6695,29 @@
      "prior_value": 26.5,
      "new_value": 26.5,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 4.9,
+      "comp_multiple_at_round": 4.32,
+      "round_month": "2023-10",
+      "comp_month_used": "2023-10",
+      "factor_raw": 1.1343,
+      "factor_bounded": 1.1343,
+      "bound_hit": false,
+      "age_months": 35.5,
+      "sector": "Climate & Energy",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 26.5,
+     "new_value": 26.5,
+     "rationale": "Comps calibration (alternative only): sector Climate & Energy multiple 4.3\u00d7 in 2023-10 \u2192 4.9\u00d7 now, +13.4% over 35.5 months. Calibrated alternative $30.06M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -4820,15 +6740,15 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 33\u00d7 revenue (sector comp 7.1\u00d7), growing +103%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 33\u00d7 revenue (bounds 2.5\u00d7\u20139.8\u00d7 around the 4.9\u00d7 live sector median), growing +103%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 32.56,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 9.8,
+      "basis": "live sector median"
      }
     },
     {
@@ -4867,6 +6787,15 @@
        "booked": 26.5
       },
       {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 30.05787
+      },
+      {
        "key": "to_cost",
        "label": "Mark down to invested cost pending a new price.",
        "reasons": [
@@ -4900,8 +6829,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 30.05787
+   }
   },
   {
    "company": "Gorseline",
@@ -4932,6 +6867,10 @@
    "runway_months_aged": 21.31,
    "implied_multiple": 4.81,
    "moic_after": 1.4762,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4948,8 +6887,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 4.8\u00d7 revenue (bounds 6.8\u00d7\u201327.1\u00d7 around the 13.6\u00d7 live sector median), growing +52%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 4.81,
+      "threshold": 6.775,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -4982,6 +6941,10 @@
    "runway_months_aged": null,
    "implied_multiple": null,
    "moic_after": 1.7143,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -4999,6 +6962,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5031,6 +6998,10 @@
    "runway_months_aged": 21.7,
    "implied_multiple": 3.74,
    "moic_after": 0.5,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5044,6 +7015,29 @@
      "prior_value": 3.0,
      "new_value": 3.0,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 10.39,
+      "comp_multiple_at_round": 12.22,
+      "round_month": "2024-09",
+      "comp_month_used": "2024-09",
+      "factor_raw": 0.8502,
+      "factor_bounded": 0.8502,
+      "bound_hit": false,
+      "age_months": 24.9,
+      "sector": "Developer Tools",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 3.0,
+     "new_value": 3.0,
+     "rationale": "Comps calibration (alternative only): sector Developer Tools multiple 12.2\u00d7 in 2024-09 \u2192 10.4\u00d7 now, -15.0% over 24.9 months. Calibrated alternative $2.55M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -5061,11 +7055,84 @@
       "months": 24.9,
       "anchor": "2024-09-03"
      }
+    },
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 3.7\u00d7 revenue (bounds 5.2\u00d7\u201320.8\u00d7 around the 10.4\u00d7 live sector median), growing +128%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 3.74,
+      "threshold": 5.195,
+      "basis": "live sector median"
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "family": "valuation",
+     "severity": "REVIEW",
+     "message": "The price behind this mark is 24.9 months old, and the current numbers disagree with it: carried below the multiple screen (4\u00d7 revenue, growing +128%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "points": [
+      "Price is **24.9 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried below the multiple screen** (4\u00d7 revenue, growing +128%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 3.0
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 2.550736
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 3.0,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null,
+      "note": null
+     },
+     "evidence": {
+      "months": 24.9,
+      "screens": [
+       "X-402"
+      ]
+     }
     }
    ],
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 2.550736
+   }
   },
   {
    "company": "Jadewell Payments",
@@ -5096,6 +7163,10 @@
    "runway_months_aged": 23.08,
    "implied_multiple": 12.95,
    "moic_after": 1.2174,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5114,6 +7185,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5146,6 +7221,10 @@
    "runway_months_aged": 29.83,
    "implied_multiple": 8.48,
    "moic_after": 2.2,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5162,8 +7241,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 8\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +56%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 8.48,
+      "threshold": 5.58,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5196,6 +7295,10 @@
    "runway_months_aged": 22.81,
    "implied_multiple": 10.93,
    "moic_after": 0.7333,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5214,6 +7317,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5246,6 +7353,10 @@
    "runway_months_aged": 28.07,
    "implied_multiple": 4.71,
    "moic_after": 1.65,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5259,6 +7370,29 @@
      "prior_value": 6.6,
      "new_value": 6.6,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 4.9,
+      "comp_multiple_at_round": 4.9,
+      "round_month": "2023-11",
+      "comp_month_used": "2023-11",
+      "factor_raw": 1.0,
+      "factor_bounded": 1.0,
+      "bound_hit": false,
+      "age_months": 34.7,
+      "sector": "Climate & Energy",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 6.6,
+     "new_value": 6.6,
+     "rationale": "Comps calibration (alternative only): sector Climate & Energy multiple 4.9\u00d7 in 2023-11 \u2192 4.9\u00d7 now, +0.0% over 34.7 months. Calibrated alternative $6.60M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -5344,8 +7478,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 6.6
+   }
   },
   {
    "company": "Nettlebay",
@@ -5376,6 +7516,10 @@
    "runway_months_aged": 17.32,
    "implied_multiple": 12.48,
    "moic_after": 1.42,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5389,6 +7533,29 @@
      "prior_value": 21.3,
      "new_value": 21.3,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 9.14,
+      "comp_multiple_at_round": 4.36,
+      "round_month": "2022-08",
+      "comp_month_used": "2022-08",
+      "factor_raw": 2.0963,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 49.1,
+      "sector": "Robotics",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 4,
+      "n_constituents_now": 5
+     },
+     "prior_value": 21.3,
+     "new_value": 21.3,
+     "rationale": "Comps calibration (alternative only): sector Robotics multiple 4.4\u00d7 in 2022-08 \u2192 9.1\u00d7 now, +109.6% bounded to +35% over 49.1 months. Calibrated alternative $28.76M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -5413,6 +7580,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 21.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 28.755
       }
      ],
      "recommendation": {
@@ -5436,8 +7612,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 28.755
+   }
   },
   {
    "company": "Orchardline",
@@ -5468,6 +7650,10 @@
    "runway_months_aged": 2.5,
    "implied_multiple": 5.43,
    "moic_after": 1.825,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5534,9 +7720,28 @@
       "runway_months_aged": 2.5,
       "financings_in_quarter": []
      }
+    },
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 5.4\u00d7 revenue (bounds 9.9\u00d7\u201339.6\u00d7 around the 19.8\u00d7 live sector median), growing +59%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 5.43,
+      "threshold": 9.905,
+      "basis": "live sector median"
+     }
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5569,6 +7774,10 @@
    "runway_months_aged": 16.53,
    "implied_multiple": 7.54,
    "moic_after": 1.0833,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5587,6 +7796,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5619,6 +7832,10 @@
    "runway_months_aged": 26.39,
    "implied_multiple": 11.02,
    "moic_after": 1.4833,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5635,8 +7852,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 11\u00d7 revenue (bounds 2.5\u00d7\u20139.8\u00d7 around the 4.9\u00d7 live sector median), growing +116%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 11.02,
+      "threshold": 9.8,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5669,6 +7906,10 @@
    "runway_months_aged": 24.43,
    "implied_multiple": 18.64,
    "moic_after": 1.22,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5682,6 +7923,29 @@
      "prior_value": 12.2,
      "new_value": 12.2,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 10.39,
+      "comp_multiple_at_round": 16.82,
+      "round_month": "2023-01",
+      "comp_month_used": "2023-01",
+      "factor_raw": 0.6177,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 44.6,
+      "sector": "Developer Tools",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 4,
+      "n_constituents_now": 5
+     },
+     "prior_value": 12.2,
+     "new_value": 12.2,
+     "rationale": "Comps calibration (alternative only): sector Developer Tools multiple 16.8\u00d7 in 2023-01 \u2192 10.4\u00d7 now, -38.2% bounded to -35% over 44.6 months. Calibrated alternative $7.93M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -5702,8 +7966,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 7.93
+   }
   },
   {
    "company": "Stonegather",
@@ -5734,6 +8004,10 @@
    "runway_months_aged": 3.67,
    "implied_multiple": 18.1,
    "moic_after": 1.2143,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5747,6 +8021,29 @@
      "prior_value": 1.7,
      "new_value": 1.7,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 19.81,
+      "comp_multiple_at_round": 16.03,
+      "round_month": "2023-12",
+      "comp_month_used": "2023-12",
+      "factor_raw": 1.2358,
+      "factor_bounded": 1.2358,
+      "bound_hit": false,
+      "age_months": 33.8,
+      "sector": "Data & Analytics",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 1.7,
+     "new_value": 1.7,
+     "rationale": "Comps calibration (alternative only): sector Data & Analytics multiple 16.0\u00d7 in 2023-12 \u2192 19.8\u00d7 now, +23.6% over 33.8 months. Calibrated alternative $2.10M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -5817,8 +8114,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 2.100873
+   }
   },
   {
    "company": "Tidewell Health",
@@ -5849,6 +8152,10 @@
    "runway_months_aged": 19.0,
    "implied_multiple": 9.93,
    "moic_after": 0.8571,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5867,6 +8174,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5899,6 +8210,10 @@
    "runway_months_aged": 25.96,
    "implied_multiple": null,
    "moic_after": 1.1538,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5945,6 +8260,10 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -5977,6 +8296,10 @@
    "runway_months_aged": 25.07,
    "implied_multiple": 10.89,
    "moic_after": 1.6519,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -5995,6 +8318,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6027,6 +8354,10 @@
    "runway_months_aged": 16.46,
    "implied_multiple": 7.04,
    "moic_after": 0.7833,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6043,8 +8374,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 7.0\u00d7 revenue (bounds 7.4\u00d7\u201329.6\u00d7 around the 14.8\u00d7 live sector median), growing +45%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 7.04,
+      "threshold": 7.405,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6077,6 +8428,10 @@
    "runway_months_aged": 16.58,
    "implied_multiple": 11.17,
    "moic_after": 2.855,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6090,6 +8445,29 @@
      "prior_value": 57.1,
      "new_value": 57.1,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 14.81,
+      "comp_multiple_at_round": 9.68,
+      "round_month": "2023-01",
+      "comp_month_used": "2023-01",
+      "factor_raw": 1.53,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 44.0,
+      "sector": "Cybersecurity",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 57.1,
+     "new_value": 57.1,
+     "rationale": "Comps calibration (alternative only): sector Cybersecurity multiple 9.7\u00d7 in 2023-01 \u2192 14.8\u00d7 now, +53.0% bounded to +35% over 44.0 months. Calibrated alternative $77.09M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -6110,8 +8488,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 77.085
+   }
   },
   {
    "company": "Yewbranch Security",
@@ -6142,6 +8526,10 @@
    "runway_months_aged": 18.26,
    "implied_multiple": null,
    "moic_after": 1.0,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6174,6 +8562,10 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6206,6 +8598,10 @@
    "runway_months_aged": 11.62,
    "implied_multiple": 9.29,
    "moic_after": 0.85,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6219,6 +8615,29 @@
      "prior_value": 3.4,
      "new_value": 3.4,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 9.14,
+      "comp_multiple_at_round": 7.94,
+      "round_month": "2024-05",
+      "comp_month_used": "2024-05",
+      "factor_raw": 1.1511,
+      "factor_bounded": 1.1511,
+      "bound_hit": false,
+      "age_months": 28.3,
+      "sector": "Robotics",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 3.4,
+     "new_value": 3.4,
+     "rationale": "Comps calibration (alternative only): sector Robotics multiple 7.9\u00d7 in 2024-05 \u2192 9.1\u00d7 now, +15.1% over 28.3 months. Calibrated alternative $3.91M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -6253,8 +8672,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 3.913854
+   }
   },
   {
    "company": "Alderpoint",
@@ -6285,6 +8710,10 @@
    "runway_months_aged": 13.0,
    "implied_multiple": null,
    "moic_after": 1.3,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6331,6 +8760,10 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6363,6 +8796,10 @@
    "runway_months_aged": 18.36,
    "implied_multiple": 6.49,
    "moic_after": 1.45,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6376,6 +8813,29 @@
      "prior_value": 8.7,
      "new_value": 8.7,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 6.81,
+      "comp_multiple_at_round": 12.19,
+      "round_month": "2022-12",
+      "comp_month_used": "2022-12",
+      "factor_raw": 0.5587,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 45.0,
+      "sector": "Healthcare",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 8.7,
+     "new_value": 8.7,
+     "rationale": "Comps calibration (alternative only): sector Healthcare multiple 12.2\u00d7 in 2022-12 \u2192 6.8\u00d7 now, -44.1% bounded to -35% over 45.0 months. Calibrated alternative $5.65M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -6396,8 +8856,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 5.655
+   }
   },
   {
    "company": "Coppermoss Energy",
@@ -6428,6 +8894,10 @@
    "runway_months_aged": 31.5,
    "implied_multiple": 28.33,
    "moic_after": 1.0833,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6444,8 +8914,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 28\u00d7 revenue (bounds 2.4\u00d7\u20139.4\u00d7 around the 4.7\u00d7 live sector median), growing +75%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 28.33,
+      "threshold": 9.42,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6478,6 +8968,10 @@
    "runway_months_aged": 28.92,
    "implied_multiple": 8.6,
    "moic_after": 1.9306,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6496,6 +8990,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6528,6 +9026,10 @@
    "runway_months_aged": null,
    "implied_multiple": null,
    "moic_after": 0.0,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6545,6 +9047,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6577,6 +9083,10 @@
    "runway_months_aged": 17.98,
    "implied_multiple": 4.16,
    "moic_after": 0.871,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6590,6 +9100,29 @@
      "prior_value": 10.8,
      "new_value": 10.8,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 4.71,
+      "comp_multiple_at_round": 13.35,
+      "round_month": "2023-07",
+      "comp_month_used": "2023-07",
+      "factor_raw": 0.3528,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 38.4,
+      "sector": "Enterprise SaaS",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 10.8,
+     "new_value": 10.8,
+     "rationale": "Comps calibration (alternative only): sector Enterprise SaaS multiple 13.3\u00d7 in 2023-07 \u2192 4.7\u00d7 now, -64.7% bounded to -35% over 38.4 months. Calibrated alternative $7.02M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -6610,8 +9143,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 7.02
+   }
   },
   {
    "company": "Gablewood",
@@ -6642,6 +9181,10 @@
    "runway_months_aged": 20.36,
    "implied_multiple": 11.22,
    "moic_after": 0.6,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6660,6 +9203,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6692,6 +9239,10 @@
    "runway_months_aged": 23.86,
    "implied_multiple": 22.28,
    "moic_after": 1.1296,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6710,6 +9261,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6742,6 +9297,10 @@
    "runway_months_aged": 7.02,
    "implied_multiple": null,
    "moic_after": 0.0,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": -10.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-021",
@@ -6765,6 +9324,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Write-off",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -6797,6 +9360,10 @@
    "runway_months_aged": 25.59,
    "implied_multiple": 1.71,
    "moic_after": 0.35,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6810,6 +9377,29 @@
      "prior_value": 0.7,
      "new_value": 0.7,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 4.71,
+      "comp_multiple_at_round": 18.01,
+      "round_month": "2021-09",
+      "comp_month_used": "2021-09",
+      "factor_raw": 0.2615,
+      "factor_bounded": 0.65,
+      "bound_hit": true,
+      "age_months": 60.5,
+      "sector": "Enterprise SaaS",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 0.7,
+     "new_value": 0.7,
+     "rationale": "Comps calibration (alternative only): sector Enterprise SaaS multiple 18.0\u00d7 in 2021-09 \u2192 4.7\u00d7 now, -73.8% bounded to -35% over 60.5 months. Calibrated alternative $0.45M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -6834,6 +9424,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 0.7
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 0.455
       }
      ],
      "recommendation": {
@@ -6859,21 +9458,27 @@
      "rule_id": "X-402",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 1.7\u00d7 revenue (sector comp 10.6\u00d7), growing +101%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "message": "Carried at 1.7\u00d7 revenue (bounds 2.4\u00d7\u20139.4\u00d7 around the 4.7\u00d7 live sector median), growing +101%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 1.71,
-      "threshold": 3.0,
-      "basis": "absolute policy bound"
+      "threshold": 2.355,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 0.455
+   }
   },
   {
    "company": "Knollward",
@@ -6904,6 +9509,10 @@
    "runway_months_aged": 17.32,
    "implied_multiple": 15.45,
    "moic_after": 3.4857,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -6917,6 +9526,29 @@
      "prior_value": 48.8,
      "new_value": 48.8,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 13.55,
+      "comp_multiple_at_round": 5.33,
+      "round_month": "2022-09",
+      "comp_month_used": "2022-09",
+      "factor_raw": 2.5422,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 48.9,
+      "sector": "AI/ML",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 4,
+      "n_constituents_now": 5
+     },
+     "prior_value": 48.8,
+     "new_value": 48.8,
+     "rationale": "Comps calibration (alternative only): sector AI/ML multiple 5.3\u00d7 in 2022-09 \u2192 13.6\u00d7 now, +154.2% bounded to +35% over 48.9 months. Calibrated alternative $65.88M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -6941,6 +9573,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 48.8
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 65.88
       }
      ],
      "recommendation": {
@@ -6964,8 +9605,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 65.88
+   }
   },
   {
    "company": "Lanternfell Space",
@@ -6996,6 +9643,10 @@
    "runway_months_aged": 12.54,
    "implied_multiple": 8.83,
    "moic_after": 2.4867,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7014,6 +9665,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -7046,6 +9701,10 @@
    "runway_months_aged": 14.92,
    "implied_multiple": 22.55,
    "moic_after": 6.2752,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7059,6 +9718,29 @@
      "prior_value": 68.4,
      "new_value": 68.4,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 9.14,
+      "comp_multiple_at_round": 4.87,
+      "round_month": "2022-05",
+      "comp_month_used": "2022-05",
+      "factor_raw": 1.8768,
+      "factor_bounded": 1.35,
+      "bound_hit": true,
+      "age_months": 52.3,
+      "sector": "Robotics",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 4,
+      "n_constituents_now": 5
+     },
+     "prior_value": 68.4,
+     "new_value": 68.4,
+     "rationale": "Comps calibration (alternative only): sector Robotics multiple 4.9\u00d7 in 2022-05 \u2192 9.1\u00d7 now, +87.7% bounded to +35% over 52.3 months. Calibrated alternative $92.34M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -7083,6 +9765,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 68.4
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 92.34
       }
      ],
      "recommendation": {
@@ -7105,6 +9796,21 @@
      }
     },
     {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 23\u00d7 revenue (bounds 4.6\u00d7\u201318.3\u00d7 around the 9.1\u00d7 live sector median), growing +54%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 22.55,
+      "threshold": 18.28,
+      "basis": "live sector median"
+     }
+    },
+    {
      "rule_id": "X-404",
      "family": "valuation",
      "severity": "MONITOR",
@@ -7120,8 +9826,14 @@
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 92.34
+   }
   },
   {
    "company": "Northquill",
@@ -7152,6 +9864,10 @@
    "runway_months_aged": 7.12,
    "implied_multiple": 22.65,
    "moic_after": 2.41,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7165,6 +9881,29 @@
      "prior_value": 24.1,
      "new_value": 24.1,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 14.81,
+      "comp_multiple_at_round": 12.64,
+      "round_month": "2023-12",
+      "comp_month_used": "2023-12",
+      "factor_raw": 1.1717,
+      "factor_bounded": 1.1717,
+      "bound_hit": false,
+      "age_months": 33.8,
+      "sector": "Cybersecurity",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 24.1,
+     "new_value": 24.1,
+     "rationale": "Comps calibration (alternative only): sector Cybersecurity multiple 12.6\u00d7 in 2023-12 \u2192 14.8\u00d7 now, +17.2% over 33.8 months. Calibrated alternative $28.24M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -7199,8 +9938,14 @@
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 28.237421
+   }
   },
   {
    "company": "Oxbowlane",
@@ -7231,6 +9976,10 @@
    "runway_months_aged": 20.39,
    "implied_multiple": 21.13,
    "moic_after": 1.3,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7247,8 +9996,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-401",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 21\u00d7 revenue (bounds 5.2\u00d7\u201320.8\u00d7 around the 10.4\u00d7 live sector median), growing +46%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 21.13,
+      "threshold": 20.78,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -7281,6 +10050,10 @@
    "runway_months_aged": 18.26,
    "implied_multiple": 32.29,
    "moic_after": 0.9444,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7342,19 +10115,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 32\u00d7 revenue (sector comp 11.3\u00d7), growing -30%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 32\u00d7 revenue (bounds 6.6\u00d7\u201326.5\u00d7 around the 13.2\u00d7 live sector median), growing -30%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 32.29,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 26.46,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -7387,6 +10164,10 @@
    "runway_months_aged": 17.52,
    "implied_multiple": 35.47,
    "moic_after": 1.3,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7408,19 +10189,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 35\u00d7 revenue (sector comp 9.2\u00d7), growing +62%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 35\u00d7 revenue (bounds 1.4\u00d7\u20135.6\u00d7 around the 2.8\u00d7 live sector median), growing +62%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 35.47,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 5.58,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -7453,6 +10238,10 @@
    "runway_months_aged": 13.35,
    "implied_multiple": 9.75,
    "moic_after": 0.3793,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7469,8 +10258,28 @@
      "evidence": null
     }
    ],
-   "flags": [],
-   "disposition": "CLEAR",
+   "flags": [
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 9.8\u00d7 revenue (bounds 9.9\u00d7\u201339.6\u00d7 around the 19.8\u00d7 live sector median), growing +116%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 9.75,
+      "threshold": 9.905,
+      "basis": "live sector median"
+     }
+    }
+   ],
+   "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -7503,6 +10312,10 @@
    "runway_months_aged": 22.18,
    "implied_multiple": 11.45,
    "moic_after": 1.41,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7521,6 +10334,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -7553,6 +10370,10 @@
    "runway_months_aged": 19.94,
    "implied_multiple": 6.21,
    "moic_after": 0.7778,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7566,6 +10387,29 @@
      "prior_value": 2.1,
      "new_value": 2.1,
      "rationale": "No activity in the quarter; the most recent priced round remains the best evidence of value.",
+     "evidence": null
+    },
+    {
+     "rule_id": "M-080",
+     "rule_version": "2026Q3.1",
+     "sequence": 2,
+     "inputs": {
+      "comp_multiple_now": 19.81,
+      "comp_multiple_at_round": 17.48,
+      "round_month": "2022-01",
+      "comp_month_used": "2022-01",
+      "factor_raw": 1.1333,
+      "factor_bounded": 1.1333,
+      "bound_hit": false,
+      "age_months": 56.9,
+      "sector": "Data & Analytics",
+      "comps_source": "live:edgar+yahoo@2026-09",
+      "n_constituents_at_round": 5,
+      "n_constituents_now": 5
+     },
+     "prior_value": 2.1,
+     "new_value": 2.1,
+     "rationale": "Comps calibration (alternative only): sector Data & Analytics multiple 17.5\u00d7 in 2022-01 \u2192 19.8\u00d7 now, +13.3% over 56.9 months. Calibrated alternative $2.38M recorded; base mark unchanged.",
      "evidence": null
     }
    ],
@@ -7590,6 +10434,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 2.1
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 2.37992
       }
      ],
      "recommendation": {
@@ -7610,11 +10463,32 @@
       "months": 56.9,
       "anchor": "2022-01-03"
      }
+    },
+    {
+     "rule_id": "X-402",
+     "family": "valuation",
+     "severity": "MONITOR",
+     "message": "Carried at 6.2\u00d7 revenue (bounds 9.9\u00d7\u201339.6\u00d7 around the 19.8\u00d7 live sector median), growing +199%. On this screen the mark looks understated \u2014 undermarking is the same failure with the opposite sign.",
+     "action": "",
+     "points": [],
+     "suggestions": [],
+     "recommendation": null,
+     "evidence": {
+      "implied_multiple": 6.21,
+      "threshold": 9.905,
+      "basis": "live sector median"
+     }
     }
    ],
    "disposition": "REVIEW",
+   "readiness": "Needs Review",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 2.37992
+   }
   },
   {
    "company": "Ventabrook",
@@ -7645,6 +10519,10 @@
    "runway_months_aged": 30.87,
    "implied_multiple": 17.0,
    "moic_after": 1.0952,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7663,6 +10541,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -7695,6 +10577,10 @@
    "runway_months_aged": 21.67,
    "implied_multiple": 45.5,
    "moic_after": 2.0,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7716,19 +10602,23 @@
      "rule_id": "X-401",
      "family": "valuation",
      "severity": "MONITOR",
-     "message": "Carried at 46\u00d7 revenue (sector comp 10.6\u00d7), growing +199%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 46\u00d7 revenue (bounds 2.4\u00d7\u20139.4\u00d7 around the 4.7\u00d7 live sector median), growing +199%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "action": "",
      "points": [],
      "suggestions": [],
      "recommendation": null,
      "evidence": {
       "implied_multiple": 45.5,
-      "threshold": 30.0,
-      "basis": "absolute policy bound"
+      "threshold": 9.42,
+      "basis": "live sector median"
      }
     }
    ],
    "disposition": "MONITOR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": true,
    "open_items": [],
    "alternative_marks": {}
   },
@@ -7761,6 +10651,10 @@
    "runway_months_aged": null,
    "implied_multiple": null,
    "moic_after": 0.0,
+   "new_investment_quarter": 0.0,
+   "valuation_change_quarter": 0.0,
+   "provisional": false,
+   "provisional_reason": null,
    "steps": [
     {
      "rule_id": "M-000",
@@ -7778,6 +10672,10 @@
    ],
    "flags": [],
    "disposition": "CLEAR",
+   "readiness": "Ready",
+   "action": "Carry",
+   "approval": "Not approved",
+   "monitor": false,
    "open_items": [],
    "alternative_marks": {}
   }
@@ -7905,13 +10803,21 @@
   "written_off": 21.4,
   "exited_at_prior_mark": 18.2,
   "dispositions": {
-   "BLOCK": 7,
-   "REVIEW": 20,
-   "MONITOR": 39,
-   "CLEAR": 34
+   "BLOCK": 9,
+   "REVIEW": 25,
+   "MONITOR": 43,
+   "CLEAR": 23
   },
   "level1_positions": 1,
-  "top10_concentration": 0.4459
+  "top10_concentration": 0.4459,
+  "new_investment": 4.1,
+  "valuation_change": 73.3763,
+  "readiness": {
+   "Blocked": 1,
+   "Needs Review": 33,
+   "Ready": 66
+  },
+  "monitor_positions": 71
  },
  "open_items": [
   {
@@ -8001,166 +10907,166 @@
   "base_nav": 1184.2763,
   "exposed_nav": 1062.7491,
   "covered_nav": 1062.7491,
-  "delta": 1.749103,
-  "nav_if_marked_with_comps": 1186.025403,
+  "delta": 6.977663,
+  "nav_if_marked_with_comps": 1191.253963,
   "sectors": [
    {
-    "sector": "Cybersecurity",
-    "multiple_prior": 13.45,
-    "multiple_now": 13.01,
-    "qoq_pct": -0.0327,
-    "exposed_nav": 155.3,
-    "delta": -5.080446,
-    "positions": 8,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
+    "sector": "Enterprise SaaS",
+    "multiple_prior": 3.2,
+    "multiple_now": 4.71,
+    "qoq_pct": 0.4719,
+    "exposed_nav": 88.909,
+    "delta": 41.953934,
+    "positions": 11,
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
    },
    {
     "sector": "Infrastructure",
-    "multiple_prior": 11.0,
-    "multiple_now": 11.28,
-    "qoq_pct": 0.0255,
+    "multiple_prior": 17.46,
+    "multiple_now": 13.23,
+    "qoq_pct": -0.2423,
     "exposed_nav": 100.216,
-    "delta": 2.550953,
+    "delta": -24.279134,
     "positions": 6,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
-   },
-   {
-    "sector": "Robotics",
-    "multiple_prior": 7.05,
-    "multiple_now": 7.21,
-    "qoq_pct": 0.0227,
-    "exposed_nav": 100.9,
-    "delta": 2.289929,
-    "positions": 5,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
    },
    {
     "sector": "Fintech",
-    "multiple_prior": 9.41,
-    "multiple_now": 9.18,
-    "qoq_pct": -0.0244,
+    "multiple_prior": 2.43,
+    "multiple_now": 2.79,
+    "qoq_pct": 0.1481,
     "exposed_nav": 77.109,
-    "delta": -1.884705,
+    "delta": 11.423556,
     "positions": 9,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
-   },
-   {
-    "sector": "AI/ML",
-    "multiple_prior": 22.53,
-    "multiple_now": 22.7,
-    "qoq_pct": 0.0075,
-    "exposed_nav": 206.2388,
-    "delta": 1.556174,
-    "positions": 14,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
-   },
-   {
-    "sector": "Enterprise SaaS",
-    "multiple_prior": 10.45,
-    "multiple_now": 10.63,
-    "qoq_pct": 0.0172,
-    "exposed_nav": 88.909,
-    "delta": 1.531447,
-    "positions": 11,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
-   },
-   {
-    "sector": "Developer Tools",
-    "multiple_prior": 11.4,
-    "multiple_now": 11.28,
-    "qoq_pct": -0.0105,
-    "exposed_nav": 133.6396,
-    "delta": -1.406733,
-    "positions": 10,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
-   },
-   {
-    "sector": "Space & Defense",
-    "multiple_prior": 10.01,
-    "multiple_now": 10.19,
-    "qoq_pct": 0.018,
-    "exposed_nav": 64.8,
-    "delta": 1.165235,
-    "positions": 3,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
    },
    {
     "sector": "Climate & Energy",
-    "multiple_prior": 7.04,
-    "multiple_now": 7.14,
-    "qoq_pct": 0.0142,
+    "multiple_prior": 5.58,
+    "multiple_now": 4.9,
+    "qoq_pct": -0.1219,
     "exposed_nav": 69.8057,
-    "delta": 0.991558,
+    "delta": -8.506788,
     "positions": 5,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
    },
    {
-    "sector": "Healthcare",
-    "multiple_prior": 7.82,
-    "multiple_now": 7.63,
-    "qoq_pct": -0.0243,
-    "exposed_nav": 18.431,
-    "delta": -0.447812,
-    "positions": 6,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
+    "sector": "Robotics",
+    "multiple_prior": 9.96,
+    "multiple_now": 9.14,
+    "qoq_pct": -0.0823,
+    "exposed_nav": 100.9,
+    "delta": -8.307028,
+    "positions": 5,
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
+   },
+   {
+    "sector": "Space & Defense",
+    "multiple_prior": 8.5,
+    "multiple_now": 7.44,
+    "qoq_pct": -0.1247,
+    "exposed_nav": 64.8,
+    "delta": -8.080941,
+    "positions": 3,
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
+   },
+   {
+    "sector": "Cybersecurity",
+    "multiple_prior": 15.48,
+    "multiple_now": 14.81,
+    "qoq_pct": -0.0433,
+    "exposed_nav": 155.3,
+    "delta": -6.721641,
+    "positions": 8,
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
    },
    {
     "sector": "Data & Analytics",
-    "multiple_prior": 11.19,
-    "multiple_now": 11.3,
-    "qoq_pct": 0.0098,
+    "multiple_prior": 17.11,
+    "multiple_now": 19.81,
+    "qoq_pct": 0.1578,
     "exposed_nav": 40.3,
-    "delta": 0.396157,
+    "delta": 6.359439,
     "positions": 8,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
+   },
+   {
+    "sector": "AI/ML",
+    "multiple_prior": 13.94,
+    "multiple_now": 13.55,
+    "qoq_pct": -0.028,
+    "exposed_nav": 206.2388,
+    "delta": -5.769952,
+    "positions": 14,
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
+   },
+   {
+    "sector": "Developer Tools",
+    "multiple_prior": 10.07,
+    "multiple_now": 10.39,
+    "qoq_pct": 0.0318,
+    "exposed_nav": 133.6396,
+    "delta": 4.24674,
+    "positions": 10,
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
+   },
+   {
+    "sector": "Healthcare",
+    "multiple_prior": 5.55,
+    "multiple_now": 6.81,
+    "qoq_pct": 0.227,
+    "exposed_nav": 18.431,
+    "delta": 4.184335,
+    "positions": 6,
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
    },
    {
     "sector": "Consumer",
-    "multiple_prior": 5.69,
-    "multiple_now": 5.76,
-    "qoq_pct": 0.0123,
+    "multiple_prior": 5.23,
+    "multiple_now": 5.58,
+    "qoq_pct": 0.0669,
     "exposed_nav": 7.1,
-    "delta": 0.087346,
+    "delta": 0.475143,
     "positions": 2,
-    "live": false,
-    "source": "fixture:pitchbook@2026-09",
-    "n_prior": null,
-    "n_now": null
+    "live": true,
+    "source": "live:edgar+yahoo@2026-09",
+    "n_prior": 5,
+    "n_now": 5
    }
   ],
-  "all_live": false
+  "all_live": true
  }
 }

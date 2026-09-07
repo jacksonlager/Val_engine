@@ -10,6 +10,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import type { CompanyResult, Disposition, ValuationRun } from "../types";
+import { DISPOSITIONS } from "../types";
 import { deltaPct, months, mult, musd, pct, signed, signClass } from "../lib/format";
 import { CompanyDetail } from "../components/CompanyDetail";
 import { DispChip, EscalatedChip, escalatedReviewFamilies, FlagChip } from "../components/ui";
@@ -25,18 +26,18 @@ function Num({ v, d = 2 }: { v: number | null; d?: number }) {
 
 export function CompaniesView({
   run,
-  filter,
   writeDisabled,
   onChanged,
   focus,
 }: {
   run: ValuationRun;
-  filter: Disposition | "ALL";
   writeDisabled: string | null;
   onChanged: () => void;
   focus: string | null;
 }) {
   const [search, setSearch] = useState("");
+  // the severity filter lives here, beside the others it belongs with, rather than in the chrome
+  const [filter, setFilter] = useState<Disposition | "ALL">("ALL");
   const [fund, setFund] = useState("");
   const [sector, setSector] = useState("");
   const [rule, setRule] = useState("");
@@ -61,6 +62,7 @@ export function CompaniesView({
     if (focus) {
       setExpanded(focus);
       setSearch("");
+      setFilter("ALL");
       setFund("");
       setSector("");
       setRule("");
@@ -246,6 +248,14 @@ export function CompaniesView({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <select className="select" value={filter} onChange={(e) => setFilter(e.target.value as Disposition | "ALL")} title="Positions carrying a finding of this severity">
+          <option value="ALL">Any finding</option>
+          {DISPOSITIONS.map((d) => (
+            <option key={d} value={d}>
+              {d} ({run.totals.dispositions[d] ?? 0})
+            </option>
+          ))}
+        </select>
         <select className="select" value={fund} onChange={(e) => setFund(e.target.value)}>
           <option value="">All funds</option>
           {funds.map((f) => (

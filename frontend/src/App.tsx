@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Disposition, Rationale, Sources, ValuationRun } from "./types";
-import { DISPOSITION_HINT, DISPOSITIONS } from "./types";
+import type { Rationale, Sources, ValuationRun } from "./types";
 import { currentRunStamp, loadHistory, loadProposals, loadRationale, loadRun, loadSignals, STATIC_REASON, type Mode } from "./lib/api";
 import { HistoryProvider, type HistoryState } from "./lib/history";
 import { SourcesProvider } from "./lib/sources";
@@ -9,6 +8,8 @@ import { isoDateTime, shortSha } from "./lib/format";
 import { DispChip } from "./components/ui";
 import { PublishControls } from "./components/Publish";
 import { QueueView } from "./views/Queue";
+import { ActivityView } from "./views/Activity";
+import { hasActivity } from "./components/PositionCard";
 import { CompaniesView } from "./views/Companies";
 import { MovementView } from "./views/Movement";
 import { FundsView } from "./views/Funds";
@@ -17,23 +18,25 @@ import { ProposalsView } from "./views/Proposals";
 import { MarketView } from "./views/Market";
 import { RulesView } from "./views/Rules";
 
-type View = "queue" | "companies" | "movement" | "funds" | "market" | "rules" | "open" | "proposals";
-// The four views the brief asks for: the decisions, the auditor's table, what moved and why,
+type View = "activity" | "queue" | "companies" | "movement" | "funds" | "market" | "rules" | "open" | "proposals";
+// New Activity first — what the quarter brought in and how the engine treated it — then the
+// four views the brief asks for: the decisions, the auditor's table, what moved and why,
 // and where the market numbers came from. Funds lives on the executive dashboard; open items
 // sit at the foot of the Queue; Proposals appears only when the engine actually has one.
 // The other routes still answer to their hash (#funds, #open) for anyone who bookmarked them.
 const VIEWS: { id: View; label: string }[] = [
+  { id: "activity", label: "New Activity" },
   { id: "queue", label: "Queue" },
   { id: "companies", label: "Companies" },
   { id: "movement", label: "Movement" },
   { id: "market", label: "Market" },
   { id: "rules", label: "Rules" },
 ];
-const ALL_VIEWS: View[] = ["queue", "companies", "movement", "funds", "market", "rules", "open", "proposals"];
+const ALL_VIEWS: View[] = ["activity", "queue", "companies", "movement", "funds", "market", "rules", "open", "proposals"];
 
 function viewFromHash(): View {
   const h = window.location.hash.replace("#", "");
-  return (ALL_VIEWS.includes(h as View) ? h : "queue") as View;
+  return (ALL_VIEWS.includes(h as View) ? h : "activity") as View;
 }
 
 export default function App() {
@@ -45,7 +48,6 @@ export default function App() {
   // E-09 drafts for events no rule recognises; the tab exists only while there are some
   const [proposalCount, setProposalCount] = useState(0);
   const [view, setView] = useState<View>(viewFromHash);
-  const [filter, setFilter] = useState<Disposition | "ALL">("ALL");
   const [focus, setFocus] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
   // bumped on every reload so the published-status line refetches after a rerun
@@ -90,7 +92,6 @@ export default function App() {
     setView(v);
   };
   const gotoCompany = (name: string) => {
-    setFilter("ALL");
     setFocus(name);
     go("companies");
   };
@@ -112,6 +113,7 @@ export default function App() {
   const writeDisabled = mode === "static" ? STATIC_REASON : null;
   const m = run.manifest;
   const blockingIssues = run.validation.filter((v) => v.blocking).length;
+  const activityOpen = run.companies.filter((c) => hasActivity(c) && c.readiness !== "Ready").length;
 
   return (
     <SourcesProvider value={state.sources}>
@@ -137,8 +139,15 @@ export default function App() {
                 aria-current={view === v.id ? "page" : undefined}
               >
                 {v.label}
-                {v.id === "queue" && run.totals.dispositions.BLOCK > 0 && (
-                  <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--block-text)]"}`}>{run.totals.dispositions.BLOCK}</span>
+                {v.id === "activity" && activityOpen > 0 && (
+                  <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--review-text)]"}`} title="Positions with new activity that still need a person">
+                    {activityOpen}
+                  </span>
+                )}
+                {v.id === "queue" && (run.totals.readiness?.Blocked ?? 0) > 0 && (
+                  <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--block-text)]"}`} title="Blocked positions">
+                    {run.totals.readiness?.Blocked ?? 0}
+                  </span>
                 )}
                 {v.id === "proposals" && proposalCount > 0 && (
                   <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--review-text)]"}`}>{proposalCount}</span>
@@ -147,29 +156,10 @@ export default function App() {
             ))}
           </nav>
           {/* the right-hand cluster wraps onto its own line on a narrow screen rather than pushing the page wider */}
+          {/* The chrome carries one status system and no filters: the queue filters by readiness
+              bucket on its own tiles, and Companies has its own filter bar. A second severity
+              filter up here only competed with them. */}
           <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
-            <label className="text-[11px] text-muted">Disposition</label>
-            <div className="dfilter" role="group" aria-label="Disposition filter">
-              <button className={`btn ${filter === "ALL" ? "btn-primary" : ""}`} onClick={() => setFilter("ALL")}>
-                All
-              </button>
-              {DISPOSITIONS.map((d) => (
-                <button
-                  key={d}
-                  className={`btn disp-${d} ${filter === d ? "" : "btn-ghost"}`}
-                  title={`${d} · ${DISPOSITION_HINT[d]}`}
-                  aria-label={`${d} (${run.totals.dispositions[d] ?? 0})`}
-                  style={filter === d ? { background: "var(--cw)", borderColor: "var(--c)", color: "var(--ct)" } : undefined}
-                  onClick={() => setFilter(filter === d ? "ALL" : d)}
-                  aria-pressed={filter === d}
-                >
-                  <span className="dfilter-dot" aria-hidden />
-                  <span className="dfilter-label">{d}</span>
-                  <span className="mono text-[10px] opacity-80">{run.totals.dispositions[d] ?? 0}</span>
-                </button>
-              ))}
-            </div>
-            <span className="border-l border-line h-4 mx-1" aria-hidden />
             <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} onGoto={gotoCompany} />
             <span
               className={`chip no-dot ${mode === "static" ? "disp-MONITOR" : "disp-CLEAR"} hint`}
@@ -188,10 +178,11 @@ export default function App() {
       </header>
 
       <main className="flex-1 px-4 py-4 max-w-[1600px] w-full mx-auto">
+        {view === "activity" && <ActivityView run={run} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />}
         {view === "queue" && (
-          <QueueView run={run} filter={filter} setFilter={setFilter} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />
+          <QueueView run={run} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />
         )}
-        {view === "companies" && <CompaniesView run={run} filter={filter} writeDisabled={writeDisabled} onChanged={reload} focus={focus} />}
+        {view === "companies" && <CompaniesView run={run} writeDisabled={writeDisabled} onChanged={reload} focus={focus} />}
         {view === "movement" && <MovementView run={run} onGoto={gotoCompany} />}
         {view === "funds" && <FundsView run={run} gotoCompany={gotoCompany} />}
         {view === "market" && <MarketView mode={mode} run={run} onGoto={gotoCompany} />}

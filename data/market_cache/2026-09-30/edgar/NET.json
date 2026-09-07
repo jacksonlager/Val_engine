@@ -164,7 +164,7 @@
    "value": 0.0
   }
  ],
- "extract_version": 2,
+ "extract_version": 3,
  "name": "Cloudflare, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"
@@ -611,5 +611,146 @@
    "value": 354.334
   }
  ],
+ "shares_by_concept": {
+  "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding": [
+   {
+    "end": "2020-06-30",
+    "filed": "2021-08-06",
+    "value": 299.321
+   },
+   {
+    "end": "2020-09-30",
+    "filed": "2021-11-05",
+    "value": 301.689
+   },
+   {
+    "end": "2021-03-31",
+    "filed": "2022-05-05",
+    "value": 305.947
+   },
+   {
+    "end": "2021-06-30",
+    "filed": "2021-08-06",
+    "value": 308.263
+   },
+   {
+    "end": "2021-09-30",
+    "filed": "2021-11-05",
+    "value": 314.543
+   },
+   {
+    "end": "2022-03-31",
+    "filed": "2022-05-05",
+    "value": 323.334
+   },
+   {
+    "end": "2022-06-30",
+    "filed": "2022-08-04",
+    "value": 325.197
+   },
+   {
+    "end": "2022-09-30",
+    "filed": "2022-11-03",
+    "value": 326.59
+   },
+   {
+    "end": "2023-03-31",
+    "filed": "2023-04-27",
+    "value": 330.389
+   },
+   {
+    "end": "2023-06-30",
+    "filed": "2023-08-03",
+    "value": 332.297
+   },
+   {
+    "end": "2023-09-30",
+    "filed": "2023-11-02",
+    "value": 334.666
+   },
+   {
+    "end": "2024-03-31",
+    "filed": "2024-05-02",
+    "value": 338.583
+   },
+   {
+    "end": "2024-06-30",
+    "filed": "2024-08-01",
+    "value": 340.648
+   },
+   {
+    "end": "2024-09-30",
+    "filed": "2024-11-07",
+    "value": 342.356
+   },
+   {
+    "end": "2025-03-31",
+    "filed": "2025-05-08",
+    "value": 345.723
+   },
+   {
+    "end": "2025-06-30",
+    "filed": "2025-07-31",
+    "value": 347.489
+   },
+   {
+    "end": "2025-09-30",
+    "filed": "2025-10-30",
+    "value": 349.312
+   },
+   {
+    "end": "2026-03-31",
+    "filed": "2026-05-08",
+    "value": 352.625
+   },
+   {
+    "end": "2026-06-30",
+    "filed": "2026-08-06",
+    "value": 354.334
+   }
+  ],
+  "us-gaap:WeightedAverageNumberOfShareOutstandingBasicAndDiluted": [
+   {
+    "end": "2018-09-30",
+    "filed": "2019-11-12",
+    "value": 81.579
+   },
+   {
+    "end": "2019-03-31",
+    "filed": "2020-05-11",
+    "value": 85.078
+   },
+   {
+    "end": "2019-06-30",
+    "filed": "2020-08-10",
+    "value": 85.683
+   },
+   {
+    "end": "2019-09-30",
+    "filed": "2019-11-12",
+    "value": 118.056
+   },
+   {
+    "end": "2020-03-31",
+    "filed": "2020-05-11",
+    "value": 296.077
+   },
+   {
+    "end": "2020-06-30",
+    "filed": "2020-08-10",
+    "value": 299.321
+   },
+   {
+    "end": "2020-09-30",
+    "filed": "2020-11-10",
+    "value": 301.689
+   },
+   {
+    "end": "2021-03-31",
+    "filed": "2021-05-07",
+    "value": 305.947
+   }
+  ]
+ },
  "shares_concept": "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding"
 }

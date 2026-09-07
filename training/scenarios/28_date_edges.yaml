@@ -45,9 +45,9 @@ expect:
   validation_blocking: true
   totals: { events: 7, positions: 100 }
   companies:
-    Solvantra:            { disposition: CLEAR, rules: [M-010], proposed: 11.0, invested_after: 6.1, ownership_after: 0.11, flags_must_not: [X-900] }
+    Solvantra:            { disposition: REVIEW, rules: [M-010], proposed: 11.0, invested_after: 6.1, ownership_after: 0.11, flags_must: [X-923], flags_must_not: [X-900] }   # dated inside the grace period: applied, and confirmed by a person
     Ambercrest:           { disposition: CLEAR, rules: [M-020], proposed: 0.0, realized_quarter: 16.8, status: Acquired, flags_must_not: [X-900, X-101] }
-    Lanternfell Space:    { disposition: CLEAR, rules: [M-010], proposed: 40.0, ownership_after: 0.05, flags_must_not: [X-900, X-103] }
+    Lanternfell Space:    { disposition: REVIEW, rules: [M-010], proposed: 40.0, ownership_after: 0.05, flags_must: [X-923], flags_must_not: [X-900, X-103] }
     Kilnbrook:            { disposition: BLOCK, rules: [M-000, M-000], proposed: 4.4, ownership_after: 0.069, latest_post_money: 63.6, flags_must: [X-900], flags_must_not: [M-999] }
     Oxbowlane:            { disposition: BLOCK, rules: [M-000, M-000], proposed: 13.0, flags_must: [X-900], flags_must_not: [X-109], open_items_count: 0 }
     Willowmere Compute:   { disposition: BLOCK, rules: [M-000, M-000], proposed: 4.7, flags_must: [X-900], flags_must_not: [X-109], open_items_count: 0 }

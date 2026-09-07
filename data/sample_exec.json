@@ -5,16 +5,16 @@
   "measurement_date": "2026-09-30",
   "prior_close": "2026-06-30",
   "status": "proposed",
-  "published_at": "2026-09-06T23:28:17+00:00",
+  "published_at": "2026-09-07T04:37:16+00:00",
   "published_by": "Jackson Lagerwey",
   "note": "Q3 2026 proposed book",
-  "run_id": "59b9dc6df4f4",
+  "run_id": "b36c794a9720",
   "policy_version": "2026Q3-0.2",
   "engine_version": "0.1.0",
   "input_file": "HC_Mock_Portfolio_Data.xlsx",
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
-  "market_data_source": "stub",
-  "generated_at": "2026-09-06T23:28:17+00:00"
+  "market_data_source": "live:edgar+yahoo",
+  "generated_at": "2026-09-07T04:37:16+00:00"
  },
  "headline": {
   "prior_nav": 1139.3,
@@ -34,10 +34,10 @@
   "level1_positions": 1,
   "top10_concentration": 0.4459,
   "dispositions": {
-   "BLOCK": 7,
-   "REVIEW": 20,
-   "MONITOR": 39,
-   "CLEAR": 34
+   "BLOCK": 9,
+   "REVIEW": 25,
+   "MONITOR": 43,
+   "CLEAR": 23
   },
   "invested": 617.5,
   "tvpi": 1.9982,
@@ -676,7 +676,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 43.3,
    "proposed": 43.3,
    "booked": 43.3,
@@ -698,7 +698,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 8.7,
    "proposed": 8.7,
    "booked": 8.7,
@@ -728,7 +728,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.056,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -764,7 +764,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 10.3,
    "proposed": 10.3,
    "booked": 10.3,
@@ -786,7 +786,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 10.8,
    "proposed": 10.8,
    "booked": 10.8,
@@ -808,7 +808,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 26.5,
    "proposed": 26.5,
    "booked": 26.5,
@@ -830,7 +830,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 14.3,
    "proposed": 14.3,
    "booked": 14.3,
@@ -838,7 +838,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.044,
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -874,7 +874,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 14.6,
    "proposed": 14.6,
    "booked": 14.6,
@@ -896,7 +896,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 0.7,
    "proposed": 0.7,
    "booked": 0.7,
@@ -918,7 +918,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 48.8,
    "proposed": 48.8,
    "booked": 48.8,
@@ -940,7 +940,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 68.4,
    "proposed": 68.4,
    "booked": 68.4,
@@ -962,7 +962,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 6.6,
    "proposed": 6.6,
    "booked": 6.6,
@@ -984,7 +984,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 24.1,
    "proposed": 24.1,
    "booked": 24.1,
@@ -1028,7 +1028,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 13.9,
    "proposed": 13.9,
    "booked": 13.9,
@@ -1050,7 +1050,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 2.1,
    "proposed": 2.1,
    "booked": 2.1,
@@ -1116,7 +1116,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 20.6,
    "proposed": 20.6,
    "booked": 20.6,
@@ -1124,7 +1124,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.01,
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1138,7 +1138,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 12.4,
    "proposed": 12.4,
    "booked": 12.4,
@@ -1146,7 +1146,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.022,
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1160,7 +1160,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 57.1,
    "proposed": 57.1,
    "booked": 57.1,
@@ -1380,7 +1380,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 8.1,
    "proposed": 8.1,
    "booked": 8.1,
@@ -1388,7 +1388,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.132,
-   "disposition": "REVIEW",
+   "disposition": "BLOCK",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1402,7 +1402,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 18.5,
    "proposed": 18.5,
    "booked": 18.5,
@@ -1490,7 +1490,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 30.4,
    "proposed": 30.4,
    "booked": 30.4,
@@ -1512,7 +1512,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 3.0,
    "proposed": 3.0,
    "booked": 3.0,
@@ -1520,7 +1520,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.12,
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1534,7 +1534,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 14.3,
    "proposed": 14.3,
    "booked": 14.3,
@@ -1542,7 +1542,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.074,
-   "disposition": "REVIEW",
+   "disposition": "BLOCK",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1564,7 +1564,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.069,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1622,7 +1622,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 30.2,
    "proposed": 30.2,
    "booked": 30.2,
@@ -1644,7 +1644,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 21.3,
    "proposed": 21.3,
    "booked": 21.3,
@@ -1666,7 +1666,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 0.8,
    "proposed": 0.8,
    "booked": 0.8,
@@ -1696,7 +1696,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.043,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1710,7 +1710,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 7.3,
    "proposed": 7.3,
    "booked": 7.3,
@@ -1754,7 +1754,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 7.4,
    "proposed": 7.4,
    "booked": 7.4,
@@ -1776,7 +1776,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 2.2,
    "proposed": 2.2,
    "booked": 2.2,
@@ -1798,7 +1798,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 12.2,
    "proposed": 12.2,
    "booked": 12.2,
@@ -1828,7 +1828,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.073,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1850,7 +1850,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.118,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -1886,7 +1886,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 24.1,
    "proposed": 24.1,
    "booked": 24.1,
@@ -1930,7 +1930,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 6.1,
    "proposed": 6.1,
    "booked": 6.1,
@@ -1952,7 +1952,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 0.6,
    "proposed": 0.6,
    "booked": 0.6,
@@ -1974,7 +1974,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 3.4,
    "proposed": 3.4,
    "booked": 3.4,
@@ -1996,7 +1996,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 3.7,
    "proposed": 3.7,
    "booked": 3.7,
@@ -2004,7 +2004,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.123,
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2062,7 +2062,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 1.4,
    "proposed": 1.4,
    "booked": 1.4,
@@ -2092,7 +2092,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.101,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2180,7 +2180,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.102,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2260,7 +2260,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 0.9,
    "proposed": 0.9,
    "booked": 0.9,
@@ -2268,7 +2268,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.078,
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2312,7 +2312,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.099,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2400,7 +2400,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.135,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2458,7 +2458,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 1.7,
    "proposed": 1.7,
    "booked": 1.7,
@@ -2488,7 +2488,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.097,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2620,7 +2620,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.121,
-   "disposition": "CLEAR",
+   "disposition": "MONITOR",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2656,7 +2656,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 1.3,
    "proposed": 1.3,
    "booked": 1.3,
@@ -2664,7 +2664,7 @@
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
    "ownership": 0.091,
-   "disposition": "MONITOR",
+   "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
    "driver_kind": "other",
@@ -2678,7 +2678,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 1.1,
    "proposed": 1.1,
    "booked": 1.1,
@@ -3244,6 +3244,15 @@
         "Nothing in the file says the company is worth less."
        ],
        "booked": 13.93
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps instead.",
+       "reasons": [
+        "The extension is not price discovery; comps have moved since the last round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 9.05
       }
      ],
      "recommendation": {
@@ -3279,6 +3288,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 13.93
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 9.05
       }
      ],
      "recommendation": {
@@ -3296,7 +3314,9 @@
      }
     }
    ],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 9.05
+   }
   },
   {
    "company": "Tarnwick Aerospace",
@@ -3524,7 +3544,257 @@
      }
     }
    ],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 8.23
+   }
+  },
+  {
+   "company": "Beltrix",
+   "fund": "Fund II",
+   "sector": "Fintech",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-080",
+   "prior": 8.1,
+   "proposed": 8.1,
+   "booked": 8.1,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.132,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "driver": null,
+   "driver_kind": "other",
+   "driver_label": "No activity",
+   "actions": [
+    {
+     "rule_id": "X-304",
+     "severity": "REVIEW",
+     "action": "Confirm the mark reflects a company with 5.0 months of cash.",
+     "message": "About 5.0 months of cash left ($3.1M against $0.52M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+     "points": [
+      "About **5.0 months of cash** left ($3.1M against $0.52M a month).",
+      "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+      "The round that saves it **may be priced below this mark**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "Cash on hand does not change the last-round price.",
+        "The runway is tracked; the next round will reprice it."
+       ],
+       "booked": 8.1
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending the raise.",
+       "reasons": [
+        "A rescue round before the next close is likely to be priced down.",
+        "Cost is a defensible floor when a company must raise to survive."
+       ],
+       "booked": 6.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "reasons": [
+       "Cash on hand does not change the last-round price.",
+       "The runway is tracked; the next round will reprice it."
+      ],
+      "booked": 8.1,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "severity": "REVIEW",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 26.8 months old, and the current numbers disagree with it: carried above the multiple screen (12\u00d7 revenue, growing +108%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "points": [
+      "Price is **26.8 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (12\u00d7 revenue, growing +108%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 8.1
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 6.79
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 6.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 8.1,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    }
+   ],
+   "alternative_marks": {
+    "calibrated_to_comps": 6.79
+   }
+  },
+  {
+   "company": "Jupelan",
+   "fund": "Fund II",
+   "sector": "Cybersecurity",
+   "stage": "Series B",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-080",
+   "prior": 14.3,
+   "proposed": 14.3,
+   "booked": 14.3,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.074,
+   "disposition": "BLOCK",
+   "overridden": false,
+   "driver": null,
+   "driver_kind": "other",
+   "driver_label": "No activity",
+   "actions": [
+    {
+     "rule_id": "X-304",
+     "severity": "REVIEW",
+     "action": "Confirm the mark reflects a company with 3.4 months of cash.",
+     "message": "About 3.4 months of cash left ($6.6M against $1.50M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+     "points": [
+      "About **3.4 months of cash** left ($6.6M against $1.50M a month).",
+      "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
+      "The round that saves it **may be priced below this mark**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Keep the mark as proposed.",
+       "reasons": [
+        "Cash on hand does not change the last-round price.",
+        "The runway is tracked; the next round will reprice it."
+       ],
+       "booked": 14.3
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending the raise.",
+       "reasons": [
+        "A rescue round before the next close is likely to be priced down.",
+        "Cost is a defensible floor when a company must raise to survive."
+       ],
+       "booked": 10.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Keep the mark as proposed.",
+      "reasons": [
+       "Cash on hand does not change the last-round price.",
+       "The runway is tracked; the next round will reprice it."
+      ],
+      "booked": 14.3,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    },
+    {
+     "rule_id": "X-405",
+     "severity": "REVIEW",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 30.9 months old, and the current numbers disagree with it: carried below the multiple screen (7\u00d7 revenue, growing +84%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "points": [
+      "Price is **30.9 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried below the multiple screen** (7\u00d7 revenue, growing +84%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 14.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 17.63
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 10.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 14.3,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    }
+   ],
+   "alternative_marks": {
+    "calibrated_to_comps": 17.63
+   }
   },
   {
    "company": "Birchhollow",
@@ -3534,7 +3804,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 43.3,
    "proposed": 43.3,
    "booked": 43.3,
@@ -3567,6 +3837,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 43.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 30.65
       }
      ],
      "recommendation": {
@@ -3628,7 +3907,9 @@
      }
     }
    ],
-   "alternative_marks": {}
+   "alternative_marks": {
+    "calibrated_to_comps": 30.65
+   }
   }
  ],
  "reviews": [
@@ -3640,7 +3921,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 68.4,
    "proposed": 68.4,
    "booked": 68.4,
@@ -3673,6 +3954,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 68.4
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 92.34
       }
      ],
      "recommendation": {
@@ -3699,7 +3989,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 48.8,
    "proposed": 48.8,
    "booked": 48.8,
@@ -3732,6 +4022,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 48.8
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 65.88
       }
      ],
      "recommendation": {
@@ -3758,7 +4057,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 26.5,
    "proposed": 26.5,
    "booked": 26.5,
@@ -3791,6 +4090,15 @@
         "The screen is a cross-check, not a valuation."
        ],
        "booked": 26.5
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 30.06
       },
       {
        "key": "to_cost",
@@ -3826,7 +4134,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 24.1,
    "proposed": 24.1,
    "booked": 24.1,
@@ -3894,7 +4202,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 21.3,
    "proposed": 21.3,
    "booked": 21.3,
@@ -3927,6 +4235,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 21.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 28.75
       }
      ],
      "recommendation": {
@@ -3946,6 +4263,83 @@
    ]
   },
   {
+   "company": "Westwilder",
+   "fund": "Fund I",
+   "sector": "Enterprise SaaS",
+   "stage": "Series D+",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-080",
+   "prior": 20.6,
+   "proposed": 20.6,
+   "booked": 20.6,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.01,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "driver": null,
+   "driver_kind": "other",
+   "driver_label": "No activity",
+   "actions": [
+    {
+     "rule_id": "X-405",
+     "severity": "REVIEW",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 42.8 months old, and the current numbers disagree with it: carried above the multiple screen (10\u00d7 revenue, growing +32%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "points": [
+      "Price is **42.8 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (10\u00d7 revenue, growing +32%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 20.6
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 13.39
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 20.0
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 20.6,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    }
+   ]
+  },
+  {
    "company": "Brumewell",
    "fund": "Fund II",
    "sector": "AI/ML",
@@ -3953,7 +4347,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 18.5,
    "proposed": 18.5,
    "booked": 18.5,
@@ -4014,21 +4408,21 @@
    ]
   },
   {
-   "company": "Jupelan",
-   "fund": "Fund II",
-   "sector": "Cybersecurity",
-   "stage": "Series B",
+   "company": "Glintworks",
+   "fund": "Fund I",
+   "sector": "Fintech",
+   "stage": "Series C",
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 14.3,
    "proposed": 14.3,
    "booked": 14.3,
    "delta": 0.0,
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
-   "ownership": 0.074,
+   "ownership": 0.044,
    "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
@@ -4036,41 +4430,50 @@
    "driver_label": "No activity",
    "actions": [
     {
-     "rule_id": "X-304",
+     "rule_id": "X-405",
      "severity": "REVIEW",
-     "action": "Confirm the mark reflects a company with 3.4 months of cash.",
-     "message": "About 3.4 months of cash left ($6.6M against $1.50M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 38.7 months old, and the current numbers disagree with it: carried above the multiple screen (8\u00d7 revenue, growing +73%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
      "points": [
-      "About **3.4 months of cash** left ($6.6M against $1.50M a month).",
-      "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
-      "The round that saves it **may be priced below this mark**."
+      "Price is **38.7 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (8\u00d7 revenue, growing +73%).",
+      "Two independent signals point the same way: **affirm or reprice**."
      ],
      "suggestions": [
       {
        "key": "as_proposed",
-       "label": "Keep the mark as proposed.",
+       "label": "Affirm the last-round mark as proposed.",
        "reasons": [
-        "Cash on hand does not change the last-round price.",
-        "The runway is tracked; the next round will reprice it."
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
        ],
        "booked": 14.3
       },
       {
-       "key": "to_cost",
-       "label": "Mark down to invested cost pending the raise.",
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
        "reasons": [
-        "A rescue round before the next close is likely to be priced down.",
-        "Cost is a defensible floor when a company must raise to survive."
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
        ],
-       "booked": 10.0
+       "booked": 12.55
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 14.0
       }
      ],
      "recommendation": {
       "key": "as_proposed",
-      "label": "Keep the mark as proposed.",
+      "label": "Affirm the last-round mark as proposed.",
       "reasons": [
-       "Cash on hand does not change the last-round price.",
-       "The runway is tracked; the next round will reprice it."
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
       ],
       "booked": 14.3,
       "source": "policy",
@@ -4089,7 +4492,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 13.9,
    "proposed": 13.9,
    "booked": 13.9,
@@ -4122,6 +4525,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 13.9
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 15.98
       }
      ],
      "recommendation": {
@@ -4141,21 +4553,21 @@
    ]
   },
   {
-   "company": "Beltrix",
-   "fund": "Fund II",
+   "company": "Wrenfield Data",
+   "fund": "Fund I",
    "sector": "Fintech",
-   "stage": "Series A",
+   "stage": "Series C",
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
-   "prior": 8.1,
-   "proposed": 8.1,
-   "booked": 8.1,
+   "rule": "M-080",
+   "prior": 12.4,
+   "proposed": 12.4,
+   "booked": 12.4,
    "delta": 0.0,
    "delta_pct": 0.0,
    "realized_quarter": 0.0,
-   "ownership": 0.132,
+   "ownership": 0.022,
    "disposition": "REVIEW",
    "overridden": false,
    "driver": null,
@@ -4163,43 +4575,52 @@
    "driver_label": "No activity",
    "actions": [
     {
-     "rule_id": "X-304",
+     "rule_id": "X-405",
      "severity": "REVIEW",
-     "action": "Confirm the mark reflects a company with 5.0 months of cash.",
-     "message": "About 5.0 months of cash left ($3.1M against $0.52M a month, aged 1 month for the reporting lag). The company has to raise before the next close, and the round that saves it may well be priced below this mark.",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 43.2 months old, and the current numbers disagree with it: carried above the multiple screen (7\u00d7 revenue, growing +75%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
      "points": [
-      "About **5.0 months of cash** left ($3.1M against $0.52M a month).",
-      "Aged 1 month for the reporting lag \u2014 the company **must raise before the next close**.",
-      "The round that saves it **may be priced below this mark**."
+      "Price is **43.2 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (7\u00d7 revenue, growing +75%).",
+      "Two independent signals point the same way: **affirm or reprice**."
      ],
      "suggestions": [
       {
        "key": "as_proposed",
-       "label": "Keep the mark as proposed.",
+       "label": "Affirm the last-round mark as proposed.",
        "reasons": [
-        "Cash on hand does not change the last-round price.",
-        "The runway is tracked; the next round will reprice it."
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
        ],
-       "booked": 8.1
+       "booked": 12.4
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 13.15
       },
       {
        "key": "to_cost",
-       "label": "Mark down to invested cost pending the raise.",
+       "label": "Mark down to invested cost pending a new price.",
        "reasons": [
-        "A rescue round before the next close is likely to be priced down.",
-        "Cost is a defensible floor when a company must raise to survive."
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
        ],
        "booked": 6.0
       }
      ],
      "recommendation": {
       "key": "as_proposed",
-      "label": "Keep the mark as proposed.",
+      "label": "Affirm the last-round mark as proposed.",
       "reasons": [
-       "Cash on hand does not change the last-round price.",
-       "The runway is tracked; the next round will reprice it."
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
       ],
-      "booked": 8.1,
+      "booked": 12.4,
       "source": "policy",
       "model": null,
       "rationale": null,
@@ -4216,7 +4637,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 7.3,
    "proposed": 7.3,
    "booked": 7.3,
@@ -4249,6 +4670,15 @@
         "The screen is a cross-check, not a valuation."
        ],
        "booked": 7.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 8.55
       },
       {
        "key": "to_cost",
@@ -4352,7 +4782,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 6.6,
    "proposed": 6.6,
    "booked": 6.6,
@@ -4413,6 +4843,142 @@
    ]
   },
   {
+   "company": "Zinniafold",
+   "fund": "Fund II",
+   "sector": "Healthcare",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-080",
+   "prior": 3.7,
+   "proposed": 3.7,
+   "booked": 3.7,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.123,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "driver": null,
+   "driver_kind": "other",
+   "driver_label": "No activity",
+   "actions": [
+    {
+     "rule_id": "X-405",
+     "severity": "REVIEW",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 31.9 months old, and the current numbers disagree with it: carried above the multiple screen (15\u00d7 revenue, growing +168%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "points": [
+      "Price is **31.9 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (15\u00d7 revenue, growing +168%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 3.7
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 2.4
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 3.7,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    }
+   ]
+  },
+  {
+   "company": "Inkmoor",
+   "fund": "Fund II",
+   "sector": "Developer Tools",
+   "stage": "Series A",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-080",
+   "prior": 3.0,
+   "proposed": 3.0,
+   "booked": 3.0,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.12,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "driver": null,
+   "driver_kind": "other",
+   "driver_label": "No activity",
+   "actions": [
+    {
+     "rule_id": "X-405",
+     "severity": "REVIEW",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 24.9 months old, and the current numbers disagree with it: carried below the multiple screen (4\u00d7 revenue, growing +128%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "points": [
+      "Price is **24.9 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried below the multiple screen** (4\u00d7 revenue, growing +128%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 3.0
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 2.55
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 3.0,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    }
+   ]
+  },
+  {
    "company": "Halcyra",
    "fund": "Fund I",
    "sector": "Cybersecurity",
@@ -4453,6 +5019,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 2.7
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 3.65
       }
      ],
      "recommendation": {
@@ -4479,7 +5054,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 2.1,
    "proposed": 2.1,
    "booked": 2.1,
@@ -4512,6 +5087,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 2.1
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 2.38
       }
      ],
      "recommendation": {
@@ -4538,7 +5122,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 1.7,
    "proposed": 1.7,
    "booked": 1.7,
@@ -4724,7 +5308,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 1.4,
    "proposed": 1.4,
    "booked": 1.4,
@@ -4757,6 +5341,15 @@
         "The screen is a cross-check, not a valuation."
        ],
        "booked": 1.4
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 0.91
       }
      ],
      "recommendation": {
@@ -4776,6 +5369,151 @@
    ]
   },
   {
+   "company": "Yondermist",
+   "fund": "Fund III",
+   "sector": "Healthcare",
+   "stage": "Seed",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-080",
+   "prior": 1.3,
+   "proposed": 1.3,
+   "booked": 1.3,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.091,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "driver": null,
+   "driver_kind": "other",
+   "driver_label": "No activity",
+   "actions": [
+    {
+     "rule_id": "X-405",
+     "severity": "REVIEW",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 27.2 months old, and the current numbers disagree with it: carried above the multiple screen (18\u00d7 revenue, growing +149%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "points": [
+      "Price is **27.2 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (18\u00d7 revenue, growing +149%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 1.3
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 0.84
+      },
+      {
+       "key": "to_cost",
+       "label": "Mark down to invested cost pending a new price.",
+       "reasons": [
+        "A defensible floor when the last price no longer describes the business.",
+        "Reverses at the next priced round."
+       ],
+       "booked": 1.2
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 1.3,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    }
+   ]
+  },
+  {
+   "company": "Kestwick",
+   "fund": "Fund III",
+   "sector": "Fintech",
+   "stage": "Seed",
+   "status": "Active",
+   "fv_level": 3,
+   "event": "No activity",
+   "rule": "M-080",
+   "prior": 0.9,
+   "proposed": 0.9,
+   "booked": 0.9,
+   "delta": 0.0,
+   "delta_pct": 0.0,
+   "realized_quarter": 0.0,
+   "ownership": 0.078,
+   "disposition": "REVIEW",
+   "overridden": false,
+   "driver": null,
+   "driver_kind": "other",
+   "driver_label": "No activity",
+   "actions": [
+    {
+     "rule_id": "X-405",
+     "severity": "REVIEW",
+     "action": "Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
+     "message": "The price behind this mark is 27.7 months old, and the current numbers disagree with it: carried above the multiple screen (20\u00d7 revenue, growing +300%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "points": [
+      "Price is **27.7 months old** \u2014 and today's numbers **argue with it**.",
+      "Screen: **carried above the multiple screen** (20\u00d7 revenue, growing +300%).",
+      "Two independent signals point the same way: **affirm or reprice**."
+     ],
+     "suggestions": [
+      {
+       "key": "as_proposed",
+       "label": "Affirm the last-round mark as proposed.",
+       "reasons": [
+        "No transaction has repriced the company; the round is still the last real price.",
+        "The screen is a cross-check, not a valuation."
+       ],
+       "booked": 0.9
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 0.77
+      }
+     ],
+     "recommendation": {
+      "key": "as_proposed",
+      "label": "Affirm the last-round mark as proposed.",
+      "reasons": [
+       "No transaction has repriced the company; the round is still the last real price.",
+       "The screen is a cross-check, not a valuation."
+      ],
+      "booked": 0.9,
+      "source": "policy",
+      "model": null,
+      "rationale": null,
+      "confidence": null
+     }
+    }
+   ]
+  },
+  {
    "company": "Juttermill",
    "fund": "Fund I",
    "sector": "Enterprise SaaS",
@@ -4783,7 +5521,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 0.7,
    "proposed": 0.7,
    "booked": 0.7,
@@ -4816,6 +5554,15 @@
         "Staleness alone is not evidence of a decline."
        ],
        "booked": 0.7
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Comps have repriced since the round; the calibration is already computed (M-080).",
+        "Keeps a stale Level 3 mark tied to something observable."
+       ],
+       "booked": 0.46
       }
      ],
      "recommendation": {
@@ -4842,7 +5589,7 @@
    "status": "Active",
    "fv_level": 3,
    "event": "No activity",
-   "rule": "M-000",
+   "rule": "M-080",
    "prior": 0.6,
    "proposed": 0.6,
    "booked": 0.6,
@@ -4875,6 +5622,15 @@
         "The screen is a cross-check, not a valuation."
        ],
        "booked": 0.6
+      },
+      {
+       "key": "calibrate",
+       "label": "Calibrate the mark to public comps.",
+       "reasons": [
+        "Ties a stale Level 3 price to how comparable multiples have moved since the round.",
+        "Uses the M-080 calibration the engine already computed."
+       ],
+       "booked": 0.39
       }
      ],
      "recommendation": {
@@ -5582,7 +6338,7 @@
   {
    "quarter": "Q3 2026",
    "slug": "2026Q3",
-   "published_at": "2026-09-06T23:28:17+00:00",
+   "published_at": "2026-09-07T04:37:16+00:00",
    "published_by": "Jackson Lagerwey",
    "status": "proposed",
    "booked_nav": 1184.2763

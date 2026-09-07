@@ -143,7 +143,7 @@
  ],
  "cik": "0001792789",
  "debt": [],
- "extract_version": 2,
+ "extract_version": 3,
  "name": "DOORDASH, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"
@@ -534,5 +534,116 @@
    "value": 439.345
   }
  ],
+ "shares_by_concept": {
+  "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding": [
+   {
+    "end": "2020-06-30",
+    "filed": "2021-08-13",
+    "value": 44.513
+   },
+   {
+    "end": "2020-09-30",
+    "filed": "2021-11-10",
+    "value": 45.016
+   },
+   {
+    "end": "2021-03-31",
+    "filed": "2022-05-06",
+    "value": 327.815
+   },
+   {
+    "end": "2021-06-30",
+    "filed": "2021-08-13",
+    "value": 334.707
+   },
+   {
+    "end": "2021-09-30",
+    "filed": "2021-11-10",
+    "value": 340.169
+   },
+   {
+    "end": "2022-03-31",
+    "filed": "2022-05-06",
+    "value": 349.219
+   },
+   {
+    "end": "2022-06-30",
+    "filed": "2022-08-05",
+    "value": 363.961
+   },
+   {
+    "end": "2022-09-30",
+    "filed": "2022-11-04",
+    "value": 384.756
+   },
+   {
+    "end": "2023-03-31",
+    "filed": "2023-05-05",
+    "value": 390.397
+   },
+   {
+    "end": "2023-06-30",
+    "filed": "2023-08-02",
+    "value": 388.737
+   },
+   {
+    "end": "2023-09-30",
+    "filed": "2023-11-01",
+    "value": 393.217
+   },
+   {
+    "end": "2024-03-31",
+    "filed": "2024-05-01",
+    "value": 405.482
+   },
+   {
+    "end": "2024-06-30",
+    "filed": "2024-08-01",
+    "value": 410.482
+   },
+   {
+    "end": "2024-09-30",
+    "filed": "2024-10-30",
+    "value": 427.962
+   },
+   {
+    "end": "2025-03-31",
+    "filed": "2025-05-07",
+    "value": 435.563
+   },
+   {
+    "end": "2025-06-30",
+    "filed": "2025-08-06",
+    "value": 438.377
+   },
+   {
+    "end": "2025-09-30",
+    "filed": "2025-11-06",
+    "value": 441.812
+   },
+   {
+    "end": "2026-03-31",
+    "filed": "2026-05-06",
+    "value": 442.326
+   },
+   {
+    "end": "2026-06-30",
+    "filed": "2026-08-05",
+    "value": 439.345
+   }
+  ],
+  "us-gaap:WeightedAverageNumberOfShareOutstandingBasicAndDiluted": [
+   {
+    "end": "2020-03-31",
+    "filed": "2021-05-14",
+    "value": 44.169
+   },
+   {
+    "end": "2021-03-31",
+    "filed": "2021-05-14",
+    "value": 327.815
+   }
+  ]
+ },
  "shares_concept": "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding"
 }

@@ -277,6 +277,20 @@ rules:
     why_severity: >-
       REVIEW because one of the two cells is wrong or HC bought at a different price from the
       headline; "book at the cheque price" is a priced option.
+  - id: X-123
+    name: Stake rose without a cheque
+    family: treatment
+    severity: [REVIEW]
+    source: policy
+    reads: HC Ownership After vs the book's ownership, HC Investment on a priced round
+    why_flag: >-
+      HC's stake went up in a round HC did not fund. Anti-dilution, a ratchet or a warrant
+      exercise does that legitimately; a mis-typed ownership cell does it too, and the row cannot
+      say which. The mark rises with the stated stake either way.
+    why_severity: >-
+      REVIEW because the mark rests on a mechanism the workbook does not show: a person confirms
+      the protection from the round documents, or books the prior stake against the new
+      post-money until it is confirmed. The rule that screens dilution (X-103) only looked one way.
   - id: X-120
     name: New position entered at cost
     family: treatment
@@ -511,6 +525,21 @@ rules:
       BLOCK because the brief asks that a refreshed file "flow through without rework", and the
       honest version of that is refusing a cell rather than guessing it — a number nobody read
       cannot be booked.
+  - id: X-923
+    name: Row applied on a corrected reading
+    family: data
+    severity: [REVIEW]
+    source: policy
+    reads: a REVIEW-severity ingest correction anchored to a row that was applied (X-904, X-905 inside grace, X-916)
+    why_flag: >-
+      Ingest read the cell the way a person would — 5.5 as 5.5%, a row dated a week before the
+      window as a transaction missed at the last close, a prior mark that departs from the last
+      round as an explained departure — and the mark moved on that reading. Nobody has confirmed
+      it. A corrected reading that changes a number and reads clean is a number nobody read.
+    why_severity: >-
+      REVIEW because the row is plausible and was applied: the engine has a proposal, and a
+      person confirms the reading or fixes the cell. BLOCK is for a cell that could not be read
+      at all (X-900).
   - id: X-918
     name: New company created from activity
     family: data

@@ -364,10 +364,16 @@ def test_text_in_a_number_cell_is_a_blocking_x902_naming_the_cell(tmp_path, cfg)
     assert len(x902) == 1 and x902[0].blocking and "about 150" in x902[0].message and "Post-Money" in x902[0].message
 
 
-def test_unparseable_date_is_an_ingest_error_naming_the_cell(tmp_path, cfg):
+def test_unparseable_date_refuses_the_row_naming_the_cell(tmp_path, cfg):
+    """One unreadable Date cell refuses that row, not the workbook: the row is carried through
+    on a stand-in date it never acts on, validate names the cell (X-902, blocking), and the
+    other rows roll."""
     path = make_workbook(tmp_path, [position()], [event(date="sometime in August", value=150.0, ownership_after=0.1)])
-    with pytest.raises(IngestError, match=r"row 2.*'Date'.*sometime in August"):
-        read_workbook(path, cfg)
+    snapshot, feed = read_workbook(path, cfg)
+    assert feed.events[0].extra.get("date_unreadable") and "sometime in August" in feed.events[0].extra["date_unreadable"]
+    issues = validate(snapshot, feed, cfg)
+    x902 = [i for i in issues if i.rule_id == "X-902"]
+    assert len(x902) == 1 and x902[0].blocking and x902[0].row_index == 2 and "sometime in August" in x902[0].message
 
 
 def test_excel_serial_and_day_first_ambiguity_are_x915(tmp_path, cfg):

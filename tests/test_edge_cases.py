@@ -15,7 +15,7 @@ from hc_valuation.engine import run as engine_run
 from hc_valuation.engine.dsl import DSLError
 from hc_valuation.engine.inputs import EventType, Status
 from hc_valuation.engine.models import (
-    Disposition, MarketData, OpenItem, OpenItemKind, OverrideLedger, OverrideRecord, Severity,
+    Disposition, MarketData, OpenItem, OpenItemKind, OverrideLedger, OverrideRecord, Readiness, Severity,
 )
 
 MD = date(2026, 9, 30)
@@ -112,11 +112,14 @@ def test_event_on_already_terminal_company_is_not_applied(build):
                         [event(detail="Series B", value=200.0, ownership_after=0.09, hc_investment=1.0)])
     c = only(run)
     assert [i.rule_id for i in issues] == ["X-907"] and issues[0].company == "Alpha" and issues[0].blocking
-    assert rule_ids(c) == ["M-000"] and "Already Acquired" in c.steps[0].rationale
+    # the round is refused, and the position says so: a second M-000 step records the row, X-900 names it
+    assert rule_ids(c) == ["M-000", "M-000"] and "Already Acquired" in c.steps[0].rationale
+    assert c.steps[1].inputs["refused_event"] == "Priced Equity Round" and "X-907" in c.steps[1].inputs["validation"]
     assert c.proposed_mark == 0.0 and c.invested_after == 5.0 and c.ownership_after == 0.0
-    assert c.status_after == Status.ACQUIRED and c.fv_level is None and c.flags == ()
+    assert c.status_after == Status.ACQUIRED and c.fv_level is None
+    assert [f.rule_id for f in c.flags] == ["X-900"] and c.readiness is Readiness.BLOCKED
     assert c.realized_cumulative == 20.0 and c.realized_quarter == 0.0
-    assert run.blocked, "the validation issue blocks the run even though the position itself is CLEAR"
+    assert run.blocked, "the validation issue blocks the run, and the position it names is Blocked"
 
 
 def test_terminal_companies_do_not_count_as_written_off(build):

@@ -103,7 +103,7 @@
  ],
  "cik": "0001836833",
  "debt": [],
- "extract_version": 2,
+ "extract_version": 3,
  "name": "Planet Labs PBC",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"
@@ -362,5 +362,101 @@
    "value": 260.092
   }
  ],
+ "shares_by_concept": {
+  "us-gaap:CommonStockSharesOutstanding": [
+   {
+    "end": "2021-12-07",
+    "filed": "2022-04-14",
+    "value": 260.092
+   }
+  ],
+  "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding": [
+   {
+    "end": "2021-04-30",
+    "filed": "2022-06-14",
+    "value": 45.722
+   },
+   {
+    "end": "2021-07-31",
+    "filed": "2022-09-12",
+    "value": 46.694
+   },
+   {
+    "end": "2021-10-31",
+    "filed": "2022-12-14",
+    "value": 47.137
+   },
+   {
+    "end": "2022-04-30",
+    "filed": "2022-06-14",
+    "value": 264.089
+   },
+   {
+    "end": "2022-07-31",
+    "filed": "2022-09-12",
+    "value": 266.212
+   },
+   {
+    "end": "2022-10-31",
+    "filed": "2022-12-14",
+    "value": 267.948
+   },
+   {
+    "end": "2023-04-30",
+    "filed": "2023-06-09",
+    "value": 272.348
+   },
+   {
+    "end": "2023-07-31",
+    "filed": "2023-09-07",
+    "value": 275.053
+   },
+   {
+    "end": "2023-10-31",
+    "filed": "2023-12-08",
+    "value": 284.198
+   },
+   {
+    "end": "2024-04-30",
+    "filed": "2024-06-06",
+    "value": 288.269
+   },
+   {
+    "end": "2024-07-31",
+    "filed": "2024-09-05",
+    "value": 290.364
+   },
+   {
+    "end": "2024-10-31",
+    "filed": "2024-12-09",
+    "value": 293.338
+   },
+   {
+    "end": "2025-04-30",
+    "filed": "2025-06-04",
+    "value": 300.268
+   },
+   {
+    "end": "2025-07-31",
+    "filed": "2025-09-08",
+    "value": 304.129
+   },
+   {
+    "end": "2025-10-31",
+    "filed": "2025-12-10",
+    "value": 309.248
+   },
+   {
+    "end": "2026-04-30",
+    "filed": "2026-06-05",
+    "value": 345.524
+   },
+   {
+    "end": "2026-07-31",
+    "filed": "2026-09-03",
+    "value": 359.594
+   }
+  ]
+ },
  "shares_concept": "us-gaap:CommonStockSharesOutstanding"
 }

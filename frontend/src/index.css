@@ -124,6 +124,10 @@ body {
 .prior-pill { opacity: .92; border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); padding-top: 0; padding-bottom: 0; }
 .prior-pill .prior-q { font-family: var(--mono, ui-monospace, monospace); font-size: 10px; letter-spacing: .02em; opacity: .8; }
 .prior-pill .prior-arrow { margin-left: 2px; opacity: .7; }
+/* the queue card's copy: pinned right, sized to be read from across the row rather than squinted at */
+.prior-pill-lg { font-size: 12.5px; padding: 3px 10px; border-radius: 5px; opacity: 1; gap: 6px; }
+.prior-pill-lg .prior-q { font-size: 11.5px; opacity: .85; }
+.prior-pill-lg .prior-arrow { margin-left: 3px; }
 /* the quarter whose flags nobody released: stated, not guessed at */
 .chip.prior-none { color: var(--muted); border: 1px dashed var(--border); background: transparent; font-weight: 500; }
 .fh-row.fh-none { opacity: .85; }
@@ -142,21 +146,45 @@ body {
 .rtag-brief { color: var(--clear-text, var(--clear)); border:1px solid var(--clear); background: color-mix(in srgb, var(--clear) 10%, transparent); }
 .rtag-ours { color: var(--muted); border:1px dashed var(--muted); background: transparent; }
 
+/* readiness: one bucket per position. Blocked and Needs Review borrow the BLOCK / REVIEW
+   hues so the two systems agree; Ready is the clear green. */
+.rd-Blocked { --c: var(--block); --ct: var(--block-text); --cw: var(--block-wash); }
+.rd-NeedsReview { --c: var(--review); --ct: var(--review-text); --cw: var(--review-wash); }
+.rd-Ready { --c: var(--clear); --ct: var(--clear-text); --cw: var(--clear-wash); }
+/* the one status badge on a card: the readiness word, quiet */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; line-height: 1.5;
+  color: var(--ct); background: var(--cw); border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+}
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--c); flex: none; }
+/* the watch tag rides alongside any readiness: a tag, not a status */
+.tag-monitor {
+  display: inline-flex; align-items: center; padding: 0 7px; border-radius: 4px; font-size: 10.5px; font-weight: 500;
+  color: var(--monitor-text); border: 1px dashed color-mix(in srgb, var(--monitor) 60%, transparent); white-space: nowrap; line-height: 1.6;
+}
+/* a position the quarter's activity tab touched: a label, not a status */
+.tag-activity {
+  display: inline-flex; align-items: center; padding: 0 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600;
+  letter-spacing: .02em; color: var(--accent-ink); background: var(--ink); white-space: nowrap; line-height: 1.7;
+}
+.activity-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.activity-row { display: grid; grid-template-columns: minmax(180px, 260px) minmax(0, 1fr); gap: 6px 18px; padding: 5px 0; border-top: 1px solid var(--hairline); }
+.activity-row:first-child { border-top: 0; padding-top: 2px; }
+.activity-what { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.activity-how { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0; }
+@media (max-width: 760px) { .activity-row { grid-template-columns: minmax(0, 1fr); } }
+/* the severity is a rail, not a wash: the card stays paper */
+.rail { box-shadow: inset 3px 0 0 var(--c); }
+/* a stand-in mark: dotted, and says so on hover */
+.provisional { text-decoration: underline dotted; text-underline-offset: 3px; text-decoration-color: var(--review); cursor: help; }
+
 /* BLOCK reached by compounding REVIEW findings rather than by a single BLOCK rule */
 .chip.escalated { background: transparent; border: 1px dashed var(--c); padding-top: 0; padding-bottom: 0; font-weight: 500; }
 
 .stripe { box-shadow: inset 3px 0 0 var(--c); }
 
 /* ---- top bar ---------------------------------------------------------------- */
-/* the disposition filter: full labels on a wide screen, dot + count once the bar gets tight */
-.dfilter { display: flex; gap: 4px; }
-.dfilter .btn { padding-left: 8px; padding-right: 8px; }
-.dfilter-dot { display: none; width: 7px; height: 7px; border-radius: 999px; background: var(--c); flex: none; }
-@media (max-width: 1100px) {
-  .dfilter .dfilter-label { display: none; }
-  .dfilter-dot { display: inline-block; }
-  .dfilter .btn { padding-left: 7px; padding-right: 7px; }
-}
 /* a static export: one quiet line under the bar saying what this page cannot do */
 .static-banner {
   padding: 4px 16px; font-size: 11.5px; color: var(--review-text);
@@ -170,11 +198,12 @@ body {
 .qcard:hover { border-color: color-mix(in srgb, var(--c) 40%, var(--border)); }
 .qcard > button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
 
-.actions {
-  background: var(--cw);
-  border-radius: 6px;
-  padding: 8px 11px 9px;
-}
+.qheadline { font-size: 14px; font-weight: 600; letter-spacing: -0.005em; line-height: 1.3; margin: 0 0 6px; text-wrap: balance; }
+.cols-head { display: none; grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); gap: 6px 18px; margin-bottom: 2px; }
+@media (min-width: 980px) { .cols-head { display: grid; } }
+/* the column label the stacked layout would otherwise lose */
+.stack-only { display: block; }
+@media (min-width: 980px) { .stack-only { display: none; } }
 
 /* ---- queue card header: name, then the numbers right beside it ------------- */
 .qhead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; }
@@ -188,6 +217,9 @@ body {
 .qdelta { margin-left: 6px; padding-left: 12px; border-left: 1px solid var(--hairline); }
 .qdelta dd { font-size: 15px; }
 .qunit { font-size: 10px; color: var(--muted); padding-bottom: 3px; }
+/* approval is its own column: "pending" in words until a decision is recorded or the quarter published */
+.qsep { width: 1px; align-self: stretch; background: var(--hairline); margin: 0 2px; }
+.qstate dd { font-size: 13px; padding-bottom: 1px; }
 
 /* ---- expanded company: decision strip + position facts ---------------------- */
 .dstrip {
@@ -211,7 +243,7 @@ details[open] > summary::before { content: "▾ "; }
 /* ---- one flag = why (left) + what to do about it (right) ------------------- */
 .flag-list { margin: 0; padding: 0; list-style: none; }
 .flag-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px 18px; }
-.flag-row + .flag-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid color-mix(in srgb, var(--c) 18%, transparent); }
+.flag-row + .flag-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--hairline); }
 @media (min-width: 980px) { .flag-row { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); } }
 .flag-why { min-width: 0; }
 .flag-do { min-width: 0; }
@@ -228,11 +260,11 @@ details[open] > summary::before { content: "▾ "; }
 /* MONITOR findings: one line, no card — they are context beside a decision, not a decision */
 .note-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
 .note-row {
-  display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: baseline; gap: 8px;
+  display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); align-items: baseline; gap: 8px;
   padding: 4px 0; border-top: 1px solid var(--hairline); font-size: 12px;
 }
 .note-row:first-child { border-top: 0; }
-.note-family { font-size: 10.5px; color: var(--muted); letter-spacing: .02em; }
+.note-family { font-size: 12px; font-weight: 500; color: var(--ink); }
 .note-text { color: var(--ink-2); line-height: 1.45; }
 @media (max-width: 640px) { .note-row { grid-template-columns: auto minmax(0, 1fr); } .note-family { display: none; } }
 
@@ -240,6 +272,7 @@ details[open] > summary::before { content: "▾ "; }
   font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted); margin-bottom: 4px;
 }
+.eyebrow-sm .chip { text-transform: none; letter-spacing: .02em; font-weight: 500; }
 /* the suggestion menu: each card is one button */
 .suggest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 6px; }
 .suggest-grid > span { display: block; min-width: 0; }
@@ -273,6 +306,49 @@ details[open] > summary::before { content: "▾ "; }
 .suggest.current .suggest-cta { color: var(--clear-text, var(--clear)); }
 /* a read-only export cannot take a decision: the call to action loses its accent */
 .suggest:disabled .suggest-cta { color: var(--muted); }
+/* the recommendation and, to its right, the approver's own two routes */
+.resolve { display: grid; grid-template-columns: minmax(0, 1fr) 176px; gap: 8px; align-items: stretch; }
+.resolve-col { display: flex; flex-direction: column; min-width: 0; }
+.resolve-col > .suggest, .resolve-col > .inline-block, .resolve-col > .decide { flex: 1 1 auto; }
+.resolve-col > .inline-block > .suggest { height: 100%; }
+@media (max-width: 1180px) { .resolve { grid-template-columns: minmax(0, 1fr); } }
+.decide {
+  display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  padding: 7px 9px 6px; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.decide-accept { display: flex; flex-direction: column; align-items: stretch; gap: 1px; width: 100%; padding: 6px 9px; text-align: left; line-height: 1.25; }
+.decide-accept .decide-num { font-size: 14px; font-weight: 600; }
+.decide-accept.current { background: var(--clear); border-color: var(--clear); cursor: default; }
+.decide > .inline-block { display: block; }
+.decide-or { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); text-align: center; }
+.decide-entry { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px; }
+.decide-unit { font-size: 11px; color: var(--muted); }
+.decide-input { width: 100%; min-width: 0; padding: 4px 6px; font-size: 13px; text-align: right; }
+.decide-confirm { padding: 4px 8px; font-size: 11.5px; }
+.decide-hint { font-size: 10.5px; line-height: 1.3; color: var(--muted); margin-top: auto; }
+/* the suggested next step: a sentence, its source, the number; reasoning behind a disclosure */
+.step { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.step-label { font-size: 12.5px; font-weight: 600; line-height: 1.35; flex: 1 1 200px; }
+.step-num { display: flex; align-items: center; gap: 4px; font-size: 12.5px; }
+.step-why > summary { font-size: 11px; color: var(--muted); cursor: pointer; user-select: none; list-style: none; }
+.step-why > summary:hover { color: var(--ink-2); }
+.step-other { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 4px 0; border-top: 1px solid var(--hairline); }
+/* the bottom bar: verbs on the left, disclosures on the right, one row when it fits */
+.decision-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.decision-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.decision-more { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-left: auto; }
+.override-entry { display: inline-flex; align-items: center; gap: 4px; padding-left: 6px; border-left: 1px solid var(--hairline); }
+.override-entry .decide-input { width: 92px; }
+/* stepping past a missing input is allowed, but not silently */
+.ack {
+  display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; padding: 8px 10px; border-radius: 6px;
+  font-size: 12px; line-height: 1.4; background: var(--review-wash); border: 1px solid color-mix(in srgb, var(--review) 40%, transparent);
+}
+.ack input { margin-top: 3px; flex: none; }
+/* a dark button's focus ring must not be the button's own colour */
+.btn-primary:focus-visible { outline: 2px solid var(--review); outline-offset: 2px; }
+.evidence { background: color-mix(in srgb, var(--hairline) 30%, transparent); }
 .decided {
   padding: 7px 9px; border-radius: 6px; background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--clear) 45%, var(--border));

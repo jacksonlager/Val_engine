@@ -104,6 +104,7 @@ export interface OverrideRecord {
   source_proposal: string | null;
   /** "<rule_id>/<suggestion key>" when the decision was an accepted engine suggestion. */
   source_suggestion?: string | null;
+  evidence?: Record<string, unknown> | null;
 }
 
 export interface OpenItem {
@@ -117,6 +118,22 @@ export interface OpenItem {
   age_quarters: number;
   escalated: boolean;
 }
+
+/** Can this be booked? One per position — distinct from a Disposition, which counts findings. */
+export type Readiness = "Blocked" | "Needs Review" | "Ready";
+/** What happened to the position this quarter — the accounting shape, not the review state. */
+export type ValuationAction =
+  | "Carry" | "Revalue" | "New investment" | "Partial exit" | "Full exit" | "Write-off";
+/** Has a person signed it? Nothing is booked before the quarter is published. */
+export type Approval = "Not approved" | "Decision recorded" | "Approved and published";
+
+export const READINESS: Readiness[] = ["Blocked", "Needs Review", "Ready"];
+
+export const READINESS_HINT: Record<Readiness, string> = {
+  Blocked: "Missing information — no supported final mark yet",
+  "Needs Review": "A proposal exists; judgment or verification is needed",
+  Ready: "Checks complete — ready for approval",
+};
 
 export interface CompanyResult {
   company: string;
@@ -150,6 +167,18 @@ export interface CompanyResult {
   runway_months_aged: number | null;
   implied_multiple: number | null;
   moic_after: number | null;
+  /** Readiness bucket, what happened to the position, and whether a person has signed. */
+  readiness: Readiness;
+  action: ValuationAction;
+  approval: Approval;
+  monitor: boolean;
+  /** The quarter's movement split, so capital activity is never read as performance:
+      closing = prior + new_investment_quarter + valuation_change_quarter − realized_quarter */
+  new_investment_quarter: number;
+  valuation_change_quarter: number;
+  /** A proposal built on a stand-in input, and the sentence saying which. */
+  provisional: boolean;
+  provisional_reason: string | null;
 
   steps: MarkStep[]; // the audit chain; proposed_mark == steps[-1].new_value
   flags: Flag[];
@@ -188,6 +217,11 @@ export interface PortfolioTotals {
   dispositions: Record<Disposition, number>;
   level1_positions: number;
   top10_concentration: number;
+  /** Companies per readiness bucket — distinct from `dispositions`, which counts findings. */
+  readiness: Record<string, number>;
+  monitor_positions: number;
+  new_investment: number;
+  valuation_change: number;
 }
 
 export interface RunManifest {
@@ -290,6 +324,8 @@ export interface OverrideRequest {
   /** Which flags this decision resolves. Omitted = every flag on the position. */
   rule_ids_addressed?: string[];
   source_suggestion?: string;
+  /** The input a decision supplied, when it supplied one — a quarter-end price and its source. */
+  evidence?: Record<string, unknown>;
 }
 
 // ---------------------------------------------------------------- publish gate (api/publish.py)
@@ -367,6 +403,16 @@ export interface MarketConstituent {
   revenue_through: string | null; // ISO date
   ev_to_revenue: number | null;
   error: string | null;
+  /** Where the share count came from and how far back — a count is evidence about *today's*
+      market cap, and a concept the filer abandoned years ago is not. All optional: a report
+      written before these existed simply has no provenance to show. */
+  shares_basis?: string | null; // "outstanding, cover page" | "outstanding, balance sheet" | "diluted weighted average"
+  shares_as_of?: string | null; // the filing date the count is taken from (ISO date)
+  shares_age_days?: number | null; // measurement date minus that date
+  shares_rejected?: string[] | null; // concepts passed over, each with its reason
+  months_negative_ev?: number | null; // months out of the median: net cash above market cap
+  months_unverified_splits?: number | null; // months out of the median: no split history, so two bases
+  splits_known?: boolean | null; // split events are on file for this constituent
 }
 
 export interface MarketSector {
@@ -379,6 +425,9 @@ export interface MarketSector {
   prior_quarter: number | null; // three months earlier
   qoq_pct: number | null; // fraction, e.g. 0.076
   history: Record<string, number>; // ≤ 36 months, ascending "YYYY-MM" keys
+  /** How many constituents sit behind each month's median — a five-name median is set by its
+      third name. Empty for a fixture sector; absent from a report that predates it. */
+  counts?: Record<string, number>;
   constituents: MarketConstituent[];
 }
 

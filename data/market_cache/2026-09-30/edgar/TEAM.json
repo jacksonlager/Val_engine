@@ -184,7 +184,7 @@
    "value": 989.56
   }
  ],
- "extract_version": 2,
+ "extract_version": 3,
  "name": "Atlassian Corporation",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"
@@ -485,5 +485,84 @@
    "value": 260.965
   }
  ],
+ "shares_by_concept": {
+  "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding": [
+   {
+    "end": "2021-09-30",
+    "filed": "2022-11-04",
+    "value": 252.106
+   },
+   {
+    "end": "2021-12-31",
+    "filed": "2023-02-03",
+    "value": 252.96
+   },
+   {
+    "end": "2022-03-31",
+    "filed": "2023-05-05",
+    "value": 255.741
+   },
+   {
+    "end": "2022-09-30",
+    "filed": "2022-11-04",
+    "value": 255.167
+   },
+   {
+    "end": "2022-12-31",
+    "filed": "2023-02-03",
+    "value": 255.874
+   },
+   {
+    "end": "2023-03-31",
+    "filed": "2023-05-05",
+    "value": 256.825
+   },
+   {
+    "end": "2023-09-30",
+    "filed": "2023-11-03",
+    "value": 257.907
+   },
+   {
+    "end": "2023-12-31",
+    "filed": "2024-02-02",
+    "value": 258.601
+   },
+   {
+    "end": "2024-03-31",
+    "filed": "2024-04-26",
+    "value": 261.778
+   },
+   {
+    "end": "2024-09-30",
+    "filed": "2024-11-01",
+    "value": 260.477
+   },
+   {
+    "end": "2024-12-31",
+    "filed": "2025-01-31",
+    "value": 261.147
+   },
+   {
+    "end": "2025-03-31",
+    "filed": "2025-05-02",
+    "value": 262.671
+   },
+   {
+    "end": "2025-09-30",
+    "filed": "2025-10-31",
+    "value": 262.991
+   },
+   {
+    "end": "2025-12-31",
+    "filed": "2026-02-06",
+    "value": 263.828
+   },
+   {
+    "end": "2026-03-31",
+    "filed": "2026-05-01",
+    "value": 260.965
+   }
+  ]
+ },
  "shares_concept": "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding"
 }

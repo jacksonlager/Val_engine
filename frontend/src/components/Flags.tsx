@@ -13,11 +13,11 @@
 //
 // `**bold**` inside a point marks the words that carry the decision; nothing else in the
 // string is markup, and an unmatched `**` renders literally rather than eating the text.
-import { Fragment, useState } from "react";
-import type { CompanyResult, Flag, Recommendation, Suggestion } from "../types";
+import { Fragment, useState, type ReactNode } from "react";
+import type { CompanyResult, Flag, Readiness, Recommendation, Suggestion } from "../types";
 import { postOverride } from "../lib/api";
-import { useRuleRationale } from "../lib/rationale";
-import { isoDate, musd, signClass, signed } from "../lib/format";
+import { useRationale, useRuleRationale } from "../lib/rationale";
+import { isoDate, musd, pct, signClass, signed } from "../lib/format";
 import { DispChip, Field, Modal, WriteButton } from "./ui";
 
 /** `a **b** c` -> a, <strong>b</strong>, c. Splits on pairs only; odd markers stay literal. */
@@ -31,18 +31,120 @@ export function Rich({ text }: { text: string }) {
   );
 }
 
+/** A stub reference such as "(stub:seeded_to_ipo_print)" is provenance, not a fact about the
+    company; it belongs under Evidence & history, not in the reason a reviewer reads first. */
+export function plainPoint(p: string): string {
+  return p
+    .replace(/\s*\((?:source: )?(?:stub|fixture|live):[^)]*\)/g, "")
+    .replace(/\s*\((?:[MXE]-\d{3})\)/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 /** The two or three summary lines the engine wrote for a BLOCK or REVIEW flag. */
-export function FlagPoints({ f, className = "" }: { f: Flag; className?: string }) {
+export function FlagPoints({ f, className = "", plain = false }: { f: Flag; className?: string; plain?: boolean }) {
   if (f.points.length === 0) return <p className={`text-[12px] text-ink2 leading-[1.5] m-0 ${className}`}>{f.message}</p>;
   return (
     <ul className={`flag-points ${className}`}>
       {f.points.map((p, i) => (
         <li key={i}>
-          <Rich text={p} />
+          <Rich text={plain ? plainPoint(p) : p} />
         </li>
       ))}
     </ul>
   );
+}
+
+/** Readiness as a CSS hook: `rd-Blocked` / `rd-NeedsReview` / `rd-Ready` set --c/--ct/--cw. */
+export function rdClass(r: Readiness): string {
+  return r === "Needs Review" ? "rd-NeedsReview" : `rd-${r}`;
+}
+
+/** What each family is about, in a reviewer's words — the fallback when the rule catalogue
+    (rules/rationale.yaml, served at /api/rationale) is not loaded. */
+const FAMILY_LABEL: Record<string, string> = {
+  treatment: "How this event should be treated",
+  staleness: "The price behind this mark is old",
+  growth: "Revenue is going backwards",
+  liquidity: "Cash runway is short",
+  valuation: "The mark screens as an outlier",
+  related_party: "The price came from an insider",
+  notes: "The note's terms have to be read",
+  data: "The workbook row needs fixing",
+};
+
+/** Two exceptions share one rule id but read nothing alike to a person; the evidence says
+    which is which. Everything else takes the catalogue's own plain name. */
+function refinedName(f: Flag): string | null {
+  if (f.rule_id === "X-101") {
+    if (typeof f.evidence.deal_value === "number") return "Signed acquisition that has not closed";
+    if (f.evidence.price_source !== undefined) return "Missing quarter-end share price";
+  }
+  return null;
+}
+
+/** The plain name of one finding — never a rule code. */
+export function flagName(f: Flag, names: Map<string, string> | undefined): string {
+  return refinedName(f) ?? names?.get(f.rule_id) ?? FAMILY_LABEL[f.family] ?? "Needs a reviewer";
+}
+
+export function useFlagNames(): Map<string, string> | undefined {
+  const rat = useRationale();
+  return rat ? new Map(rat.rules.map((r) => [r.id, r.name])) : undefined;
+}
+
+export function actionableFlags(c: CompanyResult): Flag[] {
+  return c.flags.filter((f) => f.severity !== "MONITOR");
+}
+
+/** Is this the finding that says an input is missing? A stand-in mark (provisional) or a rule
+    from the missing-input set: the reason there is no supported mark at all, and the one an
+    override must not step past without saying so. */
+const MISSING_INPUT_RULES = new Set(["X-900", "X-112", "X-113", "X-116", "X-918", "M-999"]);
+export function missingInput(c: CompanyResult, f: Flag): boolean {
+  if (MISSING_INPUT_RULES.has(f.rule_id)) return true;
+  return f.rule_id === "X-101" && c.provisional && f.evidence.price_source !== undefined;
+}
+
+/** A missing quarter-end quote is the one blocker a reviewer can clear by supplying the
+    input, rather than by deciding around it. */
+export function needsClosingPrice(c: CompanyResult, f: Flag): boolean {
+  return c.listed && f.rule_id === "X-101" && f.evidence.price_source !== undefined && c.provisional;
+}
+
+/** The headline: why this position stopped, in one plain line. A missing input outranks
+    everything else, because it is the reason there is no supported mark at all. */
+export function exceptionHeadline(c: CompanyResult, acts: Flag[], names: Map<string, string> | undefined): string {
+  const f = acts[0];
+  if (!f) return c.monitor ? "Noted only — nothing to decide" : "No exceptions raised";
+  const name = flagName(f, names);
+  return acts.length > 1 ? `${name}, and ${acts.length - 1} more finding${acts.length > 2 ? "s" : ""}` : name;
+}
+
+/** The flags in the order a reviewer should meet them: the missing-input finding first, then
+    BLOCK before REVIEW, then as the engine listed them. */
+export function orderedActionable(c: CompanyResult): Flag[] {
+  const rank = (f: Flag) => (missingInput(c, f) ? 0 : f.severity === "BLOCK" ? 1 : 2);
+  return actionableFlags(c)
+    .map((f, i) => ({ f, i }))
+    .sort((a, b) => rank(a.f) - rank(b.f) || a.i - b.i)
+    .map((x) => x.f);
+}
+
+/** One short verb per engine option, for a button. The option's own label is a sentence. */
+const OPTION_VERB: Record<string, string> = {
+  as_proposed: "Accept proposed mark",
+  hold_prior: "Hold prior mark",
+  full_value: "Book full deal value",
+  structure_adjusted: "Apply structure haircut",
+  calibrate: "Calibrate to public comps",
+  impair_note: "Impair the note",
+  to_cost: "Mark down to cost",
+  reconfirm: "Re-confirm booked mark",
+  adopt_proposed: "Adopt revised proposal",
+};
+export function optionVerb(s: Suggestion): string {
+  return OPTION_VERB[s.key] ?? "Apply suggested step";
 }
 
 /** The long form: what the engine wrote in full, plus the inputs it recorded. */
@@ -101,7 +203,7 @@ export function FlagDetailModal({ f, company, onClose }: { f: Flag; company: str
   );
 }
 
-// ---------------------------------------------------------------- suggestions
+// ---------------------------------------------------------------- deciding
 
 /** The rule ids a new decision on `c` should address: whatever is already addressed plus
     `ruleId`. An existing override with an empty list means "every flag", so keep that. */
@@ -111,37 +213,89 @@ function addressedAfter(c: CompanyResult, ruleId: string): string[] {
   return Array.from(new Set([...base, ruleId]));
 }
 
-/** The approval step. Nothing is written until a named person confirms the number. */
-function SuggestionConfirmModal({
+/** What a reviewer is about to book: one of the engine's priced options, the proposal as it
+    stands, a number they typed, or a number derived from a quarter-end price they supplied.
+    The ledger records which (`source_suggestion`), and for a price, the evidence itself. */
+export type ClosingPriceEvidence = {
+  kind: "closing_price";
+  as_of: string;
+  market_cap_musd: number;
+  price?: number;
+  shares_m?: number;
+  source: string;
+  ownership: number;
+};
+export type Choice =
+  | { kind: "option"; s: Suggestion }
+  | { kind: "proposed" }
+  | { kind: "manual"; booked: number }
+  | { kind: "price"; booked: number; evidence: ClosingPriceEvidence };
+
+function choiceBooked(c: CompanyResult, ch: Choice): number {
+  return ch.kind === "option" ? ch.s.booked : ch.kind === "proposed" ? c.proposed_mark : ch.booked;
+}
+
+/** The approval step. Nothing is written until a named person confirms the number — and for
+    a number the reviewer typed, until they have written down why. On a finding that says an
+    input is missing, a decision that does not supply it must say, in so many words, that it
+    is stepping past the gap: the ledger then carries that admission, not a silent bypass. */
+function ConfirmModal({
   c,
   f,
-  s,
+  choice,
   onClose,
   onDone,
 }: {
   c: CompanyResult;
   f: Flag;
-  s: Suggestion;
+  choice: Choice;
   onClose: () => void;
   onDone: () => void;
 }) {
   const [approver, setApprover] = useState("");
-  const rec = f.recommendation && f.recommendation.key === s.key ? f.recommendation : null;
-  const who = rec ? (rec.source === "claude" ? `Recommended by Claude (${rec.model ?? "model"})` : "Policy default") : "Engine option";
-  const [reason, setReason] = useState(`${who} (${f.rule_id}): ${s.label} ${s.reasons.join(" ")}`);
+  const names = useFlagNames();
+  const finding = flagName(f, names);
+  const s = choice.kind === "option" ? choice.s : null;
+  const rec = s && f.recommendation && f.recommendation.key === s.key ? f.recommendation : null;
+  const who = rec ? (rec.source === "claude" ? `Recommended by Claude (${rec.model ?? "model"})` : "Policy suggestion") : "Engine option";
+  const booked = choiceBooked(c, choice);
+  const gap = missingInput(c, f) && choice.kind !== "price";
+  const [acknowledged, setAcknowledged] = useState(false);
+  // An engine option arrives with its reasoning; the proposal with the engine's; a typed number
+  // with nothing — the person who chose it is the only one who knows why, and must say so.
+  const [reason, setReason] = useState(
+    s ? `${who} (${f.rule_id}): ${s.label} ${s.reasons.join(" ")}`
+      : choice.kind === "proposed" ? `Accepted the engine's proposed mark of ${musd(c.proposed_mark)} on "${finding}" (${f.rule_id}); no adjustment.`
+      : choice.kind === "price"
+        ? `Quarter-end market cap of $${choice.evidence.market_cap_musd.toLocaleString(undefined, { maximumFractionDigits: 1 })}M at ${choice.evidence.as_of} from ${choice.evidence.source}` +
+          (choice.evidence.price && choice.evidence.shares_m ? ` (${choice.evidence.price} × ${choice.evidence.shares_m}M shares)` : "") +
+          ` × ${pct(choice.evidence.ownership, 1)} held = ${musd(booked)}. Replaces the listing-day stand-in.`
+        : "",
+  );
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const delta = s.booked - c.proposed_mark;
-  const replaces = c.override && Math.abs(c.override.booked - s.booked) > 1e-6;
-  const valid = approver.trim().length > 0 && reason.trim().length > 0;
+  const delta = booked - c.proposed_mark;
+  const replaces = c.override && Math.abs(c.override.booked - booked) > 1e-6;
+  const valid = approver.trim().length > 0 && reason.trim().length > 0 && (!gap || acknowledged);
+  const source = s ? `${f.rule_id}/${s.key}` : `${f.rule_id}/${choice.kind}`;
+  const title = s ? (rec ? rec.label : s.label)
+    : choice.kind === "proposed" ? `Accept the proposed mark of ${musd(c.proposed_mark)}.`
+    : choice.kind === "price" ? `Book ${musd(booked)} from the quarter-end price you supplied.`
+    : `Book ${musd(booked)}, entered by the approver.`;
+  const points = s ? (rec ? rec.reasons : s.reasons)
+    : choice.kind === "proposed" ? ["The engine's proposal stands as the booked mark; the flag is recorded as considered and resolved."]
+    : choice.kind === "price" ? ["The market cap and its source travel with the decision on the ledger, so the number can be checked against the quote later."]
+    : ["Not one of the engine's priced options. The reason below is the whole of the support for this number on the ledger."];
   return (
-    <Modal title={`Confirm · ${c.company} · ${f.rule_id}`} onClose={onClose}>
+    <Modal title={`Confirm · ${c.company} · ${finding}`} onClose={onClose}>
       <div className="flex items-center gap-2 mb-1">
-        <p className="text-[13.5px] font-semibold leading-snug m-0">{rec ? rec.label : s.label}</p>
+        <p className="text-[13.5px] font-semibold leading-snug m-0">{title}</p>
         {rec && <SourceChip rec={rec} />}
+        {choice.kind === "manual" && <span className="chip disp-REVIEW no-dot">manual entry</span>}
+        {choice.kind === "price" && <span className="chip disp-CLEAR no-dot">evidence attached</span>}
       </div>
       <ul className="flag-points mb-3">
-        {(rec ? rec.reasons : s.reasons).map((r, i) => (
+        {points.map((r, i) => (
           <li key={i}>{r}</li>
         ))}
       </ul>
@@ -151,27 +305,44 @@ function SuggestionConfirmModal({
           <span className="num">{musd(c.proposed_mark)}</span>
         </div>
         <div className="flex items-baseline justify-between gap-3 mt-0.5">
-          <span className="text-muted">Will be booked</span>
+          <span className="text-muted">Will be recorded</span>
           <span className="num font-semibold">
-            {musd(s.booked)}{" "}
+            {musd(booked)}{" "}
             <span className={`font-normal text-[11.5px] ${signClass(delta)}`}>({signed(delta)})</span>
           </span>
         </div>
         {replaces && c.override && (
           <div className="text-[11px] text-muted mt-1.5 leading-snug">
-            Replaces the {musd(c.override.booked)} booked by {c.override.approver} on {isoDate(c.override.created_at)}.
+            Replaces the {musd(c.override.booked)} recorded by {c.override.approver} on {isoDate(c.override.created_at)}.
           </div>
         )}
       </div>
       <p className="text-[11.5px] text-muted leading-snug mb-3">
-        This records an E-01 override addressed to {f.rule_id}: the booked mark changes, the proposal does not, and the
-        decision is written to the ledger under your name. It re-runs into the totals, the exports and the archive.
+        This records a committee decision on this finding under your name (ledger reference {f.rule_id}): the recorded mark
+        changes, the proposal does not. It re-runs into the totals, the exports and the archive. Nothing is booked until the
+        quarter is published.
       </p>
+      {gap && (
+        <label className="ack">
+          <input type="checkbox" checked={acknowledged} onChange={(e) => setAcknowledged(e.target.checked)} />
+          <span>
+            <b>This finding says an input is missing</b>
+            {c.provisional_reason ? ` — ${plainPoint(c.provisional_reason.split(".")[0])}.` : "."} I am recording a mark without it,
+            and the ledger will say so.
+          </span>
+        </label>
+      )}
       <Field label="Approver">
         <input className="input w-full" value={approver} onChange={(e) => setApprover(e.target.value)} autoFocus />
       </Field>
-      <Field label="Reason (on the ledger)">
-        <textarea className="textarea w-full" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+      <Field label={choice.kind === "manual" ? "Reason (on the ledger) — required for a number you entered" : "Reason (on the ledger) — editable"}>
+        <textarea
+          className="textarea w-full"
+          rows={3}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder={choice.kind === "manual" ? "What supports this mark, and what the engine could not see" : undefined}
+        />
       </Field>
       {err && <div className="text-[12px] down mb-2">{err}</div>}
       <div className="flex justify-end gap-2">
@@ -187,11 +358,12 @@ function SuggestionConfirmModal({
             try {
               await postOverride({
                 company: c.company,
-                booked: s.booked,
+                booked,
                 approver: approver.trim(),
-                reason: reason.trim(),
+                reason: (gap ? "[input still missing] " : "") + reason.trim(),
                 rule_ids_addressed: addressedAfter(c, f.rule_id),
-                source_suggestion: `${f.rule_id}/${s.key}`,
+                source_suggestion: source,
+                ...(choice.kind === "price" ? { evidence: choice.evidence } : {}),
               });
               onDone();
             } catch (e) {
@@ -201,256 +373,410 @@ function SuggestionConfirmModal({
             }
           }}
         >
-          {busy ? "Booking…" : `Confirm and book ${musd(s.booked)}`}
+          {busy ? "Recording…" : `Confirm and record ${musd(booked)}`}
         </button>
       </div>
     </Modal>
   );
 }
 
-/** What was decided on this flag, if a recorded override addresses it. */
-function decidedOn(c: CompanyResult, f: Flag): { s?: Suggestion; booked: number; approver: string; at: string } | null {
+/** The primary action on a newly listed position with no quarter-end quote: supply the price.
+    Market cap directly, or price × shares; the mark follows from HC's stake. Nothing is
+    written here — Continue hands the number and its evidence to the confirmation. */
+function ClosingPriceModal({ c, f, onClose, onContinue }: { c: CompanyResult; f: Flag; onClose: () => void; onContinue: (ch: Choice) => void }) {
+  const asOf = f.evidence.measurement_date ? String(f.evidence.measurement_date) : "2026-09-30";
+  const [mode, setMode] = useState<"cap" | "px">("cap");
+  const [cap, setCap] = useState("");
+  const [px, setPx] = useState("");
+  const [sh, setSh] = useState("");
+  const [source, setSource] = useState("");
+  const num = (t: string) => Number(t.replace(/,/g, ""));
+  const capValue = mode === "cap" ? num(cap) : num(px) * num(sh);
+  const priced = Number.isFinite(capValue) && capValue > 0;
+  const ok = priced && source.trim().length > 0;
+  const mark = priced ? Math.round(capValue * c.ownership_after * 1e6) / 1e6 : null;
+  const standIn = typeof f.evidence.ipo_print_mark === "number" ? (f.evidence.ipo_print_mark as number) : c.proposed_mark;
+  return (
+    <Modal title={`Add closing price · ${c.company}`} onClose={onClose}>
+      <p className="text-[12.5px] text-ink2 leading-snug m-0 mb-3">
+        No {asOf} quote is on file, so the mark stands in the listing-day market cap. Enter the quarter-end figure and where it
+        came from; the mark is HC's {pct(c.ownership_after, 1)} of it.
+      </p>
+      <div className="flex gap-1 mb-3" role="tablist">
+        <button className={`btn ${mode === "cap" ? "btn-primary" : "btn-ghost"}`} onClick={() => setMode("cap")} role="tab" aria-selected={mode === "cap"}>
+          Market cap
+        </button>
+        <button className={`btn ${mode === "px" ? "btn-primary" : "btn-ghost"}`} onClick={() => setMode("px")} role="tab" aria-selected={mode === "px"}>
+          Price × shares
+        </button>
+      </div>
+      {mode === "cap" ? (
+        <Field label={`Market cap at ${asOf} ($M)`}>
+          <input className="input w-full num" inputMode="decimal" value={cap} onChange={(e) => setCap(e.target.value)} autoFocus placeholder="e.g. 3,712" />
+        </Field>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={`Closing price at ${asOf}`}>
+            <input className="input w-full num" inputMode="decimal" value={px} onChange={(e) => setPx(e.target.value)} autoFocus placeholder="e.g. 41.20" />
+          </Field>
+          <Field label="Shares outstanding (M)">
+            <input className="input w-full num" inputMode="decimal" value={sh} onChange={(e) => setSh(e.target.value)} placeholder="e.g. 90.1" />
+          </Field>
+        </div>
+      )}
+      <Field label="Source (required)">
+        <input className="input w-full" value={source} onChange={(e) => setSource(e.target.value)} placeholder="e.g. Nasdaq official close via Bloomberg" />
+      </Field>
+      <div className="card p-2.5 mb-3 text-[12.5px]">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-muted">Listing-day stand-in</span>
+          <span className="num">{musd(standIn)}</span>
+        </div>
+        <div className="flex items-baseline justify-between gap-3 mt-0.5">
+          <span className="text-muted">From the price you entered</span>
+          <span className="num font-semibold">{mark === null ? "—" : musd(mark)}</span>
+        </div>
+        {priced && !ok && <div className="text-[11px] text-muted mt-1.5">Name the source to continue — it travels with the decision.</div>}
+      </div>
+      <div className="flex justify-end gap-2">
+        <button className="btn" onClick={onClose}>
+          Cancel
+        </button>
+        <button
+          className="btn btn-primary"
+          disabled={!ok || mark === null}
+          onClick={() =>
+            mark !== null &&
+            onContinue({
+              kind: "price",
+              booked: mark,
+              evidence: {
+                kind: "closing_price",
+                as_of: asOf,
+                market_cap_musd: Math.round(capValue * 1e3) / 1e3,
+                ...(mode === "px" ? { price: num(px), shares_m: num(sh) } : {}),
+                source: source.trim(),
+                ownership: c.ownership_after,
+              },
+            })
+          }
+        >
+          Continue to confirm
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+/** What was decided on this flag, if a recorded decision addresses it. */
+export function decidedOn(c: CompanyResult, f: Flag): { s?: Suggestion; booked: number; approver: string; at: string; how?: string } | null {
   const o = c.override;
   if (!o) return null;
   const addressesAll = o.rule_ids_addressed.length === 0;
   if (!addressesAll && !o.rule_ids_addressed.includes(f.rule_id)) return null;
   const key = o.source_suggestion?.startsWith(`${f.rule_id}/`) ? o.source_suggestion.slice(f.rule_id.length + 1) : null;
-  return { s: key ? f.suggestions.find((s) => s.key === key) : undefined, booked: o.booked, approver: o.approver, at: o.created_at };
+  const how = key === "manual" ? "Mark entered by the approver." : key === "proposed" ? "Proposed mark accepted." : key === "price" ? "Quarter-end price supplied." : undefined;
+  return { s: key ? f.suggestions.find((s) => s.key === key) : undefined, booked: o.booked, approver: o.approver, at: o.created_at, how };
 }
 
-/** Who chose the recommendation, as a chip. */
+/** Who chose the recommendation, as a small label. */
 function SourceChip({ rec }: { rec: Recommendation }) {
   if (rec.source === "claude") {
     return (
-      <span className="chip chip-ai" title={`Chosen by ${rec.model ?? "Claude"} among the engine's priced options${rec.confidence !== null ? ` · confidence ${Math.round(rec.confidence * 100)}%` : ""}`}>
-        Claude
+      <span className="chip chip-ai no-dot" title={`Drafted by ${rec.model ?? "Claude"} from the engine's priced options${rec.confidence !== null ? ` · confidence ${Math.round(rec.confidence * 100)}%` : ""}; editable before it is recorded`}>
+        AI draft
       </span>
     );
   }
   return (
-    <span className="chip disp-NONE" title={rec.note ?? "The rule's own default resolution"}>
-      policy default
+    <span className="chip disp-NONE no-dot" title={rec.note ?? "The rule's own default resolution"}>
+      Policy suggestion
     </span>
   );
 }
 
-/** One card: the resolution put forward. Label and reasons from the recommendation, the number
-    from the engine's suggestion it names. */
-function RecommendationCard({
-  c,
-  f,
-  rec,
-  s,
-  writeDisabled,
-  onPick,
-  isCurrent,
-}: {
-  c: CompanyResult;
-  f: Flag;
-  rec: Recommendation;
-  s: Suggestion;
-  writeDisabled: string | null;
-  onPick: (s: Suggestion) => void;
-  isCurrent: boolean;
-}) {
-  const delta = s.booked - c.proposed_mark;
-  return (
-    <WriteButton disabledReason={writeDisabled} className={`suggest primary ${isCurrent ? "current" : ""}`} onClick={() => onPick(s)}>
-      <span className="flex items-center justify-between gap-2">
-        <span className="suggest-label">{rec.label}</span>
-        <SourceChip rec={rec} />
-      </span>
-      <ul className="suggest-why">
-        {rec.reasons.map((r, i) => (
-          <li key={i}>{r}</li>
-        ))}
-      </ul>
-      {rec.rationale && <span className="suggest-rationale">{rec.rationale}</span>}
-      {rec.note && <span className="suggest-rationale">{rec.note}</span>}
-      <span className="suggest-foot">
-        <span className="num">
-          {musd(s.booked)}
-          <span className={`ml-1 text-[10.5px] ${signClass(delta)}`}>
-            {Math.abs(delta) < 5e-3 ? "as proposed" : `(${signed(delta)})`}
-          </span>
-        </span>
-        <span className="suggest-cta">{isCurrent ? "current" : `Select for ${f.rule_id}`}</span>
-      </span>
-    </WriteButton>
-  );
+/** The recommendation as it now stands: the flag's chosen option or a server that predates
+    recommendations, where the first option stands in as the policy suggestion. */
+export function recommendationOf(f: Flag): { rec: Recommendation; chosen: Suggestion; others: Suggestion[] } | null {
+  if (f.suggestions.length === 0) return null;
+  const rec: Recommendation =
+    f.recommendation ?? { key: f.suggestions[0].key, label: f.suggestions[0].label, reasons: f.suggestions[0].reasons,
+      booked: f.suggestions[0].booked, source: "policy", model: null, rationale: null, confidence: null, note: null };
+  const chosen = f.suggestions.find((s) => s.key === rec.key) ?? f.suggestions[0];
+  return { rec, chosen, others: f.suggestions.filter((s) => s.key !== chosen.key) };
 }
 
-/** The recommendation first; the engine's other priced options behind a disclosure. */
-export function SuggestionCards({
+/** The "Suggested next step" column: one action in a sentence, its source label, the number,
+    and the reasoning behind a disclosure. `apply` renders the step's own Apply button — off
+    for the headline finding, whose primary action lives in the card's bottom bar. */
+export function NextStep({
   c,
   f,
   writeDisabled,
   onChanged,
+  apply = true,
 }: {
   c: CompanyResult;
   f: Flag;
   writeDisabled: string | null;
   onChanged: () => void;
+  apply?: boolean;
 }) {
-  const [pick, setPick] = useState<Suggestion | null>(null);
-  const [change, setChange] = useState(false);
+  const [pick, setPick] = useState<Choice | null>(null);
+  const r = recommendationOf(f);
   const decided = decidedOn(c, f);
-  if (f.suggestions.length === 0) return null;
-  // a server that predates recommendations: the rule's first suggestion stands in as the policy default
-  const rec: Recommendation =
-    f.recommendation ?? { key: f.suggestions[0].key, label: f.suggestions[0].label, reasons: f.suggestions[0].reasons,
-      booked: f.suggestions[0].booked, source: "policy", model: null, rationale: null, confidence: null, note: null };
-  const chosen = f.suggestions.find((s) => s.key === rec.key) ?? f.suggestions[0];
-  const others = f.suggestions.filter((s) => s.key !== chosen.key);
-
-  if (decided && !change) {
+  if (!r) return <p className="text-[12px] text-muted m-0">No priced option — the engine has nothing to put a number on here.</p>;
+  const { rec, chosen, others } = r;
+  const delta = chosen.booked - c.proposed_mark;
+  const price = needsClosingPrice(c, f);
+  if (decided) {
     return (
       <div className="decided">
         <div className="flex items-center gap-2">
-          <span className="chip disp-CLEAR">decided</span>
-          <span className="text-[12.5px] font-semibold leading-snug">{decided.s?.label ?? "Override recorded."}</span>
+          <span className="chip disp-CLEAR">decision recorded</span>
+          <span className="text-[12.5px] font-semibold leading-snug">{decided.s?.label ?? decided.how ?? "Decision recorded."}</span>
         </div>
         <div className="text-[11.5px] text-muted mt-1">
-          Booked <span className="num text-ink2">{musd(decided.booked)}</span> · {decided.approver} · {isoDate(decided.at)}
+          Recorded <span className="num text-ink2">{musd(decided.booked)}</span> · {decided.approver} · {isoDate(decided.at)}
         </div>
-        <button className="btn btn-ghost mt-1 text-[11px]" onClick={() => setChange(true)}>
-          Change
-        </button>
       </div>
     );
   }
-
+  const asOf = f.evidence.measurement_date ? String(f.evidence.measurement_date) : "quarter-end";
+  // On a missing price the step is to supply it — the engine's option (book the stand-in) is
+  // the fallback, and lives behind the disclosure so the column and the primary button agree.
+  const fallback = price ? [chosen, ...others] : others;
   return (
-    <>
-      <RecommendationCard
-        c={c}
-        f={f}
-        rec={rec}
-        s={chosen}
-        writeDisabled={writeDisabled}
-        onPick={setPick}
-        isCurrent={!!decided && Math.abs(decided.booked - chosen.booked) < 1e-6}
-      />
-      {others.length > 0 && (
-        <details className="suggest-others">
-          <summary>
-            Other engine-priced option{others.length === 1 ? "" : "s"} ({others.length})
-          </summary>
-          <div className="suggest-grid mt-1.5">
-            {others.map((s) => {
-              const delta = s.booked - c.proposed_mark;
-              const isCurrent = !!decided && Math.abs(decided.booked - s.booked) < 1e-6;
+    <div className="step">
+      <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
+        <p className="step-label m-0">
+          {price ? `Add the ${asOf} closing price and recalculate; until it is on file the listing-day stand-in holds.` : rec.label}
+        </p>
+        <SourceChip rec={rec} />
+      </div>
+      <div className="step-num num">
+        {musd(chosen.booked)}
+        <span className={`ml-1 text-[10.5px] ${price ? "text-muted" : signClass(delta)}`}>
+          {price ? "stand-in until priced" : Math.abs(delta) < 5e-3 ? "as proposed" : `(${signed(delta)})`}
+        </span>
+        {apply && !price && (
+          <WriteButton disabledReason={writeDisabled} className="btn btn-ghost ml-auto text-[11px]" onClick={() => setPick({ kind: "option", s: chosen })}>
+            {optionVerb(chosen)}
+          </WriteButton>
+        )}
+      </div>
+      <details className="step-why">
+        <summary>Why this step{fallback.length ? ` · ${fallback.length} ${price ? "fallback" : "other option"}${fallback.length === 1 ? "" : "s"}` : ""}</summary>
+        <ul className="suggest-why mt-1">
+          {(price
+            ? [`A listed security is worth its ${asOf} close (Level 1, ASC 820); no quote is on file, so the number shown is the listing-day cap standing in.`, ...rec.reasons]
+            : rec.reasons
+          ).map((x, i) => (
+            <li key={i}>{x}</li>
+          ))}
+        </ul>
+        {rec.rationale && <p className="suggest-rationale m-0 mt-1">{rec.rationale}</p>}
+        {rec.note && <p className="suggest-rationale m-0 mt-1">{rec.note}</p>}
+        {fallback.length > 0 && (
+          <div className="mt-2 flex flex-col gap-1">
+            {fallback.map((s) => {
+              const d = s.booked - c.proposed_mark;
               return (
-                <WriteButton key={s.key} disabledReason={writeDisabled} className={`suggest ${isCurrent ? "current" : ""}`} onClick={() => setPick(s)}>
-                  <span className="suggest-label">{s.label}</span>
-                  <ul className="suggest-why">
-                    {s.reasons.map((r, i) => (
-                      <li key={i}>{r}</li>
-                    ))}
-                  </ul>
-                  <span className="suggest-foot">
-                    <span className="num">
-                      {musd(s.booked)}
-                      <span className={`ml-1 text-[10.5px] ${signClass(delta)}`}>
-                        {Math.abs(delta) < 5e-3 ? "as proposed" : `(${signed(delta)})`}
-                      </span>
-                    </span>
-                    <span className="suggest-cta">{isCurrent ? "current" : "Select"}</span>
+                <div key={s.key} className="step-other">
+                  <span className="text-[11.5px] leading-snug">{s.label}</span>
+                  <span className="num text-[11.5px] whitespace-nowrap">
+                    {musd(s.booked)} <span className={`text-[10.5px] ${signClass(d)}`}>({signed(d)})</span>
                   </span>
-                </WriteButton>
+                  <WriteButton disabledReason={writeDisabled} className="btn btn-ghost text-[11px]" onClick={() => setPick({ kind: "option", s })}>
+                    {optionVerb(s)}
+                  </WriteButton>
+                </div>
               );
             })}
           </div>
-        </details>
-      )}
-      {decided && change && (
-        <button className="btn btn-ghost mt-1 text-[11px]" onClick={() => setChange(false)}>
-          Keep current decision
-        </button>
-      )}
+        )}
+      </details>
       {pick && (
-        <SuggestionConfirmModal
+        <ConfirmModal
           c={c}
           f={f}
-          s={pick}
+          choice={pick}
           onClose={() => setPick(null)}
           onDone={() => {
             setPick(null);
-            setChange(false);
             onChanged();
           }}
         />
       )}
-    </>
+    </div>
   );
 }
 
-/** Every flag a reviewer must act on: rule id, imperative, summary points and details on
-    the left; the engine's priced suggestions on the right. */
-/** MONITOR findings: real information, no decision. One line each — rule, family, the
-    engine's sentence — because a watch item rendered as a card competes with the two flags
-    that actually need a reviewer, which is how a queue stops being read. */
+/** The card's bottom bar: one primary action that addresses the blocker, Override as the
+    secondary route whose input appears only when asked for, and nothing else. The primary is
+    "Add closing price" when that is what is missing, otherwise the suggested step itself. */
+export function DecisionBar({
+  c,
+  f,
+  writeDisabled,
+  onChanged,
+  children,
+}: {
+  c: CompanyResult;
+  f: Flag;
+  writeDisabled: string | null;
+  onChanged: () => void;
+  children?: ReactNode;
+}) {
+  const [pick, setPick] = useState<Choice | null>(null);
+  const [pricing, setPricing] = useState(false);
+  const [overriding, setOverriding] = useState(false);
+  const [text, setText] = useState("");
+  const r = recommendationOf(f);
+  const decided = decidedOn(c, f);
+  const price = needsClosingPrice(c, f);
+  const value = Number(text.replace(/,/g, ""));
+  const ok = text.trim() !== "" && Number.isFinite(value) && value >= 0;
+  const done = () => {
+    setPick(null);
+    setOverriding(false);
+    setText("");
+    onChanged();
+  };
+  return (
+    <div className="decision-bar">
+      <div className="decision-actions">
+        {decided ? (
+          <WriteButton disabledReason={writeDisabled} className="btn" onClick={() => setOverriding((v) => !v)}>
+            Change decision
+          </WriteButton>
+        ) : price ? (
+          <WriteButton disabledReason={writeDisabled} className="btn btn-primary" onClick={() => setPricing(true)} title="Enter the quarter-end market cap or price and its source">
+            Add closing price
+          </WriteButton>
+        ) : r ? (
+          <WriteButton disabledReason={writeDisabled} className="btn btn-primary" onClick={() => setPick({ kind: "option", s: r.chosen })} title={r.rec.label}>
+            {optionVerb(r.chosen)} · <span className="num">{musd(r.chosen.booked)}</span>
+          </WriteButton>
+        ) : null}
+        {!decided && (
+          <WriteButton
+            disabledReason={writeDisabled}
+            className={`btn ${overriding ? "" : "btn-ghost"}`}
+            onClick={() => setOverriding((v) => !v)}
+            title="Record a different number under your name; the reason is required and the ledger says the input was still missing"
+          >
+            Override
+          </WriteButton>
+        )}
+        {overriding && (
+          <form
+            className="override-entry"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (ok) setPick({ kind: "manual", booked: Math.round(value * 1e6) / 1e6 });
+            }}
+          >
+            <span className="text-[11px] text-muted">$M</span>
+            <input className="input decide-input num" inputMode="decimal" placeholder={musd(c.proposed_mark)} value={text} onChange={(e) => setText(e.target.value)} autoFocus aria-label="Mark to record, in $M" />
+            <button type="submit" className="btn decide-confirm" disabled={!ok}>
+              Confirm
+            </button>
+            <button type="button" className="btn btn-ghost text-[11px]" onClick={() => setPick({ kind: "proposed" })} title={`Record the proposal of ${musd(c.proposed_mark)} as it stands`}>
+              or accept proposed
+            </button>
+          </form>
+        )}
+      </div>
+      <div className="decision-more">{children}</div>
+      {pricing && (
+        <ClosingPriceModal
+          c={c}
+          f={f}
+          onClose={() => setPricing(false)}
+          onContinue={(ch) => {
+            setPricing(false);
+            setPick(ch);
+          }}
+        />
+      )}
+      {pick && (
+        <ConfirmModal
+          c={c}
+          f={f}
+          choice={pick}
+          onClose={() => {
+            setPick(null);
+            setOverriding(false);
+          }}
+          onDone={done}
+        />
+      )}
+    </div>
+  );
+}
+
+/** MONITOR findings in a reviewer's words: what each one means, then the engine's sentence.
+    A watch item rendered as a card competes with the findings that actually need a person,
+    which is how a queue stops being read; a line each is enough. */
 export function FlagNoteList({ flags }: { flags: Flag[] }) {
+  const names = useFlagNames();
   if (flags.length === 0) return null;
   return (
     <ul className="note-list">
       {flags.map((f, i) => (
         <li key={i} className="note-row">
-          <span className={`chip disp-${f.severity} shrink-0`} title={`${f.severity} · ${f.family}`}>
-            <span className="mono">{f.rule_id}</span>
-          </span>
-          <span className="note-family">{f.family}</span>
-          <span className="note-text">{f.message}</span>
+          <span className="note-family">{flagName(f, names)}</span>
+          <span className="note-text">{plainPoint(f.message)}</span>
         </li>
       ))}
     </ul>
   );
 }
 
+/** Every finding a reviewer must act on, two columns each: why it was flagged on the left,
+    the suggested next step on the right; stacked on a narrow screen. Rule codes and the
+    long form live behind Evidence, not in the row. `primaryFor` names the finding whose
+    action the card's bottom bar carries, so its column shows no second button. */
 export function FlagActionList({
   c,
   flags,
   writeDisabled,
   onChanged,
+  primaryFor,
 }: {
   c: CompanyResult;
   flags: Flag[];
   writeDisabled: string | null;
   onChanged: () => void;
+  primaryFor?: string;
 }) {
   const [detail, setDetail] = useState<number | null>(null);
+  const names = useFlagNames();
   return (
     <>
+      <div className="cols-head">
+        <span className="eyebrow-sm">Why flagged</span>
+        <span className="eyebrow-sm">Suggested next step</span>
+      </div>
       <ul className="flag-list">
         {flags.map((f, i) => (
           <li key={i} className="flag-row">
             <div className="flag-why">
-              <div className="flex items-baseline gap-2.5">
-                <span className="rule-tag mono" title={`${f.severity} · ${f.family}`}>
-                  {f.rule_id}
-                </span>
-                <span className="text-[13.5px] font-semibold leading-snug">{f.action || f.message}</span>
-              </div>
-              {f.action && (
-                <div className="mt-1">
-                  <FlagPoints f={f} />
-                  <button
-                    className="btn btn-ghost mt-1 text-[11px]"
-                    onClick={() => setDetail(i)}
-                    aria-haspopup="dialog"
-                    title={`Read ${f.rule_id} in full, with the inputs behind it`}
-                  >
-                    Details
-                  </button>
-                </div>
+              <span className="eyebrow-sm stack-only">Why flagged</span>
+              {/* one finding: the card's headline already names it; several: each row carries its own */}
+              {!(flags.length === 1 && primaryFor === f.rule_id) && (
+                <div className="text-[12.5px] font-semibold leading-snug">{flagName(f, names)}</div>
               )}
+              <FlagPoints f={f} plain className={flags.length === 1 && primaryFor === f.rule_id ? "" : "mt-1"} />
+              <button className="btn btn-ghost mt-1 text-[11px]" onClick={() => setDetail(i)} aria-haspopup="dialog" title={`Read ${f.rule_id} in full, with the inputs behind it`}>
+                Evidence
+              </button>
             </div>
-            {f.suggestions.length > 0 && (
-              <div className="flag-do">
-                <div className="eyebrow-sm">Recommended resolution</div>
-                <SuggestionCards c={c} f={f} writeDisabled={writeDisabled} onChanged={onChanged} />
-              </div>
-            )}
+            <div className="flag-do">
+              <span className="eyebrow-sm stack-only">Suggested next step</span>
+              <NextStep c={c} f={f} writeDisabled={writeDisabled} onChanged={onChanged} apply={primaryFor !== f.rule_id} />
+            </div>
           </li>
         ))}
       </ul>

@@ -30,6 +30,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+from dataclasses import dataclass
 from datetime import date
 from typing import Any, Mapping
 
@@ -51,18 +52,42 @@ REVENUE_CONCEPTS = (
 )
 # (taxonomy, concept, kind): `instant` rows are summed per end (multi-class); `duration` rows
 # are read by quarterly frame only (a 10-Q reports 3- and 9-month averages at the same end).
+# Preference order, best evidence first. `basis` is what the number actually counts, which the
+# review tool shows: the cover-page and balance-sheet concepts are shares *outstanding* at a
+# date; the weighted-average concept is a *diluted average over the period*, close to
+# outstanding for these filers (SNOW 352.8 vs 348.7, RBLX 714.3 vs 715.5, NVDA 24,100 vs
+# 24,312) but an approximation, and labelled as one.
 SHARES_CONCEPTS = (
-    ("dei", "EntityCommonStockSharesOutstanding", "instant"),
-    ("us-gaap", "CommonStockSharesOutstanding", "instant"),
-    ("us-gaap", "WeightedAverageNumberOfDilutedSharesOutstanding", "duration"),
+    ("dei", "EntityCommonStockSharesOutstanding", "instant", "outstanding, cover page"),
+    ("us-gaap", "CommonStockSharesOutstanding", "instant", "outstanding, balance sheet"),
+    ("us-gaap", "WeightedAverageNumberOfDilutedSharesOutstanding", "duration", "diluted weighted average"),
+    # A loss-making filer has no dilution to report, and many tag the one figure under this
+    # concept instead of the two above: C3.ai did so through fiscal 2022, leaving its dead 3.5M
+    # balance-sheet tag as the only count on file for a year. Same basis, last in preference.
+    ("us-gaap", "WeightedAverageNumberOfShareOutstandingBasicAndDiluted", "duration", "diluted weighted average"),
 )
+# A share count is evidence about *today's* market cap. Filers abandon a tag without removing
+# its history — C3.ai last tagged CommonStockSharesOutstanding in 2021 (3.5M against ~140M
+# today), SoundHound's cover-page tag stops at the pre-merger shell (17.5M against ~439M),
+# and Hims, Datadog and Toast leave a final value of zero — so a count older than this is not
+# used at all. Fifteen months covers a filer who has missed a quarter, not one who has moved on.
+SHARES_MAX_AGE_DAYS = 450
+# The absolute limit alone is not enough: a tag the filer has dropped stays "fresh" for up to
+# fifteen months after its last value, and in that window it beats the concept the filer has
+# moved to. Affirm carried its 59M pre-IPO balance-sheet count for a year after listing against
+# a 230-280M diluted average; SoundHound its 17.5M shell count for ten months against 160-200M.
+# So a concept is also judged against the filer's freshest concept: one that has fallen more
+# than a reporting cycle behind it, or whose value cannot be the same share base, is passed over.
+SHARES_LAG_DAYS = 135           # one quarter plus a filing lag: two periods behind is "behind"
+SHARES_RATIO_BAND = (0.5, 2.0)   # in step by date: outstanding vs diluted average differ by percent, not multiples
+SHARES_STALE_BAND = (0.9, 1.1)   # behind by date: only a count that still agrees closely is a slow tag, not a dead one
 CASH_CONCEPT = "CashAndCashEquivalentsAtCarryingValue"
 INVESTMENT_CONCEPTS = ("ShortTermInvestments", "MarketableSecuritiesCurrent")   # first present
 DEBT_TOTAL_CONCEPT = "LongTermDebt"
 DEBT_PART_CONCEPTS = ("LongTermDebtNoncurrent", "LongTermDebtCurrent")
 
 MILLION = 1_000_000.0
-EXTRACT_VERSION = 2               # bump when the extract's shape or derivation changes; the cache re-derives older ones
+EXTRACT_VERSION = 3               # bump when the extract's shape or derivation changes; the cache re-derives older ones
 _QUARTER_FRAME = re.compile(r"^CY(\d{4})Q([1-4])$")
 
 # Period lengths in days. Fiscal quarters are 13 weeks (91 days) or calendar quarters (89–92);
@@ -464,9 +489,114 @@ def duration_series(entries: list[Mapping[str, Any]], scale: float = MILLION) ->
     return _series_rows(per_end, scale)
 
 
+def all_shares_series(facts: Mapping[str, Any]) -> dict[str, list[dict[str, Any]]]:
+    """Every share-count concept this filer reports, keyed `taxonomy:concept`.
+
+    All of them are cached, not just the winner, because which one is usable depends on the
+    measurement date: a concept the filer stopped tagging years ago is useless for a market cap
+    today but was the right answer for a 2021 close. Choosing at read time (`shares_at`) keeps
+    the extract re-derivable for any date without refetching."""
+    out: dict[str, list[dict[str, Any]]] = {}
+    for taxonomy, concept, kind, _basis in SHARES_CONCEPTS:
+        entries = _entries(facts, taxonomy, concept, "shares")
+        series = summed_instant_series(entries) if kind == "instant" else duration_series(entries)
+        if series:
+            out[f"{taxonomy}:{concept}"] = series
+    return out
+
+
+@dataclass(frozen=True)
+class SharesPick:
+    """The share count chosen for a measurement date, and what was passed over to get there."""
+    value: float | None                  # millions of shares, None when nothing is usable
+    concept: str | None                  # "taxonomy:concept"
+    basis: str | None                    # "outstanding, cover page" | "diluted weighted average" | ...
+    as_of: str | None                    # the `end` of the fact used
+    age_days: int | None                 # measurement date minus that `end`
+    rejected: tuple[str, ...] = ()       # one line per concept passed over, with the reason
+    filed: str | None = None             # when that fact was filed: the date its share basis is on
+
+    @property
+    def approximate(self) -> bool:
+        return bool(self.basis and self.basis.startswith("diluted"))
+
+    @property
+    def basis_date(self) -> date | None:
+        """The date the count's share basis belongs to. A split after this date, and only a
+        split after it, has to be applied before the count meets a split-adjusted close: a
+        filing made after a split already reports post-split shares (SAB Topic 4C restates
+        them), one made before does not — whatever the period the fact is for."""
+        raw = self.filed or self.as_of
+        return date.fromisoformat(raw) if raw else None
+
+
+def shares_at(series_by_concept: Mapping[str, list[Mapping[str, Any]]], on: date,
+              *, max_age_days: int = SHARES_MAX_AGE_DAYS, lag_days: int = SHARES_LAG_DAYS,
+              ratio_band: tuple[float, float] = SHARES_RATIO_BAND,
+              stale_band: tuple[float, float] = SHARES_STALE_BAND) -> SharesPick:
+    """The best share count for `on`: the first concept in preference order whose latest fact
+    at that date is positive, no older than `max_age_days`, and still credible against the
+    filer's freshest concept — within `ratio_band` of its value when in step by date (no more
+    than `lag_days` behind), within the tighter `stale_band` when behind.
+
+    A dropped tag fails this long before it fails the absolute limit: a pre-listing count
+    against a post-listing average is off by multiples, not percent, and a tag the filer
+    stopped updating drifts away from the one it keeps filing. A concept merely reported
+    annually falls behind by date every year but still agrees closely, so it is kept.
+
+    Returning nothing is a real answer — the constituent goes unpriced with a stated reason,
+    which is the honest outcome when the only counts on file predate the company's current
+    capital structure. Silently pricing a 2026 market cap off a 2021 share count is not."""
+    rejected: list[str] = []
+    candidates: list[tuple[str, str, str, Mapping[str, Any], float, int]] = []
+    for taxonomy, concept, _kind, basis in SHARES_CONCEPTS:
+        key = f"{taxonomy}:{concept}"
+        series = list(series_by_concept.get(key) or [])
+        if not series:
+            continue
+        row = None
+        for r in series:                                  # series is sorted by end
+            end = str(r.get("end") or "")
+            if end and end <= on.isoformat() and str(r.get("filed") or "") <= on.isoformat():
+                row = r
+        if row is None:
+            rejected.append(f"{concept}: nothing filed on or before {on.isoformat()}")
+            continue
+        value = float(row.get("value") or 0.0)
+        age = (on - date.fromisoformat(str(row["end"]))).days
+        if value <= 0:
+            rejected.append(f"{concept}: last value is {value:g} ({row['end']})")
+            continue
+        if age > max_age_days:
+            years = age / 365.25
+            rejected.append(f"{concept}: last filed {row['end']}, {years:.1f} years before the measurement date")
+            continue
+        candidates.append((key, concept, basis, row, value, age))
+
+    if candidates:
+        # the freshest concept is the one the filer is actually keeping up; the rest are judged by it
+        fkey, fconcept, _b, frow, fvalue, _a = min(candidates, key=lambda c: c[5])
+        for key, concept, basis, row, value, age in candidates:
+            if key != fkey:
+                behind = (date.fromisoformat(str(frow["end"])) - date.fromisoformat(str(row["end"]))).days
+                ratio = value / fvalue if fvalue else 0.0
+                lo, hi = stale_band if behind > lag_days else ratio_band
+                if not (lo <= ratio <= hi):
+                    why = (f"{behind} days behind {fconcept} ({frow['end']}) and {ratio:.2g}x its {fvalue:,.1f}M — the filer has moved on"
+                           if behind > lag_days else
+                           f"{value:,.1f}M is {ratio:.2g}x the {fvalue:,.1f}M under {fconcept} — not the same share base")
+                    rejected.append(f"{concept}: last filed {row['end']}, {why}")
+                    continue
+            return SharesPick(value=value, concept=key, basis=basis, as_of=str(row["end"]),
+                              age_days=age, rejected=tuple(rejected), filed=str(row.get("filed") or "") or None)
+    return SharesPick(value=None, concept=None, basis=None, as_of=None, age_days=None,
+                      rejected=tuple(rejected))
+
+
 def shares_series(facts: Mapping[str, Any]) -> tuple[str | None, list[dict[str, Any]]]:
-    """(concept used, [{end, value in millions}]) — first concept in `SHARES_CONCEPTS` with data."""
-    for taxonomy, concept, kind in SHARES_CONCEPTS:
+    """Back-compat: the first concept with any data. Kept for readers of v2 extracts; new code
+    caches every series (`all_shares_series`) and chooses at the measurement date."""
+    for taxonomy, concept, kind, _basis in SHARES_CONCEPTS:
         entries = _entries(facts, taxonomy, concept, "shares")
         series = summed_instant_series(entries) if kind == "instant" else duration_series(entries)
         if series:
@@ -538,21 +668,23 @@ def extract(facts: Mapping[str, Any]) -> dict[str, Any]:
     revenue_concepts, periods = revenue_periods(facts)
     shares_concept, shares = shares_series(facts)
     cik = facts.get("cik")
+    by_concept = all_shares_series(facts)
     return {
         "extract_version": EXTRACT_VERSION,
         "cik": f"{int(cik):010d}" if cik is not None else None,
         "name": facts.get("entityName"),
         "revenue_concepts": revenue_concepts,
         "revenue_periods": periods,
-        "shares_concept": shares_concept,
-        "shares": shares,
+        "shares_concept": shares_concept,          # v2 field, kept so an older reader still works
+        "shares": shares,                          # v2 field, ditto
+        "shares_by_concept": by_concept,           # v3: every concept, chosen at the measurement date
         "cash": cash_series(facts),
         "debt": debt_series(facts),
     }
 
 
 SLIM_CONCEPTS = (
-    [("us-gaap", c) for c in REVENUE_CONCEPTS] + [(t, c) for t, c, _k in SHARES_CONCEPTS]
+    [("us-gaap", c) for c in REVENUE_CONCEPTS] + [(t, c) for t, c, _k, _b in SHARES_CONCEPTS]
     + [("us-gaap", CASH_CONCEPT)] + [("us-gaap", c) for c in INVESTMENT_CONCEPTS]
     + [("us-gaap", DEBT_TOTAL_CONCEPT)] + [("us-gaap", c) for c in DEBT_PART_CONCEPTS]
 )
@@ -586,5 +718,6 @@ __all__ = [
     "COMPANY_FACTS_URL", "COMPANY_TICKERS_URL", "CONTACT_ENV", "DEFAULT_CONTACT", "EdgarClient", "ExtractionError",
     "RevenueHistory", "cash_series", "combine_series", "debt_series", "extract", "fetch_extract", "fetch_slim",
     "net_cash_at", "parse_company_tickers", "quarters_from_periods", "resolve_ciks", "revenue_periods",
-    "shares_series", "slim", "summed_instant_series", "ttm_at", "user_agent", "value_at",
+    "SharesPick", "all_shares_series", "shares_at", "shares_series", "slim", "summed_instant_series",
+    "ttm_at", "user_agent", "value_at",
 ]

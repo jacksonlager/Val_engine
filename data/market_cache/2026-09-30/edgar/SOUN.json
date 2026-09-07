@@ -149,7 +149,7 @@
    "value": 0.0
   }
  ],
- "extract_version": 2,
+ "extract_version": 3,
  "name": "SOUNDHOUND AI, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerIncludingAssessedTax",
@@ -416,5 +416,195 @@
    "value": 17.461
   }
  ],
+ "shares_by_concept": {
+  "dei:EntityCommonStockSharesOutstanding": [
+   {
+    "end": "2021-07-20",
+    "filed": "2021-07-27",
+    "value": 17.461
+   },
+   {
+    "end": "2021-08-27",
+    "filed": "2021-08-27",
+    "value": 17.461
+   },
+   {
+    "end": "2021-11-15",
+    "filed": "2021-11-15",
+    "value": 17.461
+   },
+   {
+    "end": "2022-01-10",
+    "filed": "2022-01-10",
+    "value": 17.461
+   },
+   {
+    "end": "2022-03-09",
+    "filed": "2022-03-09",
+    "value": 17.461
+   }
+  ],
+  "us-gaap:CommonStockSharesOutstanding": [
+   {
+    "end": "2020-12-31",
+    "filed": "2021-07-27",
+    "value": 0.0
+   },
+   {
+    "end": "2021-03-31",
+    "filed": "2021-07-27",
+    "value": 4.587
+   },
+   {
+    "end": "2021-06-30",
+    "filed": "2021-08-27",
+    "value": 4.161
+   },
+   {
+    "end": "2021-09-30",
+    "filed": "2021-11-15",
+    "value": 4.161
+   },
+   {
+    "end": "2021-12-31",
+    "filed": "2022-03-09",
+    "value": 4.161
+   },
+   {
+    "end": "2021-12-31",
+    "filed": "2022-05-17",
+    "value": 12.28
+   },
+   {
+    "end": "2021-12-31",
+    "filed": "2022-08-15",
+    "value": 68.259
+   },
+   {
+    "end": "2022-03-31",
+    "filed": "2022-05-17",
+    "value": 4.161
+   },
+   {
+    "end": "2022-03-31",
+    "filed": "2022-05-17",
+    "value": 12.719
+   },
+   {
+    "end": "2022-04-26",
+    "filed": "2022-11-14",
+    "value": 196.504
+   },
+   {
+    "end": "2022-06-30",
+    "filed": "2022-08-15",
+    "value": 0.0
+   },
+   {
+    "end": "2022-09-30",
+    "filed": "2022-11-14",
+    "value": 0.0
+   }
+  ],
+  "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding": [
+   {
+    "end": "2021-06-30",
+    "filed": "2022-08-15",
+    "value": 67.358
+   },
+   {
+    "end": "2021-09-30",
+    "filed": "2022-11-14",
+    "value": 67.719
+   },
+   {
+    "end": "2022-03-31",
+    "filed": "2023-05-12",
+    "value": 69.604
+   },
+   {
+    "end": "2022-06-30",
+    "filed": "2022-08-15",
+    "value": 162.004
+   },
+   {
+    "end": "2022-09-30",
+    "filed": "2022-11-14",
+    "value": 197.007
+   },
+   {
+    "end": "2023-03-31",
+    "filed": "2023-05-12",
+    "value": 205.082
+   },
+   {
+    "end": "2023-06-30",
+    "filed": "2023-08-11",
+    "value": 220.772
+   },
+   {
+    "end": "2023-09-30",
+    "filed": "2023-11-15",
+    "value": 242.022
+   },
+   {
+    "end": "2024-03-31",
+    "filed": "2024-05-10",
+    "value": 286.597
+   },
+   {
+    "end": "2024-06-30",
+    "filed": "2024-08-09",
+    "value": 331.831
+   },
+   {
+    "end": "2024-09-30",
+    "filed": "2024-11-12",
+    "value": 360.386
+   },
+   {
+    "end": "2025-03-31",
+    "filed": "2025-05-12",
+    "value": 414.156
+   },
+   {
+    "end": "2025-06-30",
+    "filed": "2025-08-11",
+    "value": 402.043
+   },
+   {
+    "end": "2025-09-30",
+    "filed": "2025-11-10",
+    "value": 411.702
+   },
+   {
+    "end": "2026-03-31",
+    "filed": "2026-05-11",
+    "value": 429.783
+   },
+   {
+    "end": "2026-06-30",
+    "filed": "2026-08-10",
+    "value": 438.648
+   }
+  ],
+  "us-gaap:WeightedAverageNumberOfShareOutstandingBasicAndDiluted": [
+   {
+    "end": "2021-03-31",
+    "filed": "2021-07-27",
+    "value": 3.857
+   },
+   {
+    "end": "2021-06-30",
+    "filed": "2021-08-27",
+    "value": 4.161
+   },
+   {
+    "end": "2021-09-30",
+    "filed": "2021-11-15",
+    "value": 4.161
+   }
+  ]
+ },
  "shares_concept": "dei:EntityCommonStockSharesOutstanding"
 }

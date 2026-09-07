@@ -35,6 +35,7 @@ from typing import Mapping
 
 from ..config import RuleConfig
 from . import declarative, marking, precedence
+from .readiness import action_of, approval_of, readiness_of, valuation_change
 from .exceptions import assess_carry_side, disposition, screen_notes
 from .inputs import ActivityFeed, Event, EventType, PortfolioSnapshot, Position, Status
 from .models import (OpenItemKind,
@@ -85,6 +86,77 @@ def _blocked_rows(validation: tuple[ValidationIssue, ...], sheet: str) -> dict[i
         if v.blocking and v.severity == Severity.BLOCK and v.row_index is not None and v.sheet == sheet:
             out.setdefault(v.row_index, []).append(v)
     return out
+
+
+# The ingest corrections that change a number a person has not confirmed. X-904 explained and
+# X-918 are REVIEW too, but one is a departure the sidecar already vouches for and the other
+# is raised on the position in its own words; neither is a reading to confirm.
+_CORRECTED_READINGS = frozenset({"X-905", "X-916"})
+
+
+def _review_rows(validation: tuple[ValidationIssue, ...], sheet: str) -> dict[int, list[ValidationIssue]]:
+    """Rows of `sheet` that ingest applied on a corrected reading — a percentage read as points
+    (X-916), a row dated before the window but inside the grace period (X-905). The number moved
+    on a reading a person has not confirmed; the row is applied, and the position says so
+    (X-923) rather than reading clean."""
+    out: dict[int, list[ValidationIssue]] = {}
+    for v in validation:
+        if (not v.blocking and v.severity == Severity.REVIEW and v.rule_id in _CORRECTED_READINGS
+                and v.row_index is not None and v.sheet == sheet):
+            out.setdefault(v.row_index, []).append(v)
+    return out
+
+
+def _confirm_reading(w: Working, issues: list[ValidationIssue], *, sheet: str, row_index: int, what: str) -> None:
+    """X-923: the row was applied, but on a reading ingest had to correct or accept."""
+    ids = sorted({v.rule_id for v in issues})
+    why = "; ".join(f"{v.rule_id}: {v.message}" for v in issues)
+    w.flag("X-923", "data", Severity.REVIEW,
+           f"Row {row_index} of the {sheet} tab ({what}) was applied on a corrected reading ({why}). The mark moved on "
+           "that reading; confirm it is what the row meant before the number is booked.",
+           points=(f"Row **{row_index}** ({what}) was applied on a **corrected reading**: {why}.",
+                   "The **mark moved on that reading**, which nobody has confirmed.",
+                   "Confirm the cell, or correct it and rerun."),
+           suggestions=(
+               Suggest("as_proposed", "Confirm the corrected reading and book the mark it produced.", ("Ingest read the cell the way a person would.", "Right when the correction matches what the row meant."), "proposed"),
+               Suggest("hold_prior", "Hold the prior mark until the cell is corrected and rerun.", ("Nothing is booked from a reading nobody confirmed.", "Rerunning after the fix clears this without an override."), "prior"),
+           ),
+           action=f"Confirm the corrected reading on row {row_index} of the {sheet} tab ({', '.join(ids)}), or fix the cell and rerun.",
+           sheet=sheet, row_index=row_index, validation=ids)
+
+
+# Non-binding paperwork dated after an exit — a term sheet — is a stray row, not a contradiction:
+# nothing about it could have moved the mark, so it is recorded and set aside without a person.
+# A financing, a listing, a sale or a second exit after an exit is a different matter.
+_QUIET_AFTER_TERMINAL = frozenset({EventType.TERM_SHEET.value})
+
+
+def _suppress(w: Working, e: Event) -> None:
+    w.step("M-000", marking.V, {"suppressed_event": e.event_type, "row_index": e.row_index},
+           w.proposed_mark, w.proposed_mark,
+           f"{e.event_type} on {e.date.isoformat()} recorded but not applied: the position closed earlier in the quarter.", e)
+
+
+def _contradict(w: Working, e: Event, why: str) -> None:
+    """A row that cannot be true alongside the position's own history — a priced round on a
+    company the book already shows as acquired, a financing dated after this quarter's
+    shutdown. Recorded, not applied, and the position blocks until the date or the event is
+    corrected: two rows that contradict each other are a missing input, not a judgment."""
+    w.step("M-000", marking.V, {"suppressed_event": e.event_type, "row_index": e.row_index, "contradiction": why},
+           w.proposed_mark, w.proposed_mark,
+           f"{e.event_type} on {e.date.isoformat()} recorded but not applied: {why}. The mark is carried unchanged.", e)
+    w.flag("X-900", "data", Severity.BLOCK,
+           f"Row {e.row_index} of the activity tab ({e.event_type} on {e.date.isoformat()}) contradicts the position: {why}. "
+           "Either the date or the event is wrong, and the engine will not choose which; the prior mark is carried until "
+           "the workbook is corrected.",
+           points=(f"Activity row **{e.row_index}** ({e.event_type}, {e.date.isoformat()}) **contradicts the position**: {why}.",
+                   "Either the **date or the event is wrong** — the engine will not choose which.",
+                   "The **prior mark is carried** until the workbook is corrected."),
+           suggestions=(
+               Suggest("hold_prior", "Hold the prior mark; correct the row and rerun.", ("Two rows that cannot both be true are a data question, not a valuation one.", "Rerunning after the fix clears this without an override."), "prior"),
+           ),
+           action=f"Correct row {e.row_index} of the activity tab ({e.event_type} on {e.date.isoformat()}): {why}.",
+           sheet="activity", row_index=e.row_index)
 
 
 def _refused(e: Event, blocked: dict[int, list[ValidationIssue]], registry: Registry, md: date) -> list[ValidationIssue]:
@@ -159,6 +231,28 @@ def _positions_to_roll(portfolio: PortfolioSnapshot, activity: ActivityFeed) -> 
     return positions
 
 
+# `ipo_print`: M-040 with no measurement-date quote uses the listing-day cap itself — the same
+# stand-in whether or not a stub feed labelled it. `stub:` / `seeded`: a fixture quote.
+_STANDIN_PRICE = ("stub:", "seeded", "ipo_print")
+
+
+def _provisional(w, measurement_date) -> tuple[str | None, str | None]:
+    """A mark is provisional when a rule had to stand something in for an input that is not on
+    file. Today that is one case — a listed holding with no measurement-date quote, where the
+    engine uses the listing-day market cap — and it is stated in the reviewer's words, not the
+    rule's, because it is the first thing the card has to say."""
+    for step in w.steps:
+        src = str(step.inputs.get("price_source") or "")
+        if src.startswith(_STANDIN_PRICE) or "seeded" in src:
+            cap = step.inputs.get("measurement_date_market_cap")
+            rule = next((f.rule_id for f in w.flags if f.family == "treatment"), step.rule_id)
+            return rule, (f"Missing the {measurement_date.strftime('%d %b %Y')} closing price. The mark "
+                          f"stands in the listing-day market cap"
+                          + (f" (${float(cap):,.0f}M)" if cap else "")
+                          + " until the close is obtained.")
+    return None, None
+
+
 def run_valuation(
     portfolio: PortfolioSnapshot,
     activity: ActivityFeed,
@@ -180,6 +274,8 @@ def run_valuation(
     events_by = activity.by_company()
     blocked = _blocked_rows(validation, activity.sheet_name)
     blocked_book = _blocked_rows(validation, portfolio.sheet_name) if portfolio.sheet_name != activity.sheet_name else {}
+    review_rows = _review_rows(validation, activity.sheet_name)
+    review_book = _review_rows(validation, portfolio.sheet_name) if portfolio.sheet_name != activity.sheet_name else {}
     results: list[CompanyResult] = []
 
     for p in _positions_to_roll(portfolio, activity):
@@ -200,6 +296,8 @@ def run_valuation(
         resolved: set = set()
         if not p.extra.get("synthesised") and p.row_index in blocked_book:
             _refuse_book_row(w, p, blocked_book[p.row_index])
+        elif not p.extra.get("synthesised") and p.row_index in review_book:
+            _confirm_reading(w, review_book[p.row_index], sheet="Portfolio", row_index=p.row_index, what=p.company)
 
         if p.status != Status.ACTIVE:
             w.step("M-000", marking.V, {"status": p.status.value, "realized": p.realized}, 0.0, 0.0,
@@ -207,21 +305,30 @@ def run_valuation(
             # Activity on a terminal company is an X-907 validation issue and is not applied — except cash
             # arriving after the exit (a distribution, a note repaid), which moves realized and nothing else.
             applied = []
-            for e in (x for x in evs if x.event_type in precedence.ALLOWED_AFTER_TERMINAL):
+            for e in evs:
                 if refused := _refused(e, blocked, registry, md):
                     _refuse(w, e, refused)
                     continue
+                if e.event_type not in precedence.ALLOWED_AFTER_TERMINAL:
+                    if e.event_type in _QUIET_AFTER_TERMINAL:
+                        _suppress(w, e)
+                    else:
+                        _contradict(w, e, f"the position was already {p.status.value} at the prior close")
+                    continue
                 _dispatch(w, e, registry, config, market, md)
                 applied.append(e)
+                if rv := review_rows.get(e.row_index):
+                    _confirm_reading(w, rv, sheet="activity", row_index=e.row_index, what=e.event_type)
             if applied:
                 screen_notes(w, applied, config)
         elif evs:
             applied = []
             for e in evs:
                 if w.terminal and e.event_type not in precedence.ALLOWED_AFTER_TERMINAL:
-                    w.step("M-000", marking.V, {"suppressed_event": e.event_type, "row_index": e.row_index},
-                           w.proposed_mark, w.proposed_mark,
-                           f"{e.event_type} on {e.date.isoformat()} recorded but not applied: the position closed earlier in the quarter.", e)
+                    if e.event_type in _QUIET_AFTER_TERMINAL:
+                        _suppress(w, e)
+                    else:
+                        _contradict(w, e, "the position closed earlier in the quarter, and a financing cannot follow an exit")
                     continue
                 if refused := _refused(e, blocked, registry, md):
                     _refuse(w, e, refused)
@@ -234,6 +341,8 @@ def run_valuation(
                 _dispatch(w, e, registry, config, market, md)
                 applied.append(e)
                 resolved |= RESOLVES.get(e.event_type, set())
+                if rv := review_rows.get(e.row_index):
+                    _confirm_reading(w, rv, sheet="activity", row_index=e.row_index, what=e.event_type)
             if listed and not w.terminal and "M-040" not in w.applied_rules:
                 # A public security is worth its close whatever else happened this quarter: a dividend, a
                 # secondary or a refused row does not turn last quarter's number into a fair value.
@@ -258,6 +367,10 @@ def run_valuation(
         # company that no longer exists) but keeps every BLOCK and every event-driven REVIEW: an
         # exit with no proceeds must surface, and so must an exit whose cash is short of the deal
         # value — an escrow receivable is a number a reviewer could change.
+        new_investment = round(invested_after - p.invested, 6)
+        # A mark standing in for an input that is not on file is provisional, whatever else is
+        # true about it: it cannot be the final number, and the missing input is the next action.
+        provisional_rule, provisional_reason = _provisional(w, md)
         final_flags = w.resolved_flags(w.proposed_mark, p.prior_mark, invested_after)
         if w.terminal:
             flags = tuple(f for f in final_flags if f.severity == Severity.BLOCK or f.family not in CARRY_SIDE_FAMILIES)
@@ -266,6 +379,12 @@ def run_valuation(
         disp = disposition(flags, w.terminal, config,
                            addressed=set(override.rule_ids_addressed) if override else None,
                            overridden=override is not None)
+        rule_ids = tuple(dict.fromkeys(s_.rule_id for s_ in w.steps))
+        ready = readiness_of(flags, override, provisional_rule=provisional_rule)
+        act = action_of(rule_ids, terminal=w.terminal, realized_quarter=w.realized_quarter,
+                        new_investment=new_investment, already_terminal=p.status != Status.ACTIVE)
+        change = valuation_change(p.prior_mark, booked, new_investment=new_investment,
+                                  realized_quarter=w.realized_quarter)
         aged_runway = (p.runway_months - config.metrics.reporting_lag_months) if p.runway_months is not None else None
         implied_mult = (w.latest_post / p.arr) if (p.arr and p.arr >= config.exceptions.multiple.min_arr and w.latest_post and not w.terminal) else None
 
@@ -284,7 +403,11 @@ def run_valuation(
             runway_months_aged=(round(aged_runway, 2) if aged_runway is not None else None),
             implied_multiple=(round(implied_mult, 2) if implied_mult else None),
             moic_after=(round((booked + realized_cum) / invested_after, 4) if invested_after else None),
+            new_investment_quarter=new_investment, valuation_change_quarter=change,
+            provisional=provisional_reason is not None, provisional_reason=provisional_reason,
             steps=tuple(w.steps), flags=flags, disposition=disp,
+            readiness=ready, action=act, approval=approval_of(override),
+            monitor=any(f.severity == Severity.MONITOR for f in flags),
             open_items=tuple(w.open_items), alternative_marks={k: round(v, 6) for k, v in w.alternative_marks.items()},
         ))
 

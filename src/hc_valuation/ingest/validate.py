@@ -261,7 +261,12 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
             continue
         pos = book[e.company]
 
-        if e.date > q.window_end:
+        if e.extra.get("date_missing") or e.extra.get("date_unreadable"):
+            why = (f"Date {e.extra['date_unreadable']!r} is not a date" if e.extra.get("date_unreadable")
+                   else "Date is blank; an event needs a date to be placed in the quarter")
+            issues.append(ValidationIssue(rule_id="X-902", severity=Severity.BLOCK, sheet=feed.sheet_name,
+                                          row_index=e.row_index, company=e.company, message=why))
+        elif e.date > q.window_end:
             # A transaction dated after the measurement date is not evidence at the measurement date.
             issues.append(ValidationIssue(rule_id="X-905", severity=Severity.BLOCK, sheet=feed.sheet_name,
                                           row_index=e.row_index, company=e.company,
