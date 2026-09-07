@@ -352,6 +352,22 @@ export interface OverrideRequest {
 // POST /api/publish freezes the current booked marks as the executive snapshot for the
 // quarter; GET /api/published lists every release, newest first. `run_id` lets the review
 // bar say whether the live run has moved on since executives last saw it.
+/** One workbook the served dashboard can switch to (GET /api/workbooks). A profile bundles the
+    file with the policy for its quarter, the ledger its decisions land in and the market
+    provider that can price its measurement date; `synthetic` marks invented test data. */
+export interface WorkbookProfile {
+  id: string;
+  workbook: string;
+  quarter: string | null;
+  policy: string | null;
+  ledger_dir: string;
+  provider: string | null;
+  synthetic: boolean;
+  usable: boolean;
+  reason: string;
+  current: boolean;
+}
+
 export interface PublishRecord {
   quarter: string;
   slug: string;
@@ -406,7 +422,7 @@ export interface Sources {
 // stub case `fetched_at` and `cache` are null and every constituent is a `fixture` with
 // numeric fields null.
 
-export type MarketProvider = "live" | "stub" | string;
+export type MarketProvider = "live" | "stub" | "synthetic" | string;
 export type ConstituentStatus = "ok" | "error" | "fixture";
 
 export interface MarketConstituent {
@@ -440,8 +456,10 @@ export interface MarketSector {
   positions: number; // portfolio companies in this sector
   ev_to_revenue: number; // the value in force at as_of
   as_of_month: string; // "YYYY-MM"
-  source: string; // "live:edgar+yahoo@2026-09" (live:edgar+<price source>) | "fixture:pitchbook@2026-09"
+  source: string; // "live:edgar+yahoo@2026-09" (live:edgar+<price source>) | "fixture:pitchbook@2026-09" | "synthetic:invented-test-data@2027-03"
   live: boolean;
+  /** invented for a test quarter (connectors/synthetic.py); never an observation */
+  synthetic?: boolean;
   prior_quarter: number | null; // three months earlier
   qoq_pct: number | null; // fraction, e.g. 0.076
   history: Record<string, number>; // ≤ 36 months, ascending "YYYY-MM" keys
@@ -459,8 +477,12 @@ export interface MarketCacheInfo {
 
 export interface MarketReport {
   provider: MarketProvider;
-  source: string; // manifest label, e.g. "live:edgar+yahoo" (live:edgar+<price source>) or "stub"
+  source: string; // manifest label, e.g. "live:edgar+yahoo" (live:edgar+<price source>), "stub" or "synthetic:invented-test-data"
   reached_live: boolean;
+  /** the numbers were invented for a test quarter; `notice` is the sentence the page must print above them */
+  synthetic?: boolean;
+  notice?: string;
+  synthetic_file?: string;
   as_of: string; // ISO date
   fetched_at: string | null; // ISO datetime; null when the fixture answered
   cache: MarketCacheInfo | null;

@@ -283,6 +283,7 @@ export function marketSourceLabel(s: string | null | undefined): string {
     .filter(Boolean);
   const from = names.length ? ` (${names.join(" + ")})` : "";
   if (kind === "live") return `Live${from}`;
+  if (kind === "synthetic") return "Synthetic test data — invented, not observed";
   if (kind === "fixture" || kind === "stub") return `Illustrative — not live market data${from}`;
   return humanize(s);
 }

@@ -114,9 +114,31 @@ def _live_factory(req: CompsRequest) -> CompsAnswer:
         return CompsAnswer(comps=req.fallback, label="stub", errors=[msg])
 
 
+def _synthetic_factory(req: CompsRequest) -> CompsAnswer:
+    """Invented multiples for a quarter no feed can price (connectors/synthetic.py). Reads one
+    declared-synthetic file, writes nothing, and labels every value; without the file for this
+    measurement date the fixture answers and the report says why."""
+    from .synthetic import SyntheticCompsProvider, SyntheticDataError, synthetic_file
+    path = synthetic_file(req.root, req.measurement_date)
+    if not path.is_file():
+        msg = (f"synthetic provider: no {path.relative_to(req.root).as_posix()} for {req.measurement_date.isoformat()} "
+               "(write one with scripts/make_synthetic_market.py); the fixture answered")
+        log.warning("%s", msg)
+        return CompsAnswer(comps=req.fallback, label="stub", errors=[msg])
+    try:
+        provider = SyntheticCompsProvider(path)
+    except (SyntheticDataError, OSError, ValueError) as ex:
+        msg = f"synthetic provider refused {path.name}: {ex}; the fixture answered"
+        log.warning("%s", msg)
+        return CompsAnswer(comps=req.fallback, label="stub", errors=[msg])
+    return CompsAnswer(comps=provider, label=provider.source,
+                       report=provider.report(req.measurement_date, positions=req.positions, used_by=req.used_by))
+
+
 register_comps_provider("stub", _stub_factory)
 register_comps_provider("live", _live_factory)
 register_comps_provider("pitchbook", _pitchbook_factory)
+register_comps_provider("synthetic", _synthetic_factory)
 PROVIDERS = tuple(COMPS_PROVIDERS)   # kept for callers that read the tuple
 
 

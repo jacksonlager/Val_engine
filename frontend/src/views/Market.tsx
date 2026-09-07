@@ -29,6 +29,7 @@ function liveParts(source: string | undefined): string[] {
 
 /** Where the numbers came from, said in a sentence rather than as a provider id. */
 function sourceWords(source: string | undefined, live: boolean): string {
+  if ((source ?? "").startsWith("synthetic:")) return "synthetic test data invented for this quarter — not an observation of any market";
   if (!live) return "an illustrative set of multiples shipped with the engine, not from live market data";
   const parts = liveParts(source);
   if (parts.length < 2) return "SEC filings and month-end closing prices";
@@ -39,8 +40,16 @@ const ILLUSTRATIVE_TIP =
   "Illustrative sector multiples shipped with the engine, in the shape a market-data vendor would supply. They stand in for live market data, and no booked mark depends on them.";
 
 /** Where a number came from. Green only when a live source actually answered; the label names the sources in `source`. */
+const SYNTHETIC_TIP = "Invented for a test quarter by a script. Not market data, never fetched, never cached; no mark calibrates to it.";
+
 function SourceChip({ live, long = false, source }: { live: boolean; long?: boolean; source?: string }) {
   const parts = liveParts(source);
+  if ((source ?? "").startsWith("synthetic:"))
+    return (
+      <span className="chip disp-BLOCK" title={SYNTHETIC_TIP}>
+        {long ? "Synthetic test data · invented" : "Synthetic"}
+      </span>
+    );
   const names = parts.length ? parts.join(" + ") : "EDGAR + prices";
   const prices = parts.length > 1 ? parts.slice(1).join(" + ") : "the price source";
   return live ? (
@@ -93,8 +102,25 @@ function HeaderStrip({ rep }: { rep: MarketReport }) {
   // the requested source and the one that answered are worth a reviewer's attention only when they differ
   const mismatch = askedLive !== rep.reached_live;
   const names = useMemo(() => new Set(rep.sectors.flatMap((s) => s.constituents.map((c) => c.ticker))).size, [rep]);
+  const synthetic = rep.synthetic === true || rep.provider === "synthetic" || rep.source.startsWith("synthetic:");
   return (
     <div className="card p-4">
+      {synthetic && (
+        <div className="card disp-BLOCK stripe p-3 pl-4 mb-3" role="alert">
+          <div className="flex items-center gap-2">
+            <span className="chip disp-BLOCK no-dot">Synthetic test data</span>
+            <span className="font-semibold text-[13px]">These multiples were invented for a test quarter. They are not market data.</span>
+          </div>
+          <p className="text-[12px] text-ink2 mt-1 mb-0">
+            {rep.notice ?? SYNTHETIC_TIP}
+            {rep.synthetic_file && (
+              <>
+                {" "}Source file: <span className="mono">{rep.synthetic_file}</span>.
+              </>
+            )}
+          </p>
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <SourceChip live={rep.reached_live} long source={rep.source} />
         <span className="text-[11px] text-muted">Sector multiples priced from {sourceWords(rep.source, rep.reached_live)}.</span>
