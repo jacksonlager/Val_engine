@@ -2,7 +2,7 @@
 //   served  — the FastAPI app serves this bundle at '/' and exposes /api/*
 //   static  — the run is inlined as window.__HC_RUN__ (hc-valuation build); no API,
 //             so every write action is disabled with an explanation.
-import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, UploadJob, ValuationRun, WorkbookProfile } from "../types";
+import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, ResetResult, Sources, TreatmentProposal, UploadJob, ValuationRun, WorkbookProfile } from "../types";
 
 export type Mode = "served" | "static";
 
@@ -208,4 +208,9 @@ export async function fetchWorkbooks(): Promise<WorkbookProfile[]> {
     The server recomputes and answers with the new run id; the page then reloads the run. */
 export async function selectWorkbook(id: string): Promise<{ run_id: string; quarter: string }> {
   return postJson("/api/workbook", { id });
+}
+
+/** Back to the landing screen: removes every upload, decision and published snapshot (the server requires the word). */
+export async function resetApp(): Promise<ResetResult> {
+  return postJson<ResetResult>("/api/reset", { confirm: "RESET" });
 }

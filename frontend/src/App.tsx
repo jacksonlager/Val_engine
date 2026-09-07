@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { Rationale, Sources, ValuationRun, WorkbookProfile } from "./types";
 import { currentRunStamp, fetchWorkbooks, loadHistory, loadProposals, loadRationale, loadRun, loadSignals, NoWorkbookError, selectWorkbook, STATIC_REASON, type Mode } from "./lib/api";
 import { UploadButton } from "./components/Upload";
+import { ResetButton } from "./components/Reset";
+import type { ResetResult } from "./types";
 import { HistoryProvider, type HistoryState } from "./lib/history";
 import { SourcesProvider } from "./lib/sources";
 import { RationaleProvider } from "./lib/rationale";
@@ -37,9 +39,24 @@ const ALL_VIEWS: View[] = ["queue", "companies", "movement", "funds", "market", 
 /** The workbook the served run reads, and the others it could. Switching asks the server to
     recompute on that file — with its quarter's policy and its own decision ledger — so the run
     id changes and the page reloads. A synthetic profile is said so beside the name. */
-function WorkbookSwitcher({ served, refreshKey, onSwitched }: { served: boolean; refreshKey: number; onSwitched: () => void }) {
+function WorkbookSwitcher({
+  served,
+  refreshKey,
+  onSwitched,
+  onBusy,
+}: {
+  served: boolean;
+  refreshKey: number;
+  onSwitched: () => void;
+  /** the app shows a full-page "Running the valuation…" overlay while a switch is in progress */
+  onBusy?: (busy: boolean) => void;
+}) {
   const [profiles, setProfiles] = useState<WorkbookProfile[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusyState] = useState(false);
+  const setBusy = (b: boolean) => {
+    setBusyState(b);
+    onBusy?.(b);
+  };
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     if (!served) return;
@@ -79,7 +96,11 @@ function WorkbookSwitcher({ served, refreshKey, onSwitched }: { served: boolean;
           </option>
         ))}
       </select>
-      {busy && <span className="text-muted">recomputing…</span>}
+      {busy && (
+        <span className="text-muted inline-flex items-center gap-1.5">
+          <span className="spinner" aria-hidden /> running…
+        </span>
+      )}
       {error && <span className="text-[var(--block-text)]">{error}</span>}
     </span>
   );
@@ -92,6 +113,14 @@ function viewFromHash(): View {
 
 export default function App() {
   const [state, setState] = useState<{ run?: ValuationRun; mode?: Mode; sources?: Sources; error?: string; stale?: boolean; empty?: boolean }>({});
+  // a full-page overlay while a workbook switch recomputes, and the note the landing page shows after a reset
+  const [switching, setSwitching] = useState(false);
+  const [resetNote, setResetNote] = useState<ResetResult | null>(null);
+  const afterReset = (r: ResetResult) => {
+    setResetNote(r);
+    setState({ empty: true });
+    window.location.hash = "";
+  };
   // the per-company mark archive; refetched with the run because an override moves the live point
   const [history, setHistory] = useState<HistoryState>({});
   // why every rule exists (rules/rationale.yaml); shown on the Rules tab and beside each flag
@@ -163,6 +192,11 @@ export default function App() {
         </header>
         <main className="flex-1 px-4 py-16 max-w-[720px] w-full mx-auto text-center">
           <h1 className="font-semibold text-[18px] mb-2">No workbook loaded yet</h1>
+          <p className="text-[11.5px] text-muted mb-4">
+            {resetNote
+              ? `Reset cleared ${resetNote.files} file${resetNote.files === 1 ? "" : "s"} — the ledger is empty and nothing is published.`
+              : "Nothing has been uploaded yet."}
+          </p>
           <p className="text-[13px] text-ink2 mb-6 leading-relaxed">
             Upload the quarter's portfolio workbook — a <span className="mono">Portfolio</span> tab with the book at the prior close and a{" "}
             <span className="mono">Qn YYYY Activity</span> tab with every event in the quarter. The engine rolls every position forward, proposes a
@@ -227,7 +261,7 @@ export default function App() {
               filter up here only competed with them. */}
           <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
             {mode === "served" && <UploadButton onLoaded={reload} />}
-            <WorkbookSwitcher served={mode === "served"} refreshKey={reloads} onSwitched={reload} />
+            <WorkbookSwitcher served={mode === "served"} refreshKey={reloads} onSwitched={reload} onBusy={setSwitching} />
             <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} onGoto={gotoCompany} />
             <span
               className={`chip no-dot ${mode === "static" ? "disp-MONITOR" : "disp-CLEAR"} hint`}
@@ -235,6 +269,7 @@ export default function App() {
             >
               {mode === "static" ? "Read-only copy" : "Decisions are being recorded"}
             </span>
+            {mode === "served" && <ResetButton onReset={afterReset} />}
           </div>
         </div>
         {(m.market_data_source.startsWith("synthetic:") || /synthetic|SYNTHETIC/.test(m.input_file)) && (
@@ -256,6 +291,17 @@ export default function App() {
         )}
       </header>
 
+      {switching && (
+        <div className="overlay" role="status" aria-live="polite">
+          <div className="overlay-card">
+            <span className="spinner spinner-lg" aria-hidden />
+            <div>
+              <div className="font-semibold text-[13px]">Running the valuation…</div>
+              <div className="text-[11.5px] text-muted">Rolling every position forward and screening it. This can take a little while.</div>
+            </div>
+          </div>
+        </div>
+      )}
       <main className="flex-1 px-4 py-4 max-w-[1600px] w-full mx-auto">
         {view === "queue" && (
           <QueueView run={run} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />

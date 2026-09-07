@@ -492,6 +492,25 @@ def _open_when_up(url: str, health: str, timeout: float = 30.0) -> None:
 
 
 @app.command()
+def reset(yes: bool = typer.Option(False, "--yes", help="Actually do it. Without this the command only says what it would remove."),
+          overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt) -> None:
+    """Back to 'nothing uploaded yet': remove the uploads, the decisions, the published snapshots, the carried
+    open items, proposals, precedents and cached recommendations. Keeps the market cache, the vendor fixtures,
+    the policy files, the repository's own workbook and the synthetic test chain."""
+    from .reset import KEPT, reset_workspace
+
+    paths = _paths(None, None, overrides, ledger_dir)
+    if not yes:
+        typer.echo("refused: this removes every upload, decision and published snapshot. Run again with --yes.")
+        typer.echo("kept regardless: " + ", ".join(KEPT))
+        raise typer.Exit(code=2)
+    out = reset_workspace(paths)
+    typer.echo(f"reset: {out['files']} file(s) removed; ledger {out['ledger']} is empty")
+    for r in out["removed"]:
+        typer.echo(f"  removed {r}")
+
+
+@app.command()
 def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
         overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
         port: int = typer.Option(DEFAULT_PORT, "--port"), host: str = typer.Option(DEFAULT_HOST, "--host"),

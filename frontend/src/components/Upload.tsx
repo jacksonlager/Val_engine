@@ -25,16 +25,21 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
   const [job, setJob] = useState<UploadJob | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const timer = useRef<number | null>(null);
+  const clock = useRef<number | null>(null);
 
   useEffect(() => () => {
     if (timer.current) window.clearInterval(timer.current);
+    if (clock.current) window.clearInterval(clock.current);
   }, []);
 
   const start = async () => {
     if (!file || busy) return;
     setBusy(true);
     setErr(null);
+    const started = Date.now();
+    clock.current = window.setInterval(() => setElapsed(Math.round((Date.now() - started) / 1000)), 500);
     try {
       const { id } = await uploadWorkbook(file);
       timer.current = window.setInterval(async () => {
@@ -43,6 +48,7 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
           setJob(j);
           if (j.done) {
             if (timer.current) window.clearInterval(timer.current);
+            if (clock.current) window.clearInterval(clock.current);
             setBusy(false);      // the summary stays on screen; "Open the queue" loads the new run
           }
         } catch (e) {
@@ -52,6 +58,7 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
         }
       }, 350);
     } catch (e) {
+      if (clock.current) window.clearInterval(clock.current);
       setBusy(false);
       setErr(String((e as Error).message ?? e));
     }
@@ -87,18 +94,28 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
       )}
       {job && (
         <>
-          <div className="text-[12px] text-ink2 mb-2">
+          <div className="text-[12px] text-ink2 mb-2 flex items-center gap-2">
+            {!job.done && <span className="spinner" aria-hidden />}
             <span className="mono">{job.file}</span>
           </div>
           <div className="h-2 rounded bg-hair overflow-hidden mb-1.5" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <div className={`h-full ${job.error ? "bg-[var(--block)]" : "bg-accent"}`} style={{ width: `${job.error ? 100 : pct}%`, transition: "width 250ms" }} />
+            <div
+              className={`h-full ${job.error ? "bg-[var(--block)]" : "bg-accent"} ${!job.done ? "bar-active" : ""}`}
+              style={{ width: `${job.error ? 100 : Math.max(pct, 4)}%`, transition: "width 250ms" }}
+            />
           </div>
-          <div className="flex justify-between text-[11px] text-muted mb-3">
+          <div className="flex justify-between text-[11px] text-muted mb-1">
             <span>{job.message}</span>
             <span className="num">
-              {job.done && !job.error ? "done" : `step ${Math.min(job.stage + 1, job.total)} of ${job.total}`}
+              {job.done && !job.error ? `done in ${elapsed}s` : `step ${Math.min(job.stage + 1, job.total)} of ${job.total} · ${elapsed}s`}
             </span>
           </div>
+          {!job.done && (
+            <div className="text-[11px] text-muted mb-3">
+              Rolling every position through the quarter's activity, screening each one, and choosing a next step. A large book, or one
+              that needs the live comps feed, can take a little while — nothing to do but wait.
+            </div>
+          )}
           <ol className="text-[11px] text-muted space-y-0.5 mb-3 pl-4">
             {job.stages.map((s, i) => (
               <li key={s} className={i < job.stage || (job.done && !job.error) ? "text-ink2" : i === job.stage && !job.done ? "text-ink font-medium" : ""}>

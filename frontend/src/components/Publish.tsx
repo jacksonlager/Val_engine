@@ -63,7 +63,10 @@ export function PublishControls({
 
   const m = run.manifest;
   const current = published.data?.find((p) => p.quarter === m.quarter_label);
-  const changedSince = !!current && !!current.run_id && current.run_id !== m.run_id;
+  // the snapshot on disk was made from another workbook (a fresh version of the quarter's file was uploaded):
+  // not "changes since" but a different book altogether, and the header must say so
+  const otherWorkbook = !!current && !!current.input_sha256 && current.input_sha256 !== m.input_sha256;
+  const changedSince = !!current && !!current.run_id && current.run_id !== m.run_id && !otherWorkbook;
 
   return (
     <>
@@ -76,6 +79,15 @@ export function PublishControls({
               <span title={`Published ${current.published_at} by ${current.published_by} (run ${current.run_id ?? "?"})`}>
                 Published as {publishStatusLabel(current.status)} · {ago(current.published_at)} · {current.published_by}
               </span>
+              {otherWorkbook && (
+                <span
+                  className="text-[var(--block-text)]"
+                  title={`The published snapshot was made from a different workbook (file ${shortRef(current.input_sha256 ?? "", 12)}); this run reads ${shortRef(m.input_sha256, 12)}. Publishing again replaces it.`}
+                >
+                  {" "}
+                  · published earlier from a different workbook
+                </span>
+              )}
               {changedSince && (
                 <span
                   className="text-[var(--review-text)]"
