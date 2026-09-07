@@ -1,0 +1,159 @@
+# Expectations for the synthetic Q1 2027 workbook — written BEFORE running the engine on it, from the
+# opening book (data/quarters/synthetic/build/2026Q4/portfolio_Q1_2027.xlsx), the rows in
+# scripts/synthetic_chain.py::q1_events, docs/valuation-policy.md and the inherited policy.
+# Measurement date 2027-03-31; provider `synthetic` (absolute multiple bounds, no M-080).
+quarter: Q1 2027
+measurement_date: 2027-03-31
+blocking_validation: 0
+totals:
+  positions: 101
+
+companies:
+  # ---- listings and the stand-in price
+  Fernwave:                 # IPO at 2,400 market cap, 0.030 held: 72.0 on the listing-day print; no feed prices the ticker -> Blocked
+    proposed_mark: 72.0
+    readiness: Blocked
+    flags_include: [X-101]
+  Drayvenn:                 # listed carry on the seeded stand-in (prior close 3,931): 110.068; X-113 now says the close is missing (D-3)
+    proposed_mark: 110.068
+    readiness: Blocked
+    flags_include: [X-113]
+  # ---- reorganisation, terminations, stock consideration
+  Umberly:                  # Chapter 11: mark unchanged at the 24.1 the committee held in Q4; X-116 BLOCK -> Blocked; runway 2.0 aged -> X-304
+    proposed_mark: 24.1
+    readiness: Blocked
+    flags_include: [X-116, X-304]
+  Pinwhistle:               # deal terminated: back to 0.083 x 87.7 = 7.2791; X-114 REVIEW; 39-month round + 31x -> X-405: two families -> BLOCK
+    proposed_mark: 7.2791
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-114, X-405]
+    flags_exclude: [X-101, E-07]
+  Halcyra:                  # acquired for the buyer's stock at 65: 0.071 x 65 = 4.615, still Active, X-112 BLOCK -> Blocked
+    proposed_mark: 4.615
+    readiness: Blocked
+    status_after: Active
+    flags_include: [X-112]
+  # ---- notes and purchases
+  Yarrowbank:               # note repaid 0.31 (principal = proceeds): note leg 0.3 -> 0, equity 0.6 stays; X-115 REVIEW + carried X-405 -> BLOCK
+    proposed_mark: 0.6
+    realized_quarter: 0.31
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-115, X-405]
+  Mirthstone:               # bought 0.2pp for 0.245 at the round price (implied 122.5, no spread): 0.056 x 122.5 = 6.86; X-121 MONITOR; X-405 stays
+    proposed_mark: 6.86
+    readiness: Needs Review
+    flags_include: [X-121, X-405]
+    flags_exclude: [X-104]
+  # ---- rounds
+  Foxtrellis:               # same-terms extension at 631.7, 0.043 held: 27.163; X-106 REVIEW, clock still 2023-10-14 (41 months): X-201, X-404 (6.0x MOIC),
+    proposed_mark: 27.163   # X-405 -> two families -> BLOCK
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-106, X-201, X-405]
+  Tarnwick Aerospace:       # second recap at 9.0 < 14.2, 0.095 held: 0.855 (M-012, X-102); insider-led at 0.63x -> X-118 MONITOR; ARR -16% -> X-302;
+    proposed_mark: 0.855    # HC's 0.2 for +1.5pp implies 13.3 vs 9.0 stated -> X-119 (the row is internally inconsistent on purpose)
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-102, X-118, X-302, X-119]
+  Aravine:                  # Series C at 110 < 128.5 is a down round (M-012, X-102); "led by HC" -> X-117; 0.104 x 110 = 11.44; term sheet resolved
+    proposed_mark: 11.44
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-102, X-117]
+    flags_exclude: [E-07, X-109]
+  Lumetra:                  # Series A at 13.0 = 3.02x step-up, insider-led, no new investor: X-122 REVIEW + X-118 REVIEW (>= 2x) -> BLOCK; 0.085 x 13 = 1.105
+    proposed_mark: 1.105
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-122, X-118]
+  Zephrine:                 # Series A at 30 led by a new investor: 3.2x step-up -> X-122 MONITOR; stake rose 0.116 -> 0.130 with no cheque -> X-123 REVIEW; 3.9
+    proposed_mark: 3.9
+    readiness: Needs Review
+    flags_include: [X-123, X-122]
+    flags_exclude: [X-201]
+  Quillbrook Labs:          # entered in Q4 (now on the Portfolio tab): Series A at 40, HC 1.0 for +2.5pp (implies 40 exactly): 0.108 x 40 = 4.32; Ready
+    proposed_mark: 4.32
+    readiness: Ready
+    flags_exclude: [X-918, X-119]
+  Redgrove Health:          # term sheet and Series B on the same day, both at 40: the round sets the mark 0.1075 x 40 = 4.3; X-109 is MONITOR (not below 80%)
+    proposed_mark: 4.3
+    readiness: Ready
+    flags_include: [X-109]
+  # ---- exits
+  Arcfoundry:               # closed at 200, received 11.52 against 12.8 implied: 1.28 gap -> X-101 REVIEW (kept on a terminal position); mark 0
+    proposed_mark: 0.0
+    realized_quarter: 11.52
+    status_after: Acquired
+    readiness: Needs Review
+    flags_include: [X-101]
+  Knollward:                # closed at 30 with no cash recorded: X-101 BLOCK-severity, but nothing is missing from the schema -> Needs Review; mark 0
+    proposed_mark: 0.0
+    realized_quarter: 0.0
+    status_after: Acquired
+    readiness: Needs Review
+    flags_include: [X-101]
+  Wrenfield Data:           # shutdown returning 14.0 against a 12.4 carrying value: X-101 REVIEW (partial recovery, not a zero); mark 0
+    proposed_mark: 0.0
+    realized_quarter: 14.0
+    status_after: Shut Down
+    readiness: Needs Review
+    flags_include: [X-101]
+  # ---- carried open items
+  Jettamar:                 # Q4's announced deal still open: the item ages to 1 (< 2), so no E-07; the weighted 9.4683 is carried and the position reads Ready.
+    proposed_mark: 9.4683   # Conservative view recorded as a policy question: a PWERM mark carried past its expected close date is not re-reviewed.
+    readiness: Ready
+    flags_exclude: [E-07]
+  Dovelane Systems:         # Q4's term sheet ages to 1 = term_sheet_stale_quarters -> E-07 REVIEW; mark unchanged
+    proposed_mark: 5.709
+    readiness: Needs Review
+    flags_include: [E-07]
+  # ---- no activity
+  Birchhollow:              # 70.7 months + ARR now -25%: X-202 + X-302 -> BLOCK, carried at the calibrated 28.145
+    proposed_mark: 28.145
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-202, X-302]
+  Jupelan:                  # runway 2.0 / 1.0 aged 1.0 -> X-304
+    proposed_mark: 14.3
+    readiness: Needs Review
+    flags_include: [X-304]
+  Duskfern:                 # cash unchanged since the round (2.3 / 0.45 aged 4.1) -> X-304 again; fresh round so no staleness
+    proposed_mark: 13.35
+    readiness: Needs Review
+    flags_include: [X-304]
+    flags_exclude: [X-201]
+  Coppermoss Energy:        # round 2025-03-09 crosses 24 months (24.7); 25.5 / 0.9 = 28x inside 30x -> X-201 only
+    proposed_mark: 2.6
+    readiness: Ready
+    flags_include: [X-201]
+    flags_exclude: [X-405]
+  Willowmere Compute:       # round 2025-03-28 crosses 24 months (24.1); 7x is inside both bounds -> X-201 only
+    proposed_mark: 4.7
+    readiness: Ready
+    flags_include: [X-201]
+    flags_exclude: [X-405]
+  Quenchpoint Energy:       # round 2025-03-11 crosses 24 months; 60.3 / 1.7 = 35x > 30x -> X-401 -> X-405 REVIEW
+    proposed_mark: 7.8
+    readiness: Needs Review
+    flags_include: [X-201, X-401, X-405]
+  Rushlight AI:             # round 2023-01-12: 50.6 months -> X-202
+    proposed_mark: 12.2
+    readiness: Needs Review
+    flags_include: [X-202]
+  Xylotta:                  # round 2023-01-30: 50.0 months -> X-202
+    proposed_mark: 57.1
+    readiness: Needs Review
+    flags_include: [X-202]
+  Westwilder:               # round 2023-03-06: 48.8 months -> X-202; X-405 stands down once X-202 is there
+    proposed_mark: 20.6
+    readiness: Needs Review
+    flags_include: [X-202]
+    flags_exclude: [X-405]
+  Nimbrel:                  # December round, nothing this quarter: Ready
+    proposed_mark: 5.39
+    readiness: Ready
+  Emberfold:
+    proposed_mark: 2.6
+    readiness: Ready
