@@ -200,7 +200,9 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
         # X-904 prior-mark reconciliation: ownership × post-money must tie to the carrying value
         if p.status == Status.ACTIVE:
             expected = p.ownership * p.latest_post_money
-            if abs(expected - p.prior_mark) > tol:
+            # at six places: a mark rounded to $0.1M sits up to exactly 0.05 from ownership × post, and
+            # 0.05000000000000027 must not read as 'beyond' the tolerance (the D-2 boundary rule)
+            if round(abs(expected - p.prior_mark), 6) > tol:
                 if p.company in explained:
                     issues.append(ValidationIssue(rule_id="X-904", severity=Severity.REVIEW, blocking=False,
                                                   sheet=snapshot.sheet_name, row_index=p.row_index, company=p.company,
@@ -255,6 +257,13 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
                 # The position will be created from this row, so the row's numbers are the whole position:
                 # they get the same domain checks as a book company's.
                 issues.extend(_money_domain_issues(e, EventType.NEW_INVESTMENT.value, feed, refused, positive_value=True))
+            elif e.company in entering:
+                # A second row this quarter on a company the same tab brings into the book (a term sheet
+                # six weeks after the seed): the New Investment row creates the position and this row
+                # applies to it, in date order. Not an unknown company. (Found by a variant workbook with
+                # two events on a new holding, where the term sheet's X-901 refused the whole position.)
+                issues.extend(_money_domain_issues(e, e.event_type, feed, refused,
+                                                   positive_value=(e.event_type in {t.value for t in _VALUE_MUST_BE_POSITIVE})))
             else:
                 issues.append(ValidationIssue(rule_id="X-901", severity=Severity.BLOCK, sheet=feed.sheet_name,
                                               row_index=e.row_index, company=e.company,

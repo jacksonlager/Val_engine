@@ -85,7 +85,17 @@ def activity_rows(workbook: Path) -> int | None:
         if name is None:
             wb.close()
             return None
-        n = sum(1 for row in wb[name].iter_rows(min_row=2, values_only=True) if any(v not in (None, "") for v in row))
+        # rows after the header, wherever the header sits (a title row or a blank row may precede it)
+        n, seen_header = 0, False
+        for row in wb[name].iter_rows(values_only=True):
+            cells = [str(v).strip().lower() for v in row if v not in (None, "")]
+            if not cells:
+                continue
+            if not seen_header:
+                if {"date", "company", "event"} & set(cells) or any(c.startswith(("company", "event", "date")) for c in cells):
+                    seen_header = True
+                continue
+            n += 1
         wb.close()
         return n
     except Exception:  # noqa: BLE001
