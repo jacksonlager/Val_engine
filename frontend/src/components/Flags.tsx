@@ -431,7 +431,8 @@ function ConfirmModal({
     Market cap directly, or price × shares; the mark follows from HC's stake. Nothing is
     written here — Continue hands the number and its evidence to the confirmation. */
 function ClosingPriceModal({ c, f, onClose, onContinue }: { c: CompanyResult; f: Flag; onClose: () => void; onContinue: (ch: Choice) => void }) {
-  const asOf = f.evidence.measurement_date ? String(f.evidence.measurement_date) : "2026-09-30";
+  // both findings that carry a stand-in price (X-101 on the listing, X-113 on every carry after it) record the date
+  const asOf = String(f.evidence.measurement_date ?? c.staleness_anchor);
   const [mode, setMode] = useState<"cap" | "px">("cap");
   const [cap, setCap] = useState("");
   const [px, setPx] = useState("");

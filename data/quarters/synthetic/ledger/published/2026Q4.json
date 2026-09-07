@@ -8,7 +8,7 @@
   "status": "final",
   "open_blocks": [],
   "open_positions": [],
-  "run_id": "df62f01d0864",
+  "run_id": "5ea51b0067d0",
   "policy_version": "2026Q4-0.1",
   "engine_version": "0.1.0",
   "input_sha256": "e2d66ab0de72d24201de3b8f87d7085143acb5d1db9d4f9f36e6a55b964c8c3f",
@@ -16,7 +16,7 @@
  },
  "run": {
   "manifest": {
-   "run_id": "df62f01d0864",
+   "run_id": "5ea51b0067d0",
    "input_sha256": "e2d66ab0de72d24201de3b8f87d7085143acb5d1db9d4f9f36e6a55b964c8c3f",
    "input_file": "SYNTHETIC_portfolio_Q4_2026.xlsx",
    "policy_version": "2026Q4-0.1",

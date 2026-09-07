@@ -22,3 +22,5 @@ data/market_cache/*/edgar_raw/
 # the gauntlet rewrites its report on every pytest run; the committed copy was removed from version control
 training/report.json
 training/report.md
+# the synthetic chain's superseded publish copies, like data/published/history/
+data/quarters/synthetic/ledger/published/history/

@@ -643,7 +643,7 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
            action=(f"Obtain the {md.strftime('%d %b')} closing price (none is on file) and confirm the ${float(e.value):,.0f}M "
                    f"stand-in, then ratify or change the {disc:.0%} lock-up discount." if seeded else
                    f"Confirm the {md.strftime('%d %b')} closing price, then ratify or change the {disc:.0%} lock-up discount."),
-           price_source=source, price_source_note=w.market_note, lockup_end=lockup_end,
+           price_source=source, price_source_note=w.market_note, lockup_end=lockup_end, measurement_date=md,
            ipo_print_mark=round(after * float(e.value), 6))
     w.alternative_marks["at_ipo_print"] = after * float(e.value)
     w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.IPO_LOCKUP, opened=e.date,

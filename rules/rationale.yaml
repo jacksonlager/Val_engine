@@ -202,9 +202,9 @@ rules:
     family: treatment
     severity: [BLOCK]
     source: policy
-    reads: Quote feed at 30 Sep
+    reads: Quote feed at the measurement date
     why_flag: >-
-      A public position needs the 30 Sep close and the quote feed had none.
+      A public position needs the measurement-date close and the quote feed had none.
     why_severity: >-
       Because the engine will not carry a stale quote as if it were current; Level 1 means the
       exchange price or nothing.
@@ -345,7 +345,7 @@ rules:
     severity: [MONITOR]
     source: brief
     brief_text: stale rounds
-    reads: Latest Round date → age at 30 Sep (extensions do not reset it)
+    reads: Latest Round date → age at the measurement date (extensions do not reset it)
     why_flag: >-
       Venture companies raise every 18–24 months; one cycle without a price means the mark is
       due a refresh.
@@ -359,7 +359,7 @@ rules:
     severity: [REVIEW]
     source: brief
     brief_text: stale rounds
-    reads: Latest Round date → age at 30 Sep
+    reads: Latest Round date → age at the measurement date
     why_flag: >-
       Two cycles without a price — the round probably predates the business it now describes.
     why_severity: >-
@@ -400,7 +400,7 @@ rules:
     severity: [MONITOR]
     source: brief
     brief_text: short runway
-    reads: Cash ÷ Net Burn, aged one month (metrics are late August, marks are 30 Sep)
+    reads: Cash ÷ Net Burn, aged by the reporting lag (metrics are a month behind the marks)
     why_flag: >-
       One raise cycle of cash — the company must be in market this quarter.
     why_severity: >-
@@ -519,7 +519,7 @@ rules:
     reads: every cell on both tabs (X-901 … X-922 name the specific issue)
     why_flag: >-
       An unknown company, a missing post-money, ownership outside 0–100%, a euro cell, a
-      duplicate row, an event dated after 30 Sep. The row is recorded and not applied; the prior
+      duplicate row, an event dated after the measurement date. The row is recorded and not applied; the prior
       mark carries.
     why_severity: >-
       Because the brief asks that a refreshed file "flow through without rework", and the honest

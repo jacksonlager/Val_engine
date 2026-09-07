@@ -2914,6 +2914,7 @@
      "evidence": {
       "ipo_print_mark": 110.068,
       "lockup_end": "2027-03-19",
+      "measurement_date": "2026-09-30",
       "price_source": "stub:seeded_to_ipo_print",
       "price_source_note": "Synthetic ticker; no live feed can price it. Seeded to the IPO print \u2014 replace with the measurement-date close."
      },

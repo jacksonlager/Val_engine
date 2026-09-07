@@ -21,7 +21,7 @@ export function Footer({ view }: { view: ExecView }) {
         ))}
       </div>
       <div className="mt-3 flex flex-wrap items-baseline justify-between gap-4">
-        <span>Prepared by HC Finance from the valuation engine; synthetic data for the September 2026 assessment.</span>
+        <span>Prepared by HC Finance from the valuation engine · {m.quarter} marks as of {m.measurement_date}.</span>
         <a href="/" className="whitespace-nowrap">Back-office review →</a>
       </div>
     </footer>

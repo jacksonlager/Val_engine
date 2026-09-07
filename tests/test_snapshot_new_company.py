@@ -61,3 +61,21 @@ def _policy_copy(tmp_path: Path) -> Path:
     dst.parent.mkdir(exist_ok=True)
     shutil.copy(repo_root() / "rules" / "2026Q3.yaml", dst)
     return dst
+
+
+def test_synthetic_marker_travels_with_the_emitted_book(tmp_path: Path, cfg):
+    """A next-quarter input emitted from a synthetic workbook is synthetic too, and must say so
+    the way the source did: the marker sheet, first. A real source emits no marker."""
+    from hc_valuation.workbooks import SYNTHETIC_SHEET, quarter_of
+    src = make_workbook(tmp_path, [position(company="Alpha")], [])
+    wb = openpyxl.load_workbook(src)
+    wb.create_sheet(SYNTHETIC_SHEET, 0).append(["This workbook is invented test data."])
+    wb.save(src)
+    run, _ = run_workbook(src, cfg)
+    out = write_next_quarter_workbook(run, src, tmp_path / "next" / "portfolio_Q4_2026.xlsx", cfg)
+    assert openpyxl.load_workbook(out).sheetnames[0] == SYNTHETIC_SHEET and quarter_of(out) == ("Q4 2026", True)
+
+    real = make_workbook(tmp_path, [position(company="Alpha")], [], name="real.xlsx")
+    run2, _ = run_workbook(real, cfg)
+    out2 = write_next_quarter_workbook(run2, real, tmp_path / "next2" / "portfolio_Q4_2026.xlsx", cfg)
+    assert SYNTHETIC_SHEET not in openpyxl.load_workbook(out2).sheetnames and quarter_of(out2) == ("Q4 2026", False)

@@ -8,7 +8,7 @@
   "status": "final",
   "open_blocks": [],
   "open_positions": [],
-  "run_id": "8cefe0cb2697",
+  "run_id": "7101a6eb29e6",
   "policy_version": "2027Q1-0.1",
   "engine_version": "0.1.0",
   "input_sha256": "4268aea8aefefbde0fa2c55db3b6c1698ce8eeeec295417009eb2db39889b49e",
@@ -16,7 +16,7 @@
  },
  "run": {
   "manifest": {
-   "run_id": "8cefe0cb2697",
+   "run_id": "7101a6eb29e6",
    "input_sha256": "4268aea8aefefbde0fa2c55db3b6c1698ce8eeeec295417009eb2db39889b49e",
    "input_file": "SYNTHETIC_portfolio_Q1_2027.xlsx",
    "policy_version": "2027Q1-0.1",
@@ -823,6 +823,7 @@
        "price_source": "stub:seeded_to_ipo_print",
        "price_source_note": "Synthetic ticker; no live feed can price it. Seeded to the IPO print \u2014 replace with the measurement-date close.",
        "lockup_end": "2027-07-07",
+       "measurement_date": "2027-03-31",
        "ipo_print_mark": 72.0
       }
      }

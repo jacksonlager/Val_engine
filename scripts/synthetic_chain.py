@@ -251,6 +251,13 @@ def publish_and_build(slug: str) -> Path:
     res = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
     if res.returncode != 0:
         raise SystemExit(f"build failed for {slug}:\n{res.stdout}\n{res.stderr}")
+    # The emitted next-quarter input is invented data whatever its source was: the Q3 stage rolls the
+    # *real* book forward on scripted decisions, and that output must never be offered as a real Q4.
+    # (A synthetic source already carries its marker through `build`; the real Q3 book does not.)
+    for emitted in out.glob("portfolio_*.xlsx"):
+        wb = openpyxl.load_workbook(emitted)
+        _add_marker(wb)
+        wb.save(emitted)
     print(f"published {rec['quarter']} as {rec['status']} (run {rec['run_id']}, booked {rec['booked_nav']:,.1f}); built into {out}")
     return out
 

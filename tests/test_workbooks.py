@@ -69,9 +69,20 @@ def test_policy_and_ledger_follow_the_workbook(root: Path):
     assert policy_for(root, "Q4 2026") is None
     write_next_policy(root / "rules" / "2026Q3.yaml")
     assert policy_for(root, "Q4 2026") == root / "rules" / "2026Q4.yaml"
+    # a real book records into the committee's ledger wherever it sits; a synthetic one gets its chain's
     assert ledger_dir_for(root, root / "data" / REAL.name) == root / "data"
-    assert ledger_dir_for(root, root / QUARTERS_DIR / "chain-a" / "Q4_2026.xlsx") == root / QUARTERS_DIR / "chain-a" / "ledger"
-    assert ledger_dir_for(root, root / QUARTERS_DIR / "chain-a" / "2027Q1" / "book.xlsx") == root / QUARTERS_DIR / "chain-a" / "ledger"
+    assert ledger_dir_for(root, root / QUARTERS_DIR / "2026Q4" / "portfolio_Q4_2026.xlsx") == root / "data"
+    assert ledger_dir_for(root, root / QUARTERS_DIR / "chain-a" / "Q4_2026.xlsx", synthetic=True) == root / QUARTERS_DIR / "chain-a" / "ledger"
+    assert ledger_dir_for(root, root / QUARTERS_DIR / "chain-a" / "2027Q1" / "book.xlsx", synthetic=True) == root / QUARTERS_DIR / "chain-a" / "ledger"
+
+
+def test_run_paths_default_policy_follows_the_workbook_quarter(root: Path):
+    """`hc-valuation run --input <a Q4 book>` with no --policy must not run it under the Q3 policy."""
+    wb = _synthetic_copy(root, "data/quarters/2026Q4/portfolio_Q4_2026.xlsx", marker=False)
+    assert RunPaths.default(root=root, workbook=wb).policy == root / "rules" / "2026Q3.yaml"   # no Q4 policy yet: the base
+    write_next_policy(root / "rules" / "2026Q3.yaml")
+    assert RunPaths.default(root=root, workbook=wb).policy == root / "rules" / "2026Q4.yaml"
+    assert RunPaths.default(root=root).policy == root / "rules" / "2026Q3.yaml"
 
 
 def test_provider_rule_is_explicit_then_synthetic_then_cache_then_fixture(root: Path, monkeypatch):
@@ -89,22 +100,33 @@ def test_provider_rule_is_explicit_then_synthetic_then_cache_then_fixture(root: 
     assert provider_for(root, pol) is None                      # the environment wins and the caller passes it through
 
 
-def test_discover_lists_the_current_book_first_then_the_test_quarters(root: Path):
-    _synthetic_copy(root, "data/quarters/chain-a/Q4_2026.xlsx")
-    _synthetic_copy(root, "data/quarters/chain-a/malformed/Q4_2026_broken.xlsx", activity="Activity Q4")
-    (root / "data" / "quarters" / "chain-a" / "~$Q4_2026.xlsx").write_bytes(b"")
+def test_discover_lists_real_quarters_and_never_synthetic_ones_beside_the_real_book(root: Path):
+    _synthetic_copy(root, "data/quarters/2026Q4/portfolio_Q4_2026.xlsx", marker=False)          # a real next quarter
+    _synthetic_copy(root, "data/quarters/synthetic/Q4_2026.xlsx")                                # invented, marked by its sheet
+    _synthetic_copy(root, "data/quarters/other/SYNTHETIC_portfolio_Q1_2027.xlsx", activity="Q1 2027 Activity", marker=False)   # by name
+    _synthetic_copy(root, "data/quarters/2026Q4/malformed/Q4_2026_broken.xlsx", activity="Activity Q4", marker=False)
+    (root / "data" / "quarters" / "2026Q4" / "~$portfolio_Q4_2026.xlsx").write_bytes(b"")
     write_next_policy(root / "rules" / "2026Q3.yaml")
     profs = discover(root, root / "data" / REAL.name)
     assert profs[0].current and profs[0].id == "data/HC_Mock_Portfolio_Data.xlsx" and not profs[0].synthetic
     assert profs[0].policy == "rules/2026Q3.yaml" and profs[0].ledger_dir == "data" and profs[0].usable
-    ids = [p.id for p in profs]
-    assert ids == ["data/HC_Mock_Portfolio_Data.xlsx", "data/quarters/chain-a/Q4_2026.xlsx",
-                   "data/quarters/chain-a/malformed/Q4_2026_broken.xlsx"]
-    q4 = profs[1]
-    assert q4.quarter == "Q4 2026" and q4.synthetic and q4.usable and q4.policy == "rules/2026Q4.yaml"
-    assert q4.ledger_dir == "data/quarters/chain-a/ledger"
-    broken = profs[2]
-    assert not broken.usable and "Activity" in broken.reason and broken.synthetic
+    assert [p.id for p in profs] == ["data/HC_Mock_Portfolio_Data.xlsx", "data/quarters/2026Q4/malformed/Q4_2026_broken.xlsx",
+                                     "data/quarters/2026Q4/portfolio_Q4_2026.xlsx"]
+    q4 = profs[2]
+    assert q4.quarter == "Q4 2026" and not q4.synthetic and q4.usable and q4.policy == "rules/2026Q4.yaml" and q4.ledger_dir == "data"
+    assert not profs[1].usable and "Activity" in profs[1].reason
+
+
+def test_synthetic_quarters_are_offered_only_from_a_synthetic_book(root: Path, monkeypatch):
+    monkeypatch.delenv("HC_INCLUDE_SYNTHETIC", raising=False)
+    syn = _synthetic_copy(root, "data/quarters/synthetic/Q4_2026.xlsx")
+    write_next_policy(root / "rules" / "2026Q3.yaml")
+    assert all(not p.synthetic for p in discover(root, root / "data" / REAL.name))
+    from_syn = discover(root, syn)
+    assert from_syn[0].current and from_syn[0].synthetic and from_syn[0].ledger_dir == "data/quarters/synthetic/ledger"
+    assert "data/HC_Mock_Portfolio_Data.xlsx" in [p.id for p in from_syn]   # the real book is always reachable
+    monkeypatch.setenv("HC_INCLUDE_SYNTHETIC", "1")
+    assert any(p.synthetic for p in discover(root, root / "data" / REAL.name))
 
 
 def test_missing_policy_makes_a_profile_unusable_and_says_what_to_run(root: Path):
@@ -116,9 +138,11 @@ def test_missing_policy_makes_a_profile_unusable_and_says_what_to_run(root: Path
 # ------------------------------------------------------------------ the API
 
 def test_switching_workbooks_changes_the_run_and_the_ledger_and_back(root: Path, tmp_path: Path):
-    _synthetic_copy(root, "data/quarters/chain-a/Q4_2026.xlsx")
+    _synthetic_copy(root, "data/quarters/chain-a/Q4_2026.xlsx")   # marked synthetic: its ledger is its own, and it is served here on purpose
     write_next_policy(root / "rules" / "2026Q3.yaml")
     paths = RunPaths.default(root=root, workbook=root / "data" / REAL.name, policy=root / "rules" / "2026Q3.yaml")
+    import os
+    os.environ["HC_INCLUDE_SYNTHETIC"] = "1"      # the switch-and-back mechanics, exercised on the marked copy
     client = TestClient(create_app(paths, provider="stub", static_dir=tmp_path / "no-static"))
     h0 = client.get("/api/health").json()
     listing = client.get("/api/workbooks").json()
@@ -151,14 +175,19 @@ def test_switching_workbooks_changes_the_run_and_the_ledger_and_back(root: Path,
     r = client.post("/api/workbook", json={"id": "data/HC_Mock_Portfolio_Data.xlsx"})
     assert r.status_code == 200 and r.json()["run_id"] == h0["run_id"]
     assert client.get("/api/health").json()["ledger"]["overrides"].endswith("data/overrides.yaml")
+    os.environ.pop("HC_INCLUDE_SYNTHETIC", None)
 
 
-def test_switching_to_an_unknown_or_unusable_workbook_is_refused(root: Path, tmp_path: Path):
-    _synthetic_copy(root, "data/quarters/chain-a/Q4_2026.xlsx")     # no 2026Q4 policy written
+def test_switching_to_an_unknown_or_unusable_workbook_is_refused(root: Path, tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("HC_INCLUDE_SYNTHETIC", raising=False)
+    _synthetic_copy(root, "data/quarters/2026Q4/portfolio_Q4_2026.xlsx", marker=False)     # real, but no 2026Q4 policy written
+    syn = _synthetic_copy(root, "data/quarters/chain-a/Q4_2026.xlsx")
     paths = RunPaths.default(root=root, workbook=root / "data" / REAL.name, policy=root / "rules" / "2026Q3.yaml")
     client = TestClient(create_app(paths, provider="stub", static_dir=tmp_path / "no-static"))
     before = client.get("/api/health").json()["run_id"]
     assert client.post("/api/workbook", json={"id": "data/quarters/nope.xlsx"}).status_code == 404
-    r = client.post("/api/workbook", json={"id": "data/quarters/chain-a/Q4_2026.xlsx"})
+    assert client.post("/api/workbook", json={"id": "data/quarters/chain-a/Q4_2026.xlsx"}).status_code == 404   # synthetic: not offered from the real book
+    assert syn.exists()
+    r = client.post("/api/workbook", json={"id": "data/quarters/2026Q4/portfolio_Q4_2026.xlsx"})
     assert r.status_code == 409 and "next-policy" in r.json()["detail"]["message"]
     assert client.get("/api/health").json()["run_id"] == before

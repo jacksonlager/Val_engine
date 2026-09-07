@@ -52,7 +52,7 @@ app = typer.Typer(
 )
 
 InputOpt = typer.Option(None, "--input", "-i", help="Portfolio workbook (.xlsx). Default: data/HC_Mock_Portfolio_Data.xlsx")
-PolicyOpt = typer.Option(None, "--policy", "-p", help="Policy file. Default: rules/2026Q3.yaml (the base policy)")
+PolicyOpt = typer.Option(None, "--policy", "-p", help="Policy file. Default: the workbook quarter's rules/<YYYY>Q<n>.yaml when it exists, else the base policy")
 ProviderOpt = typer.Option(None, "--provider", help="Market-data provider override (stub | live | pitchbook | synthetic), passed to the connectors")
 RefreshMarketOpt = typer.Option(False, "--refresh-market", help="Refetch the live market feed over its cache (provider live)")
 RecommenderOpt = typer.Option(None, "--recommender", help="Who picks the one resolution shown first per flag: policy | claude "

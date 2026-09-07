@@ -235,6 +235,27 @@ def _copy_field_definitions(wb: Workbook, source_path: Path, run: ValuationRun, 
         c.font = Font(bold=True)
 
 
+SYNTHETIC_SHEET = "SYNTHETIC TEST DATA"   # the marker a synthetic workbook carries as its first sheet (workbooks.py)
+
+
+def _carry_synthetic_marker(wb: Workbook, source_path: Path) -> None:
+    """Invented test data stays labelled through a roll-forward: if the source workbook carries the
+    marker sheet, the emitted book carries it too, first. Without this the next quarter's input
+    would look like a real book and be offered as one (found when the synthetic chain's emitted
+    inputs appeared in the real book's Workbook select)."""
+    src_wb = openpyxl.load_workbook(source_path, read_only=True)
+    name = next((n for n in src_wb.sheetnames if n.strip().upper() == SYNTHETIC_SHEET), None)
+    rows = [list(r) for r in src_wb[name].iter_rows(values_only=True)] if name else []
+    src_wb.close()
+    if name is None:
+        return
+    ws = wb.create_sheet(SYNTHETIC_SHEET, 0)
+    for row in rows or [[SYNTHETIC_SHEET]]:
+        ws.append(row)
+    ws.append(["This book was emitted by hc-valuation build from a synthetic quarter; it is invented test data too."])
+    ws.column_dimensions["A"].width = 120
+
+
 def _write_open_items(wb: Workbook, run: ValuationRun) -> None:
     ws = wb.create_sheet("Open Items")
     ws.append(["Company", "Kind", "Opened", "Opened Quarter", "Expected Resolution", "Amount ($M)", "Detail", "Age (quarters)", "Escalated"])
@@ -316,6 +337,7 @@ def write_next_quarter_workbook(run: ValuationRun, source_workbook_path: str | P
     _write_open_items(wb, run)
     anchors = _carried_anchors(run, sources)
     _write_notes(wb, notes + [(a["company"], a["reason"]) for a in anchors])
+    _carry_synthetic_marker(wb, source)
     wb.save(out)
     write_open_items_sidecar(run, out.parent / "open_items_carry.yaml", mark_basis=notes, staleness_anchors=anchors)
     return out

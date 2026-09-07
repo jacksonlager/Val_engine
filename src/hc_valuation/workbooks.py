@@ -81,16 +81,25 @@ def policy_for(root: Path, quarter: str | None) -> Path | None:
     return p if p.is_file() else None
 
 
-def ledger_dir_for(root: Path, workbook: Path) -> Path:
-    """The real book records into `data/`. A workbook under `data/quarters/<chain>/…` records
-    into `data/quarters/<chain>/ledger/`, one ledger per chain, so a test quarter's decisions
-    never touch the committee's file."""
+def is_synthetic(workbook: Path, marked: bool) -> bool:
+    """Invented test data declares itself: a `SYNTHETIC TEST DATA` sheet or SYNTHETIC in the file
+    name. Location is not the test — a real Q4 dropped under data/quarters/ is a real book."""
+    return marked or "SYNTHETIC" in Path(workbook).name.upper()
+
+
+def ledger_dir_for(root: Path, workbook: Path, synthetic: bool = False) -> Path:
+    """A real book records into `data/`, the committee's ledger (records are keyed by quarter, so
+    every real quarter shares it). A synthetic workbook under `data/quarters/<chain>/…` records
+    into `data/quarters/<chain>/ledger/`, one ledger per chain, so invented decisions never touch
+    the committee's file."""
     root, wb = Path(root).resolve(), Path(workbook).resolve()
     quarters = (root / QUARTERS_DIR).resolve()
+    if not synthetic:
+        return root / "data"
     try:
         rel = wb.relative_to(quarters)
     except ValueError:
-        return root / "data"
+        return wb.parent / "ledger"
     chain = rel.parts[0] if len(rel.parts) > 1 else rel.stem
     return quarters / chain / "ledger"
 
@@ -124,11 +133,11 @@ def profile_for(root: Path, workbook: Path, *, policy: Path | None = None, ledge
     root = Path(root)
     workbook = Path(workbook)
     quarter, marked = quarter_of(workbook)
-    under_quarters = _rel(root, workbook).startswith(QUARTERS_DIR.as_posix() + "/")
+    synthetic = is_synthetic(workbook, marked)
     pol = policy if policy is not None else policy_for(root, quarter)
-    if pol is None and not under_quarters and quarter is None and workbook.exists():
+    if pol is None and not synthetic and quarter is None and workbook.exists():
         pol = default_policy_path(root)
-    ledger = ledger_dir if ledger_dir is not None else ledger_dir_for(root, workbook)
+    ledger = ledger_dir if ledger_dir is not None else ledger_dir_for(root, workbook, synthetic)
     usable, reason = True, ""
     if not workbook.is_file():
         usable, reason = False, "file not found"
@@ -140,31 +149,36 @@ def profile_for(root: Path, workbook: Path, *, policy: Path | None = None, ledge
         id=_rel(root, workbook), workbook=_rel(root, workbook), quarter=quarter,
         policy=_rel(root, pol) if pol else None, ledger_dir=_rel(root, ledger),
         provider=provider_for(root, pol, explicit_provider) if usable else None,
-        synthetic=marked or under_quarters, usable=usable, reason=reason, current=current,
+        synthetic=synthetic, usable=usable, reason=reason, current=current,
     )
 
 
 def discover(root: Path, current_workbook: Path | None = None, *, explicit_provider: str | None = None,
              current_policy: Path | None = None, current_ledger_dir: Path | None = None) -> list[WorkbookProfile]:
-    """Every workbook the dashboard can switch to. The current one first, then `data/quarters/**`
-    in path order. Temporary Excel lock files (`~$…`) are skipped."""
+    """Every workbook the dashboard can switch to: the current one first, then `data/*.xlsx` and
+    `data/quarters/**` in path order. Temporary Excel lock files (`~$…`) are skipped.
+
+    Synthetic test data is listed only when the server was started on a synthetic workbook (or
+    `HC_INCLUDE_SYNTHETIC=1`): a reviewer on the real book must never be offered invented quarters,
+    however clearly labelled. The chain exists to harden the engine, not to sit beside the book."""
     root = Path(root)
     out: list[WorkbookProfile] = []
     seen: set[str] = set()
+    include_synthetic = os.environ.get("HC_INCLUDE_SYNTHETIC", "").strip() in ("1", "true", "yes")
     if current_workbook is not None:
         cur = profile_for(root, current_workbook, policy=current_policy, ledger_dir=current_ledger_dir,
                           explicit_provider=explicit_provider, current=True)
         out.append(cur)
         seen.add(cur.id)
-    default = root / "data" / "HC_Mock_Portfolio_Data.xlsx"
-    candidates = [default] if default.is_file() else []
+        include_synthetic = include_synthetic or cur.synthetic
+    candidates = sorted(p for p in (root / "data").glob("*.xlsx") if not p.name.startswith("~$")) if (root / "data").is_dir() else []
     qdir = root / QUARTERS_DIR
     if qdir.is_dir():
         # not the review workbooks `build` writes (valuation_<quarter>.xlsx has no activity tab)
         candidates += sorted(p for p in qdir.rglob("*.xlsx") if not p.name.startswith(("~$", "valuation_")))
     for wb in candidates:
         prof = profile_for(root, wb, explicit_provider=explicit_provider)
-        if prof.id in seen:
+        if prof.id in seen or (prof.synthetic and not include_synthetic):
             continue
         seen.add(prof.id)
         out.append(prof)

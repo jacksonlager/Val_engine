@@ -58,6 +58,11 @@ class RunPaths:
         beside = workbook.parent / "open_items_carry.yaml"
         carry = beside if beside.exists() else root / "data" / "open_items_carry.yaml"
         ledger = Path(ledger_dir) if ledger_dir is not None else root / "data"
+        if policy is None:
+            # The policy for the workbook's own quarter (rules/<YYYY>Q<n>.yaml, written by `next-policy`)
+            # when it exists; the base policy otherwise, and X-922 says so if the quarters disagree.
+            from .workbooks import policy_for, quarter_of
+            policy = policy_for(root, quarter_of(workbook)[0]) if workbook.is_file() else None
         return cls(
             root=root,
             policy=policy or default_policy_path(root),

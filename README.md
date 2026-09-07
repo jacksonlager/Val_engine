@@ -295,6 +295,10 @@ and driven by `scripts/synthetic_chain.py`.
 1. Take `dist/portfolio_Q4_2026.xlsx` from the previous `build` (booked marks are now
    `Prior Mark`, ownership / invested / realized are post-activity, the activity tab is
    empty and named for the new quarter) — or drop in a fresh workbook in the same schema.
+   Put it under `data/quarters/<quarter>/` (with its `open_items_carry.yaml` beside it) and it
+   appears in the review tool's **Workbook** select; `--policy` is no longer needed on the command
+   line — the policy for the workbook's own quarter (`rules/<YYYY>Q<n>.yaml`) is picked up when it
+   exists. Its decisions go to the committee ledger, `data/overrides.yaml`, keyed by quarter.
 2. Fill the `Q4 2026 Activity` tab. The sheet is located by pattern, so the name just has
    to look like `Qn YYYY Activity`; headers, event names and company names are matched
    with tolerance and every correction is recorded (X-911…X-920).
