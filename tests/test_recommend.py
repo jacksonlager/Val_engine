@@ -119,7 +119,7 @@ def test_claude_without_key_or_cache_is_the_policy_default_with_a_note(base, tmp
     ch = ClaudeChooser(tmp_path / "rec", api_key=None)
     c, f = _first_actionable(base.run)
     rec = ch.choose(build_brief(c, f, base.run), f)
-    assert rec.source == "policy" and "ANTHROPIC_API_KEY" in (rec.note or "")
+    assert rec.source == "policy" and "not connected" in (rec.note or "")     # a reviewer's sentence, not the variable's name
 
 
 def test_parse_rejects_bad_shapes(base):

@@ -381,6 +381,12 @@ export default function App() {
               <span>{m.adjudication_enabled ? "On" : "Off"}</span>
             </div>
             <div>
+              <span title="Who picks the one resolution shown first on each card: the rule's own default, or Claude choosing among the engine's priced options for that company's facts. Never a number of its own.">
+                Suggested next steps
+              </span>
+              <span>{m.recommender && m.recommender.startsWith("claude") ? `Chosen by Claude (${m.recommender.slice(7)})` : "Policy default (Claude not connected)"}</span>
+            </div>
+            <div>
               <span title="Claude reads the free text on every activity row against the case catalogue and raises anything the columns do not carry for review. It never sets a number.">
                 Reading of row notes
               </span>

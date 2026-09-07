@@ -378,13 +378,14 @@ class ClaudeChooser:
             except Exception as ex:  # noqa: BLE001
                 log.warning("position recommendation cache %s no longer fits %s (%s); refetching", key, c.company, ex)
         if not self.available:
-            why = "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+            why = "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts."
             self.fallbacks.append(f"{c.company} (position): {why}")
             return self.policy.choose_position(brief, c, note=why)
         try:
             answer = self.parse_position(self._call(brief, POSITION_PROMPT), c)
         except Exception as ex:  # noqa: BLE001 — by contract this never raises into the run
-            why = f"claude unavailable ({type(ex).__name__}: {str(ex)[:120]}); showing the policy default"
+            why = (f"Claude could not be used for this step ({type(ex).__name__}: {str(ex)[:120]}), so this is the rule's own "
+                   "default rather than a choice made for this company's facts.")
             log.warning("%s (position): %s", c.company, why)
             self.fallbacks.append(f"{c.company} (position): {why}")
             return self.policy.choose_position(brief, c, note=why)
@@ -408,13 +409,14 @@ class ClaudeChooser:
             except Exception as ex:  # noqa: BLE001
                 log.warning("recommendation cache %s no longer fits the flag (%s); refetching", key, ex)
         if not self.available:
-            why = "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+            why = "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts."
             self.fallbacks.append(f"{brief['company']['name']} {f.rule_id}: {why}")
             return self.policy.choose(brief, f, note=why)
         try:
             answer = self.parse(self._call(brief), f)
         except Exception as ex:  # noqa: BLE001 — by contract this never raises into the run
-            why = f"claude unavailable ({type(ex).__name__}: {str(ex)[:120]}); showing the policy default"
+            why = (f"Claude could not be used for this step ({type(ex).__name__}: {str(ex)[:120]}), so this is the rule's own "
+                   "default rather than a choice made for this company's facts.")
             log.warning("%s %s: %s", brief["company"]["name"], f.rule_id, why)
             self.fallbacks.append(f"{brief['company']['name']} {f.rule_id}: {why}")
             return self.policy.choose(brief, f, note=why)
