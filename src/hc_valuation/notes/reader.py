@@ -15,6 +15,7 @@ logged, written or echoed.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import logging
 import os
@@ -113,8 +114,17 @@ class ClaudeReader:
         self.unverified = 0
 
     @property
+    def unavailable_reason(self) -> str | None:
+        """Why the model cannot be called from here, or None when it can."""
+        if not self.api_key:
+            return "ANTHROPIC_API_KEY not set"
+        if importlib.util.find_spec("anthropic") is None:
+            return "the anthropic package is not installed for this Python (pip install -e \".[adjudication]\")"
+        return None
+
+    @property
     def available(self) -> bool:
-        return bool(self.api_key)
+        return self.unavailable_reason is None
 
     # -- cache
     def key(self, payload: dict[str, Any]) -> str:
@@ -193,7 +203,7 @@ class ClaudeReader:
 
     def report(self, rows_with_text: int) -> ReadingReport:
         if not self.available:
-            return ReadingReport(status="off", provider="claude", model=self.model, reason="ANTHROPIC_API_KEY not set",
+            return ReadingReport(status="off", provider="claude", model=self.model, reason=self.unavailable_reason or "unavailable",
                                  rows_with_text=rows_with_text)
         return ReadingReport(status="on", provider="claude", model=self.model, rows_with_text=rows_with_text,
                              rows_read=self.read_rows, rows_failed=self.failed, rows_from_cache=self.cache_hits,

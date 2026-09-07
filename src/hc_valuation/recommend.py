@@ -31,6 +31,7 @@ in the pipeline after the engine, like adjudication: the engine never holds a cl
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import logging
 import os
@@ -250,8 +251,16 @@ class ClaudeChooser:
         self.fallbacks: list[str] = []
 
     @property
+    def unavailable_reason(self) -> str | None:
+        if not self.api_key:
+            return "Claude is not connected on this machine"
+        if importlib.util.find_spec("anthropic") is None:
+            return "the anthropic package is not installed for this Python"
+        return None
+
+    @property
     def available(self) -> bool:
-        return bool(self.api_key)
+        return self.unavailable_reason is None
 
     # -- cache
     def _path(self, key: str) -> Path:
@@ -378,7 +387,7 @@ class ClaudeChooser:
             except Exception as ex:  # noqa: BLE001
                 log.warning("position recommendation cache %s no longer fits %s (%s); refetching", key, c.company, ex)
         if not self.available:
-            why = "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts."
+            why = f"{(self.unavailable_reason or 'Claude is not connected on this machine')[0].upper()}{(self.unavailable_reason or 'Claude is not connected on this machine')[1:]}, so this is the rule's own default rather than a choice made for this company's facts."
             self.fallbacks.append(f"{c.company} (position): {why}")
             return self.policy.choose_position(brief, c, note=why)
         try:
@@ -409,7 +418,7 @@ class ClaudeChooser:
             except Exception as ex:  # noqa: BLE001
                 log.warning("recommendation cache %s no longer fits the flag (%s); refetching", key, ex)
         if not self.available:
-            why = "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts."
+            why = f"{(self.unavailable_reason or 'Claude is not connected on this machine')[0].upper()}{(self.unavailable_reason or 'Claude is not connected on this machine')[1:]}, so this is the rule's own default rather than a choice made for this company's facts."
             self.fallbacks.append(f"{brief['company']['name']} {f.rule_id}: {why}")
             return self.policy.choose(brief, f, note=why)
         try:

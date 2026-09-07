@@ -259,3 +259,13 @@ def test_pipeline_passes_readings_in_and_reports_the_reader(tmp_path: Path):
     off = execute(paths, provider="stub", adjudicate=False, note_reader="off")
     assert "X-130" not in _flags(off.run.by_company()["Alpha"]) and off.run.manifest.note_reader.startswith("off:")
     assert off.run.by_company()["Alpha"].proposed_mark == c.proposed_mark
+
+
+def test_missing_sdk_switches_the_reader_off_once_rather_than_failing_every_row(tmp_path: Path, cfg, monkeypatch):
+    import importlib.util as iu
+    monkeypatch.setattr(iu, "find_spec", lambda name, *a, **k: None if name == "anthropic" else object())
+    wb = make_workbook(tmp_path, [position()], [event(detail="Series B", value=150.0, ownership_after=0.09, notes="escrow of $1M")])
+    _, feed = read_workbook(wb, cfg)
+    reader = ClaudeReader(tmp_path / "cache", model="m", api_key="k")
+    readings, report = read_feed(feed, reader)
+    assert readings == {} and report.status == "off" and "not installed" in report.reason and reader.calls == 0
