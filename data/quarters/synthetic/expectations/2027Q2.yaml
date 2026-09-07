@@ -1,0 +1,149 @@
+# Expectations for the synthetic Q2 2027 workbook — written BEFORE running the engine on it, from the
+# opening book (data/quarters/synthetic/build/2027Q1/portfolio_Q2_2027.xlsx after D-8/D-9), the rows in
+# scripts/synthetic_chain.py::q2_events, docs/valuation-policy.md and the inherited policy.
+# Measurement date 2027-06-30; provider `synthetic` (absolute multiple bounds, no M-080).
+quarter: Q2 2027
+measurement_date: 2027-06-30
+blocking_validation: 0
+totals:
+  positions: 101
+
+companies:
+  # ---- carried open items
+  Jettamar:                 # announced in Q4 2026, still open: age 2 = announced_deal_stale_quarters -> E-07 REVIEW; weighted 9.4683 carried
+    proposed_mark: 9.4683
+    readiness: Needs Review
+    flags_include: [E-07]
+  Knollward:                # exit closed in Q1 with no cash, held at 48.8 (D-9): rolls open, unconfirmed_exit escalates at once (E-07);
+    proposed_mark: 48.8     # the 2022 round is 57.9 months old -> X-202: two families -> BLOCK
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [E-07, X-202]
+  Redgrove Health:          # Q1's term sheet was signed the same day the round closed at the same price: the round resolves it, so no E-07.
+    proposed_mark: 4.3      # Conservative reading of the policy ("a note outstanding at a later priced round converts; a round resolves a term sheet").
+    readiness: Ready
+    flags_exclude: [E-07]
+  Halcyra:                  # acquirer's unlisted shares (M-024 in Q1), item age 1 < 2: carried at 4.615, nothing escalates yet.
+    proposed_mark: 4.615    # Recorded as a policy question: a stake in an unlisted acquirer sits Ready for a quarter with no valuation update.
+    readiness: Ready
+    flags_exclude: [E-07]
+  Fernwave:                 # listed carry on the seeded stand-in (the IPO print, 2,400): 72.0; X-113 -> Blocked; lock-up still open (2027-07-07)
+    proposed_mark: 72.0
+    readiness: Blocked
+    flags_include: [X-113]
+  Drayvenn:                 # listed carry on the stand-in (3,931): 110.068; X-113 -> Blocked
+    proposed_mark: 110.068
+    readiness: Blocked
+    flags_include: [X-113]
+  # ---- exits and cash
+  Arcfoundry:               # holdback released on an acquired company: cash only, 1.28 realized, X-111
+    proposed_mark: 0.0
+    realized_quarter: 1.28
+    status_after: Acquired
+    readiness: Ready
+    flags_include: [X-111]
+  Elmsworth Data:           # announced and closed in the same quarter: the announcement is superseded; 0.038 x 900 = 34.2 received
+    proposed_mark: 0.0
+    realized_quarter: 34.2
+    status_after: Acquired
+    readiness: Ready
+    disposition: CLEAR
+    flags_exclude: [X-101]
+  Oakenvale:                # closed at 30, 0.063 x 30 = 1.89 received: clean exit
+    proposed_mark: 0.0
+    realized_quarter: 1.89
+    status_after: Acquired
+    readiness: Ready
+    flags_exclude: [X-101]
+  Kestwick:                 # shutdown, nothing recovered
+    proposed_mark: 0.0
+    realized_quarter: 0.0
+    status_after: Shut Down
+    readiness: Ready
+  # ---- secondaries
+  Nimbrel:                  # sold 40% at the round price: 0.0308 x 70 = 2.156 realized; remainder 0.0462 x 70 = 3.234; no spread
+    proposed_mark: 3.234
+    realized_quarter: 2.156
+    readiness: Ready
+    flags_exclude: [X-104]
+  Mardellan:                # sold 50% at 5,000 vs 5,699.4 (-12.3%): X-104 REVIEW; remainder 0.006 x 5,699.4 = 34.196; 61-month round -> X-202: BLOCK
+    proposed_mark: 34.1964
+    realized_quarter: 30.0
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-104, X-202]
+  # ---- rounds
+  Umberly:                  # written to zero in Q1 (Chapter 11); recap at 40, 0.030 held: 1.2 (M-012, X-102); 0.075 -> 0.030 with no cheque -> X-103;
+    proposed_mark: 1.2      # runway 4.1 / 1.36 aged 2.0 -> X-304
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-102, X-103, X-304]
+  Pellagrin:                # second same-terms extension at 176.3, 0.082 held: 14.4566 (M-011, X-106); the clock still runs from 2021-10-08 (68.7 months): X-202 -> BLOCK
+    proposed_mark: 14.4566
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-106, X-202]
+  Gorseline:                # Series B at 90, 0.090 held: 8.1; dilution 11.8% < 20%; Ready
+    proposed_mark: 8.1
+    readiness: Ready
+    flags_exclude: [X-103, X-119]
+  Dovelane Systems:         # Series C at 83.04 < 103.8 is a down round (M-012, X-102): 0.050 x 83.04 = 4.152; Q4's term sheet resolved (no E-07)
+    proposed_mark: 4.152
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-102]
+    flags_exclude: [E-07, X-103]
+  Tidewell Health:          # unfunded note: mark unchanged, X-108 MONITOR
+    proposed_mark: 1.2
+    readiness: Ready
+    flags_include: [X-108]
+  Thornmill Systems:        # direct listing at 2,500, 0.013 held: 32.5 on the print, no feed -> Blocked
+    proposed_mark: 32.5
+    readiness: Blocked
+    flags_include: [X-101]
+  # ---- no activity
+  Northquill:               # cash 1.0 / burn 1.0 -> runway 1.0, aged 0.0 -> X-304
+    proposed_mark: 24.1
+    readiness: Needs Review
+    flags_include: [X-304]
+  Stonegather:              # no cash: runway 0, aged -1 -> X-304
+    proposed_mark: 1.7
+    readiness: Needs Review
+    flags_include: [X-304]
+  Birchhollow:
+    proposed_mark: 28.145
+    readiness: Needs Review
+    disposition: BLOCK
+    flags_include: [X-202, X-302]
+  Quillbrook Labs:          # March round, nothing since, no operating metrics on file: Ready
+    proposed_mark: 4.32
+    readiness: Ready
+  Lumetra:                  # March round: fresh, 16x inside the bound: Ready
+    proposed_mark: 1.105
+    readiness: Ready
+  Foxtrellis:               # the extension's clock (2023-10-14, 44.5 months) travels in the sidecar: X-201 + X-404 -> X-405
+    proposed_mark: 27.1631
+    readiness: Needs Review
+    flags_include: [X-201, X-405]
+  Marrowick Bio:            # round 2025-04-17 crosses 24 months (26.5); 6.9x inside -> X-201 only
+    proposed_mark: 9.804
+    readiness: Ready
+    flags_include: [X-201]
+    flags_exclude: [X-405]
+  Vexmoor:                  # round 2025-05-05 crosses 24 months; 5.5x inside -> X-201 only
+    proposed_mark: 22.6917
+    readiness: Ready
+    flags_include: [X-201]
+    flags_exclude: [X-405]
+  Lanternfell Space:        # round 2025-06-18 crosses 24 months (24.4); 8.8x inside -> X-201 only
+    proposed_mark: 37.2552
+    readiness: Ready
+    flags_include: [X-201]
+  Nightloom Security:       # round 2023-05-09: 49.7 months -> X-202
+    proposed_mark: 0.8
+    readiness: Needs Review
+    flags_include: [X-202]
+  Yarrowbank:               # note repaid in Q1: 0.6 of equity, no leg; 41-month round + 1.0x -> X-405
+    proposed_mark: 0.6
+    readiness: Needs Review
+    flags_include: [X-405]
