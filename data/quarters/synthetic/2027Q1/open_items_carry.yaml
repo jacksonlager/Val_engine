@@ -1,0 +1,91 @@
+source_run_id: b9e1bcc61c42
+quarter: Q4 2026
+open_items:
+- company: Aravine
+  kind: term_sheet
+  opened: '2026-12-02'
+  opened_quarter: Q4 2026
+  expected_resolution: null
+  amount_musd: 103.0
+  detail: Not closed; expected to close Q1.
+  age_quarters: 0
+  escalated: false
+- company: Dovelane Systems
+  kind: term_sheet
+  opened: '2026-12-01'
+  opened_quarter: Q4 2026
+  expected_resolution: null
+  amount_musd: 83.04
+  detail: Not closed; diligence underway, expected to close Q1.
+  age_quarters: 0
+  escalated: false
+- company: Jettamar
+  kind: pending_acquisition
+  opened: '2026-11-24'
+  opened_quarter: Q4 2026
+  expected_resolution: null
+  amount_musd: 90.0
+  detail: Expected to close in Q1 2027, subject to regulatory approval. No cash received.
+  age_quarters: 0
+  escalated: false
+- company: Drayvenn
+  kind: ipo_lockup
+  opened: '2026-09-20'
+  opened_quarter: Q3 2026
+  expected_resolution: '2027-03-19'
+  amount_musd: null
+  detail: 180-day lock-up; 2.8% of listed equity
+  age_quarters: 1
+  escalated: false
+- company: Pinwhistle
+  kind: pending_acquisition
+  opened: '2026-12-20'
+  opened_quarter: Q4 2026
+  expected_resolution: null
+  amount_musd: 60.0
+  detail: Expected to close in Q1 2027. No cash received.
+  age_quarters: 0
+  escalated: false
+- company: Yarrowbank
+  kind: convertible_note
+  opened: '2026-12-18'
+  opened_quarter: Q4 2026
+  expected_resolution: null
+  amount_musd: 0.3
+  detail: $1.0M bridge note, $45.0M valuation cap
+  age_quarters: 0
+  escalated: false
+mark_basis:
+- company: Jettamar
+  reason: 'Prior Mark $9.47M departs from ownership × last-round post-money (11.1%
+    × $43.00M = $4.77M): committee override booked $9.47M vs proposed $9.47M (E-01);
+    equity mark $9.47M set by M-050, not ownership × last round.'
+- company: Umberly
+  reason: 'Prior Mark $24.10M departs from ownership × last-round post-money (7.5%
+    × $180.00M = $13.50M): committee override booked $24.10M vs proposed $13.50M (E-01).'
+- company: Drayvenn
+  reason: 'Prior Mark $103.60M departs from ownership × last-round post-money (2.8%
+    × $3931.00M = $110.07M): committee override booked $103.60M vs proposed $110.07M
+    (E-01).'
+- company: Pinwhistle
+  reason: 'Prior Mark $5.21M departs from ownership × last-round post-money (8.3%
+    × $87.70M = $7.28M): committee override booked $5.21M vs proposed $5.21M (E-01);
+    equity mark $5.21M set by M-050, not ownership × last round.'
+- company: Yarrowbank
+  reason: 'Prior Mark $0.90M departs from ownership × last-round post-money (8.4%
+    × $7.70M = $0.65M): note leg $0.30M carried at cost (M-060); committee override
+    booked $0.90M vs proposed $0.90M (E-01).'
+- company: Birchhollow
+  reason: 'Prior Mark $28.14M departs from ownership × last-round post-money (2.9%
+    × $1494.50M = $43.34M): committee override booked $28.14M vs proposed $28.14M
+    (E-01).'
+- company: Quillbrook Labs
+  reason: 'Entered the book in Q4 2026 from a New Investment row (M-014, X-918): fund,
+    sector and stage are as that row named them, and the operating metrics (ARR, growth,
+    margin, burn, cash, headcount) are blank because nothing is on file. Fill them
+    before the next run.'
+staleness_anchors: []
+note_legs:
+- company: Yarrowbank
+  amount_musd: 0.3
+  reason: note leg $0.30M carried at cost inside the $0.90M prior mark (M-060)

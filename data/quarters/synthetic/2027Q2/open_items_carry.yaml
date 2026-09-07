@@ -1,0 +1,76 @@
+source_run_id: 28c1475c6d04
+quarter: Q1 2027
+open_items:
+- company: Dovelane Systems
+  kind: term_sheet
+  opened: '2026-12-01'
+  opened_quarter: Q4 2026
+  expected_resolution: null
+  amount_musd: 83.04
+  detail: Not closed; diligence underway, expected to close Q1.
+  age_quarters: 1
+  escalated: true
+- company: Fernwave
+  kind: ipo_lockup
+  opened: '2027-01-08'
+  opened_quarter: Q1 2027
+  expected_resolution: '2027-07-07'
+  amount_musd: null
+  detail: 180-day lock-up; 3.0% of listed equity
+  age_quarters: 0
+  escalated: false
+- company: Halcyra
+  kind: acquirer_shares
+  opened: '2027-01-20'
+  opened_quarter: Q1 2027
+  expected_resolution: null
+  amount_musd: 4.615
+  detail: Shares of acquirer received on $65.0M deal; All-stock consideration; the
+    buyer is privately held.
+  age_quarters: 0
+  escalated: false
+- company: Jettamar
+  kind: pending_acquisition
+  opened: '2026-11-24'
+  opened_quarter: Q4 2026
+  expected_resolution: null
+  amount_musd: 90.0
+  detail: Expected to close in Q1 2027, subject to regulatory approval. No cash received.
+  age_quarters: 1
+  escalated: false
+- company: Redgrove Health
+  kind: term_sheet
+  opened: '2027-03-15'
+  opened_quarter: Q1 2027
+  expected_resolution: null
+  amount_musd: 40.0
+  detail: Signed the morning of the close.
+  age_quarters: 0
+  escalated: false
+mark_basis:
+- company: Fernwave
+  reason: 'Prior Mark $66.00M departs from ownership × last-round post-money (3.0%
+    × $2400.00M = $72.00M): committee override booked $66.00M vs proposed $72.00M
+    (E-01).'
+- company: Jettamar
+  reason: 'Prior Mark $9.47M departs from ownership × last-round post-money (11.1%
+    × $43.00M = $4.77M): booked mark does not reconcile to ownership × last-round
+    post-money.'
+- company: Umberly
+  reason: 'Prior Mark $0.00M departs from ownership × last-round post-money (7.5%
+    × $180.00M = $13.50M): committee override booked $0.00M vs proposed $24.10M (E-01);
+    equity mark $24.10M set by M-025, not ownership × last round.'
+- company: Drayvenn
+  reason: 'Prior Mark $109.20M departs from ownership × last-round post-money (2.8%
+    × $3931.00M = $110.07M): committee override booked $109.20M vs proposed $110.07M
+    (E-01).'
+- company: Birchhollow
+  reason: 'Prior Mark $28.14M departs from ownership × last-round post-money (2.9%
+    × $1494.50M = $43.34M): committee override booked $28.14M vs proposed $28.14M
+    (E-01).'
+staleness_anchors:
+- company: Foxtrellis
+  anchor: '2023-10-14'
+  reason: same-terms extension on 2027-02-10 is not price discovery; the staleness
+    clock runs from 2023-10-14
+note_legs: []

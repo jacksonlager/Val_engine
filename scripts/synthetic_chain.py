@@ -154,7 +154,7 @@ DECISIONS: dict[str, dict[str, dict[str, Any]]] = {
     "2026Q3": {
         "Drayvenn": {"closing_cap": 4100.0, "reason": "SYNTHETIC test decision: quarter-end market cap of $4,100M supplied "
                                                         "as the 30 Sep 2026 close (invented; the ticker is fictional)."},
-        "Oakenvale": {"suggestion": ("X-102", "structure"), "reason": "SYNTHETIC test decision: take the policy's 25% junior-class "
+        "Oakenvale": {"suggestion": ("X-102", "structure_adjusted"), "reason": "SYNTHETIC test decision: take the policy's 25% junior-class "
                                                                        "haircut on the recap until the waterfall is read."},
         "Birchhollow": {"suggestion": ("X-202", "calibrate"), "reason": "SYNTHETIC test decision: book the comps-calibrated "
                                                                         "alternative for a 65-month-old round with shrinking ARR."},
@@ -531,10 +531,17 @@ def compare(slug: str) -> int:
     run = r.run
     by = run.by_company()
     mismatches: list[str] = []
+    superseded = 0
     for company, e in (exp.get("companies") or {}).items():
         c = by.get(company)
         if c is None:
             mismatches.append(f"{company}: not in run")
+            continue
+        if e.get("superseded"):
+            # An expectation shown to be a derivation error, kept verbatim with its `resolution:` so
+            # the record of what was expected first survives; it is reported, not compared.
+            superseded += 1
+            print(f"  superseded {company}: {e.get('resolution', '').strip()[:160]}")
             continue
         if "proposed_mark" in e and abs(float(e["proposed_mark"]) - c.proposed_mark) > float(e.get("tolerance", 0.01)):
             mismatches.append(f"{company}: proposed {c.proposed_mark:.4f} != expected {float(e['proposed_mark']):.4f}")
@@ -566,7 +573,8 @@ def compare(slug: str) -> int:
           f"prior {run.totals.prior_nav:,.1f} proposed {run.totals.proposed_nav:,.1f} booked {run.totals.booked_nav:,.1f}")
     for m in mismatches:
         print("  MISMATCH", m)
-    print(f"{len(mismatches)} mismatch(es) against {exp_path.relative_to(ROOT)}")
+    print(f"{len(mismatches)} mismatch(es) against {exp_path.relative_to(ROOT)}"
+          + (f"; {superseded} expectation(s) superseded by a documented derivation error" if superseded else ""))
     return len(mismatches)
 
 

@@ -369,3 +369,784 @@ overrides:
   rule_ids_addressed:
   - X-202
   source_suggestion: X-202/as_proposed
+- company: Dovelane Systems
+  quarter: Q4 2026
+  proposed: 5.709
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 5.709
+  reason: 'Policy recommendation (X-109/as_proposed): Keep the mark at the last round;
+    the term sheet is not a transaction.'
+  rule_ids_addressed:
+  - X-109
+  source_suggestion: X-109/as_proposed
+- company: Ironquill Security
+  quarter: Q4 2026
+  proposed: 22.926
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 22.926
+  reason: 'Policy recommendation (X-104/as_proposed): Keep the remaining stake at
+    the last-round price.'
+  rule_ids_addressed:
+  - X-104
+  source_suggestion: X-104/as_proposed
+- company: Jettamar
+  quarter: Q4 2026
+  proposed: 9.4683
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 9.4683
+  reason: 'Policy recommendation (X-101/as_proposed): Ratify the 0.90-weighted mark
+    of $9.47M.'
+  rule_ids_addressed:
+  - X-101
+  source_suggestion: X-101/as_proposed
+- company: Marrowick Bio
+  quarter: Q4 2026
+  proposed: 9.804
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 9.804
+  reason: 'Policy recommendation (X-110/as_proposed): Book the mechanical mark on
+    the new ownership, as proposed.'
+  rule_ids_addressed:
+  - X-110
+  source_suggestion: X-110/as_proposed
+- company: Nimbrel
+  quarter: Q4 2026
+  proposed: 5.39
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 5.39
+  reason: 'Policy recommendation (X-107/as_proposed): Carry the note at cost beside
+    the unchanged equity mark, as proposed.'
+  rule_ids_addressed:
+  - X-107
+  source_suggestion: X-107/as_proposed
+- company: Ostrella
+  quarter: Q4 2026
+  proposed: 13.9
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 13.9
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Pellagrin
+  quarter: Q4 2026
+  proposed: 13.9277
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 13.9277
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Tarnwick Aerospace
+  quarter: Q4 2026
+  proposed: 1.136
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 1.136
+  reason: 'Policy recommendation (X-302/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-302
+  source_suggestion: X-302/as_proposed
+- company: Umberly
+  quarter: Q4 2026
+  proposed: 13.5
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 24.1
+  reason: 'SYNTHETIC test decision: hold the prior mark on the down round; the company
+    has three months of cash and the round may not be the last word.'
+  rule_ids_addressed:
+  - X-102
+  - X-304
+  source_suggestion: X-102/hold_prior
+- company: Arcfoundry
+  quarter: Q4 2026
+  proposed: 1.4
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 1.4
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Brumewell
+  quarter: Q4 2026
+  proposed: 18.5
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 18.5
+  reason: 'Policy recommendation (X-302/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-302
+  source_suggestion: X-302/as_proposed
+- company: Cascabel Labs
+  quarter: Q4 2026
+  proposed: 6.2
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 6.2
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Drayvenn
+  quarter: Q4 2026
+  proposed: 110.068
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 103.6
+  reason: 'SYNTHETIC test decision: 31 Dec 2026 market cap of $3,700M supplied (invented).'
+  rule_ids_addressed:
+  - X-113
+  source_suggestion: X-113/price
+  evidence:
+    kind: closing_price
+    as_of: '2026-12-31'
+    market_cap_musd: 3700.0
+    source: SYNTHETIC test decision (invented)
+    ownership: 0.028
+- company: Isoquill
+  quarter: Q4 2026
+  proposed: 14.6
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 14.6
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  - X-302
+  source_suggestion: X-202/as_proposed
+- company: Jupelan
+  quarter: Q4 2026
+  proposed: 14.3
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 14.3
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Pinwhistle
+  quarter: Q4 2026
+  proposed: 5.212
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 5.212
+  reason: 'Policy recommendation (X-101/as_proposed): Ratify the 0.90-weighted mark
+    of $5.21M.'
+  rule_ids_addressed:
+  - X-101
+  - X-405
+  source_suggestion: X-101/as_proposed
+- company: Quarrystone AI
+  quarter: Q4 2026
+  proposed: 1.6
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 1.6
+  reason: 'Policy recommendation (X-302/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-302
+  source_suggestion: X-302/as_proposed
+- company: Yarrowbank
+  quarter: Q4 2026
+  proposed: 0.9
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 0.9
+  reason: 'Policy recommendation (X-107/as_proposed): Carry the note at cost beside
+    the unchanged equity mark, as proposed.'
+  rule_ids_addressed:
+  - X-107
+  - X-405
+  source_suggestion: X-107/as_proposed
+- company: Birchhollow
+  quarter: Q4 2026
+  proposed: 28.145
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 28.145
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  - X-302
+  source_suggestion: X-202/as_proposed
+- company: Duskfern
+  quarter: Q4 2026
+  proposed: 13.35
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 13.35
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Elmsworth Data
+  quarter: Q4 2026
+  proposed: 23.8
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 23.8
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Foxtrellis
+  quarter: Q4 2026
+  proposed: 26.5
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 26.5
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Mirthstone
+  quarter: Q4 2026
+  proposed: 6.6
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 6.6
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Nettlebay
+  quarter: Q4 2026
+  proposed: 21.3
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 21.3
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Orchardline
+  quarter: Q4 2026
+  proposed: 7.3
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 7.3
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Stonegather
+  quarter: Q4 2026
+  proposed: 1.7
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 1.7
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Juttermill
+  quarter: Q4 2026
+  proposed: 0.7
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 0.7
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Knollward
+  quarter: Q4 2026
+  proposed: 48.8
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 48.8
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Mardellan
+  quarter: Q4 2026
+  proposed: 68.4
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 68.4
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Northquill
+  quarter: Q4 2026
+  proposed: 24.1
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 24.1
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Petrelbay
+  quarter: Q4 2026
+  proposed: 1.7
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 1.7
+  reason: 'Policy recommendation (X-302/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-302
+  source_suggestion: X-302/as_proposed
+- company: Uplandreach
+  quarter: Q4 2026
+  proposed: 2.1
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 2.1
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Quillbrook Labs
+  quarter: Q4 2026
+  proposed: 1.494
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-01-12'
+  booked: 1.494
+  reason: 'Policy recommendation (X-918/as_proposed): Book on the activity row''s
+    terms as proposed.'
+  rule_ids_addressed:
+  - X-918
+  source_suggestion: X-918/as_proposed
+- company: Aravine
+  quarter: Q1 2027
+  proposed: 11.44
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 11.44
+  reason: 'Policy recommendation (X-102/as_proposed): Book the down-round figure as
+    proposed.'
+  rule_ids_addressed:
+  - X-102
+  - X-117
+  source_suggestion: X-102/as_proposed
+- company: Dovelane Systems
+  quarter: Q1 2027
+  proposed: 5.709
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 5.709
+  reason: 'Policy recommendation (E-07/as_proposed): Keep the mark as proposed and
+    chase the item.'
+  rule_ids_addressed:
+  - E-07
+  source_suggestion: E-07/as_proposed
+- company: Fernwave
+  quarter: Q1 2027
+  proposed: 72.0
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 66.0
+  reason: 'SYNTHETIC test decision: 31 Mar 2027 market cap of $2,200M supplied (invented).'
+  rule_ids_addressed:
+  - X-101
+  source_suggestion: X-101/price
+  evidence:
+    kind: closing_price
+    as_of: '2027-03-31'
+    market_cap_musd: 2200.0
+    source: SYNTHETIC test decision (invented)
+    ownership: 0.03
+- company: Halcyra
+  quarter: Q1 2027
+  proposed: 4.615
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 4.615
+  reason: 'Policy recommendation (X-112/as_proposed): Book the shares received at
+    the deal value as proposed.'
+  rule_ids_addressed:
+  - X-112
+  source_suggestion: X-112/as_proposed
+- company: Lumetra
+  quarter: Q1 2027
+  proposed: 1.105
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 1.105
+  reason: 'Policy recommendation (X-122/as_proposed): Book the round price as proposed.'
+  rule_ids_addressed:
+  - X-118
+  - X-122
+  source_suggestion: X-122/as_proposed
+- company: Ostrella
+  quarter: Q1 2027
+  proposed: 13.9
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 13.9
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Pellagrin
+  quarter: Q1 2027
+  proposed: 13.9277
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 13.9277
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Tarnwick Aerospace
+  quarter: Q1 2027
+  proposed: 0.855
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 0.855
+  reason: 'Policy recommendation (X-102/as_proposed): Book the recap figure as proposed.'
+  rule_ids_addressed:
+  - X-102
+  - X-302
+  source_suggestion: X-102/as_proposed
+- company: Umberly
+  quarter: Q1 2027
+  proposed: 24.1
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 0.0
+  reason: 'Policy recommendation (X-116/write_to_zero): Write the position to zero
+    pending the plan of reorganisation.'
+  rule_ids_addressed:
+  - X-116
+  - X-304
+  source_suggestion: X-116/write_to_zero
+- company: Wrenfield Data
+  quarter: Q1 2027
+  proposed: 0.0
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 0.0
+  reason: 'Policy recommendation (X-101/as_proposed): Book as a shutdown with residual
+    proceeds, as proposed.'
+  rule_ids_addressed:
+  - X-101
+  source_suggestion: X-101/as_proposed
+- company: Zephrine
+  quarter: Q1 2027
+  proposed: 3.9
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 3.9
+  reason: 'Policy recommendation (X-123/as_proposed): Book at the stated ownership;
+    the protection or warrant is real.'
+  rule_ids_addressed:
+  - X-123
+  source_suggestion: X-123/as_proposed
+- company: Arcfoundry
+  quarter: Q1 2027
+  proposed: 0.0
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 0.0
+  reason: 'Policy recommendation (X-101/as_proposed): Accept the recorded proceeds;
+    treat the gap as escrow or fees.'
+  rule_ids_addressed:
+  - X-101
+  source_suggestion: X-101/as_proposed
+- company: Brumewell
+  quarter: Q1 2027
+  proposed: 18.5
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 18.5
+  reason: 'Policy recommendation (X-302/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-302
+  source_suggestion: X-302/as_proposed
+- company: Cascabel Labs
+  quarter: Q1 2027
+  proposed: 6.2
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 6.2
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Drayvenn
+  quarter: Q1 2027
+  proposed: 110.068
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 109.2
+  reason: 'SYNTHETIC test decision: 31 Mar 2027 market cap of $3,900M supplied (invented).'
+  rule_ids_addressed:
+  - X-113
+  source_suggestion: X-113/price
+  evidence:
+    kind: closing_price
+    as_of: '2027-03-31'
+    market_cap_musd: 3900.0
+    source: SYNTHETIC test decision (invented)
+    ownership: 0.028
+- company: Isoquill
+  quarter: Q1 2027
+  proposed: 14.6
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 14.6
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  - X-302
+  source_suggestion: X-202/as_proposed
+- company: Jupelan
+  quarter: Q1 2027
+  proposed: 14.3
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 14.3
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Pinwhistle
+  quarter: Q1 2027
+  proposed: 7.2791
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 7.2791
+  reason: 'Policy recommendation (X-114/as_proposed): Revert to the last-round mark
+    as proposed.'
+  rule_ids_addressed:
+  - X-114
+  - X-405
+  source_suggestion: X-114/as_proposed
+- company: Quarrystone AI
+  quarter: Q1 2027
+  proposed: 1.6
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 1.6
+  reason: 'Policy recommendation (X-302/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-302
+  source_suggestion: X-302/as_proposed
+- company: Westwilder
+  quarter: Q1 2027
+  proposed: 20.6
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 20.6
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Yarrowbank
+  quarter: Q1 2027
+  proposed: 0.6
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 0.6
+  reason: 'Policy recommendation (X-115/as_proposed): Book the equity mark with the
+    note leg removed, as proposed.'
+  rule_ids_addressed:
+  - X-115
+  - X-405
+  source_suggestion: X-115/as_proposed
+- company: Birchhollow
+  quarter: Q1 2027
+  proposed: 28.145
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 28.145
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  - X-302
+  source_suggestion: X-202/as_proposed
+- company: Duskfern
+  quarter: Q1 2027
+  proposed: 13.35
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 13.35
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Elmsworth Data
+  quarter: Q1 2027
+  proposed: 23.8
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 23.8
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Foxtrellis
+  quarter: Q1 2027
+  proposed: 27.1631
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 27.1631
+  reason: 'Policy recommendation (X-106/as_proposed): Keep the mark on the extension
+    price as proposed.'
+  rule_ids_addressed:
+  - X-106
+  - X-405
+  source_suggestion: X-106/as_proposed
+- company: Mirthstone
+  quarter: Q1 2027
+  proposed: 6.86
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 6.86
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Nettlebay
+  quarter: Q1 2027
+  proposed: 21.3
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 21.3
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Orchardline
+  quarter: Q1 2027
+  proposed: 7.3
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 7.3
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Rushlight AI
+  quarter: Q1 2027
+  proposed: 12.2
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 12.2
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Stonegather
+  quarter: Q1 2027
+  proposed: 1.7
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 1.7
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Xylotta
+  quarter: Q1 2027
+  proposed: 57.1
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 57.1
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Brackenvale
+  quarter: Q1 2027
+  proposed: 8.7
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 8.7
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Juttermill
+  quarter: Q1 2027
+  proposed: 0.7
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 0.7
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Knollward
+  quarter: Q1 2027
+  proposed: 0.0
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 48.8
+  reason: 'Policy recommendation (X-101/hold_prior): Hold the prior mark until the
+    consideration is confirmed.'
+  rule_ids_addressed:
+  - X-101
+  source_suggestion: X-101/hold_prior
+- company: Mardellan
+  quarter: Q1 2027
+  proposed: 68.4
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 68.4
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed
+- company: Northquill
+  quarter: Q1 2027
+  proposed: 24.1
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 24.1
+  reason: 'Policy recommendation (X-304/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-304
+  source_suggestion: X-304/as_proposed
+- company: Petrelbay
+  quarter: Q1 2027
+  proposed: 1.7
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 1.7
+  reason: 'Policy recommendation (X-302/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-302
+  source_suggestion: X-302/as_proposed
+- company: Quenchpoint Energy
+  quarter: Q1 2027
+  proposed: 7.8
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 7.8
+  reason: 'Policy recommendation (X-405/as_proposed): Affirm the last-round mark as
+    proposed.'
+  rule_ids_addressed:
+  - X-405
+  source_suggestion: X-405/as_proposed
+- company: Uplandreach
+  quarter: Q1 2027
+  proposed: 2.1
+  approver: Reviewer A (synthetic test)
+  created_at: '2027-04-12'
+  booked: 2.1
+  reason: 'Policy recommendation (X-202/as_proposed): Keep the mark as proposed.'
+  rule_ids_addressed:
+  - X-202
+  source_suggestion: X-202/as_proposed

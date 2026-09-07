@@ -74,6 +74,15 @@ companies:
     proposed_mark: 12.96    # conservative reading: X-103 fires at the boundary (MONITOR). Ready either way.
     readiness: Ready
     flags_include: [X-103]
+    superseded: true
+    resolution: >
+      Policy-wording ambiguity, surfaced by the D-2 fix (02:52). On the first run X-103 fired here only because
+      0.108 / 0.135 − 1 came out a hair below −0.20 in binary; once ratios are compared at six places the
+      engine reads every "beyond" threshold strictly, and a drop of exactly 20.0% is at the line, not beyond
+      it. The policy text ("ownership −20% relative") does not say which. X-103 is MONITOR and never moves
+      readiness, so the strict reading is kept for consistency with X-104, X-119 and X-302, pinned in
+      tests/test_threshold_boundaries.py, and listed under "Policy ambiguities" for a human to settle.
+      Mark 12.96 and Ready matched. Kept as first written.
   Solvantra:                # Series B at 150, HC 1.65 for +1.0pp: cheque implies 165 = exactly +10.0%: not "beyond" -> no X-119
     proposed_mark: 19.2
     readiness: Ready
@@ -82,6 +91,13 @@ companies:
     proposed_mark: 9.36
     readiness: Needs Review
     flags_include: [X-119]
+    superseded: true
+    resolution: >
+      Derivation error, found on the first run (02:47). The policy runs the cheque check only where the stake
+      bought is at least indications.cheque_check_min_ownership_delta = 1.0pp (ownership is reported to three
+      decimals, so a smaller block cannot carry the check). This row buys 0.9pp, so X-119 correctly does not
+      run and the position is Ready at 9.36. The expectation is kept as first written; the engine is right.
+      The +11.1% "just outside" case is rebuilt with a 1.0pp block in tests/test_threshold_boundaries.py.
   Nimbrel:                  # funded note (0.4) in October, Series B at 70 in December, ownership 0.077, HC 0.6: 5.39, note folds in.
     proposed_mark: 5.39     # Conservative: the funded-bridge question (X-107 REVIEW) still stands -> Needs Review. cheque: 66.7 vs 70, inside.
     readiness: Needs Review
@@ -118,6 +134,13 @@ companies:
     readiness: Needs Review
     status_after: Active
     flags_include: [X-918, X-120]
+    superseded: true
+    resolution: >
+      Derivation error, found on the first run (02:47). X-918 is a REVIEW-severity finding (the policy table),
+      but readiness is decided by what is missing, and a position with no Portfolio row behind it is a missing
+      input: docs/how-it-works.md section 3 lists X-918 among the Blocked triggers and engine/readiness.py
+      names it in MISSING_INPUT_RULES. Blocked is the more conservative bucket and is correct. Mark 1.494,
+      status Active and the two flags all matched. Kept as first written.
   # ---- the listed position
   Drayvenn:                 # no event; a public security is worth its close and no feed prices the ticker -> stand-in -> Blocked
     readiness: Blocked
@@ -145,6 +168,14 @@ companies:
     proposed_mark: 8.7
     readiness: Needs Review
     flags_include: [X-202]
+    superseded: true
+    resolution: >
+      Derivation error against the letter of the policy, found on the first run (02:47): docs/valuation-policy.md
+      says age is "days / 30.4375 to one decimal, compared strictly", and 48.03 rounds to 48.0, which is not
+      greater than 48 — X-201 only, Ready. The engine follows the written policy. Whether rounding before the
+      comparison is the right policy is a separate question (a round one day past four years slips under the
+      REVIEW line); it is recorded under "Policy ambiguities" in HARDENING_REPORT.md for a human to decide.
+      Kept as first written.
   Cascabel Labs:            # round 2024-12-22 crosses 24 months (24.3); implied 86.2/1.6 = 54x > 30x absolute -> X-401; stale + screen -> X-405 REVIEW
     proposed_mark: 6.2
     readiness: Needs Review

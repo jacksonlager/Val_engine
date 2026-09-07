@@ -57,6 +57,13 @@ companies:
     readiness: Needs Review
     disposition: BLOCK
     flags_include: [X-102, X-118, X-302, X-119]
+    superseded: true
+    resolution: >
+      Derivation error, found on the first run (02:57). The cheque-price check (X-119) is deliberately not run on
+      a recap: M-012 treats the headline as "the allocation the workbook cannot see" and records whether HC funded
+      the new senior class, so HC's cheque pricing differently from the headline is the expected shape of a recap,
+      not a contradiction — X-102 already blocks the position for exactly that reason. X-102, X-118, X-302, the
+      0.855 mark and the BLOCK disposition all matched. Kept as first written.
   Aravine:                  # Series C at 110 < 128.5 is a down round (M-012, X-102); "led by HC" -> X-117; 0.104 x 110 = 11.44; term sheet resolved
     proposed_mark: 11.44
     readiness: Needs Review

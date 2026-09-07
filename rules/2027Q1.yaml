@@ -1,0 +1,13 @@
+# HC Valuation Engine — policy 2027Q1 (v0.1)
+# Generated from 2026Q4.yaml: inherits every threshold; override below only what moved,
+# bump policy_version, and record why in the commit.
+# synthetic test chain: inherits everything, window only
+policy_version: "2027Q1-0.1"
+inherits: 2026Q4
+
+quarter:
+  label: "Q1 2027"
+  measurement_date: 2027-03-31
+  prior_close: 2026-12-31
+  window_start: 2027-01-01
+  window_end: 2027-03-31
