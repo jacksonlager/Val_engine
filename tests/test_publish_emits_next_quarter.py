@@ -14,6 +14,8 @@ from pathlib import Path
 
 import openpyxl
 import pytest
+
+from tests.conftest import GENERATED_AT
 import yaml
 from fastapi.testclient import TestClient
 
@@ -94,7 +96,7 @@ def test_a_book_rerun_after_its_own_close_ignores_the_sidecar_it_wrote(root: Pat
     """The Q3 close leaves data/open_items_carry.yaml (quarter: Q3 2026) beside the Q3 workbook.
     Re-running Q3 must not read it as prior state — its own open items would age against itself."""
     paths = RunPaths.default(root=root, workbook=root / "data" / "HC_Mock_Portfolio_Data.xlsx", policy=root / "rules" / "2026Q3.yaml")
-    before = execute(paths, provider="stub", adjudicate=False).run
+    before = execute(paths, provider="stub", adjudicate=False, generated_at=GENERATED_AT).run
     (root / "data" / "open_items_carry.yaml").write_text(yaml.safe_dump({
         "quarter": "Q3 2026", "open_items": [{"company": "Gryphonel", "kind": "pending_acquisition", "opened": "2026-09-08",
                                               "opened_quarter": "Q3 2026", "age_quarters": 3, "escalated": True, "detail": "x"}],
@@ -102,7 +104,7 @@ def test_a_book_rerun_after_its_own_close_ignores_the_sidecar_it_wrote(root: Pat
     paths2 = RunPaths.default(root=root, workbook=root / "data" / "HC_Mock_Portfolio_Data.xlsx", policy=root / "rules" / "2026Q3.yaml")
     assert paths2.open_items_carry.exists()
     assert not sidecar_for(paths2, load_config(paths2.policy)).exists()
-    after = execute(paths2, provider="stub", adjudicate=False).run
+    after = execute(paths2, provider="stub", adjudicate=False, generated_at=GENERATED_AT).run   # pinned: the two runs must not straddle a second
     assert after.manifest.run_id == before.manifest.run_id and after.model_dump_json() == before.model_dump_json()
     # a sidecar from the quarter before is read
     (root / "data" / "open_items_carry.yaml").write_text(yaml.safe_dump({"quarter": "Q2 2026", "open_items": [], "mark_basis": [],

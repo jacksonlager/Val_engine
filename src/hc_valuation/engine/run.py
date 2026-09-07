@@ -33,11 +33,12 @@ import re
 import hashlib
 import json
 from datetime import date, datetime, time
-from typing import Mapping
+from typing import Any, Mapping
 
 from ..config import RuleConfig
 from . import declarative, marking, precedence
 from .readiness import action_of, approval_of, readiness_of, valuation_change
+from .notes import apply_readings
 from .exceptions import assess_carry_side, disposition, screen_notes
 from .inputs import ActivityFeed, Event, EventType, PortfolioSnapshot, Position, Status
 from .models import (OpenItemKind,
@@ -331,6 +332,9 @@ def run_valuation(
     prior_open_items: tuple[OpenItem, ...] = (),
     prior_staleness_anchors: Mapping[str, date] | None = None,
     prior_note_legs: Mapping[str, float] | None = None,
+    note_readings: Mapping[int, Any] | None = None,     # notes/schema.py RowReading by activity row, read outside the engine
+    note_reader: str = "off",
+    note_reader_report: Mapping[str, Any] | None = None,
     input_sha256: str = "",
     input_file: str = "",
     generated_at: datetime | None = None,
@@ -400,6 +404,7 @@ def run_valuation(
             _flag_refused(w)
             if applied:
                 screen_notes(w, applied, config)
+                apply_readings(w, applied, note_readings or {}, config)
         elif evs:
             applied = []
             for e in evs:
@@ -432,6 +437,7 @@ def run_valuation(
             # note language is screened on rows that were skipped as superseded, not on refused rows: a
             # refused row is fixed and rerun, and its note is read then
             screen_notes(w, live, config)
+            apply_readings(w, live, note_readings or {}, config)
         elif listed:
             marking.listed_carry(w, config, market)   # M-041: a public security is worth its close, not its history
         else:
@@ -522,6 +528,7 @@ def run_valuation(
         policy_version=config.policy_version, engine_version=ENGINE_VERSION,
         quarter_label=quarter, measurement_date=md, prior_close=config.quarter.prior_close,
         generated_at=gen, adjudication_enabled=config.adjudication.enabled, market_data_source=market_data_source,
+        note_reader=note_reader, note_reader_report=dict(note_reader_report or {}),
     )
     return ValuationRun(manifest=manifest, companies=tuple(results), rollups=tuple(rollups),
                         validation=tuple(validation), totals=totals, open_items=all_open, sensitivity=sens,

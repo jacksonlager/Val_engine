@@ -20,6 +20,7 @@ def _threshold(kind: OpenItemKind, cfg: RuleConfig) -> int | None:
         OpenItemKind.IPO_LOCKUP: None,   # resolves on its own date
         OpenItemKind.ACQUIRER_SHARES: o.announced_deal_stale_quarters,   # shares of a buyer still unpriced
         OpenItemKind.UNCONFIRMED_EXIT: o.unconfirmed_exit_stale_quarters,  # a closed exit whose cash never arrived
+        OpenItemKind.DEBT: o.note_unconverted_quarters,                     # a loan HC made ages like an unconverted note
     }[kind]
 
 
@@ -60,6 +61,7 @@ RESOLVES: dict[str, set[OpenItemKind]] = {
     "IPO": {OpenItemKind.CONVERTIBLE_NOTE, OpenItemKind.TERM_SHEET, OpenItemKind.PENDING_ACQUISITION},
     "Direct Listing": {OpenItemKind.CONVERTIBLE_NOTE, OpenItemKind.TERM_SHEET, OpenItemKind.PENDING_ACQUISITION},
     "Acquisition (Terminated)": {OpenItemKind.PENDING_ACQUISITION},
-    "Note Repaid": {OpenItemKind.CONVERTIBLE_NOTE},
+    "Note Repaid": {OpenItemKind.CONVERTIBLE_NOTE, OpenItemKind.DEBT},
     "Term Sheet Withdrawn": {OpenItemKind.TERM_SHEET},
+    "Lock-up Expiry": {OpenItemKind.IPO_LOCKUP},
 }

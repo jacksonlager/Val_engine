@@ -56,6 +56,8 @@ InputOpt = typer.Option(None, "--input", "-i", help="Portfolio workbook (.xlsx).
 PolicyOpt = typer.Option(None, "--policy", "-p", help="Policy file. Default: the workbook quarter's rules/<YYYY>Q<n>.yaml when it exists, else the base policy")
 ProviderOpt = typer.Option(None, "--provider", help="Market-data provider override (stub | live | pitchbook | synthetic), passed to the connectors")
 RefreshMarketOpt = typer.Option(False, "--refresh-market", help="Refetch the live market feed over its cache (provider live)")
+NoteReaderOpt = typer.Option(None, "--note-reader", help="Who reads the free text on each activity row against the case "
+                             "catalogue: off | claude (default: the policy's setting; off without ANTHROPIC_API_KEY)")
 RecommenderOpt = typer.Option(None, "--recommender", help="Who picks the one resolution shown first per flag: policy | claude "
                                                         "(default: the policy file's recommendation.provider)")
 # The decision ledgers. The real book keeps data/; a test chain (a synthetic quarter, a rehearsal)
@@ -241,7 +243,7 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
           overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
           out: Path = typer.Option(Path("dist"), "--out", "-o", help="Output folder"),
           provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt,
-          recommender: Optional[str] = RecommenderOpt) -> None:
+          recommender: Optional[str] = RecommenderOpt, note_reader: Optional[str] = NoteReaderOpt) -> None:
     """Produce every deliverable: report.html, workbook, CSVs, next-quarter input file, run.json, manifest.json."""
     from .api.app import STATIC_DIR
     from .api.history import build_history
@@ -250,7 +252,8 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
     from .pipeline import execute
 
     paths = _paths(input_path, policy, overrides, ledger_dir)
-    r = execute(paths, provider=_default_provider(paths, provider), refresh_market=refresh_market, recommender=recommender)
+    r = execute(paths, provider=_default_provider(paths, provider), refresh_market=refresh_market, recommender=recommender,
+                note_reader=note_reader)
     run = r.run
     out.mkdir(parents=True, exist_ok=True)
     q = _slug(run.manifest.quarter_label)
@@ -518,7 +521,7 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
         watch: bool = typer.Option(False, "--watch", help="Recompute when the workbook, policy or a ledger changes; "
                                                           "the open dashboard reloads itself"),
         provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt,
-        recommender: Optional[str] = RecommenderOpt) -> None:
+        recommender: Optional[str] = RecommenderOpt, note_reader: Optional[str] = NoteReaderOpt) -> None:
     """Compute the run, serve the dashboard and API, open a browser. With --watch, a new
     workbook dropped in place (or an edited policy / ledger) re-runs and refreshes the page."""
     import uvicorn
@@ -538,12 +541,12 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
             typer.echo(f"opening the most recent upload: {input_path.relative_to(repo_root())}")
     if input_path is None:
         application = create_app(None, provider=provider, provider_explicit=provider, refresh_market=refresh_market,
-                                 recommender=recommender, start_empty=True)
+                                 recommender=recommender, note_reader=note_reader, start_empty=True)
         typer.echo("no workbook loaded: upload one from the dashboard (or pass --input)")
     else:
         paths = _paths(input_path, policy, overrides, ledger_dir)
         application = create_app(paths, provider=_default_provider(paths, provider), provider_explicit=provider,
-                                 refresh_market=refresh_market, recommender=recommender)
+                                 refresh_market=refresh_market, recommender=recommender, note_reader=note_reader)
         typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")

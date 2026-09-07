@@ -37,6 +37,10 @@ class EventType(str, Enum):
     DIRECT_LISTING = "Direct Listing"
     TERM_SHEET_WITHDRAWN = "Term Sheet Withdrawn"   # M-071: a signed proposal fell through
     OPERATING_UPDATE = "Operating Update"           # M-072: metrics reported in prose, no transaction
+    SHARE_RESTRUCTURE = "Share Restructure"         # M-015: split, reverse split, reclassification — no economic change
+    DEBT_FACILITY = "Debt Facility"                 # M-062: venture debt ahead of the equity; HC's own loan carried at cost
+    VALUATION_ADJUSTMENT = "Valuation Adjustment"   # M-091: a write-down / write-up asserted on a row; a decision, not a transaction
+    LOCKUP_EXPIRY = "Lock-up Expiry"                # M-042: a listed position's lock-up ended; closes the lock-up item
 
 
 KNOWN_EVENT_TYPES: frozenset[str] = frozenset(e.value for e in EventType)

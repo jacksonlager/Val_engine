@@ -106,6 +106,15 @@ logic and the `disp-*` / `rd-*` CSS classes, so never rename a value to make a s
 — add or fix a label. Rule ids (X-101, M-080) stay visible in evidence, chips and tooltips; they
 do not belong in a headline, a button or a dialog title.
 
+**6. The note reader only adds.** Claude reads each activity row's free text against the case
+catalogue (`src/hc_valuation/notes/catalogue.py`) and the engine turns the reading into review
+findings (X-130 what no rule applied, X-131 a conflict with a column, X-126 supersedes the tab,
+X-132 not read). A reading never produces a number, never lowers a severity, never removes a
+finding, never runs inside `run_valuation` (readings are inputs, cached under `data/note_reads/`).
+`HC_NOTE_READER=off` pins it off; the test suite pins it off and hides the key. A new situation
+goes in the catalogue with a definition, terms and the rule that handles it, then
+`python3 scripts/case_catalogue.py` regenerates `docs/case-catalogue.md`.
+
 ## Conventions
 
 - Marks are `$M`. Tables 2 decimals, tiles 1, percentages 1 — via `frontend/src/lib/format.ts`.

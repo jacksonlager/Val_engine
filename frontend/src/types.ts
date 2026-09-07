@@ -258,6 +258,11 @@ export interface RunManifest {
   market_data_source: string;
   /** who chose each flag's recommendation: "policy" or "claude:<model>" */
   recommender?: string;
+  note_reader?: string;                   // "off: <reason>" | "claude:<model>"
+  note_reader_report?: {
+    status: string; provider: string; model: string; reason: string;
+    rows_with_text: number; rows_read: number; rows_failed: number; rows_from_cache: number; calls: number; unverified_quotes: number;
+  };
 }
 
 export interface ValuationRun {

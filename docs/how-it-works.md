@@ -74,6 +74,20 @@ Then the position is put in one **readiness bucket** — Blocked, Needs Review o
 
 **AI:** none in the screens. The one optional model integration at this stage is the *recommender*: when switched on, it chooses which of the engine's already-priced resolutions to show first and writes the sentence a reviewer reads. It cannot invent a resolution or a number. Today it is off (`recommendation.provider: policy`), so every suggestion is the rule's own default and is labelled "Policy suggestion".
 
+**Reading the notes.** The columns drive every rule; the free text on a row (Detail, Notes) is where
+the situations the columns cannot hold turn up — an escrow, a preference senior to HC, a stake that
+"per the cap table" differs from the cell, a figure that supersedes the Portfolio tab, an instruction
+to whoever values the position. The engine reads that text twice. A keyword screen (X-105) raises a
+fixed vocabulary from the policy. Then the note reader — Claude, when `ANTHROPIC_API_KEY` is set —
+classifies each row's text against the case catalogue (`docs/case-catalogue.md`: 28 kinds of thing a
+note can say) and reports, quoting the row, what it found. The engine compares that with what the
+row's rule took account of and raises the rest for review: X-130 for a kind no rule applied, X-131
+when the text states a different value for a column, X-126 when it supersedes the tab, X-132 when a
+row could not be read. A situation outside the catalogue is `other`, and `other` always reaches a
+person. The reader never sets a number, never lowers a severity, never removes a finding; with it
+off (the footer says so) only the keyword screen runs. Readings are cached, so a rerun of the same
+workbook is identical and needs no network.
+
 ### Stage 4 — Human review
 
 **What it does:** the review tool (`hc-valuation run`) opens on the **Activity** tab (the review queue), whose first group is every position the Activity tab touched — with the row, the rule that applied it and the mark it produced, Blocked first — followed by the rest of the book that still needs a person. Each card has one primary action that addresses the actual blocker ("Add closing price" on a listing with no quarter-end quote; otherwise the suggested step), and Override as the secondary route. Every route ends in the same confirmation, which will not close without a name and a reason. The decision is appended to `data/overrides.yaml` and the run recomputes.

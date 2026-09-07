@@ -167,6 +167,7 @@ export const KIND_LABEL: Record<string, string> = {
   term_sheet: "Term sheet",
   ipo_lockup: "IPO lock-up",
   unconfirmed_exit: "Exit awaiting consideration",
+  debt: "Loan by HC, at cost",
 };
 
 export function kindLabel(k: string): string {

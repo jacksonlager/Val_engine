@@ -523,7 +523,7 @@ def test_new_types_have_tiers_and_resolutions():
     assert all(precedence.TIER[t] == 4 for t in ("Distribution", "Ownership Adjustment", "Note Repaid", "Secondary Purchase"))
     assert precedence.ALLOWED_AFTER_TERMINAL == {"Distribution", "Note Repaid"}
     assert RESOLVES["Acquisition (Terminated)"] == {OpenItemKind.PENDING_ACQUISITION}
-    assert RESOLVES["Note Repaid"] == {OpenItemKind.CONVERTIBLE_NOTE}
+    assert RESOLVES["Note Repaid"] == {OpenItemKind.CONVERTIBLE_NOTE, OpenItemKind.DEBT}   # a repayment clears HC's own loan too
     assert OpenItemKind.CONVERTIBLE_NOTE in RESOLVES["Priced Equity Round"]
     assert RESOLVES["Direct Listing"] == RESOLVES["IPO"]
 
@@ -531,7 +531,7 @@ def test_new_types_have_tiers_and_resolutions():
 def test_every_event_type_is_registered(cfg):
     from hc_valuation.engine.run import build_registry
     reg = build_registry(cfg)
-    assert len(EventType) == 18      # the sixteen in the assignment plus Term Sheet Withdrawn and Operating Update
+    assert len(EventType) == 22      # the sixteen in the assignment plus the six the case catalogue added
     for et in EventType:
         meta, _ = reg.handler_for(et.value, cfg.quarter.measurement_date)
         assert meta.rule_id != "M-999", et

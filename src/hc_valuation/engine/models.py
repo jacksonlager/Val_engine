@@ -91,6 +91,7 @@ class OpenItemKind(str, Enum):
     IPO_LOCKUP = "ipo_lockup"
     ACQUIRER_SHARES = "acquirer_shares"   # M-024: consideration received as shares of the buyer
     UNCONFIRMED_EXIT = "unconfirmed_exit"  # M-020 with no cash recorded: the consideration is still to be confirmed
+    DEBT = "debt"                          # M-062: a loan HC made, carried at cost until repaid
 
 
 class OpenItem(_Frozen):
@@ -376,6 +377,8 @@ class RunManifest(_Frozen):
     adjudication_enabled: bool
     market_data_source: str
     recommender: str = "policy"     # "policy" | "claude:<model>" — who chose each flag's recommendation
+    note_reader: str = "off"        # "off: <reason>" | "claude:<model>" — who read the free text on each row
+    note_reader_report: dict[str, Any] = Field(default_factory=dict)   # notes/schema.py ReadingReport, for the footer
 
 
 class SectorMove(_Frozen):

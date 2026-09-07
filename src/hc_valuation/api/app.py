@@ -167,7 +167,8 @@ NO_WORKBOOK = {"message": "No workbook loaded yet. Upload a portfolio workbook t
 
 def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None,
                refresh_market: bool = False, recommender: str | None = None,
-               provider_explicit: str | None = None, *, start_empty: bool = False, root: Path | None = None) -> FastAPI:
+               provider_explicit: str | None = None, *, start_empty: bool = False, root: Path | None = None,
+               note_reader: str | None = None) -> FastAPI:
     """`provider` is what the first run reads (the CLI passes its resolved default; the library default is
     the fixture). `provider_explicit` is what the operator actually asked for, if anything: a workbook
     switch re-derives the provider from it, so a quarter only a synthetic file can price gets that file
@@ -195,7 +196,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     def recompute(refresh: bool = False, progress: Any = None) -> PipelineResult:
         with lock:
             app.state.result = execute(app.state.paths, provider=app.state.provider, refresh_market=refresh,
-                                       recommender=recommender, progress=progress)
+                                       recommender=recommender, note_reader=note_reader, progress=progress)
         return app.state.result
 
     def write_then_recompute(write) -> PipelineResult:
@@ -377,7 +378,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
             with lock:
                 app.state.paths, app.state.provider = new_paths, new_provider
                 try:
-                    app.state.result = execute(new_paths, provider=new_provider, recommender=recommender,
+                    app.state.result = execute(new_paths, provider=new_provider, recommender=recommender, note_reader=note_reader,
                                                progress=lambda i, name: step(offset + i, name))
                 except Exception:
                     app.state.paths, app.state.provider, app.state.result = previous

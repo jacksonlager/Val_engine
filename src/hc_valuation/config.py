@@ -142,6 +142,7 @@ class IndicationsCfg(_Strict):
     step_up_review_at: float = 3.0             # any round ≥ this × prior post: X-122 REVIEW unless an outside investor is named
     cheque_price_tolerance: float = 0.10       # hc_investment ÷ Δownership vs the stated post beyond this -> X-119 REVIEW
     cheque_check_min_ownership_delta: float = 0.01   # ... only when the stake bought is ≥ 1.0% (3-dp ownership rounding)
+    restructure_ownership_tolerance: float = 0.0005  # a Share Restructure row whose ownership moves more than this -> X-133 REVIEW
 
 
 class ExceptionsCfg(_Strict):
@@ -223,6 +224,18 @@ class AdjudicationCfg(_Strict):
     allowed_operators: list[str] = Field(default_factory=list)
 
 
+class NoteReaderCfg(_Strict):
+    """Who reads the free text on each activity row against the case catalogue (notes/catalogue.py).
+    `claude` asks the model what the text says that the columns do not — quoted, classified into
+    the catalogue's kinds, never a number — and the engine turns that into review findings (X-130,
+    X-131, X-126, X-132) that only ever add to what a reviewer sees. Answers are cached under
+    data/note_reads/ so reruns are deterministic and offline. Without an API key the reader is off,
+    the manifest says so, and the keyword screen (X-105) is the only reading of the notes."""
+    provider: Literal["off", "claude"] = "claude"
+    model: str = "claude-sonnet-4-5"
+    cache: bool = True
+
+
 class RecommendationCfg(_Strict):
     """Who picks the one resolution shown first for each BLOCK/REVIEW flag. `policy` takes the
     rule's own default (the first suggestion). `claude` asks the model to choose among the
@@ -270,6 +283,7 @@ class RuleConfig(_Strict):
     open_items: OpenItemsCfg = OpenItemsCfg()
     adjudication: AdjudicationCfg = AdjudicationCfg()
     recommendation: RecommendationCfg = RecommendationCfg()
+    note_reader: NoteReaderCfg = NoteReaderCfg()
     publish: PublishCfg = PublishCfg()
     history: HistoryCfg = HistoryCfg()
     custom_rules: list[CustomRuleSpec] = Field(default_factory=list)

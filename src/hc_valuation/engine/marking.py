@@ -443,7 +443,7 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
                ),
                action=f"Reconcile the ${abs(implied - proceeds):.2f}M difference between proceeds and deal value.",
                implied=implied, proceeds=proceeds)
-        w.handled(e, "escrow", "holdback", "earn-out", "earnout", "contingent", "milestone")
+        w.handled(e, "escrow", "holdback", "earn-out", "earnout", "contingent", "milestone", "indemnification", "indemnity", "indemnities")
         # The gap is a claim HC still holds. If the committee carries it (the `carry_gap` option), the
         # position rolls forward open with this item ageing on it until the escrow is released.
         w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.UNCONFIRMED_EXIT, opened=e.date,
@@ -702,6 +702,8 @@ def announced(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
     weighted = p * full + (1 - p) * hold
     non_binding = any_term_in(_NON_BINDING_TERMS, _text(e))
     if non_binding:
+        w.handled(e, "non-binding", "nonbinding", "loi", "letter of intent", "indicative", "proposal")
+    if non_binding:
         treatment = "hold_prior"
     new_equity = {"probability_weighted": weighted, "full_deal_value": full, "hold_prior": hold}[treatment]
     w.step("M-050", V, {"deal_value": deal, "ownership": w.ownership, "treatment": treatment, "close_probability": p,
@@ -813,6 +815,7 @@ def convertible_note(w: Working, e: Event, cfg: RuleConfig, market: MarketData) 
       description="Signed term sheet: non-binding; mark unchanged; disclosed as a pending event.")
 def term_sheet(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
     indicated = w.ownership * float(e.value) if e.value else None
+    w.handled(e, "non-binding", "nonbinding", "term sheet", "indicative", "proposal")
     w.step("M-070", V, {"indicated_post_money": e.value, "ownership": w.ownership, "indicated_mark": indicated, "detail": e.detail},
            w.proposed_mark, w.proposed_mark,
            f"Term sheet signed ({e.detail}); not closed. No enforceable transaction — mark unchanged"
@@ -851,7 +854,7 @@ def _note_converted(w: Working, e: Event, leg: float, post: float, after: float,
     conversion itself: the cap or discount applied, accrued interest, and that the principal is in
     `invested` exactly once (it is: the note leg was cost, the round re-marks the whole stake)."""
     w.flags = [f for f in w.flags if f.rule_id not in ("X-107", "X-108")]
-    w.handled(e, "conversion", "convert", "converts", "converted")
+    w.handled(e, "conversion", "convert", "converts", "converted", "accrued", "interest", "discount", "cap")
     w.flag("X-124", "treatment", Severity.REVIEW,
            f"HC's ${leg:.2f}M note converted into {into}: the note leg carried at cost is gone and the whole {after:.1%} stake is "
            f"marked at ${post:.1f}M post. The ${leg:.2f}M is in invested capital once. Confirm the conversion terms — the cap or "
@@ -900,6 +903,7 @@ def _prose_metrics(w: Working, e: Event) -> None:
 def term_sheet_withdrawn(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
     had = [i for i in w.open_items if i.kind == OpenItemKind.TERM_SHEET]
     indicated = w.alternative_marks.pop("term_sheet_indicated", None)
+    w.handled(e, "withdrawn", "withdrew", "cancelled", "canceled", "terminated", "rescinded", "lapsed", "supersede", "supersedes", "superseded")
     w.flags = [f for f in w.flags if f.rule_id != "X-109"]      # the disclosure is moot: the proposal is gone
     w.step("M-071", V, {"withdrawn": e.detail, "term_sheet_indicated": indicated, "open_term_sheets_closed": len(had)},
            w.proposed_mark, w.proposed_mark,
@@ -939,6 +943,126 @@ def operating_update(w: Working, e: Event, cfg: RuleConfig, market: MarketData) 
                        "Confirm the tab is current, or update it and rerun."),
                suggestions=(Suggest("as_proposed", "Keep the mark as proposed; update the Portfolio tab and rerun.", ("No transaction occurred.", "The tab is the input; the note is context."), "proposed"),),
                action="Confirm the Portfolio tab reflects this update, then rerun.", detail=e.detail, row_index=e.row_index)
+
+
+@rule(rule_id="M-015", version=V, applies_to=(EventType.SHARE_RESTRUCTURE.value,), severity=Severity.MONITOR,
+      effective_from=EFFECTIVE, tier=4,
+      description="Share restructure (split, reverse split, reclassification): no economic change; mark and ownership unchanged. "
+                  "A row that also moves the ownership is a cap-table change and goes to a reviewer.")
+def share_restructure(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
+    before = w.ownership
+    after = float(e.ownership_after) if e.ownership_after is not None else before
+    moved = abs(after - before) > cfg.exceptions.indications.restructure_ownership_tolerance
+    w.step("M-015", V, {"detail": e.detail, "ownership_before": before, "ownership_after": after, "ownership_moved": moved},
+           w.proposed_mark, w.proposed_mark,
+           f"Share restructure ({e.detail}). Share counts change, economics do not: mark unchanged at ${w.proposed_mark:.2f}M"
+           + (f"; the row's {after:.1%} ownership differs from the book's {before:.1%} and is not applied until confirmed." if moved
+              else f"; ownership stays {before:.1%}."), e)
+    if moved:
+        w.flag("X-133", "treatment", Severity.REVIEW,
+               f"A share restructure should not move HC's fully diluted stake, but the row says {after:.1%} against {before:.1%} in "
+               "the book. Either the restructure was not neutral (a reclassification that converted preferred, a ratchet) or the "
+               "cell is wrong. The mark holds on the book's ownership until a person says which.",
+               points=(f"A split or reclassification is **not supposed to move the stake**, yet the row says **{after:.1%}** vs **{before:.1%}**.",
+                       "Either the restructure **changed the economics** or the cell is **wrong**.",
+                       "The mark holds on the **book's ownership** until confirmed."),
+               suggestions=(
+                   Suggest("as_proposed", "Hold the mark on the book's ownership; the restructure is neutral.", ("Share counts change, the fully diluted stake does not.", "Right when the cell is a share count read as a percentage."), "proposed"),
+                   Suggest("at_new_ownership", f"Re-mark at the row's {after:.1%} on the last-round basis.", ("Right if the reclassification actually changed HC's stake.", "The last-round price is unchanged; only the share moved."), "value", value=round(after * w.latest_post + w.note_at_cost, 6)),
+               ),
+               action="Confirm on the cap table whether the restructure changed HC's fully diluted stake.",
+               ownership_before=before, ownership_after=after, detail=e.detail)
+    else:
+        w.flag("X-133", "treatment", Severity.MONITOR,
+               f"Share restructure recorded ({e.detail}): share counts changed, the fully diluted stake and the mark did not.",
+               detail=e.detail, ownership=before)
+
+
+@rule(rule_id="M-062", version=V, applies_to=(EventType.DEBT_FACILITY.value,), severity=Severity.REVIEW,
+      effective_from=EFFECTIVE, tier=6,
+      description="Debt facility: debt is not a price, so the equity mark is unchanged. A loan HC itself made is carried at cost "
+                  "on its own leg until repaid. Always a review: debt ranks ahead of the equity and changes the runway.")
+def debt_facility(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
+    inv = float(e.hc_investment or 0.0)
+    size = float(e.value) if e.value else None
+    w.step("M-062", V, {"facility_musd": size, "hc_lent": inv, "detail": e.detail},
+           w.proposed_mark, w.proposed_mark + inv,
+           f"Debt facility ({e.detail}" + (f", ${size:.1f}M" if size else "") + "). Debt is not a price: equity mark unchanged at "
+           f"${w.equity_mark:.2f}M." + (f" HC's ${inv:.2f}M loan carried at cost on its own leg." if inv else " HC is not the lender."), e)
+    w.handled(e, "covenant", "default", "debt", "loan", "facility", "warrant")
+    w.flag("X-127", "liquidity", Severity.REVIEW,
+           f"The company took on debt" + (f" (${size:.1f}M)" if size else "") + f" ({e.detail}). Nothing about the equity price changed, "
+           "but the debt ranks ahead of HC's shares, usually carries covenants and often warrants, and the drawn cash is not on the "
+           "Portfolio tab until someone puts it there."
+           + (f" HC lent ${inv:.2f}M, carried at cost." if inv else ""),
+           points=(f"**Debt ahead of the equity**" + (f": **${size:.1f}M**" if size else "") + f" ({e.detail}).",
+                   "Covenants, warrants and seniority change what HC's shares are worth in a downside; **the mark ignores them**.",
+                   "If the cash was drawn, the tab's **cash and runway are stale** until updated."),
+           suggestions=(
+               Suggest("as_proposed", "Keep the equity mark; carry HC's loan (if any) at cost.", ("Debt is not a price for the equity.", "Standard treatment; revisit if covenants are breached."), "proposed"),
+           ),
+           action="Confirm seniority, covenants and any warrants attached; update the Portfolio tab's cash if the facility was drawn.",
+           facility_musd=size, hc_lent=inv, detail=e.detail)
+    if inv:
+        w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.DEBT, opened=e.date, opened_quarter=w.quarter_label,
+                                     amount_musd=inv, detail=e.detail))
+        w.note_at_cost += inv
+        w.invested += inv
+        w.financings.append((e.date, e.event_type, inv))
+
+
+@rule(rule_id="M-091", version=V, applies_to=(EventType.VALUATION_ADJUSTMENT.value,), severity=Severity.REVIEW,
+      effective_from=EFFECTIVE, tier=7,
+      description="Valuation adjustment asserted on an activity row (write-down, impairment, write-up): not a transaction, so the "
+                  "engine books nothing from it. The figure is offered as a priced option; the decision is the committee's (E-01).")
+def valuation_adjustment(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
+    stated = w.ownership * float(e.value) if e.value else None
+    w.step("M-091", V, {"stated_company_value": e.value, "ownership": w.ownership, "stated_mark": stated, "detail": e.detail},
+           w.proposed_mark, w.proposed_mark,
+           f"Valuation adjustment on the row ({e.detail}). No transaction: the engine proposes the evidence-based mark unchanged at "
+           f"${w.proposed_mark:.2f}M" + (f"; the row's ${float(e.value):.1f}M would put HC at ${stated:.2f}M, offered as an option." if stated is not None else
+                                        "; the row states no value.") + " A mark change without a transaction is a committee decision.", e)
+    w.handled(e, "impairment", "write-down", "writedown", "write-off", "restated", "markdown")
+    sugg = [Suggest("as_proposed", "Keep the evidence-based mark; record the adjustment as a committee decision if it stands.", ("The engine books transactions and observable inputs, not assertions.", "An override with a reason is the audit trail an adjustment needs."), "proposed")]
+    if stated is not None:
+        sugg.append(Suggest("at_stated", f"Book the row's stated valuation (${stated:.2f}M).", ("Right if the committee already decided this and the row records it.", "Recorded as an override addressed to this finding."), "value", value=round(stated, 6)))
+    w.flag("X-128", "treatment", Severity.REVIEW,
+           f"An activity row asserts a valuation adjustment ({e.detail})" + (f" to ${float(e.value):.1f}M company value, ${stated:.2f}M for HC" if stated is not None else "")
+           + f". The engine does not book a mark from an assertion: the proposal stays at ${w.proposed_mark:.2f}M and the adjustment is "
+           "a decision for the committee to record, with its reason.",
+           points=(f"The row **asserts an adjustment** ({e.detail})" + (f" to **${stated:.2f}M**" if stated is not None else "") + ".",
+                   "Not a transaction: the engine **books nothing from it**.",
+                   "A mark change is a **committee decision**, recorded with a reason."),
+           suggestions=tuple(sugg),
+           action="Decide the adjustment as a committee override, or supply the transaction that supports it.",
+           stated_company_value=e.value, stated_mark=stated, detail=e.detail)
+
+
+@rule(rule_id="M-042", version=V, applies_to=(EventType.LOCKUP_EXPIRY.value,), severity=Severity.MONITOR,
+      effective_from=EFFECTIVE, tier=4,
+      description="Lock-up expiry on a listed position: the shares are now saleable; the lock-up item closes; the mark is the "
+                  "market close (M-041) as before. On an unlisted position the row is a contradiction to confirm.")
+def lockup_expiry(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
+    had = [i for i in w.open_items if i.kind == OpenItemKind.IPO_LOCKUP]
+    w.step("M-042", V, {"detail": e.detail, "listed": w.listed, "lockups_closed": len(had)}, w.proposed_mark, w.proposed_mark,
+           f"Lock-up expiry ({e.detail}). " + ("The shares are saleable; the lock-up item closes; the mark stays at the market close."
+                                              if w.listed else "The book does not show this company as listed, so there is no lock-up to end."), e)
+    w.handled(e, "lock-up", "lockup")
+    if w.listed:
+        w.flag("X-129", "treatment", Severity.MONITOR,
+               f"Lock-up expired ({e.detail}): HC's shares are saleable. Nothing changes in the mark — a Level 1 price carries no "
+               "lock-up discount under this policy — and the lock-up item is closed.",
+               detail=e.detail, lockups_closed=len(had))
+    else:
+        w.flag("X-129", "treatment", Severity.REVIEW,
+               f"A lock-up expiry was recorded ({e.detail}) but the book does not show the company as listed. Either the listing "
+               "was never recorded on the Portfolio tab (Stage = Public) or the row is on the wrong company.",
+               points=("**Lock-up expiry on an unlisted position.**",
+                       "Either the **listing was never recorded** on the tab, or the row is on the **wrong company**.",
+                       "The mark is unchanged until this is confirmed."),
+               suggestions=(Suggest("as_proposed", "Hold the mark; correct the tab or the row and rerun.", ("Nothing on the row prices the position.", "A listing must be on the tab for the market close to apply."), "proposed"),),
+               action="Confirm whether the company is listed; if so, mark the Portfolio tab's Stage as Public and rerun.",
+               detail=e.detail)
 
 
 # --------------------------------------------------------------------------- M-013

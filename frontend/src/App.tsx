@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Rationale, Sources, ValuationRun, WorkbookProfile } from "./types";
+import type { Rationale, Sources, ValuationRun, WorkbookProfile, RunManifest } from "./types";
 import { currentRunStamp, fetchWorkbooks, loadHistory, loadProposals, loadRationale, loadRun, loadSignals, NoWorkbookError, selectWorkbook, STATIC_REASON, type Mode } from "./lib/api";
 import { UploadButton } from "./components/Upload";
 import { ResetButton } from "./components/Reset";
@@ -21,6 +21,17 @@ import { MarketView } from "./views/Market";
 import { RulesView } from "./views/Rules";
 
 type View = "queue" | "companies" | "movement" | "funds" | "market" | "rules" | "open" | "proposals";
+
+/** "On (Claude, 21 rows)" / "Off: no API key" — what the footer says about the note reader. */
+function noteReaderLabel(m: RunManifest): string {
+  const r = m.note_reader_report;
+  if (!r) return "Off";
+  if (r.status !== "on") return r.reason ? `Off: ${r.reason.replace("ANTHROPIC_API_KEY not set", "no API key")}` : "Off";
+  const parts = [`${r.rows_read} of ${r.rows_with_text} rows read`];
+  if (r.rows_from_cache) parts.push(`${r.rows_from_cache} from cache`);
+  if (r.rows_failed) parts.push(`${r.rows_failed} failed`);
+  return `On (Claude ${r.model}) · ${parts.join(" · ")}`;
+}
 // The Queue first — what the quarter brought in sits at its top, then the rest of the book that
 // needs a person — then the views the brief asks for: the auditor's table, what moved and why,
 // and where the market numbers came from. Funds lives on the executive dashboard; open items
@@ -370,8 +381,24 @@ export default function App() {
               </span>
               <span>{m.adjudication_enabled ? "On" : "Off"}</span>
             </div>
+            <div>
+              <span title="Claude reads the free text on every activity row against the case catalogue and raises anything the columns do not carry for review. It never sets a number.">
+                Reading of row notes
+              </span>
+              <span>{noteReaderLabel(m)}</span>
+            </div>
           </div>
         </details>
+        {m.note_reader_report && m.note_reader_report.status !== "on" && m.note_reader_report.rows_with_text > 0 && (
+          <span className="text-[var(--review-text)]" title={m.note_reader}>
+            Row notes were not read by Claude ({m.note_reader_report.reason}); only the keyword screen ran on them.
+          </span>
+        )}
+        {m.note_reader_report && m.note_reader_report.rows_failed > 0 && (
+          <span className="text-[var(--review-text)]">
+            {m.note_reader_report.rows_failed} row note{m.note_reader_report.rows_failed === 1 ? "" : "s"} could not be read — see the findings.
+          </span>
+        )}
         <button className={`btn ml-auto ${blockingIssues ? "disp-BLOCK btn-danger" : ""}`} onClick={() => setDrawer(true)}>
           {run.validation.length === 0
             ? "Data checks: all passed"

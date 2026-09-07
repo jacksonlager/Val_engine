@@ -19,6 +19,9 @@ GENERATED_AT = datetime(2026, 9, 30)
 
 
 def main() -> int:
+    import os
+    os.environ["HC_NOTE_READER"] = "off"       # the fixture never depends on a model or a key; same pin as the suite
+    os.environ.pop("ANTHROPIC_API_KEY", None)
     from hc_valuation import pipeline
 
     # The fixture is the deliverable on an EMPTY committee ledger, whatever data/overrides.yaml holds

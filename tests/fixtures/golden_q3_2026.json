@@ -9305,11 +9305,24 @@
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
   "market_data_source": "stub",
   "measurement_date": "2026-09-30",
+  "note_reader": "off: switched off by HC_NOTE_READER",
+  "note_reader_report": {
+   "calls": 0,
+   "model": "",
+   "provider": "off",
+   "reason": "switched off by HC_NOTE_READER",
+   "rows_failed": 0,
+   "rows_from_cache": 0,
+   "rows_read": 0,
+   "rows_with_text": 18,
+   "status": "off",
+   "unverified_quotes": 0
+  },
   "policy_version": "2026Q3-0.2",
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
   "recommender": "claude:claude-sonnet-4-5",
-  "run_id": "919040e39231"
+  "run_id": "286fb3a06c2d"
  },
  "open_items": [
   {

@@ -41,12 +41,18 @@ import tempfile as _tempfile
 _SESSION_LEDGER = Path(_tempfile.mkdtemp(prefix="hc-test-ledger-"))
 _os.environ["HC_LEDGER_DIR"] = str(_SESSION_LEDGER)
 _os.environ.pop("HC_OVERRIDES", None)
+# The suite never calls a model: the note reader is pinned off and no API key is visible to it,
+# whatever the shell that started pytest had exported. A test that wants a reader injects a fake.
+_os.environ["HC_NOTE_READER"] = "off"
+_os.environ.pop("ANTHROPIC_API_KEY", None)
 
 
 @pytest.fixture(autouse=True)
 def _isolated_ledger(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("HC_LEDGER_DIR", str(tmp_path / "ledger"))
     monkeypatch.delenv("HC_OVERRIDES", raising=False)
+    monkeypatch.setenv("HC_NOTE_READER", "off")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
 
 ROOT = Path(__file__).resolve().parents[1]

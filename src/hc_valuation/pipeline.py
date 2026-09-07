@@ -218,15 +218,18 @@ class PipelineResult:
     recommender: Any = None                              # the chooser that filled Flag.recommendation (recommend.py)
     snapshot: Any = None                                 # the PortfolioSnapshot the run started from (prior_screen reads it)
     prior_screen: Any = None                             # memo: prior_screen.screen_prior_close, filled on first use
+    note_report: Any = None                              # notes/schema.py ReadingReport: what the note reader did
 
 
-STAGES = ("Reading the workbook", "Checking the data", "Fetching market data", "Loading the decision ledger",
-          "Valuing every position", "Drafting treatments for unrecognised events", "Choosing each next step")
+STAGES = ("Reading the workbook", "Checking the data", "Reading the notes on each row", "Fetching market data",
+          "Loading the decision ledger", "Valuing every position", "Drafting treatments for unrecognised events",
+          "Choosing each next step")
 
 
 def execute(paths: RunPaths | None = None, *, provider: str | None = None, generated_at: datetime | None = None,
             adjudicate: bool = True, refresh_market: bool = False, recommender: str | None = None,
-            refresh_recommendations: bool = False, progress: Any = None) -> PipelineResult:
+            refresh_recommendations: bool = False, progress: Any = None, note_reader: str | None = None,
+            refresh_notes: bool = False, reader: Any = None) -> PipelineResult:
     """`progress(stage_index, stage_name)` is called as each stage of STAGES begins, for a caller
     that shows the work (the upload dialog); it never changes what is computed."""
     from .connectors import assemble_market_data   # local import: connectors may pull optional deps
@@ -243,19 +246,25 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
     stage(1)
     issues = validate(snapshot, feed, cfg, explained_departures=load_mark_basis(sidecar))
     stage(2)
+    # The note reader (notes/reader.py): what each row's free text says that its columns do not,
+    # read outside the engine and handed in as value objects. Findings only, never a number.
+    from .notes import make_reader, read_feed
+    readings, note_report = read_feed(feed, reader or make_reader(cfg, paths.root, note_reader, refresh=refresh_notes))
+    stage(3)
     assembled = assemble_market_data(cfg, paths.root, snapshot, feed, provider=provider, refresh=refresh_market)
     market, source = assembled
     market_report = dict(getattr(assembled, "report", None) or {})
-    stage(3)
+    stage(4)
     ledger = load_overrides(paths.overrides)
     prior_items = load_prior_open_items(sidecar)
 
-    stage(4)
+    stage(5)
     run = run_valuation(
         snapshot, feed, market, ledger, cfg,
         validation=tuple(issues), prior_open_items=prior_items,
         prior_staleness_anchors=load_staleness_anchors(sidecar),
         prior_note_legs=load_note_legs(sidecar),
+        note_readings=readings, note_reader=note_report.label(), note_reader_report=note_report.model_dump(),
         input_sha256=file_sha256(paths.workbook), input_file=paths.workbook.name,
         generated_at=generated_at or datetime.now(timezone.utc).replace(microsecond=0),
         market_data_source=source,
@@ -263,15 +272,15 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
 
     proposals: list = []
     if adjudicate and cfg.adjudication.enabled:
-        stage(5)
+        stage(6)
         from .adjudication import adjudicate_run
         proposals = adjudicate_run(run, feed, cfg, paths)
-    stage(6)
+    stage(7)
 
     # One recommendation per actionable flag — chosen among the engine's priced suggestions by
     # the policy default or by Claude (recommend.py). Outside the engine, after it, like E-09.
     result = PipelineResult(run=run, config=cfg, paths=paths, market=market, proposals=proposals, market_report=market_report,
-                            snapshot=snapshot)
+                            snapshot=snapshot, note_report=note_report)
     from .recommend import make_chooser, recommend_run
     chooser = make_chooser(cfg, paths.root, recommender, refresh=refresh_recommendations)
     signals = None

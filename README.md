@@ -119,6 +119,17 @@ deterministic and offline (`pip install -e ".[adjudication]"`, set `ANTHROPIC_AP
 `hc-valuation recommend` once, commit the folder). Accepting a recommendation, or any other
 option, records an ordinary override under a named approver.
 
+**The note reader.** The free text on an activity row is where the situations the columns cannot
+hold turn up. With `note_reader.provider: claude` in the policy (the default; `--note-reader off`
+or `HC_NOTE_READER=off` disables it) and `ANTHROPIC_API_KEY` set, Claude reads each row's Detail
+and Notes against the case catalogue (`docs/case-catalogue.md`, 28 kinds of thing a note can say)
+and reports, quoting the row, what it found. The engine compares the reading with what the row's
+rule took account of and raises the rest for review — X-130 a kind no rule applied, X-131 a value
+that conflicts with a column, X-126 a figure that supersedes the Portfolio tab, X-132 a row the
+reader could not read. It never sets a number, never lowers a severity, never removes a finding;
+readings are cached under `data/note_reads/` so reruns are deterministic and offline, and the
+footer says whether the notes were read. Without the key only the keyword screen (X-105) runs.
+
 **The audit chain.** A mark is not a value, it is a list of steps. Each `MarkStep` records
 the rule that fired, its version, every input it read, the prior and new value, a
 one-sentence rationale and the activity-tab row it came from. `proposed_mark` is asserted

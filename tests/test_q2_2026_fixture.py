@@ -79,8 +79,12 @@ def test_marks_invested_and_realized_tie_to_the_answer_key(q2):
 def test_unknown_event_types_block_visibly_and_the_rest_reach_a_reviewer(q2):
     run, _ = q2
     by = run.by_company()
-    for name in ("Drayvenn", "Umberly"):                              # Stock Split, Debt Facility: still unknown, still Blocked
-        assert by[name].readiness.value == "Blocked" and "M-999" in {f.rule_id for f in by[name].flags}, name
+    # Stock Split (M-015) and Debt Facility (M-062) are handled now: a neutral split is nothing to decide, debt ahead
+    # of the equity is a review. Neither is a blocked unknown any more.
+    d, u = by["Drayvenn"], by["Umberly"]
+    assert d.readiness.value == "Ready" and [s.rule_id for s in d.steps] == ["M-015"] and d.ownership_after == pytest.approx(0.034)
+    assert u.readiness.value == "Needs Review" and [s.rule_id for s in u.steps] == ["M-062"] and "X-127" in {f.rule_id for f in u.flags}
+    assert not any("M-999" in {f.rule_id for f in c.flags} for c in (d, u))
     # Operating Update (M-072) and Term Sheet Withdrawn (M-071) are handled now: the mark holds and a reviewer
     # gets the right question — the figures belong on the tab (X-126); the failed raise is weighed (X-125)
     b, h = by["Brumewell"], by["Halcyra"]
@@ -88,7 +92,7 @@ def test_unknown_event_types_block_visibly_and_the_rest_reach_a_reviewer(q2):
     assert h.readiness.value == "Needs Review" and [s.rule_id for s in h.steps] == ["M-070", "M-071"]
     assert "X-125" in {f.rule_id for f in h.flags} and not any(i.kind.value == "term_sheet" for i in h.open_items)
     assert not {"M-999", "X-109"} & {f.rule_id for f in list(b.flags) + list(h.flags)}
-    assert by["Drayvenn"].proposed_mark == pytest.approx(80.3) and by["Drayvenn"].ownership_after == pytest.approx(0.034)
+    assert by["Drayvenn"].proposed_mark == pytest.approx(80.3)
     assert by["Kolvani Health"].realized_cumulative == pytest.approx(15.9) and by["Kolvani Health"].proposed_mark == 0.0
     assert by["Hearthwick"].status_after.value == "Acquired" and by["Hearthwick"].realized_cumulative == pytest.approx(1.2)
     assert by["Tidewell Health"].note_at_cost == 0.0 and by["Tidewell Health"].invested_after == pytest.approx(1.4)

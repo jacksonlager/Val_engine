@@ -115,13 +115,15 @@ _SYNONYMS: dict[str, tuple[str, ...]] = {
         "priced round", "equity round", "priced equity", "financing round", "equity financing",
         "series seed", "series a", "series a extension", "series b", "series c", "series d", "series e", "series f",
         "seed round", "seed", "series a (recap)", "pro rata", "follow-on", "insider round", "up round", "down round",
-        "recap", "round",
+        "recap", "round", "pre-seed", "series a-1", "series b-1", "series c-1", "series g", "growth round", "extension round",
+        "series seed extension", "series b extension", "series c extension", "flat round", "internal round",
     ),
     EventType.CONVERTIBLE_NOTE.value: (
         "note", "convertible", "bridge", "bridge note", "bridge loan", "convertible bridge", "safe",
         "post-money safe", "pre-money safe", "convertible security",
     ),
-    EventType.IPO.value: ("initial public offering", "ipo", "listing", "public listing", "listed", "went public"),
+    EventType.IPO.value: ("initial public offering", "ipo", "listing", "public listing", "listed", "went public",
+                          "de-spac", "despac", "de-spac closed", "spac merger closed", "public via spac", "spac listing"),
     EventType.DIRECT_LISTING.value: ("direct listing", "direct list"),
     EventType.TERM_SHEET_WITHDRAWN.value: (
         "term sheet withdrawn", "term sheet cancelled", "term sheet canceled", "term sheet rescinded", "term sheet lapsed",
@@ -129,7 +131,27 @@ _SYNONYMS: dict[str, tuple[str, ...]] = {
     ),
     EventType.OPERATING_UPDATE.value: (
         "operating update", "management update", "metrics update", "trading update", "kpi update", "financial update",
-        "operating metrics", "board update",
+        "operating metrics", "board update", "company update", "quarterly update", "portfolio update", "management change",
+        "ceo change", "ceo departure", "founder departure", "customer update", "litigation update", "name change",
+        "revenue update", "arr update", "headcount reduction", "layoffs", "restructuring (operational)",
+    ),
+    EventType.SHARE_RESTRUCTURE.value: (
+        "share restructure", "stock split", "share split", "reverse split", "reverse stock split", "share consolidation",
+        "share reclassification", "reclassification", "stock dividend", "share class conversion", "conversion to common",
+        "recapitalization of shares",
+    ),
+    EventType.DEBT_FACILITY.value: (
+        "debt facility", "venture debt", "term loan", "credit facility", "loan facility", "debt financing", "venture loan",
+        "revolving credit", "revolver", "line of credit", "mezzanine", "debt raise", "loan", "debt",
+    ),
+    EventType.VALUATION_ADJUSTMENT.value: (
+        "valuation adjustment", "write-down", "writedown", "write down", "impairment", "impaired", "write-up", "writeup",
+        "write up", "markdown", "mark-down", "mark down", "mark-up", "mark up", "valuation change", "fair value adjustment",
+        "revaluation", "committee adjustment", "valuation committee adjustment",
+    ),
+    EventType.LOCKUP_EXPIRY.value: (
+        "lock-up expiry", "lockup expiry", "lock-up expired", "lockup expired", "lock-up release", "lockup release",
+        "end of lock-up", "lock-up ended", "lockup ended", "lock-up expiration", "lockup expiration",
     ),
     EventType.ACQ_CLOSED.value: (
         "acquisition closed", "acquired", "exit", "exit closed", "m&a closed", "sale of company", "sold",
@@ -147,14 +169,15 @@ _SYNONYMS: dict[str, tuple[str, ...]] = {
     EventType.SHUTDOWN.value: (
         "shut down", "shutdown", "wind down", "wound down", "wind-down", "ceased operations", "dissolved",
         "dissolution", "liquidation", "liquidated", "chapter 7", "bankruptcy (chapter 7)", "abc",
-        "assignment for the benefit of creditors", "closed down", "company closed",
+        "assignment for the benefit of creditors", "closed down", "company closed", "insolvency", "receivership",
+        "administration (insolvency)", "chapter 7 filing", "write-off (shutdown)",
     ),
     EventType.BANKRUPTCY_CH11.value: (
         "chapter 11", "bankruptcy (chapter 11)", "reorganization", "reorganisation", "restructuring (chapter 11)",
     ),
     EventType.SECONDARY.value: (
         "secondary", "secondary sale", "sold shares", "partial sale", "tender offer (sold)", "tender (sold)",
-        "sale of shares",
+        "sale of shares", "block sale", "partial exit", "share sale",
     ),
     EventType.SECONDARY_PURCHASE.value: (
         "secondary purchase", "purchased shares", "bought shares", "tender offer (bought)", "acquired shares from",
@@ -166,10 +189,12 @@ _SYNONYMS: dict[str, tuple[str, ...]] = {
     EventType.DISTRIBUTION.value: (
         "distribution", "dividend", "cash distribution", "escrow release", "escrow released", "holdback release",
         "earn-out", "earnout", "earn out", "milestone payment", "contingent consideration", "deferred consideration",
+        "return of capital", "proceeds distribution", "liquidating distribution", "recovery", "final distribution",
     ),
     EventType.OWNERSHIP_ADJUSTMENT.value: (
         "ownership adjustment", "warrant exercise", "warrants exercised", "option pool expansion", "pool expansion",
         "option pool top-up", "cap table restatement", "cap table correction", "ownership correction", "true-up",
+        "anti-dilution adjustment", "ratchet adjustment", "share transfer", "fund transfer", "cross-fund transfer",
     ),
     EventType.NEW_INVESTMENT.value: (
         "new investment", "initial investment", "first investment", "first check", "new position",

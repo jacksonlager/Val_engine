@@ -204,6 +204,99 @@ rules:
     why_severity: >-
       Review because the input is wrong, not the rule: a person updates the Portfolio tab from the
       note (or confirms the tab is current) and the screens re-run on the corrected figures.
+  - id: X-127
+    name: Debt facility ahead of the equity
+    family: liquidity
+    severity: [REVIEW]
+    source: policy
+    reads: Event = Debt Facility, Post-Money / Deal Value (facility size), HC Investment (HC's own loan)
+    why_flag: >-
+      Debt is not a price for the equity, so the mark does not move; but the facility ranks ahead of
+      HC's shares, usually carries covenants and often warrants, and the drawn cash is not on the
+      Portfolio tab until a person puts it there. A loan HC itself made is carried at cost on its
+      own leg until repaid.
+    why_severity: >-
+      Review because seniority, covenants and warrants change what the equity is worth in a
+      downside and none of them is in a column; the reviewer confirms them and updates the tab.
+  - id: X-128
+    name: Valuation adjustment asserted on a row
+    family: treatment
+    severity: [REVIEW]
+    source: policy
+    reads: Event = Valuation Adjustment, Post-Money / Deal Value (the stated company value)
+    why_flag: >-
+      A write-down, impairment or write-up entered as an activity row is a judgment, not a
+      transaction. The engine books transactions and observable inputs, so the proposal is the
+      evidence-based mark and the stated figure is offered as a priced option.
+    why_severity: >-
+      Review because the row may record a decision the committee already took, or may be one
+      person's opinion; either way it is booked only as an override with a named reason.
+  - id: X-129
+    name: Lock-up expiry
+    family: treatment
+    severity: [MONITOR, REVIEW]
+    source: policy
+    reads: Event = Lock-up Expiry, the position's listed status, the open lock-up item
+    why_flag: >-
+      On a listed position the shares become saleable and the lock-up item closes; the mark is the
+      market close as before, since a Level 1 price carries no lock-up discount under this policy.
+    why_severity: >-
+      Monitor on a listed position: nothing to decide. Review when the book does not show the
+      company as listed — the listing was never recorded on the tab or the row is on the wrong
+      company, and a person has to say which.
+  - id: X-133
+    name: Share restructure
+    family: treatment
+    severity: [MONITOR, REVIEW]
+    source: policy
+    reads: Event = Share Restructure, HC Ownership After vs the book's ownership
+    why_flag: >-
+      A split, reverse split or reclassification changes share counts, not economics: the mark and
+      the fully diluted stake are unchanged. A row that also moves the stake is either a
+      non-neutral reclassification or a wrong cell.
+    why_severity: >-
+      Monitor when the stake is unchanged. Review when the row's ownership differs from the book:
+      the mark holds on the book's stake until the cap table says whether the economics moved.
+  - id: X-130
+    name: Note describes what no rule applied
+    family: notes
+    severity: [REVIEW]
+    source: policy
+    reads: the row's Detail and Notes as read by the note reader against the case catalogue; the terms the row's rule handled
+    why_flag: >-
+      The reader found the text describing something from the case catalogue — an escrow, a
+      preference, a restated stake, a dispute — that the row's rule did not take account of and
+      the keyword screen did not name. The engine applied the columns and ignored the rest; the
+      quote is on the finding so the reviewer reads exactly what it saw.
+    why_severity: >-
+      Review because the text may change the mark and only a person can say how; a reading is
+      evidence about the text, never a number, so it can add a question but never answer one.
+  - id: X-131
+    name: Note conflicts with a column
+    family: data
+    severity: [REVIEW]
+    source: policy
+    reads: a column on the row and the words in the row's text that state a different value or fact for it
+    why_flag: >-
+      The text states a figure or fact for one of the row's columns that differs from the cell —
+      proceeds, ownership, a date. The engine booked the column. One of the two is wrong and the
+      mark depends on which.
+    why_severity: >-
+      Review, in the data family so that it escalates to Blocked alongside any other review
+      finding on the position; the reviewer corrects the row and reruns or decides by override.
+  - id: X-132
+    name: Note not read
+    family: notes
+    severity: [REVIEW]
+    source: policy
+    reads: the reader's failure reason for the row
+    why_flag: >-
+      The note reader was on but could not read this row's text (a model or network failure, an
+      unreadable reply). Only the keyword screen ran on it, so anything the note says beyond the
+      columns is unaccounted for until a person reads it.
+    why_severity: >-
+      Review because a silent failure is the one outcome that could hide a material note; the
+      finding clears on a rerun with the reader available, or when the note is read by hand.
   - id: X-110
     name: Ownership moved with no price event
     family: treatment
