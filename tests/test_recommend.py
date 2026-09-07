@@ -127,15 +127,20 @@ def test_parse_rejects_bad_shapes(base):
     good = json.loads(_reply(f.suggestions[0].key))
     for bad in (
         {**good, "extra": 1},
-        {**good, "reasons": ["only one"]},
+        {**good, "reasons": []},
         {**good, "confidence": 1.7},
-        {**good, "label": "x" * 200},
+        {**good, "label": ""},
         [good],
     ):
         with pytest.raises((ValueError, TypeError, AttributeError)):
             ClaudeChooser.parse(json.dumps(bad), f)
     fenced = "```json\n" + json.dumps(good) + "\n```"
     assert ClaudeChooser.parse(fenced, f)["choice"] == f.suggestions[0].key
+    # wording that runs long is clipped to the card, not thrown away: the choice is the substance (the
+    # live model wrote 150-character labels and every answer was being rejected — stress workbook 2)
+    long = ClaudeChooser.parse(json.dumps({**good, "label": "word " * 40, "reasons": ["only one"]}), f)
+    assert long["choice"] == good["choice"] and len(long["label"]) <= 140 and long["label"].endswith("…")
+    assert len(long["reasons"]) == 2 and long["reasons"][0] == "only one"
 
 
 def test_recommend_run_with_claude_labels_the_manifest(base, tmp_path: Path):

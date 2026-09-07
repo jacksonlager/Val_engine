@@ -230,6 +230,32 @@ class PolicyChooser:
                                       booked=s.booked, covers=(f.rule_id,), source="policy", note=note)
 
 
+def _clip(text: str, limit: int) -> str:
+    text = " ".join(str(text).split())
+    if len(text) <= limit:
+        return text
+    cut = text[: limit - 1].rsplit(" ", 1)[0].rstrip(",;:")
+    return cut + "…"
+
+
+def _fit_card(data: dict[str, Any]) -> tuple[str, list[str]]:
+    """The card shows one sentence and two short reasons. A model that writes long is clipped at a
+    word, not rejected: the choice (validated separately against the candidates) is the substance,
+    the wording is presentation. Empty is still a rejection."""
+    label = _clip(data.get("label", ""), 140)
+    raw = data.get("reasons") or []
+    if isinstance(raw, str):
+        raw = [raw]
+    reasons = [_clip(r, 140) for r in raw if str(r).strip()][:2]
+    if not label or not reasons:
+        raise ValueError("label/reasons are empty")
+    if len(reasons) == 1:
+        reasons.append("See the finding's evidence.")
+    if not label.endswith((".", "…")):
+        label += "."
+    return label, reasons
+
+
 class ClaudeChooser:
     """Ask the model to choose among the engine's candidates; cache; validate; fall back."""
     name = "claude"
@@ -314,12 +340,7 @@ class ClaudeChooser:
         keys = {s.key for s in f.suggestions}
         if data["choice"] not in keys:
             raise ValueError(f"choice {data['choice']!r} is not a candidate ({sorted(keys)})")
-        label = str(data["label"]).strip()
-        reasons = [str(r).strip() for r in data["reasons"]]
-        if not label or len(label) > 140 or len(reasons) != 2 or not all(0 < len(r) <= 140 for r in reasons):
-            raise ValueError("label/reasons do not fit the card")
-        if not label.endswith("."):
-            label += "."
+        label, reasons = _fit_card(data)
         conf = float(data["confidence"])
         if not 0.0 <= conf <= 1.0:
             raise ValueError("confidence outside [0, 1]")
@@ -353,12 +374,7 @@ class ClaudeChooser:
             raise ValueError(f"covers names {unknown}, which are not actionable findings on this position")
         if rid not in covers:
             covers = [rid] + covers
-        label = str(data["label"]).strip()
-        reasons = [str(r).strip() for r in data["reasons"]]
-        if not label or len(label) > 140 or len(reasons) != 2 or not all(0 < len(r) <= 140 for r in reasons):
-            raise ValueError("label/reasons do not fit the card")
-        if not label.endswith("."):
-            label += "."
+        label, reasons = _fit_card(data)
         conf = float(data["confidence"])
         if not 0.0 <= conf <= 1.0:
             raise ValueError("confidence outside [0, 1]")
@@ -454,8 +470,7 @@ def recommend_run(run: ValuationRun, chooser: Chooser, signals: dict[str, Any] |
     `recommendation` on every position with something actionable — the single next step,
     chosen across its findings. Marks, flags, dispositions, readiness and totals are
     untouched: only the two recommendation fields are filled in."""
-    companies: list[CompanyResult] = []
-    for c in run.companies:
+    def one(c: CompanyResult) -> CompanyResult:
         flags: list[Flag] = []
         changed = False
         for f in c.flags:
@@ -467,6 +482,16 @@ def recommend_run(run: ValuationRun, chooser: Chooser, signals: dict[str, Any] |
             changed = True
         c2 = c.model_copy(update={"flags": tuple(flags)}) if changed else c
         step = chooser.choose_position(build_position_brief(c2, run, signals), c2)
-        companies.append(c2.model_copy(update={"recommendation": step}) if step is not None else c2)
+        return c2.model_copy(update={"recommendation": step}) if step is not None else c2
+
+    # Positions are independent, and a model call takes seconds: run them side by side. The policy
+    # chooser is instant and stays sequential; the result order is the run's order either way.
+    workers = 6 if isinstance(chooser, ClaudeChooser) and chooser.available else 1
+    if workers > 1:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            companies = list(pool.map(one, run.companies))
+    else:
+        companies = [one(c) for c in run.companies]
     manifest = run.manifest.model_copy(update={"recommender": recommender_label(chooser)})
     return run.model_copy(update={"companies": tuple(companies), "manifest": manifest})
