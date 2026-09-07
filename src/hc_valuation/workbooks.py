@@ -41,6 +41,7 @@ class WorkbookProfile:
     usable: bool
     reason: str = ""           # why not usable
     current: bool = False
+    activity_rows: int | None = None   # rows on the activity tab; 0 = emitted at the last close, nothing entered yet
 
     def as_json(self) -> dict[str, Any]:
         return asdict(self)
@@ -71,6 +72,24 @@ def quarter_of(workbook: Path) -> tuple[str | None, bool]:
             break
     synthetic = any(n.strip().upper() == SYNTHETIC_SHEET for n in names)
     return quarter, synthetic
+
+
+def activity_rows(workbook: Path) -> int | None:
+    """How many rows the activity tab carries (None when the file or the tab cannot be read). A book
+    with none has nothing to review yet: it is emitted at the previous close and waits for the
+    quarter's events before it is offered in the Workbook select."""
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(workbook, read_only=True)
+        name = next((n for n in wb.sheetnames if _ACTIVITY_RX.match(n)), None)
+        if name is None:
+            wb.close()
+            return None
+        n = sum(1 for row in wb[name].iter_rows(min_row=2, values_only=True) if any(v not in (None, "") for v in row))
+        wb.close()
+        return n
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def policy_for(root: Path, quarter: str | None) -> Path | None:
@@ -104,11 +123,11 @@ def ledger_dir_for(root: Path, workbook: Path, synthetic: bool = False) -> Path:
     return quarters / chain / "ledger"
 
 
-def provider_for(root: Path, policy: Path | None, explicit: str | None = None) -> str | None:
+def provider_for(root: Path, policy: Path | None, explicit: str | None = None, *, synthetic: bool = False) -> str | None:
     """The market provider a run of this policy would use with no flag: an explicit choice (or
-    `HC_MARKET_PROVIDER`) wins; else the synthetic file for the measurement date if one exists;
-    else the committed live cache; else None (the fixture). The synthetic file is checked first
-    because it exists only for dates no feed can price."""
+    `HC_MARKET_PROVIDER`) wins; else, for a *synthetic* workbook only, the synthetic file for its
+    measurement date; else the committed live cache; else None (the fixture, labelled illustrative).
+    A real book never reads invented multiples because a file happens to exist for its date."""
     from .connectors import ENV_VAR
     from .connectors.cache import MarketCache
     from .connectors.synthetic import synthetic_file
@@ -121,7 +140,7 @@ def provider_for(root: Path, policy: Path | None, explicit: str | None = None) -
         md = load_config(policy).quarter.measurement_date
     except Exception:  # noqa: BLE001 — a bad policy is reported by the run, not here
         return None
-    if synthetic_file(root, md).is_file():
+    if synthetic and synthetic_file(root, md).is_file():
         return "synthetic"
     if MarketCache(root, md).exists():
         return "live"
@@ -139,17 +158,20 @@ def profile_for(root: Path, workbook: Path, *, policy: Path | None = None, ledge
         pol = default_policy_path(root)
     ledger = ledger_dir if ledger_dir is not None else ledger_dir_for(root, workbook, synthetic)
     usable, reason = True, ""
+    rows = activity_rows(workbook) if workbook.is_file() else None
     if not workbook.is_file():
         usable, reason = False, "file not found"
     elif quarter is None:
         usable, reason = False, "no 'Qn YYYY Activity' sheet"
     elif pol is None:
         usable, reason = False, f"no policy file rules/{quarter.split()[1]}{quarter.split()[0]}.yaml — run `hc-valuation next-policy`"
+    elif rows == 0 and not current:
+        usable, reason = False, f"nothing to review yet — no rows on the '{quarter} Activity' tab"
     return WorkbookProfile(
         id=_rel(root, workbook), workbook=_rel(root, workbook), quarter=quarter,
         policy=_rel(root, pol) if pol else None, ledger_dir=_rel(root, ledger),
-        provider=provider_for(root, pol, explicit_provider) if usable else None,
-        synthetic=synthetic, usable=usable, reason=reason, current=current,
+        provider=provider_for(root, pol, explicit_provider, synthetic=synthetic) if (usable or current) else None,
+        synthetic=synthetic, usable=usable, reason=reason, current=current, activity_rows=rows,
     )
 
 
@@ -180,6 +202,8 @@ def discover(root: Path, current_workbook: Path | None = None, *, explicit_provi
         prof = profile_for(root, wb, explicit_provider=explicit_provider)
         if prof.id in seen or (prof.synthetic and not include_synthetic):
             continue
+        if prof.activity_rows == 0:
+            continue        # emitted at the last close and still empty: there is nothing to review yet
         seen.add(prof.id)
         out.append(prof)
     return out

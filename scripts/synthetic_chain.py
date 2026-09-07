@@ -93,7 +93,7 @@ def paths_for(slug: str) -> RunPaths:
 
 def run_quarter(slug: str, *, adjudicate: bool = False):
     paths = paths_for(slug)
-    provider = provider_for(ROOT, paths.policy)
+    provider = provider_for(ROOT, paths.policy, synthetic=True)   # the chain is invented data: it may read the invented multiples
     return execute(paths, provider=provider, adjudicate=adjudicate, generated_at=GENERATED_AT[slug]), paths, provider
 
 
@@ -555,7 +555,7 @@ def compare(slug: str) -> int:
     undecided.parent.mkdir(parents=True, exist_ok=True)
     undecided.write_text(yaml.safe_dump({"overrides": keep}, sort_keys=False, allow_unicode=True))
     paths.overrides = undecided
-    provider = provider_for(ROOT, paths.policy)
+    provider = provider_for(ROOT, paths.policy, synthetic=True)
     r = execute(paths, provider=provider, adjudicate=False, generated_at=GENERATED_AT[slug])
     run = r.run
     by = run.by_company()

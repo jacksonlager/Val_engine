@@ -89,9 +89,10 @@ def _default_provider(paths, provider: Optional[str]) -> Optional[str]:
     declared-synthetic file for the measurement date, if one exists; else the committed live cache
     (`data/market_cache/<measurement date>/`, no network); else the fixture. The library default
     (`execute` with no provider, the tests, the golden run) stays `stub`."""
-    from .workbooks import provider_for
+    from .workbooks import is_synthetic, provider_for, quarter_of
 
-    chosen = provider_for(paths.root, paths.policy, provider)
+    synthetic = is_synthetic(paths.workbook, quarter_of(paths.workbook)[1]) if Path(paths.workbook).is_file() else False
+    chosen = provider_for(paths.root, paths.policy, provider, synthetic=synthetic)
     if chosen == "synthetic" and provider is None:
         typer.echo("market: SYNTHETIC test data for this measurement date (data/synthetic_market/); not market data")
     elif chosen == "live" and provider is None:

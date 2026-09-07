@@ -17,22 +17,25 @@ from fastapi.testclient import TestClient
 from hc_valuation.api.app import create_app
 from hc_valuation.config import repo_root, write_next_policy
 from hc_valuation.pipeline import RunPaths
-from hc_valuation.workbooks import (QUARTERS_DIR, SYNTHETIC_SHEET, discover, ledger_dir_for, policy_for, profile_for,
-                                    provider_for, quarter_of)
+from hc_valuation.workbooks import (QUARTERS_DIR, SYNTHETIC_SHEET, activity_rows, discover, ledger_dir_for, policy_for,
+                                    profile_for, provider_for, quarter_of)
 
 ROOT = repo_root()
 REAL = ROOT / "data" / "HC_Mock_Portfolio_Data.xlsx"
 
 
-def _synthetic_copy(root: Path, rel: str, *, activity: str = "Q4 2026 Activity", marker: bool = True) -> Path:
-    """The real workbook re-labelled as another quarter, with an empty activity tab and the
-    synthetic marker sheet, placed under the scratch root."""
+def _synthetic_copy(root: Path, rel: str, *, activity: str = "Q4 2026 Activity", marker: bool = True, rows: int = 1) -> Path:
+    """The real workbook re-labelled as another quarter, its activity tab holding `rows` rows (a
+    term sheet, which moves no mark) and, when `marker`, the synthetic marker sheet, under the scratch root."""
+    from datetime import datetime
     dst = root / rel
     dst.parent.mkdir(parents=True, exist_ok=True)
     wb = openpyxl.load_workbook(REAL)
     act = next(ws for ws in wb.worksheets if ws.title.endswith("Activity"))
     act.delete_rows(2, act.max_row)
     act.title = activity
+    for _ in range(rows):
+        act.append([datetime(2026, 11, 3), "Aravine", "Term Sheet Signed", "Series C term sheet at ~$140.0M post", 140.0, None, None, None, "Not closed."])
     if marker:
         wb.create_sheet(SYNTHETIC_SHEET).append(["This workbook is invented test data."])
     wb.save(dst)
@@ -95,7 +98,8 @@ def test_provider_rule_is_explicit_then_synthetic_then_cache_then_fixture(root: 
     assert provider_for(root, pol) == "live"
     (root / "data" / "synthetic_market").mkdir()
     (root / "data" / "synthetic_market" / "2026-09-30.yaml").write_text("synthetic: true\nsectors: {}\n")
-    assert provider_for(root, pol) == "synthetic"
+    assert provider_for(root, pol) == "live"                        # a real book never reads invented multiples by date alone
+    assert provider_for(root, pol, synthetic=True) == "synthetic"
     monkeypatch.setenv("HC_MARKET_PROVIDER", "stub")
     assert provider_for(root, pol) is None                      # the environment wins and the caller passes it through
 
@@ -127,6 +131,19 @@ def test_synthetic_quarters_are_offered_only_from_a_synthetic_book(root: Path, m
     assert "data/HC_Mock_Portfolio_Data.xlsx" in [p.id for p in from_syn]   # the real book is always reachable
     monkeypatch.setenv("HC_INCLUDE_SYNTHETIC", "1")
     assert any(p.synthetic for p in discover(root, root / "data" / REAL.name))
+
+
+def test_an_empty_activity_tab_is_nothing_to_review_yet(root: Path):
+    """The workbook a close emits waits for the quarter's events before the select offers it."""
+    wb = _synthetic_copy(root, "data/quarters/2026Q4/portfolio_Q4_2026.xlsx", marker=False, rows=0)
+    write_next_policy(root / "rules" / "2026Q3.yaml")
+    assert activity_rows(wb) == 0 and activity_rows(REAL) == 18
+    p = profile_for(root, wb)
+    assert not p.usable and "nothing to review yet" in p.reason and p.activity_rows == 0
+    assert "data/quarters/2026Q4/portfolio_Q4_2026.xlsx" not in [x.id for x in discover(root, root / "data" / REAL.name)]
+    # ... and appears once a row is entered
+    _synthetic_copy(root, "data/quarters/2026Q4/portfolio_Q4_2026.xlsx", marker=False, rows=1)
+    assert "data/quarters/2026Q4/portfolio_Q4_2026.xlsx" in [x.id for x in discover(root, root / "data" / REAL.name)]
 
 
 def test_missing_policy_makes_a_profile_unusable_and_says_what_to_run(root: Path):

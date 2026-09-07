@@ -30,7 +30,7 @@ def root(tmp_path: Path) -> Path:
     (tmp_path / "data").mkdir()
     shutil.copy(ROOT / "data" / "HC_Mock_Portfolio_Data.xlsx", tmp_path / "data" / "HC_Mock_Portfolio_Data.xlsx")
     shutil.copytree(ROOT / "data" / "mock_responses", tmp_path / "data" / "mock_responses")
-    shutil.copy(ROOT / "data" / "overrides.yaml", tmp_path / "data" / "overrides.yaml")
+    (tmp_path / "data" / "overrides.yaml").write_text("overrides: []\n")     # never the working ledger
     return tmp_path
 
 
@@ -67,11 +67,18 @@ def test_final_publish_writes_next_quarter_beside_the_workbook(root: Path, tmp_p
     rows = {r[0]: dict(zip(hdr, r)) for r in ws.iter_rows(min_row=2, values_only=True)}
     for name, mark in booked.items():
         assert rows[name]["Prior Mark ($M)"] == pytest.approx(mark, abs=1e-6), name
-    # it is offered in the Workbook select as a real quarter, on the committee ledger, under its own policy
-    listing = client.get("/api/workbooks").json()["workbooks"]
-    q4 = next(w for w in listing if w["quarter"] == "Q4 2026")
-    assert not q4["synthetic"] and q4["ledger_dir"] == "data" and q4["usable"]
-    assert (root / "rules" / "2026Q4.yaml").exists() or q4["policy"] is None
+    # nothing to review yet: an empty activity tab keeps it out of the Workbook select ...
+    assert "Q4 2026" not in [w["quarter"] for w in client.get("/api/workbooks").json()["workbooks"]]
+    # ... until the quarter's first row is entered; then it is a real quarter, on the committee ledger, under its own policy
+    from datetime import datetime
+    wb["Q4 2026 Activity"].append([datetime(2026, 10, 5), "Gryphonel", "Acquisition (Closed)", "All-cash acquisition", 133.0, None, None, 4.788, "Closed."])
+    wb.save(nxt)
+    from hc_valuation.config import write_next_policy
+    if not (root / "rules" / "2026Q4.yaml").exists():      # the repo may already carry it
+        write_next_policy(root / "rules" / "2026Q3.yaml")
+    q4 = next(w for w in client.get("/api/workbooks").json()["workbooks"] if w["quarter"] == "Q4 2026")
+    assert not q4["synthetic"] and q4["ledger_dir"] == "data" and q4["usable"] and q4["policy"] == "rules/2026Q4.yaml"
+    assert q4["provider"] != "synthetic"
 
 
 def test_a_proposed_publish_emits_nothing(root: Path, tmp_path: Path):
