@@ -406,7 +406,7 @@ def test_direct_listing_is_m040(build):
     _chain_ok(c, "M-040")
     assert c.proposed_mark == pytest.approx(54.0) and c.fv_level == 1 and c.listed and c.stage == "Public"
     assert _flag(c, "X-101").severity == Severity.BLOCK and c.disposition == Disposition.BLOCK
-    assert [i.kind for i in c.open_items] == [OpenItemKind.IPO_LOCKUP]
+    assert c.open_items == ()          # a direct listing has no lock-up unless the row says so (stress workbook 2, Mardellan)
 
 
 def test_safe_is_m060_with_post_money_cap(build):
@@ -544,7 +544,7 @@ def test_exec_view_drivers_cover_the_new_rules(build):
     assert keys[-1] == "overrides"
     cases = {
         "M-013": (event(EventType.OWNERSHIP_ADJUSTMENT, ownership_after=0.12), "adjustments"),
-        "M-014": (event(EventType.NEW_INVESTMENT, value=20.0, ownership_after=0.1, hc_investment=2.0), "new_investments"),
+        "M-014": (event(EventType.NEW_INVESTMENT, value=20.0, ownership_after=0.15, hc_investment=2.0), "new_investments"),   # a follow-on filed as a first cheque: a higher stake, a new price (else X-924 refuses it)
         "M-022": (event(EventType.DISTRIBUTION, proceeds=1.0), "distributions"),
         "M-024": (event(EventType.ACQ_CLOSED, detail="all-stock", value=300.0), "stock_exits"),
         "M-025": (event(EventType.BANKRUPTCY_CH11), "impairments"),

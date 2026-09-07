@@ -196,6 +196,7 @@ _FIX = {
     "X-905": "Correct the row's date and rerun.",
     "X-906": "Delete one of the duplicate rows and rerun.",
     "X-907": "Remove the row, or correct the company's status on the Portfolio tab, and rerun.",
+    "X-924": "Decide which record is right — delete the row, or remove the company's Portfolio row — and rerun.",
 }
 
 

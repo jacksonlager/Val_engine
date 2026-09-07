@@ -11,14 +11,18 @@ from __future__ import annotations
 import re
 
 NEGATIONS = ("no ", "not in ", "without ", "no longer in ", "not ")
+# A negator up to three words before the term still negates it: "no new outside investor" names nobody,
+# "not subject to any lock-up" has no lock-up. Found by a stress workbook whose internal round read
+# "no new outside investor set the price" and was treated as one led by an outside investor.
+_NEGATED_BEFORE = re.compile(r"\b(?:no|not|without|never|nor)\b(?:[\s-]+[\w']+){0,3}[\s-]+$")
 
 
 def term_in(term: str, text: str) -> bool:
     text, term = text.lower(), term.lower()     # "No new investor" negates as surely as "no new investor"
     pattern = r"(?<![\w-])" + r"[\s-]?".join(re.escape(part) for part in re.split(r"[\s-]+", term)) + r"(?![\w-])"
     for m in re.finditer(pattern, text):
-        before = text[max(0, m.start() - 16):m.start()]
-        if any(before.endswith(n) for n in NEGATIONS):
+        before = text[max(0, m.start() - 40):m.start()]
+        if any(before.endswith(n) for n in NEGATIONS) or _NEGATED_BEFORE.search(before):
             continue
         return True
     return False

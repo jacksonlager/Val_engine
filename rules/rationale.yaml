@@ -660,6 +660,19 @@ rules:
       Because the brief asks that a refreshed file "flow through without rework", and the honest
       version of that is refusing a cell rather than guessing it — a number nobody read cannot be
       booked.
+  - id: X-924
+    name: New investment on a company already held
+    family: data
+    severity: [BLOCK]
+    source: policy
+    reads: Event = New Investment on a company the Portfolio tab already carries with ownership or invested capital
+    why_flag: >-
+      A first cheque cannot be a second one. Applying the row would add HC's money again and re-mark a
+      position the book already carries at the same round — a double count. Either the row is wrong
+      or the Portfolio row is, and the workbook cannot say which.
+    why_severity: >-
+      Blocking, on the row: nothing from it is applied, the prior mark is carried, and the position
+      stays Blocked until one of the two records is removed and the quarter rerun.
   - id: X-923
     name: Row applied on a corrected reading
     family: data

@@ -81,19 +81,21 @@ With the reader off (no `ANTHROPIC_API_KEY`, or `--note-reader off`) the keyword
 text. Its terms, from `rules/2026Q3.yaml`:
 
 ```
-escrow, holdback, earn-out, earnout, milestone, contingent, participating, ratchet, preference, litigation, restated, bankruptcy, conversion, warrant, pay-to-play, cram, cram-down, lock-up, related party, going concern, covenant, default, withdrawn, cancelled, canceled, terminated, rescinded, supersedes, superseded, accrued, anti-dilution, waived, indemnification, indemnity, clawback, side letter, guarantee, redemption, impairment, write-down, writedown, write-off, recapitalization, insolvency, receivership, lawsuit, dispute, fraud, restatement, rollover, stock-for-stock, layoffs, missed payroll, pari passu, waterfall
+escrow, holdback, earn-out, earnout, milestone, contingent, participating, ratchet, preference, litigation, restated, bankruptcy, conversion, warrant, pay-to-play, cram, cram-down, lock-up, related party, going concern, covenant, default, withdrawn, cancelled, canceled, terminated, rescinded, supersedes, superseded, accrued, anti-dilution, waived, indemnification, indemnity, clawback, side letter, guarantee, redemption, impairment, write-down, writedown, write-off, recapitalization, insolvency, receivership, lawsuit, dispute, fraud, restatement, rollover, stock-for-stock, layoffs, missed payroll, pari passu, waterfall, reconcile, reconciled, do not reconcile, does not reconcile
 ```
 
 Per event type, the terms its own rule handles (not re-raised):
 
 - IPO: lock-up
 - Direct Listing: lock-up
-- Ownership Adjustment: warrant, conversion
+- Ownership Adjustment: warrant, conversion, restated, restatement, ratchet, anti-dilution, pool, true-up
 - Convertible Note: conversion
-- Note Repaid: conversion
+- Note Repaid: conversion, accrued, interest, par, redemption
+- Bankruptcy (Chapter 11): write-off, impairment, going concern, default, bankruptcy
+- Shutdown: write-off, liquidation, wind down, wind-down, bankruptcy
 - Distribution: escrow, holdback, earn-out, earnout, milestone, contingent, indemnification, indemnity, deferred
 - Term Sheet Withdrawn: withdrawn, cancelled, canceled, terminated, rescinded, supersedes, superseded
-- Acquisition (Terminated): withdrawn, cancelled, canceled, terminated, rescinded
+- Acquisition (Terminated): withdrawn, cancelled, canceled, terminated, rescinded, fee, fees
 - Valuation Adjustment: impairment, write-down, writedown, write-off, restated, restatement
 - Debt Facility: covenant, default, guarantee, tranche
 - Lock-up Expiry: lock-up

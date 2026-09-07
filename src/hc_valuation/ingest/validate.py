@@ -142,6 +142,15 @@ def _currency_in_text(e, feed: ActivityFeed) -> ValidationIssue | None:
     return None
 
 
+def _same_record(e, pos, config: RuleConfig) -> bool:
+    """The activity row and the Portfolio row describe the same holding."""
+    after = float(e.ownership_after) if e.ownership_after is not None else None
+    unit = config.exceptions.indications.ownership_rounding
+    if after is not None and after <= pos.ownership + 2 * unit and (e.value is None or abs(float(e.value) - pos.latest_post_money) <= config.tolerances.prior_mark_reconciliation_musd):
+        return True
+    return after is not None and after <= pos.ownership       # a first cheque cannot leave the stake where it was
+
+
 def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig,
              explained_departures: dict[str, str] | None = None) -> list[ValidationIssue]:
     """`explained_departures` maps company -> reason for a prior mark that deliberately departs from
@@ -270,6 +279,19 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
                                               message=f"activity references a company not in the book: {e.company}"))
             continue
         pos = book[e.company]
+
+        if e.event_type == EventType.NEW_INVESTMENT.value and (pos.ownership > 0 or pos.invested > 0) and _same_record(e, pos, config):
+            # A first cheque cannot be a second one. The row repeats the position the book already carries (same
+            # round price, same stake — or a "first cheque" that leaves the stake no higher): applying it would add
+            # HC's money again. One of the two records is wrong; refuse the row. A New Investment row at a different
+            # price and a higher stake is a follow-on filed under the wrong label and is applied as one (M-014).
+            refused.add(e.row_index)
+            issues.append(ValidationIssue(rule_id="X-924", severity=Severity.BLOCK, sheet=feed.sheet_name,
+                                          row_index=e.row_index, company=e.company,
+                                          message=(f"new investment in {e.company}, but the Portfolio tab already holds it "
+                                                   f"({pos.ownership:.1%}, ${pos.invested:.2f}M invested); a first cheque cannot be a "
+                                                   "second one, so one of the two records is wrong")))
+            continue
 
         if e.extra.get("date_missing") or e.extra.get("date_unreadable"):
             why = (f"Date {e.extra['date_unreadable']!r} is not a date" if e.extra.get("date_unreadable")

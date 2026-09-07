@@ -141,7 +141,10 @@ class IndicationsCfg(_Strict):
     insider_round_review_step_up: float = 2.0  # insider-led round post ≥ this × prior post -> X-118 REVIEW
     step_up_review_at: float = 3.0             # any round ≥ this × prior post: X-122 REVIEW unless an outside investor is named
     cheque_price_tolerance: float = 0.10       # hc_investment ÷ Δownership vs the stated post beyond this -> X-119 REVIEW
-    cheque_check_min_ownership_delta: float = 0.01   # ... only when the stake bought is ≥ 1.0% (3-dp ownership rounding)
+    cheque_check_min_ownership_delta: float = 0.01   # ... only when the stake bought is ≥ 1.0%: below that the round's own dilution swamps the cheque
+    ownership_rounding: float = 0.0005               # half a unit of the 3-dp ownership column: the cheque check allows ± one unit each side
+    cheque_ownership_tolerance: float = 0.015        # with a round size on the row: the stake may differ from the round arithmetic by this much
+                                                     # (an option-pool top-up or a small note conversion) before X-119 asks about it
     restructure_ownership_tolerance: float = 0.0005  # a Share Restructure row whose ownership moves more than this -> X-133 REVIEW
 
 

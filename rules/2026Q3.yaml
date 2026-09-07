@@ -66,7 +66,10 @@ exceptions:
     insider_round_review_step_up: 2.0  # insiders re-pricing their own position ≥ 2× is not a market test
     step_up_review_at: 3.0             # X-122: a ≥ 3× step-up with no outside investor named on the row
     cheque_price_tolerance: 0.10       # X-119: HC's cheque ÷ stake bought vs the stated post, beyond ±10%
-    cheque_check_min_ownership_delta: 0.01   # ... only where the stake bought is ≥ 1.0% (ownership is 3 dp)
+    cheque_check_min_ownership_delta: 0.01    # without a round size on the row, the cheque check needs ≥ 1pp bought to say anything
+    ownership_rounding: 0.0005                # half a unit of the 3-dp ownership column; the check allows ± one unit each side
+    cheque_ownership_tolerance: 0.015         # with a round size on the row, the stake may differ from the round arithmetic by up to
+                                              # 1.5pp (a pool top-up, a small note converting) before X-119 asks; beyond that a cell is wrong
     restructure_ownership_tolerance: 0.0005   # a split that also moves the stake beyond this is a cap-table change (X-133 REVIEW)
   escalation:
     review_rules_to_block: 2         # distinct REVIEW families needed to escalate to BLOCK
@@ -96,12 +99,14 @@ note_screen:
   exempt:
     "IPO": [lock-up]
     "Direct Listing": [lock-up]
-    "Ownership Adjustment": [warrant, conversion]
+    "Ownership Adjustment": [warrant, conversion, restated, restatement, ratchet, anti-dilution, pool, true-up]   # M-013 asks what moved the stake
     "Convertible Note": [conversion]
-    "Note Repaid": [conversion]
+    "Note Repaid": [conversion, accrued, interest, par, redemption]
+    "Bankruptcy (Chapter 11)": [write-off, impairment, going concern, default, bankruptcy]   # M-025 already says the mark is impaired
+    "Shutdown": [write-off, liquidation, wind down, wind-down, bankruptcy]
     "Distribution": [escrow, holdback, earn-out, earnout, milestone, contingent, indemnification, indemnity, deferred]   # a distribution is their resolution
     "Term Sheet Withdrawn": [withdrawn, cancelled, canceled, terminated, rescinded, supersedes, superseded]
-    "Acquisition (Terminated)": [withdrawn, cancelled, canceled, terminated, rescinded]
+    "Acquisition (Terminated)": [withdrawn, cancelled, canceled, terminated, rescinded, fee, fees]
     "Valuation Adjustment": [impairment, write-down, writedown, write-off, restated, restatement]
     "Debt Facility": [covenant, default, guarantee, tranche]
     "Lock-up Expiry": [lock-up]
@@ -115,7 +120,7 @@ note_screen:
           anti-dilution, waived, indemnification, indemnity, clawback, side letter, guarantee,
           redemption, impairment, write-down, writedown, write-off, recapitalization,
           insolvency, receivership, lawsuit, dispute, fraud, restatement, rollover, stock-for-stock,
-          layoffs, missed payroll, pari passu, waterfall]
+          layoffs, missed payroll, pari passu, waterfall, reconcile, reconciled, do not reconcile, does not reconcile]
   # NB: a term that appears in the shipped Q3 2026 notes in a routine sense (pro rata, cash,
   # interest, bridge, recap, extension) is deliberately not on this list; the reader covers those.
 
