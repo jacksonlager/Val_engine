@@ -111,14 +111,7 @@ function HeaderStrip({ rep }: { rep: MarketReport }) {
             <span className="chip disp-BLOCK no-dot">Synthetic test data</span>
             <span className="font-semibold text-[13px]">These multiples were invented for a test quarter. They are not market data.</span>
           </div>
-          <p className="text-[12px] text-ink2 mt-1 mb-0">
-            {rep.notice ?? SYNTHETIC_TIP}
-            {rep.synthetic_file && (
-              <>
-                {" "}Source file: <span className="mono">{rep.synthetic_file}</span>.
-              </>
-            )}
-          </p>
+          <p className="text-[12px] text-ink2 mt-1 mb-0">{rep.notice ?? SYNTHETIC_TIP}</p>
         </div>
       )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -191,7 +184,13 @@ function HeaderStrip({ rep }: { rep: MarketReport }) {
             )}
           </dd>
           <dt className="text-muted">Basket definitions</dt>
-          <dd className="m-0 mono text-ink2">{rep.baskets_file}</dd>
+          <dd className="m-0 mono text-ink2">{rep.baskets_file || "none — invented data has no constituents"}</dd>
+          {rep.synthetic_file && (
+            <>
+              <dt className="text-muted">Synthetic data file</dt>
+              <dd className="m-0 mono text-ink2">{rep.synthetic_file}</dd>
+            </>
+          )}
           <dt className="text-muted">Policy settings</dt>
           <dd className="m-0 mono text-ink2">
             multiple.mode={rep.used_by.multiple_mode} · calibration={rep.used_by.calibration_enabled ? "on" : "off"}

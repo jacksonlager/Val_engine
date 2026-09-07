@@ -210,6 +210,7 @@ class OpenItemsCfg(_Strict):
     term_sheet_stale_quarters: int = 1
     note_unconverted_quarters: int = 3
     ipo_lockup_days: int = 180
+    unconfirmed_exit_stale_quarters: int = 1   # an exit closed with no cash recorded escalates every quarter it stays open
 
 
 class AdjudicationCfg(_Strict):

@@ -67,7 +67,12 @@ def _latest_round_date(c: CompanyResult, src: Position) -> date:
              and s.rule_id != "M-000"]
     if dates:
         return max(dates)
-    return c.staleness_anchor if c.staleness_anchor != date.min else src.latest_round
+    if c.listed and c.staleness_anchor != date.min:
+        return c.staleness_anchor        # a listed carry (M-041) is priced at the measurement date
+    # No priced round this quarter: the column keeps the value the book already carried. Falling back
+    # to the staleness anchor here rewrote a same-terms extension's date with the older clock one
+    # quarter later, and lost the sidecar anchor with it (synthetic Q2 2027 chain, D-8).
+    return src.latest_round if src.latest_round else c.staleness_anchor
 
 
 def _carried_anchors(run: ValuationRun, sources: dict[str, Position]) -> list[dict[str, str]]:
@@ -89,7 +94,7 @@ def _post_money(c: CompanyResult, tol: float) -> tuple[float, str | None]:
     """The last-round post-money, written as-is, plus a reason when the booked mark deliberately
     departs from ownership × that print (the departure is carried in the sidecar for X-904)."""
     post = c.latest_post_money
-    if c.status_after != Status.ACTIVE or c.ownership_after <= 0:
+    if (c.status_after != Status.ACTIVE and not _carried_open(c)) or c.ownership_after <= 0:
         return post, None
     if abs(c.ownership_after * post - c.booked_mark) <= tol:
         return post, None
@@ -106,11 +111,26 @@ def _post_money(c: CompanyResult, tol: float) -> tuple[float, str | None]:
                   f"({c.ownership_after:.1%} × ${post:.2f}M = ${c.ownership_after * post:.2f}M): {reason}.")
 
 
+def _carried_open(c: CompanyResult) -> bool:
+    """A position the quarter closed but the committee kept on the book: an exit with no cash recorded
+    where the decision was to hold the prior mark. Its value is in the published NAV, so the next
+    quarter must open with it rather than with a zero — the book would otherwise lose the amount
+    with no cash against it (synthetic Q2 2027 chain, D-9). It rolls as Active; the open item M-020
+    raised keeps it in front of a reviewer until the proceeds are recorded or it is written to zero."""
+    return c.status_after != Status.ACTIVE and c.booked_mark > 0
+
+
 def _portfolio_row(c: CompanyResult, src: Position, r: int, tol: float) -> tuple[list[Any], str | None]:
-    active = c.status_after == Status.ACTIVE
+    active = c.status_after == Status.ACTIVE or _carried_open(c)
     post, note = _post_money(c, tol)
+    if _carried_open(c):
+        note = (f"Exit recorded as {c.status_after.value} in {c.steps[-1].evidence.date.isoformat() if c.steps[-1].evidence else 'the quarter'} "
+                f"with no cash received; the committee held ${c.booked_mark:.2f}M rather than writing the position off, so it rolls "
+                "forward as Active at that value with an 'unconfirmed exit' open item. Record the closing with its proceeds when the "
+                "cash arrives, or write it to zero.") + (f" {note}" if note else "")
     values: dict[str, Any] = {
-        "Company": c.company, "Sector": c.sector, "Fund": c.fund, "Stage": c.stage, "Status": c.status_after.value,
+        "Company": c.company, "Sector": c.sector, "Fund": c.fund, "Stage": c.stage,
+        "Status": Status.ACTIVE.value if _carried_open(c) else c.status_after.value,
         "First Investment": src.first_investment, "Latest Round": _latest_round_date(c, src),
         "Latest Post-Money ($M)": post, "Invested ($M)": c.invested_after, "Ownership (FD %)": c.ownership_after,
         "Prior Mark ($M)": c.booked_mark if active else 0.0, "Realized ($M)": c.realized_cumulative,

@@ -497,8 +497,8 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
     from .api.app import STATIC_DIR, create_app, watch_inputs
 
     paths = _paths(input_path, policy, overrides, ledger_dir)
-    application = create_app(paths, provider=_default_provider(paths, provider), refresh_market=refresh_market,
-                             recommender=recommender)
+    application = create_app(paths, provider=_default_provider(paths, provider), provider_explicit=provider,
+                             refresh_market=refresh_market, recommender=recommender)
     typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")

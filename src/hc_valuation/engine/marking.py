@@ -414,6 +414,14 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
                ),
                action="Confirm what HC actually received, and whether any of it is held in escrow.",
                deal_value=e.value)
+        # The consideration is unfinished business. If the committee holds the prior mark rather than
+        # writing the position off, the next-quarter book carries it open (snapshot.py) and this item
+        # ages past policy at once, so the receivable is in front of a reviewer every quarter until a
+        # closing row with its proceeds arrives or a decision writes it to zero (D-9).
+        w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.UNCONFIRMED_EXIT, opened=e.date,
+                                     opened_quarter=w.quarter_label, amount_musd=e.value,
+                                     detail=f"exit closed {e.date.isoformat()} at ${float(e.value or 0):.1f}M with no cash recorded; "
+                                            "record the closing with its proceeds when the cash arrives, or write the position to zero"))
     elif implied is not None and abs(implied - proceeds) > cfg.tolerances.prior_mark_reconciliation_musd * 10:
         w.flag("X-101", "treatment", Severity.REVIEW,
                f"HC received ${proceeds:.2f}M, but its {w.ownership:.1%} of a ${float(e.value):.0f}M deal implies ${implied:.2f}M. "

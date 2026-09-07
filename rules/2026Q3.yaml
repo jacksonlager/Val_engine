@@ -124,6 +124,7 @@ open_items:
   term_sheet_stale_quarters: 1
   note_unconverted_quarters: 3
   ipo_lockup_days: 180
+  unconfirmed_exit_stale_quarters: 1   # an exit closed with no cash recorded, held on the book, escalates every quarter (D-9)
 
 adjudication:
   enabled: true

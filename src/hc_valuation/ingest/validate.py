@@ -238,7 +238,8 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
     # An ambiguous event type is already a blocking X-914 that names the candidates; the
     # generic "no handler" X-909 on the same row would only repeat it.
     ambiguous_rows = {c.row_index for c in feed.corrections if c.kind == "ambiguous" and c.column == "Event"}
-    seen_events: set[tuple] = set()
+    seen_events: dict[tuple, int] = {}      # identical row -> the first row that carried it
+    duplicated: set[int] = set()            # first rows already reported as duplicated
     for e in feed.events:
         currency = _currency_in_text(e, feed)
         if currency is not None:
@@ -284,12 +285,24 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
                                           message=(f"event dated {e.date} is outside the quarter window {q.window_start}..{q.window_end}; "
                                                    "applied as a transaction missed at the last close")))
 
-        key = (e.company, e.event_type, e.date, e.value)
-        if key in seen_events:
-            issues.append(ValidationIssue(rule_id="X-906", severity=Severity.REVIEW, blocking=False, sheet=feed.sheet_name,
-                                          row_index=e.row_index, company=e.company,
-                                          message="duplicate event (same company, type, date, value)"))
-        seen_events.add(key)
+        # An identical activity row twice is a paste, not two transactions — and applying both would
+        # count HC's cheque or its proceeds twice (found by the synthetic Q4 2026 malformed set,
+        # HARDENING_REPORT.md D-10: a duplicated funded round put 1.0 of investment on the book twice
+        # under a non-blocking REVIEW). As on the Portfolio tab, every copy blocks: the engine will
+        # not choose which one is the transaction, the position carries its prior mark (X-900) and
+        # the workbook is corrected.
+        key = (e.company, e.event_type, e.date, e.value, e.hc_investment, e.ownership_after, e.proceeds)
+        first = seen_events.get(key)
+        if first is not None:
+            for row in ((first, e.row_index) if first not in duplicated else (e.row_index,)):
+                issues.append(ValidationIssue(rule_id="X-906", severity=Severity.BLOCK, sheet=feed.sheet_name,
+                                              row_index=row, company=e.company,
+                                              message=(f"duplicate activity row: rows {first} and {e.row_index} are identical "
+                                                       "(company, event, date, value, investment, ownership, proceeds); the engine "
+                                                       "will not apply a transaction twice or choose which copy is real")))
+            duplicated.add(first)
+        else:
+            seen_events[key] = e.row_index
 
         if pos.status != Status.ACTIVE and e.event_type not in _ALLOWED_ON_TERMINAL.get(pos.status, frozenset()):
             issues.append(ValidationIssue(rule_id="X-907", severity=Severity.BLOCK, sheet=feed.sheet_name,

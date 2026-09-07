@@ -219,7 +219,11 @@ export default function App() {
           </div>
         </div>
         {(m.market_data_source.startsWith("synthetic:") || /synthetic|SYNTHETIC/.test(m.input_file)) && (
-          <div className="static-banner" role="alert" style={{ background: "var(--block)", color: "var(--block-text)" }}>
+          <div
+            className="static-banner"
+            role="alert"
+            style={{ background: "var(--block-wash)", color: "var(--block-text)", borderBottomColor: "var(--block)" }}
+          >
             Synthetic test quarter — the workbook <span className="mono">{m.input_file}</span> is invented test data
             {m.market_data_source.startsWith("synthetic:") ? ", and the sector multiples on the Market tab were invented by a script" : ""}.
             Nothing on this page is a real position or a real market observation.

@@ -19,6 +19,7 @@ def _threshold(kind: OpenItemKind, cfg: RuleConfig) -> int | None:
         OpenItemKind.CONVERTIBLE_NOTE: o.note_unconverted_quarters,
         OpenItemKind.IPO_LOCKUP: None,   # resolves on its own date
         OpenItemKind.ACQUIRER_SHARES: o.announced_deal_stale_quarters,   # shares of a buyer still unpriced
+        OpenItemKind.UNCONFIRMED_EXIT: o.unconfirmed_exit_stale_quarters,  # a closed exit whose cash never arrived
     }[kind]
 
 

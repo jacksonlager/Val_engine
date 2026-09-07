@@ -1,7 +1,10 @@
 name: 16_duplicates_and_dates
 description: >
-  Rows a copy-paste produces: an exact duplicate of a round (X-906, and the mark must not be
-  wrong because of it), an exit dated before the window opens (X-905), a note dated in 2030
+  Rows a copy-paste produces: an exact duplicate of a round (X-906 BLOCK on both copies: the
+  engine will not apply a transaction twice or choose which copy is real, so Solvantra carries its
+  prior mark and blocks on X-900 until the paste is removed — before HARDENING_REPORT.md D-10 the
+  duplicate was a non-blocking REVIEW and HC's 1.0 cheque was booked twice), an exit dated before
+  the window opens (X-905), a note dated in 2030
   (X-905), a date typed as "14-Aug-2026" text (X-915), and a day-first/month-first ambiguity
   "09/03/2026" that must be read month-first (3 September, inside the window) with an X-915
   that says so.
@@ -25,7 +28,7 @@ expect:
   no_crash: true
   validation_ids: { must: [X-906, X-905, X-915], must_not: [X-901, X-909, X-914] }
   validation_must:
-    - { id: X-906, company: Solvantra }
+    - { id: X-906, company: Solvantra, blocking: true, count: 2 }
     - { id: X-905, company: Ambercrest }
     - { id: X-905, company: Kilnbrook, contains: "2030" }
     - { id: X-915, company: "Willowmere Compute", contains: "14-Aug-2026" }
@@ -34,7 +37,7 @@ expect:
     - { id: X-905, company: Oxbowlane }
   totals: { events: 6, positions: 100 }
   companies:
-    Solvantra:            { rules_contains: [M-010], proposed: 11.0, ownership_after: 0.11, flags_must_not: [M-999] }
+    Solvantra:            { disposition: BLOCK, rules_contains: [M-000], proposed: 8.9, ownership_after: 0.118, invested_after: 5.1, flags_must: [X-900], flags_must_not: [M-999, M-010] }
     Ambercrest:           { rules_contains: [M-020], proposed: 0.0, realized_quarter: 16.8, status: Acquired }
     Willowmere Compute:   { disposition: MONITOR, rules: [M-070], proposed: 4.7 }
     Oxbowlane:            { disposition: BLOCK, rules: [M-050], proposed: 20.65 }

@@ -90,6 +90,7 @@ class OpenItemKind(str, Enum):
     TERM_SHEET = "term_sheet"
     IPO_LOCKUP = "ipo_lockup"
     ACQUIRER_SHARES = "acquirer_shares"   # M-024: consideration received as shares of the buyer
+    UNCONFIRMED_EXIT = "unconfirmed_exit"  # M-020 with no cash recorded: the consideration is still to be confirmed
 
 
 class OpenItem(_Frozen):

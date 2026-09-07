@@ -166,6 +166,7 @@ export const KIND_LABEL: Record<string, string> = {
   pending_acquisition: "Pending acquisition",
   term_sheet: "Term sheet",
   ipo_lockup: "IPO lock-up",
+  unconfirmed_exit: "Exit awaiting consideration",
 };
 
 export function kindLabel(k: string): string {

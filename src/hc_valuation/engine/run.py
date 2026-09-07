@@ -73,7 +73,16 @@ def _dispatch(w: Working, e: Event, registry: Registry, config: RuleConfig, mark
     if found is None:  # pragma: no cover - M-999 is always registered
         raise RuntimeError(f"no handler and no fallback for event type {e.event_type!r}")
     _meta, fn = found
+    before = list(w.open_items)
     fn(w, e, config, market)
+    # An event resolves the open items its kind resolves (RESOLVES) whether they were carried in
+    # from a prior quarter or opened by an earlier row this quarter: a term sheet signed in March
+    # and closed as a round in March is not still pending in June. Items the event itself opened are
+    # kept — a closing with no cash opens the unconfirmed-exit item it must not immediately resolve.
+    # (Synthetic Q2 2027 chain, HARDENING_REPORT.md D-11.)
+    settles = RESOLVES.get(e.event_type, set())
+    if settles:
+        w.open_items = [i for i in w.open_items if not (i.kind in settles and i in before)]
 
 
 def _blocked_rows(validation: tuple[ValidationIssue, ...], sheet: str) -> dict[int, list[ValidationIssue]]:

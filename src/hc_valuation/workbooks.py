@@ -160,7 +160,8 @@ def discover(root: Path, current_workbook: Path | None = None, *, explicit_provi
     candidates = [default] if default.is_file() else []
     qdir = root / QUARTERS_DIR
     if qdir.is_dir():
-        candidates += sorted(p for p in qdir.rglob("*.xlsx") if not p.name.startswith("~$"))
+        # not the review workbooks `build` writes (valuation_<quarter>.xlsx has no activity tab)
+        candidates += sorted(p for p in qdir.rglob("*.xlsx") if not p.name.startswith(("~$", "valuation_")))
     for wb in candidates:
         prof = profile_for(root, wb, explicit_provider=explicit_provider)
         if prof.id in seen:

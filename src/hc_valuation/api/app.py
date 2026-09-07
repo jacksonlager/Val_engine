@@ -155,7 +155,12 @@ def rule_catalogue(result: PipelineResult) -> list[dict[str, Any]]:
 
 
 def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None,
-               refresh_market: bool = False, recommender: str | None = None) -> FastAPI:
+               refresh_market: bool = False, recommender: str | None = None,
+               provider_explicit: str | None = None) -> FastAPI:
+    """`provider` is what the first run reads (the CLI passes its resolved default; the library default is
+    the fixture). `provider_explicit` is what the operator actually asked for, if anything: a workbook
+    switch re-derives the provider from it, so a quarter only a synthetic file can price gets that file
+    and the real book gets its cache, unless a flag or HC_MARKET_PROVIDER pinned one."""
     paths = paths or RunPaths.default()
     static_dir = Path(static_dir) if static_dir is not None else STATIC_DIR
     app = FastAPI(title="HC valuation engine", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
@@ -182,7 +187,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
 
     app.state.paths = paths
     app.state.provider = provider
-    app.state.provider_explicit = provider   # what the operator asked for; a switched workbook re-derives from it
+    app.state.provider_explicit = provider_explicit
     app.state.static_dir = static_dir
     app.state.recompute = recompute     # `hc-valuation run --watch` calls this when an input file changes
     recompute(refresh=refresh_market)   # a forced refetch applies to the first run only; reruns read the cache
