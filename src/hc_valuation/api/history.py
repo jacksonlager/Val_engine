@@ -213,11 +213,11 @@ def _backfill_flags(raw: Any) -> tuple[list[dict[str, Any]], str | None]:
     return out, None
 
 
-def load_published_points(root: Path) -> tuple[dict[str, dict[str, dict[str, Any]]], list[str]]:
+def load_published_points(root: Path, published: Path | None = None) -> tuple[dict[str, dict[str, dict[str, Any]]], list[str]]:
     """One point per company per published quarter, from the current snapshot of each."""
     out: dict[str, dict[str, dict[str, Any]]] = {}
     errors: list[str] = []
-    d = published_dir(root)
+    d = published_dir(root, published)
     if not d.exists():
         return out, errors
     for p in sorted(d.glob("*.json")):
@@ -238,16 +238,18 @@ def load_published_points(root: Path) -> tuple[dict[str, dict[str, dict[str, Any
 # ---------------------------------------------------------------- assembly
 
 def build_history(run: ValuationRun, root: Path, *, backfill_path: Path | None = None,
-                  tolerance_musd: float = 0.01, prior_screen: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+                  tolerance_musd: float = 0.01, prior_screen: dict[str, dict[str, Any]] | None = None,
+                  published: Path | None = None) -> dict[str, Any]:
     """The `/api/history` payload. See the module docstring for the contract.
 
     `prior_screen` is `prior_screen.screen_prior_close(...)`: the previous quarter's flags
     reconstructed from the book this run started from. It fills the `prior` point's flags and
-    disposition when no published snapshot or backfill entry has them (tagged `reconstructed`)."""
+    disposition when no published snapshot or backfill entry has them (tagged `reconstructed`).
+    `published` is the publish-ledger folder when the caller's RunPaths moved it off `data/`."""
     root = Path(root)
     backfill_path = backfill_path if backfill_path is not None else root / BACKFILL_FILE
     backfill, errors = load_backfill(backfill_path)
-    published, perr = load_published_points(root)
+    published, perr = load_published_points(root, published)
     errors += perr
 
     current = quarter_label(quarter_key(run.manifest.quarter_label))

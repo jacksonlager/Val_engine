@@ -30,23 +30,43 @@ class RunPaths:
     proposals_dir: Path
     precedent: Path
     open_items_carry: Path   # prior quarter's open items, if a previous run exported them
+    # Where released snapshots land (`data/published/` by default). Part of the *ledger* — a
+    # test chain that records decisions into its own overrides file must publish into its own
+    # folder too, or the mark archive (api/history.py) would read invented quarters as real ones.
+    published_dir: Path | None = None
+
+    def __post_init__(self) -> None:
+        if self.published_dir is None:
+            self.published_dir = Path(self.root) / "data" / "published"
+
+    @property
+    def ledger_dir(self) -> Path:
+        """The folder the decision ledgers share — reported on /api/health so a reviewer can see
+        which ledger a decision will be appended to."""
+        return Path(self.overrides).parent
 
     @classmethod
-    def default(cls, root: Path | None = None, workbook: Path | None = None, policy: Path | None = None) -> "RunPaths":
+    def default(cls, root: Path | None = None, workbook: Path | None = None, policy: Path | None = None,
+                overrides: Path | None = None, ledger_dir: Path | None = None) -> "RunPaths":
+        """`ledger_dir` moves every decision record — overrides, proposals, precedent, published
+        snapshots — under one folder; `overrides` alone moves just the E-01 file. Neither is set
+        for the real book, which keeps `data/`. The market cache is not a ledger and never moves."""
         root = root or repo_root()
         workbook = workbook or root / "data" / "HC_Mock_Portfolio_Data.xlsx"
         # The prior quarter's sidecar travels with the workbook `build` emitted it beside; a copy
         # in data/ is the fallback so the documented refresh steps keep working either way.
         beside = workbook.parent / "open_items_carry.yaml"
         carry = beside if beside.exists() else root / "data" / "open_items_carry.yaml"
+        ledger = Path(ledger_dir) if ledger_dir is not None else root / "data"
         return cls(
             root=root,
             policy=policy or default_policy_path(root),
             workbook=workbook,
-            overrides=root / "data" / "overrides.yaml",
-            proposals_dir=root / "data" / "proposals",
-            precedent=root / "data" / "precedent.yaml",
+            overrides=Path(overrides) if overrides is not None else ledger / "overrides.yaml",
+            proposals_dir=ledger / "proposals",
+            precedent=ledger / "precedent.yaml",
             open_items_carry=carry,
+            published_dir=ledger / "published",
         )
 
 

@@ -193,7 +193,11 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         m = result().run.manifest
         return {"status": "ok", "run_id": m.run_id, "quarter": m.quarter_label, "policy_version": m.policy_version,
                 "engine_version": m.engine_version, "generated_at": m.generated_at.isoformat(),
-                "blocked": result().run.blocked}
+                "blocked": result().run.blocked,
+                # which ledger a decision made on this page lands in — a test chain must never
+                # append to the real book's overrides.yaml, and the page can say where it writes
+                "ledger": {"overrides": str(paths.overrides), "published_dir": str(paths.published_dir),
+                           "workbook": str(paths.workbook), "policy": str(paths.policy)}}
 
     @app.get("/api/run")
     def get_run() -> Response:
@@ -229,7 +233,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     @app.get("/api/history")
     def get_history() -> JSONResponse:
         """Quarter-over-quarter booked marks per company: backfill + publish ledger + this run (api/history.py)."""
-        return JSONResponse(build_history(result().run, paths.root, prior_screen=prior_screen_for(result())))
+        return JSONResponse(build_history(result().run, paths.root, prior_screen=prior_screen_for(result()), published=paths.published_dir))
 
     @app.get("/api/signals")
     def get_signals() -> JSONResponse:
@@ -247,19 +251,19 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     @app.get("/api/published")
     def get_published_list() -> JSONResponse:
         """Every quarter that has been released to executives, newest first."""
-        return JSONResponse(list_published(paths.root))
+        return JSONResponse(list_published(paths.root, paths.published_dir))
 
     @app.get("/api/exec")
     def get_exec_latest() -> JSONResponse:
         """The executive view-model for the most recently published quarter."""
-        view = exec_payload(paths.root)
+        view = exec_payload(paths.root, published=paths.published_dir)
         if view is None:
             raise HTTPException(404, "nothing has been published yet — release a run from the review dashboard first")
         return JSONResponse(view)
 
     @app.get("/api/exec/{slug}")
     def get_exec_quarter(slug: str) -> JSONResponse:
-        view = exec_payload(paths.root, slug)
+        view = exec_payload(paths.root, slug, published=paths.published_dir)
         if view is None:
             raise HTTPException(404, f"no published snapshot named {slug!r}")
         return JSONResponse(view)
@@ -280,7 +284,8 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
             with lock:
                 r = result()
                 rec = publish_run(r.run, paths.root, approver=body.approver, note=body.note,
-                                  require_second_approver=r.config.publish.require_second_approver)
+                                  require_second_approver=r.config.publish.require_second_approver,
+                                  published=paths.published_dir)
         except PublishBlocked as exc:
             raise HTTPException(409, {"message": str(exc), "outstanding": exc.items}) from exc
         except SecondApproverRequired as exc:
@@ -360,7 +365,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         @app.get("/exec", include_in_schema=False)
         @app.get("/exec/", include_in_schema=False)
         def exec_index() -> HTMLResponse:
-            view = exec_payload(paths.root)
+            view = exec_payload(paths.root, published=paths.published_dir)
             if view is None:
                 return HTMLResponse("<h1>Nothing published yet</h1><p>Release a run from the review dashboard first.</p>", 404)
             return HTMLResponse(render_exec_report(view, Path(exec_dir)))
@@ -371,7 +376,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         @app.get("/", include_in_schema=False)
         def index() -> HTMLResponse:
             return HTMLResponse(render_report(result().run, None, market=result().market_report,
-                                              history=build_history(result().run, paths.root, prior_screen=prior_screen_for(result())),
+                                              history=build_history(result().run, paths.root, prior_screen=prior_screen_for(result()), published=paths.published_dir),
                                               signals=build_signals(result()),
                                               rationale=load_rationale(paths.root)))
 

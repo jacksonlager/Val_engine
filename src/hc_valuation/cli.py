@@ -57,6 +57,12 @@ ProviderOpt = typer.Option(None, "--provider", help="Market-data provider overri
 RefreshMarketOpt = typer.Option(False, "--refresh-market", help="Refetch the live market feed over its cache (provider live)")
 RecommenderOpt = typer.Option(None, "--recommender", help="Who picks the one resolution shown first per flag: policy | claude "
                                                         "(default: the policy file's recommendation.provider)")
+# The decision ledgers. The real book keeps data/; a test chain (a synthetic quarter, a rehearsal)
+# gets its own folder so its simulated decisions never land in the committee's overrides.yaml or in
+# the publish archive the mark history reads.
+OverridesOpt = typer.Option(None, "--overrides", help="Override ledger (E-01 decisions). Default: <ledger dir>/overrides.yaml")
+LedgerDirOpt = typer.Option(None, "--ledger-dir", help="Folder for every decision record — overrides.yaml, proposals/, "
+                                                      "precedent.yaml, published/. Default: data/")
 
 
 def _load_rationale(root: Path):
@@ -64,10 +70,13 @@ def _load_rationale(root: Path):
     return load_rationale(root)
 
 
-def _paths(input_path: Optional[Path], policy: Optional[Path]):
+def _paths(input_path: Optional[Path], policy: Optional[Path], overrides: Optional[Path] = None,
+           ledger_dir: Optional[Path] = None):
     from .pipeline import RunPaths
     return RunPaths.default(workbook=input_path.resolve() if input_path else None,
-                            policy=policy.resolve() if policy else None)
+                            policy=policy.resolve() if policy else None,
+                            overrides=overrides.resolve() if overrides else None,
+                            ledger_dir=ledger_dir.resolve() if ledger_dir else None)
 
 
 def _slug(label: str) -> str:
@@ -158,13 +167,14 @@ def next_policy(policy: Optional[Path] = PolicyOpt,
 
 
 @app.command()
-def validate(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt) -> None:
+def validate(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+             overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt) -> None:
     """Ingest the workbook and run the X-9xx integrity checks. Exit 1 if anything blocks."""
     from .ingest.reader import IngestError, read_workbook
     from .ingest.validate import validate as _validate
     from .pipeline import load_mark_basis
 
-    paths = _paths(input_path, policy)
+    paths = _paths(input_path, policy, overrides, ledger_dir)
     cfg = load_config(paths.policy)
     try:
         snapshot, feed = read_workbook(paths.workbook, cfg)
@@ -204,13 +214,14 @@ def rules(policy: Optional[Path] = PolicyOpt) -> None:
 
 @app.command()
 def export(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+           overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
            out: Path = typer.Option(Path("dist"), "--out", "-o", help="Output folder"),
            provider: Optional[str] = ProviderOpt) -> None:
     """Write the review workbook and CSVs only."""
     from .export import write_csvs, write_workbook
     from .pipeline import execute
 
-    r = execute(_paths(input_path, policy), provider=provider)
+    r = execute(_paths(input_path, policy, overrides, ledger_dir), provider=provider)
     out.mkdir(parents=True, exist_ok=True)
     try:
         from .api.sources import build_sources
@@ -227,6 +238,7 @@ def export(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Polic
 
 @app.command()
 def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+          overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
           out: Path = typer.Option(Path("dist"), "--out", "-o", help="Output folder"),
           provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt,
           recommender: Optional[str] = RecommenderOpt) -> None:
@@ -237,7 +249,7 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
                          write_static_report, write_workbook)
     from .pipeline import execute
 
-    paths = _paths(input_path, policy)
+    paths = _paths(input_path, policy, overrides, ledger_dir)
     r = execute(paths, provider=_default_provider(paths, provider), refresh_market=refresh_market, recommender=recommender)
     run = r.run
     out.mkdir(parents=True, exist_ok=True)
@@ -249,7 +261,7 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
         sources = None                 # the report still renders, but say so: an audit trail without cells is a downgrade
         typer.echo(f"warning: cell provenance unavailable ({type(exc).__name__}: {exc}); the report and Audit Trail will cite no cells", err=True)
     from .prior_screen import prior_screen_for
-    history = build_history(run, paths.root, prior_screen=prior_screen_for(r))   # the per-company archive, inlined as window.__HC_HISTORY__
+    history = build_history(run, paths.root, prior_screen=prior_screen_for(r), published=paths.published_dir)   # the per-company archive, inlined as window.__HC_HISTORY__
     try:
         from .api.signals import build_signals
         signals = build_signals(r)             # vendor context (Foresight / AlphaSense stubs), window.__HC_SIGNALS__
@@ -282,7 +294,7 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
     try:
         from .api.publish import exec_payload
         from .export.exec_report import write_exec_report
-        view = exec_payload(paths.root)
+        view = exec_payload(paths.root, published=paths.published_dir)
         if view is not None:
             written.append(write_exec_report(view, out / "exec_report.html"))
         else:
@@ -301,6 +313,7 @@ def build(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Policy
 
 @app.command()
 def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+            overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
             approver: str = typer.Option(..., "--approver", "-a", help="Who is releasing these marks to executives"),
             note: str = typer.Option("", "--note", "-n", help="Short note shown on the executive dashboard"),
             out: Optional[Path] = typer.Option(None, "--out", "-o", help="Also write a self-contained exec_report.html here"),
@@ -312,11 +325,11 @@ def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
     from .export.exec_report import write_exec_report
     from .pipeline import execute
 
-    paths = _paths(input_path, policy)
+    paths = _paths(input_path, policy, overrides, ledger_dir)
     r = execute(paths, provider=_default_provider(paths, None))
     try:
         rec = publish_run(r.run, paths.root, approver=approver, note=note, require_decisions=not proposed,
-                          require_second_approver=r.config.publish.require_second_approver)
+                          require_second_approver=r.config.publish.require_second_approver, published=paths.published_dir)
     except SecondApproverRequired as exc:
         typer.echo(f"refused: {exc}", err=True)
         raise typer.Exit(2)
@@ -330,13 +343,14 @@ def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
                f"{len(rec.get('open_positions', rec['open_blocks']))} position(s) not ready, {len(rec['open_blocks'])} blocked)")
     typer.echo(f"executive dashboard: {DASHBOARD_URL}/exec/  (after `hc-valuation run`)")
     if out is not None:
-        view = exec_payload(paths.root)
+        view = exec_payload(paths.root, published=paths.published_dir)
         p = write_exec_report(view, Path(out) / "exec_report.html")
         typer.echo(f"wrote {p}")
 
 
 @app.command()
 def market(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+           overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
            provider: Optional[str] = typer.Option(None, "--provider", help="stub | live | pitchbook (default: HC_MARKET_PROVIDER, else stub)"),
            refresh: bool = typer.Option(False, "--refresh", help="Refetch over the cache (provider live)"),
            price_source: Optional[str] = typer.Option(None, "--price-source", help="yahoo | stooq — the price half of the live feed (default: HC_PRICE_SOURCE, else rules/comps_baskets.yaml defaults.price_source)"),
@@ -346,7 +360,7 @@ def market(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Polic
     from .connectors import assemble_market_data
     from .ingest.reader import read_workbook
 
-    paths = _paths(input_path, policy)
+    paths = _paths(input_path, policy, overrides, ledger_dir)
     cfg = load_config(paths.policy)
     snapshot, feed = read_workbook(paths.workbook, cfg)
     rep = assemble_market_data(cfg, paths.root, snapshot, feed, provider=provider, refresh=refresh,
@@ -376,6 +390,7 @@ def market(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Polic
 
 @app.command()
 def history(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+            overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
             company: Optional[str] = typer.Option(None, "--company", "-c", help="One company only"),
             as_json: bool = typer.Option(False, "--json", help="Print the /api/history payload as JSON")) -> None:
     """The booked-mark archive the review tool charts: one row per company per quarter, with
@@ -383,10 +398,10 @@ def history(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
     from .api.history import build_history, history_rows
     from .pipeline import execute
 
-    paths = _paths(input_path, policy)
+    paths = _paths(input_path, policy, overrides, ledger_dir)
     r = execute(paths)
     from .prior_screen import prior_screen_for
-    hist = build_history(r.run, paths.root, prior_screen=prior_screen_for(r))
+    hist = build_history(r.run, paths.root, prior_screen=prior_screen_for(r), published=paths.published_dir)
     if company is not None:
         if company not in hist["companies"]:
             raise typer.BadParameter(f"no company named {company!r}; known: {', '.join(hist['companies'])}")
@@ -416,6 +431,7 @@ def history(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
 
 @app.command()
 def recommend(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+              overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
               recommender: Optional[str] = typer.Option("claude", "--recommender", help="policy | claude"),
               refresh: bool = typer.Option(False, "--refresh", help="Ignore cached answers and ask the model again"),
               as_json: bool = typer.Option(False, "--json", help="Print every recommendation as JSON")) -> None:
@@ -424,7 +440,7 @@ def recommend(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Po
     and later runs are deterministic and offline."""
     from .pipeline import execute
 
-    paths = _paths(input_path, policy)
+    paths = _paths(input_path, policy, overrides, ledger_dir)
     r = execute(paths, recommender=recommender, refresh_recommendations=refresh)
     rows, out = [], []
     for c in r.run.companies:
@@ -473,6 +489,7 @@ def _open_when_up(url: str, health: str, timeout: float = 30.0) -> None:
 
 @app.command()
 def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
+        overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
         port: int = typer.Option(DEFAULT_PORT, "--port"), host: str = typer.Option(DEFAULT_HOST, "--host"),
         no_browser: bool = typer.Option(False, "--no-browser", help="Do not open a browser tab"),
         watch: bool = typer.Option(False, "--watch", help="Recompute when the workbook, policy or a ledger changes; "
@@ -485,7 +502,7 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
 
     from .api.app import STATIC_DIR, create_app, watch_inputs
 
-    paths = _paths(input_path, policy)
+    paths = _paths(input_path, policy, overrides, ledger_dir)
     application = create_app(paths, provider=_default_provider(paths, provider), refresh_market=refresh_market,
                              recommender=recommender)
     typer.echo(_headline(application.state.result.run))

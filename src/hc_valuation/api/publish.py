@@ -76,8 +76,9 @@ def _slug(label: str) -> str:
     return f"{m.group(2)}Q{m.group(1)}" if m else re.sub(r"[^A-Za-z0-9]+", "_", label)
 
 
-def published_dir(root: Path) -> Path:
-    return Path(root) / "data" / "published"
+def published_dir(root: Path, published: Path | None = None) -> Path:
+    """`data/published/` under the repo root unless the caller's RunPaths moved the ledger."""
+    return Path(published) if published is not None else Path(root) / "data" / "published"
 
 
 def _escape(payload: str) -> str:
@@ -90,7 +91,7 @@ def _norm(name: str) -> str:
 
 def publish_run(run: ValuationRun, root: Path, *, approver: str, note: str = "",
                 published_at: datetime | None = None, require_decisions: bool = True,
-                require_second_approver: bool = True) -> dict[str, Any]:
+                require_second_approver: bool = True, published: Path | None = None) -> dict[str, Any]:
     """Freeze `run` as the executive snapshot for its quarter. Returns the publish record.
     Refuses (PublishBlocked) while any position is BLOCK or REVIEW unless `require_decisions` is
     off, and (SecondApproverRequired) when the publisher approved any of this quarter's overrides
@@ -129,7 +130,7 @@ def publish_run(run: ValuationRun, root: Path, *, approver: str, note: str = "",
         "input_sha256": run.manifest.input_sha256,
         "booked_nav": run.totals.booked_nav,
     }
-    d = published_dir(root)
+    d = published_dir(root, published)
     d.mkdir(parents=True, exist_ok=True)
     target = d / f"{record['slug']}.json"
     if target.exists():
@@ -144,8 +145,8 @@ def publish_run(run: ValuationRun, root: Path, *, approver: str, note: str = "",
     return record
 
 
-def list_published(root: Path) -> list[dict[str, Any]]:
-    d = published_dir(root)
+def list_published(root: Path, published: Path | None = None) -> list[dict[str, Any]]:
+    d = published_dir(root, published)
     if not d.exists():
         return []
     out = []
@@ -159,8 +160,8 @@ def list_published(root: Path) -> list[dict[str, Any]]:
     return sorted(out, key=lambda r: r["published_at"], reverse=True)
 
 
-def load_published(root: Path, slug: str | None = None) -> tuple[dict[str, Any], ValuationRun] | None:
-    d = published_dir(root)
+def load_published(root: Path, slug: str | None = None, published: Path | None = None) -> tuple[dict[str, Any], ValuationRun] | None:
+    d = published_dir(root, published)
     if slug is None:
         latest = d / "latest.json"
         if not latest.exists():
@@ -173,14 +174,14 @@ def load_published(root: Path, slug: str | None = None) -> tuple[dict[str, Any],
     return raw["publish"], ValuationRun.model_validate(raw["run"])
 
 
-def exec_payload(root: Path, slug: str | None = None) -> dict[str, Any] | None:
-    loaded = load_published(root, slug)
+def exec_payload(root: Path, slug: str | None = None, published: Path | None = None) -> dict[str, Any] | None:
+    loaded = load_published(root, slug, published)
     if loaded is None:
         return None
     record, run = loaded
     view = build_exec_view(run, record)
     view["history"] = [{k: r[k] for k in ("quarter", "slug", "published_at", "published_by", "status", "booked_nav")}
-                       for r in list_published(root)]
+                       for r in list_published(root, published)]
     return view
 
 
