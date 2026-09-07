@@ -2,7 +2,7 @@
 //   served  — the FastAPI app serves this bundle at '/' and exposes /api/*
 //   static  — the run is inlined as window.__HC_RUN__ (hc-valuation build); no API,
 //             so every write action is disabled with an explanation.
-import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun } from "../types";
+import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun, WorkbookProfile } from "../types";
 
 export type Mode = "served" | "static";
 
@@ -161,4 +161,21 @@ export async function fetchPublished(): Promise<PublishRecord[]> {
     if (String(e).includes("404")) return [];
     throw e;
   }
+}
+
+/** The workbooks the server can switch between. A server without the route (404) offers none. */
+export async function fetchWorkbooks(): Promise<WorkbookProfile[]> {
+  try {
+    const data = await getJson<{ workbooks: WorkbookProfile[] }>("/api/workbooks");
+    return Array.isArray(data?.workbooks) ? data.workbooks : [];
+  } catch (e) {
+    if (String(e).includes("404")) return [];
+    throw e;
+  }
+}
+
+/** Switch the served run to another workbook (its quarter's policy and its own ledger come with it).
+    The server recomputes and answers with the new run id; the page then reloads the run. */
+export async function selectWorkbook(id: string): Promise<{ run_id: string; quarter: string }> {
+  return postJson("/api/workbook", { id });
 }

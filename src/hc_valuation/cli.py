@@ -53,7 +53,7 @@ app = typer.Typer(
 
 InputOpt = typer.Option(None, "--input", "-i", help="Portfolio workbook (.xlsx). Default: data/HC_Mock_Portfolio_Data.xlsx")
 PolicyOpt = typer.Option(None, "--policy", "-p", help="Policy file. Default: rules/2026Q3.yaml (the base policy)")
-ProviderOpt = typer.Option(None, "--provider", help="Market-data provider override (stub | live | pitchbook), passed to the connectors")
+ProviderOpt = typer.Option(None, "--provider", help="Market-data provider override (stub | live | pitchbook | synthetic), passed to the connectors")
 RefreshMarketOpt = typer.Option(False, "--refresh-market", help="Refetch the live market feed over its cache (provider live)")
 RecommenderOpt = typer.Option(None, "--recommender", help="Who picks the one resolution shown first per flag: policy | claude "
                                                         "(default: the policy file's recommendation.provider)")
@@ -84,27 +84,21 @@ def _slug(label: str) -> str:
 
 
 def _default_provider(paths, provider: Optional[str]) -> Optional[str]:
-    """`run` and `build` read the committed live cache when nothing was asked for: a checkout
-    that carries `data/market_cache/<measurement date>/` serves live-shaped comps offline, with
-    no flag and no network. An explicit `--provider` or `HC_MARKET_PROVIDER` always wins; the
-    library default (`execute` with no provider, the tests, the golden run) stays `stub`."""
-    import os
+    """`run`, `build` and `publish` pick the provider the way the dashboard's workbook switcher
+    does (workbooks.provider_for): an explicit `--provider` or `HC_MARKET_PROVIDER` wins; else the
+    declared-synthetic file for the measurement date, if one exists; else the committed live cache
+    (`data/market_cache/<measurement date>/`, no network); else the fixture. The library default
+    (`execute` with no provider, the tests, the golden run) stays `stub`."""
+    from .workbooks import provider_for
 
-    from .config import load_config
-    from .connectors import ENV_VAR
-    from .connectors.cache import MarketCache
-
-    if provider is not None or os.environ.get(ENV_VAR):
-        return provider
-    try:
+    chosen = provider_for(paths.root, paths.policy, provider)
+    if chosen == "synthetic" and provider is None:
+        typer.echo("market: SYNTHETIC test data for this measurement date (data/synthetic_market/); not market data")
+    elif chosen == "live" and provider is None:
         md = load_config(paths.policy).quarter.measurement_date
-    except Exception:  # noqa: BLE001 — a bad policy is reported by execute, not here
-        return provider
-    if MarketCache(paths.root, md).exists():
         typer.echo(f"market: reading the live comps cache in data/market_cache/{md.isoformat()} (no network; "
                    f"--provider stub for the fixture, --refresh-market to refetch)")
-        return "live"
-    return provider
+    return chosen
 
 
 def _headline(run: ValuationRun) -> str:
@@ -351,7 +345,7 @@ def publish(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Poli
 @app.command()
 def market(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOpt,
            overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt,
-           provider: Optional[str] = typer.Option(None, "--provider", help="stub | live | pitchbook (default: HC_MARKET_PROVIDER, else stub)"),
+           provider: Optional[str] = typer.Option(None, "--provider", help="stub | live | pitchbook | synthetic (default: HC_MARKET_PROVIDER, else stub)"),
            refresh: bool = typer.Option(False, "--refresh", help="Refetch over the cache (provider live)"),
            price_source: Optional[str] = typer.Option(None, "--price-source", help="yahoo | stooq — the price half of the live feed (default: HC_PRICE_SOURCE, else rules/comps_baskets.yaml defaults.price_source)"),
            as_json: bool = typer.Option(False, "--json", help="Print the /api/market payload as JSON")) -> None:

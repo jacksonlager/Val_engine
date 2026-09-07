@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Rationale, Sources, ValuationRun } from "./types";
-import { currentRunStamp, loadHistory, loadProposals, loadRationale, loadRun, loadSignals, STATIC_REASON, type Mode } from "./lib/api";
+import type { Rationale, Sources, ValuationRun, WorkbookProfile } from "./types";
+import { currentRunStamp, fetchWorkbooks, loadHistory, loadProposals, loadRationale, loadRun, loadSignals, selectWorkbook, STATIC_REASON, type Mode } from "./lib/api";
 import { HistoryProvider, type HistoryState } from "./lib/history";
 import { SourcesProvider } from "./lib/sources";
 import { RationaleProvider } from "./lib/rationale";
@@ -34,6 +34,57 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "rules", label: "Rules" },
 ];
 const ALL_VIEWS: View[] = ["activity", "queue", "companies", "movement", "funds", "market", "rules", "open", "proposals"];
+
+/** The workbook the served run reads, and the others it could. Switching asks the server to
+    recompute on that file — with its quarter's policy and its own decision ledger — so the run
+    id changes and the page reloads. A synthetic profile is said so beside the name. */
+function WorkbookSwitcher({ served, refreshKey, onSwitched }: { served: boolean; refreshKey: number; onSwitched: () => void }) {
+  const [profiles, setProfiles] = useState<WorkbookProfile[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!served) return;
+    fetchWorkbooks().then(setProfiles, () => setProfiles([]));
+  }, [served, refreshKey]);
+  if (!served || profiles.length < 2) return null;
+  const current = profiles.find((p) => p.current);
+  const change = async (id: string) => {
+    if (!id || id === current?.id) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await selectWorkbook(id);
+      onSwitched();
+    } catch (e) {
+      setError(String((e as Error)?.message ?? e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[12px]">
+      <label className="text-muted" htmlFor="workbook-select">
+        Workbook
+      </label>
+      <select
+        id="workbook-select"
+        className="rounded-md border border-line bg-surface px-1.5 py-0.5 text-[12px] max-w-[320px]"
+        value={current?.id ?? ""}
+        disabled={busy}
+        onChange={(e) => change(e.target.value)}
+        title={current ? `${current.workbook}\nPolicy: ${current.policy ?? "—"}\nDecisions recorded in: ${current.ledger_dir}` : undefined}
+      >
+        {profiles.map((p) => (
+          <option key={p.id} value={p.id} disabled={!p.usable} title={p.usable ? p.workbook : p.reason}>
+            {(p.quarter ?? p.workbook) + (p.synthetic ? " · synthetic test data" : "") + (p.usable ? "" : ` (${p.reason})`)}
+          </option>
+        ))}
+      </select>
+      {busy && <span className="text-muted">recomputing…</span>}
+      {error && <span className="text-[var(--block-text)]">{error}</span>}
+    </span>
+  );
+}
 
 function viewFromHash(): View {
   const h = window.location.hash.replace("#", "");
@@ -157,6 +208,7 @@ export default function App() {
               bucket on its own tiles, and Companies has its own filter bar. A second severity
               filter up here only competed with them. */}
           <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
+            <WorkbookSwitcher served={mode === "served"} refreshKey={reloads} onSwitched={reload} />
             <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} onGoto={gotoCompany} />
             <span
               className={`chip no-dot ${mode === "static" ? "disp-MONITOR" : "disp-CLEAR"} hint`}
@@ -166,6 +218,13 @@ export default function App() {
             </span>
           </div>
         </div>
+        {(m.market_data_source.startsWith("synthetic:") || /synthetic|SYNTHETIC/.test(m.input_file)) && (
+          <div className="static-banner" role="alert" style={{ background: "var(--block)", color: "var(--block-text)" }}>
+            Synthetic test quarter — the workbook <span className="mono">{m.input_file}</span> is invented test data
+            {m.market_data_source.startsWith("synthetic:") ? ", and the sector multiples on the Market tab were invented by a script" : ""}.
+            Nothing on this page is a real position or a real market observation.
+          </div>
+        )}
         {mode === "static" && (
           <div className="static-banner" role="note">
             Read-only export — decisions (suggestions, overrides, publish) need the served app: run{" "}

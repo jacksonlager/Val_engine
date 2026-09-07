@@ -71,6 +71,10 @@ class PublishIn(BaseModel):
     note: str = ""
 
 
+class WorkbookIn(BaseModel):
+    id: str = Field(min_length=1)   # a profile id from GET /api/workbooks (the path relative to the repo root)
+
+
 class DecisionIn(BaseModel):
     decision: str            # accept_once | promote | reject (the adjudication module validates)
     approver: str = Field(min_length=1)
@@ -116,13 +120,11 @@ def watch_inputs(app: FastAPI, interval_s: float = 2.0, log: Any = None) -> thre
     recompute under the app lock, and the served run id changes, which the dashboard notices
     and reloads on. A failed recompute (a half-written workbook, say) is logged and the last
     good run stays served; the next change retries."""
-    paths: RunPaths = app.state.paths
-
     def loop() -> None:
-        last = _stamp(watched_inputs(paths))
+        last = _stamp(watched_inputs(app.state.paths))
         while True:
             time.sleep(interval_s)
-            now = _stamp(watched_inputs(paths))
+            now = _stamp(watched_inputs(app.state.paths))   # re-read: a workbook switch moves the watched set
             if now == last:
                 continue
             last = now
@@ -169,7 +171,8 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
 
     def recompute(refresh: bool = False) -> PipelineResult:
         with lock:
-            app.state.result = execute(paths, provider=provider, refresh_market=refresh, recommender=recommender)
+            app.state.result = execute(app.state.paths, provider=app.state.provider, refresh_market=refresh,
+                                       recommender=recommender)
         return app.state.result
 
     def write_then_recompute(write) -> PipelineResult:
@@ -179,12 +182,20 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
 
     app.state.paths = paths
     app.state.provider = provider
+    app.state.provider_explicit = provider   # what the operator asked for; a switched workbook re-derives from it
     app.state.static_dir = static_dir
     app.state.recompute = recompute     # `hc-valuation run --watch` calls this when an input file changes
     recompute(refresh=refresh_market)   # a forced refetch applies to the first run only; reruns read the cache
 
     def result() -> PipelineResult:
         return app.state.result
+
+    class _Paths:
+        """`paths.<field>` always reads the workbook the server is currently on."""
+        def __getattr__(self, name: str) -> Any:
+            return getattr(app.state.paths, name)
+
+    paths = _Paths()   # type: ignore[assignment]
 
     # ------------------------------------------------------------------ read
 
@@ -240,6 +251,44 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         """Vendor context beside each position — Foresight-shaped metrics cross-checked against the
         workbook and AlphaSense-shaped dated signals (api/signals.py). Never an input to a mark."""
         return JSONResponse(build_signals(result()))
+
+    @app.get("/api/workbooks")
+    def get_workbooks() -> JSONResponse:
+        """The workbook this run reads and every other one the server could switch to (workbooks.py)."""
+        from ..workbooks import discover
+        cur = app.state.paths
+        profiles = discover(cur.root, cur.workbook, explicit_provider=app.state.provider_explicit,
+                            current_policy=cur.policy, current_ledger_dir=cur.ledger_dir)
+        return JSONResponse({"current": profiles[0].id if profiles else None,
+                             "workbooks": [p.as_json() for p in profiles]})
+
+    @app.post("/api/workbook")
+    def post_workbook(body: WorkbookIn) -> dict[str, Any]:
+        """Switch the served run to another discovered workbook. The policy for its quarter and its
+        own decision ledger come with it, and the run id changes because the inputs did."""
+        from ..workbooks import discover, paths_for
+        cur = app.state.paths
+        profiles = discover(cur.root, cur.workbook, explicit_provider=app.state.provider_explicit,
+                            current_policy=cur.policy, current_ledger_dir=cur.ledger_dir)
+        match = next((p for p in profiles if p.id == body.id), None)
+        if match is None:
+            raise HTTPException(404, {"message": f"no discovered workbook with id {body.id!r}",
+                                      "workbooks": [p.id for p in profiles]})
+        if not match.usable:
+            raise HTTPException(409, {"message": f"{match.workbook} cannot be run: {match.reason}"})
+        with lock:
+            previous = (app.state.paths, app.state.provider)
+            app.state.paths = cur if match.current else paths_for(cur.root, match)
+            app.state.provider = match.provider
+            try:
+                r = recompute()
+            except Exception as exc:  # noqa: BLE001 — keep serving the run we had
+                app.state.paths, app.state.provider = previous
+                raise HTTPException(400, {"message": f"{match.workbook} could not be run: {type(exc).__name__}: {exc}"}) from exc
+        m = r.run.manifest
+        return {"id": match.id, "run_id": m.run_id, "quarter": m.quarter_label, "generated_at": m.generated_at.isoformat(),
+                "policy": str(app.state.paths.policy), "ledger_dir": str(app.state.paths.ledger_dir),
+                "market_data_source": m.market_data_source}
 
     @app.get("/api/proposals")
     def get_proposals() -> JSONResponse:
