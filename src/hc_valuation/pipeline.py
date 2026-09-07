@@ -94,22 +94,33 @@ def previous_quarter_label(label: str) -> str:
     return f"Q4 {y - 1}" if q == 1 else f"Q{q - 1} {y}"
 
 
+def _sidecar_quarter(path: Path) -> str | None:
+    try:
+        raw = yaml.safe_load(path.read_text()) or {}
+    except (yaml.YAMLError, OSError):
+        return None
+    q = raw.get("quarter")
+    return str(q).strip() if q else None
+
+
 def sidecar_for(paths: "RunPaths", cfg: RuleConfig) -> Path:
     """The `open_items_carry.yaml` this run may read: the one the *previous* quarter's close emitted.
     A sidecar records the quarter it came from; one from any other quarter — this quarter's own,
     written when it was published and left beside the workbook — is not this run's prior state and
-    is ignored, so a book can be re-run after its own close without ageing its own open items."""
-    path = paths.open_items_carry
-    if not path.exists():
-        return path
-    try:
-        raw = yaml.safe_load(path.read_text()) or {}
-    except yaml.YAMLError:
-        return path
-    source = raw.get("quarter")
-    if source and str(source).strip() != previous_quarter_label(cfg.quarter.label):
-        return path.parent / f"{path.name}.not-for-{cfg.quarter.label.replace(' ', '_')}"   # a path that does not exist
-    return path
+    is ignored, so a book can be re-run after its own close without ageing its own open items.
+    Looked for beside the workbook first, then beside every uploaded workbook (`data/uploads/*/`),
+    then in `data/`: an uploaded Q4 lives in its own folder while Q3's close wrote the sidecar
+    beside Q3."""
+    wanted = previous_quarter_label(cfg.quarter.label)
+    root = Path(paths.root)
+    candidates = [paths.open_items_carry, *sorted((root / "data" / "uploads").glob("*/open_items_carry.yaml")),
+                  root / "data" / "open_items_carry.yaml"]
+    for cand in candidates:
+        if cand.exists():
+            q = _sidecar_quarter(cand)
+            if q is None or q == wanted:      # an unlabelled sidecar (older tool) is taken as written
+                return cand
+    return paths.open_items_carry.parent / f"open_items_carry.yaml.not-for-{cfg.quarter.label.replace(' ', '_')}"
 
 
 def next_quarter_input_name(source_workbook: Path, next_label: str) -> str:
@@ -209,22 +220,37 @@ class PipelineResult:
     prior_screen: Any = None                             # memo: prior_screen.screen_prior_close, filled on first use
 
 
+STAGES = ("Reading the workbook", "Checking the data", "Fetching market data", "Loading the decision ledger",
+          "Valuing every position", "Drafting treatments for unrecognised events", "Choosing each next step")
+
+
 def execute(paths: RunPaths | None = None, *, provider: str | None = None, generated_at: datetime | None = None,
             adjudicate: bool = True, refresh_market: bool = False, recommender: str | None = None,
-            refresh_recommendations: bool = False) -> PipelineResult:
+            refresh_recommendations: bool = False, progress: Any = None) -> PipelineResult:
+    """`progress(stage_index, stage_name)` is called as each stage of STAGES begins, for a caller
+    that shows the work (the upload dialog); it never changes what is computed."""
     from .connectors import assemble_market_data   # local import: connectors may pull optional deps
+
+    def stage(i: int) -> None:
+        if progress is not None:
+            progress(i, STAGES[i])
 
     paths = paths or RunPaths.default()
     cfg = load_config(paths.policy)
+    stage(0)
     snapshot, feed = read_workbook(paths.workbook, cfg)
     sidecar = sidecar_for(paths, cfg)
+    stage(1)
     issues = validate(snapshot, feed, cfg, explained_departures=load_mark_basis(sidecar))
+    stage(2)
     assembled = assemble_market_data(cfg, paths.root, snapshot, feed, provider=provider, refresh=refresh_market)
     market, source = assembled
     market_report = dict(getattr(assembled, "report", None) or {})
+    stage(3)
     ledger = load_overrides(paths.overrides)
     prior_items = load_prior_open_items(sidecar)
 
+    stage(4)
     run = run_valuation(
         snapshot, feed, market, ledger, cfg,
         validation=tuple(issues), prior_open_items=prior_items,
@@ -237,8 +263,10 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
 
     proposals: list = []
     if adjudicate and cfg.adjudication.enabled:
+        stage(5)
         from .adjudication import adjudicate_run
         proposals = adjudicate_run(run, feed, cfg, paths)
+    stage(6)
 
     # One recommendation per actionable flag — chosen among the engine's priced suggestions by
     # the policy default or by Claude (recommend.py). Outside the engine, after it, like E-09.

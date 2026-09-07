@@ -115,7 +115,7 @@ def test_discover_lists_real_quarters_and_never_synthetic_ones_beside_the_real_b
     assert profs[0].current and profs[0].id == "data/HC_Mock_Portfolio_Data.xlsx" and not profs[0].synthetic
     assert profs[0].policy == "rules/2026Q3.yaml" and profs[0].ledger_dir == "data" and profs[0].usable
     assert [p.id for p in profs] == ["data/HC_Mock_Portfolio_Data.xlsx", "data/quarters/2026Q4/malformed/Q4_2026_broken.xlsx",
-                                     "data/quarters/2026Q4/portfolio_Q4_2026.xlsx"]
+                                     "data/quarters/2026Q4/portfolio_Q4_2026.xlsx"]   # the current book first, then data/quarters/
     q4 = profs[2]
     assert q4.quarter == "Q4 2026" and not q4.synthetic and q4.usable and q4.policy == "rules/2026Q4.yaml" and q4.ledger_dir == "data"
     assert not profs[1].usable and "Activity" in profs[1].reason
@@ -128,7 +128,6 @@ def test_synthetic_quarters_are_offered_only_from_a_synthetic_book(root: Path, m
     assert all(not p.synthetic for p in discover(root, root / "data" / REAL.name))
     from_syn = discover(root, syn)
     assert from_syn[0].current and from_syn[0].synthetic and from_syn[0].ledger_dir == "data/quarters/synthetic/ledger"
-    assert "data/HC_Mock_Portfolio_Data.xlsx" in [p.id for p in from_syn]   # the real book is always reachable
     monkeypatch.setenv("HC_INCLUDE_SYNTHETIC", "1")
     assert any(p.synthetic for p in discover(root, root / "data" / REAL.name))
 

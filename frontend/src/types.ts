@@ -368,6 +368,31 @@ export interface WorkbookProfile {
   current: boolean;
 }
 
+/** An upload in progress (POST /api/upload, then GET /api/upload/{id}). */
+export interface UploadJob {
+  id: string;
+  file: string;
+  stage: number;
+  total: number;
+  stages: string[];
+  message: string;
+  done: boolean;
+  error: string | null;
+  policy_created: string | null;
+  result: {
+    run_id: string;
+    quarter: string;
+    positions: number;
+    readiness: Record<string, number>;
+    proposed_nav: number;
+    events: number;
+    blocking_issues: number;
+    market_data_source: string;
+    synthetic: boolean;
+    ledger: string;
+  } | null;
+}
+
 export interface PublishRecord {
   quarter: string;
   slug: string;

@@ -10,12 +10,13 @@ from __future__ import annotations
 import os
 import threading
 import time
+import uuid
 from datetime import date
 from pathlib import Path
 from typing import Any
 
 import yaml
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -156,14 +157,25 @@ def rule_catalogue(result: PipelineResult) -> list[dict[str, Any]]:
     ]
 
 
+UPLOADS_DIR = Path("data") / "uploads"
+NO_WORKBOOK = {"message": "No workbook loaded yet. Upload a portfolio workbook to begin.", "empty": True}
+
+
 def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None,
                refresh_market: bool = False, recommender: str | None = None,
-               provider_explicit: str | None = None) -> FastAPI:
+               provider_explicit: str | None = None, *, start_empty: bool = False, root: Path | None = None) -> FastAPI:
     """`provider` is what the first run reads (the CLI passes its resolved default; the library default is
     the fixture). `provider_explicit` is what the operator actually asked for, if anything: a workbook
     switch re-derives the provider from it, so a quarter only a synthetic file can price gets that file
-    and the real book gets its cache, unless a flag or HC_MARKET_PROVIDER pinned one."""
-    paths = paths or RunPaths.default()
+    and the real book gets its cache, unless a flag or HC_MARKET_PROVIDER pinned one.
+
+    `start_empty`: no workbook is loaded until one is uploaded (`POST /api/upload`) — the app opens on
+    an empty page with the Upload button, and every read route answers 404 until then."""
+    from ..config import repo_root
+    if start_empty:
+        paths = RunPaths.default(root=root or repo_root())
+    else:
+        paths = paths or RunPaths.default()
     static_dir = Path(static_dir) if static_dir is not None else STATIC_DIR
     app = FastAPI(title="HC valuation engine", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
     app.add_middleware(
@@ -176,10 +188,10 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     # recomputes against a ledger another request is mid-way through appending to.
     lock = threading.RLock()
 
-    def recompute(refresh: bool = False) -> PipelineResult:
+    def recompute(refresh: bool = False, progress: Any = None) -> PipelineResult:
         with lock:
             app.state.result = execute(app.state.paths, provider=app.state.provider, refresh_market=refresh,
-                                       recommender=recommender)
+                                       recommender=recommender, progress=progress)
         return app.state.result
 
     def write_then_recompute(write) -> PipelineResult:
@@ -192,9 +204,15 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     app.state.provider_explicit = provider_explicit
     app.state.static_dir = static_dir
     app.state.recompute = recompute     # `hc-valuation run --watch` calls this when an input file changes
-    recompute(refresh=refresh_market)   # a forced refetch applies to the first run only; reruns read the cache
+    app.state.result = None
+    app.state.jobs = {}                 # upload jobs: id -> progress record (see post_upload)
+    app.state.known_workbooks = [] if start_empty else [Path(paths.workbook)]   # every book this server has served
+    if not start_empty:
+        recompute(refresh=refresh_market)   # a forced refetch applies to the first run only; reruns read the cache
 
     def result() -> PipelineResult:
+        if app.state.result is None:
+            raise HTTPException(404, NO_WORKBOOK)
         return app.state.result
 
     class _Paths:
@@ -208,6 +226,10 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
+        if app.state.result is None:
+            return {"status": "empty", "run_id": None, "quarter": None, "generated_at": None, "blocked": False,
+                    "ledger": {"overrides": str(paths.overrides), "published_dir": str(paths.published_dir),
+                               "workbook": None, "policy": None}}
         m = result().run.manifest
         return {"status": "ok", "run_id": m.run_id, "quarter": m.quarter_label, "policy_version": m.policy_version,
                 "engine_version": m.engine_version, "generated_at": m.generated_at.isoformat(),
@@ -264,9 +286,11 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         """The workbook this run reads and every other one the server could switch to (workbooks.py)."""
         from ..workbooks import discover
         cur = app.state.paths
-        profiles = discover(cur.root, cur.workbook, explicit_provider=app.state.provider_explicit,
-                            current_policy=cur.policy, current_ledger_dir=cur.ledger_dir)
-        return JSONResponse({"current": profiles[0].id if profiles else None,
+        loaded = app.state.result is not None
+        profiles = discover(cur.root, cur.workbook if loaded else None, explicit_provider=app.state.provider_explicit,
+                            current_policy=cur.policy if loaded else None, current_ledger_dir=cur.ledger_dir if loaded else None,
+                            also=app.state.known_workbooks)
+        return JSONResponse({"current": profiles[0].id if (profiles and loaded) else None,
                              "workbooks": [p.as_json() for p in profiles]})
 
     @app.post("/api/workbook")
@@ -275,8 +299,10 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         own decision ledger come with it, and the run id changes because the inputs did."""
         from ..workbooks import discover, paths_for
         cur = app.state.paths
-        profiles = discover(cur.root, cur.workbook, explicit_provider=app.state.provider_explicit,
-                            current_policy=cur.policy, current_ledger_dir=cur.ledger_dir)
+        loaded = app.state.result is not None
+        profiles = discover(cur.root, cur.workbook if loaded else None, explicit_provider=app.state.provider_explicit,
+                            current_policy=cur.policy if loaded else None, current_ledger_dir=cur.ledger_dir if loaded else None,
+                            also=app.state.known_workbooks)
         match = next((p for p in profiles if p.id == body.id), None)
         if match is None:
             raise HTTPException(404, {"message": f"no discovered workbook with id {body.id!r}",
@@ -292,10 +318,106 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
             except Exception as exc:  # noqa: BLE001 — keep serving the run we had
                 app.state.paths, app.state.provider = previous
                 raise HTTPException(400, {"message": f"{match.workbook} could not be run: {type(exc).__name__}: {exc}"}) from exc
+            if Path(app.state.paths.workbook) not in app.state.known_workbooks:
+                app.state.known_workbooks.append(Path(app.state.paths.workbook))
         m = r.run.manifest
         return {"id": match.id, "run_id": m.run_id, "quarter": m.quarter_label, "generated_at": m.generated_at.isoformat(),
                 "policy": str(app.state.paths.policy), "ledger_dir": str(app.state.paths.ledger_dir),
                 "market_data_source": m.market_data_source}
+
+    # ------------------------------------------------------------------ upload
+
+    def _upload_dir(root: Path, quarter: str | None) -> Path:
+        slug = quarter.split()[1] + quarter.split()[0] if quarter else "unsorted"
+        return root / UPLOADS_DIR / slug
+
+    def _run_upload(job: dict[str, Any], data: bytes, filename: str) -> None:
+        """Save the file, find its quarter and policy, switch to it and compute — reporting each stage.
+        Runs on a worker thread; the dialog polls GET /api/upload/{id}."""
+        from ..config import default_policy_path, write_next_policy
+        from ..workbooks import is_synthetic, ledger_dir_for, policy_for, provider_for, quarter_of
+
+        def step(i: int, name: str) -> None:
+            job.update(stage=i, message=name)
+
+        root = app.state.paths.root
+        try:
+            step(0, "Saving the file")
+            tmp = root / UPLOADS_DIR / "incoming" / filename
+            tmp.parent.mkdir(parents=True, exist_ok=True)
+            tmp.write_bytes(data)
+            quarter, marked = quarter_of(tmp)
+            if quarter is None:
+                raise ValueError("the workbook has no activity tab named like 'Q4 2026 Activity' (and no Portfolio tab the "
+                                 "reader recognises), so its quarter cannot be told; nothing was loaded")
+            dest_dir = _upload_dir(root, quarter)
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest = dest_dir / filename
+            n = 2
+            while dest.exists() and dest.read_bytes() != data:
+                dest = dest_dir / f"{Path(filename).stem}-{n}{Path(filename).suffix}"
+                n += 1
+            tmp.replace(dest)
+            job["file"] = str(dest.relative_to(root))
+            step(1, "Finding the quarter's policy")
+            pol = policy_for(root, quarter)
+            if pol is None:
+                pol = write_next_policy(default_policy_path(root), quarter=quarter,
+                                        note=f"written on upload of {filename}: inherits the base policy, window only")
+                job["policy_created"] = str(pol.relative_to(root))
+            synthetic = is_synthetic(dest, marked)
+            new_paths = RunPaths.default(root=root, workbook=dest, policy=pol, ledger_dir=ledger_dir_for(root, dest, synthetic))
+            new_provider = provider_for(root, pol, app.state.provider_explicit, synthetic=synthetic)
+            previous = (app.state.paths, app.state.provider, app.state.result)
+            offset = 2
+            with lock:
+                app.state.paths, app.state.provider = new_paths, new_provider
+                try:
+                    app.state.result = execute(new_paths, provider=new_provider, recommender=recommender,
+                                               progress=lambda i, name: step(offset + i, name))
+                except Exception:
+                    app.state.paths, app.state.provider, app.state.result = previous
+                    raise
+            r = app.state.result
+            if dest not in app.state.known_workbooks:
+                app.state.known_workbooks.append(dest)
+            m, t = r.run.manifest, r.run.totals
+            job.update(stage=job["total"], message="Done", done=True,
+                       result={"run_id": m.run_id, "quarter": m.quarter_label, "positions": t.positions,
+                               "readiness": dict(t.readiness), "proposed_nav": round(t.proposed_nav, 1),
+                               "events": sum(1 for c in r.run.companies for s_ in c.steps if s_.evidence),
+                               "blocking_issues": sum(1 for v in r.run.validation if v.blocking),
+                               "market_data_source": m.market_data_source, "synthetic": synthetic,
+                               "ledger": str(new_paths.ledger_dir.relative_to(root)) if str(new_paths.ledger_dir).startswith(str(root)) else str(new_paths.ledger_dir)})
+        except Exception as exc:  # noqa: BLE001 — the dialog shows the reason; the previous run keeps serving
+            job.update(done=True, error=f"{type(exc).__name__}: {exc}", message="Failed")
+
+    @app.post("/api/upload")
+    async def post_upload(file: UploadFile = File(...)) -> dict[str, Any]:
+        """Upload a portfolio workbook. Saves it under data/uploads/<quarter>/, writes the quarter's policy
+        file if none exists (inheriting the base policy), switches the served run to it and computes on a
+        worker thread. Returns a job id; poll GET /api/upload/{id} for the stage and the outcome."""
+        from ..pipeline import STAGES
+        name = Path(file.filename or "").name
+        if not name.lower().endswith(".xlsx"):
+            raise HTTPException(415, {"message": "Upload an .xlsx workbook in the portfolio schema (Portfolio tab + 'Qn YYYY Activity' tab)."})
+        data = await file.read()
+        if len(data) > 50 * 1024 * 1024:
+            raise HTTPException(413, {"message": "That file is larger than 50 MB, which no portfolio workbook should be."})
+        job_id = uuid.uuid4().hex[:12]
+        stages = ["Saving the file", "Finding the quarter's policy", *STAGES]
+        job: dict[str, Any] = {"id": job_id, "file": name, "stage": 0, "total": len(stages), "stages": stages,
+                               "message": stages[0], "done": False, "error": None, "result": None, "policy_created": None}
+        app.state.jobs[job_id] = job
+        threading.Thread(target=_run_upload, args=(job, data, name), name=f"hc-upload-{job_id}", daemon=True).start()
+        return {"id": job_id, "total": len(stages), "stages": stages}
+
+    @app.get("/api/upload/{job_id}")
+    def get_upload(job_id: str) -> dict[str, Any]:
+        job = app.state.jobs.get(job_id)
+        if job is None:
+            raise HTTPException(404, f"no upload job {job_id!r}")
+        return job
 
     @app.get("/api/proposals")
     def get_proposals() -> JSONResponse:
@@ -439,6 +561,9 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     else:
         @app.get("/", include_in_schema=False)
         def index() -> HTMLResponse:
+            if app.state.result is None:
+                return HTMLResponse("<h1>No workbook loaded</h1><p>POST a portfolio workbook to /api/upload, or start with "
+                                    "<code>hc-valuation run --input &lt;workbook&gt;</code>.</p>", 200)
             return HTMLResponse(render_report(result().run, None, market=result().market_report,
                                               history=build_history(result().run, paths.root, prior_screen=prior_screen_for(result()), published=paths.published_dir),
                                               signals=build_signals(result()),

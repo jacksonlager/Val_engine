@@ -20,7 +20,7 @@ import os
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 from .config import default_policy_path, load_config, repo_root
 
@@ -176,7 +176,8 @@ def profile_for(root: Path, workbook: Path, *, policy: Path | None = None, ledge
 
 
 def discover(root: Path, current_workbook: Path | None = None, *, explicit_provider: str | None = None,
-             current_policy: Path | None = None, current_ledger_dir: Path | None = None) -> list[WorkbookProfile]:
+             current_policy: Path | None = None, current_ledger_dir: Path | None = None,
+             also: Iterable[Path] = ()) -> list[WorkbookProfile]:
     """Every workbook the dashboard can switch to: the current one first, then `data/*.xlsx` and
     `data/quarters/**` in path order. Temporary Excel lock files (`~$…`) are skipped.
 
@@ -193,11 +194,23 @@ def discover(root: Path, current_workbook: Path | None = None, *, explicit_provi
         out.append(cur)
         seen.add(cur.id)
         include_synthetic = include_synthetic or cur.synthetic
-    candidates = sorted(p for p in (root / "data").glob("*.xlsx") if not p.name.startswith("~$")) if (root / "data").is_dir() else []
+    # What the dashboard can switch to: uploaded workbooks (and what a close emitted beside them) and real
+    # quarters placed under data/quarters/. The repository's own fixture in data/ is the test suite's; it
+    # is offered only when the server was started on it (it is then `current`).
+    candidates: list[Path] = []
+    updir = root / "data" / "uploads"
+    if updir.is_dir():
+        candidates += sorted(p for p in updir.rglob("*.xlsx") if not p.name.startswith(("~$", "valuation_")) and p.parent.name != "incoming")
     qdir = root / QUARTERS_DIR
     if qdir.is_dir():
         # not the review workbooks `build` writes (valuation_<quarter>.xlsx has no activity tab)
         candidates += sorted(p for p in qdir.rglob("*.xlsx") if not p.name.startswith(("~$", "valuation_")))
+    # every workbook this server has served, and its neighbours (what a close emitted beside it): the book
+    # the server was started on stays reachable after a switch away from it
+    for known in also:
+        known = Path(known)
+        if known.is_file():
+            candidates += sorted(p for p in known.parent.glob("*.xlsx") if not p.name.startswith(("~$", "valuation_")))
     for wb in candidates:
         prof = profile_for(root, wb, explicit_provider=explicit_provider)
         if prof.id in seen or (prof.synthetic and not include_synthetic):

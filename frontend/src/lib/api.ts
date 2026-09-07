@@ -2,13 +2,15 @@
 //   served  — the FastAPI app serves this bundle at '/' and exposes /api/*
 //   static  — the run is inlined as window.__HC_RUN__ (hc-valuation build); no API,
 //             so every write action is disabled with an explanation.
-import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, ValuationRun, WorkbookProfile } from "../types";
+import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, Sources, TreatmentProposal, UploadJob, ValuationRun, WorkbookProfile } from "../types";
 
 export type Mode = "served" | "static";
 
 export interface Loaded {
   run: ValuationRun;
   mode: Mode;
+  /** the served app has no workbook loaded yet: show the empty page with the Upload button */
+  empty?: boolean;
   /** Cell provenance. Optional everywhere: an older server or an export without it
       simply means the detail panel shows no references. */
   sources?: Sources;
@@ -55,10 +57,38 @@ async function loadSources(): Promise<Sources | undefined> {
   }
 }
 
+export class NoWorkbookError extends Error {}
+
 export async function loadRun(): Promise<Loaded> {
   if (window.__HC_RUN__) return { run: window.__HC_RUN__, mode: "static", sources: window.__HC_SOURCES__ };
-  const [run, sources] = await Promise.all([getJson<ValuationRun>("/api/run"), loadSources()]);
+  const r = await fetch("/api/run", { headers: { Accept: "application/json" } });
+  if (r.status === 404) throw new NoWorkbookError("No workbook loaded yet.");
+  if (!r.ok) throw new Error(`/api/run → ${r.status} ${r.statusText}`);
+  const run = (await r.json()) as ValuationRun;
+  const sources = await loadSources();
   return { run, mode: "served", sources };
+}
+
+/** Start an upload; the server answers with a job to poll. */
+export async function uploadWorkbook(file: File): Promise<{ id: string; total: number; stages: string[] }> {
+  const body = new FormData();
+  body.append("file", file, file.name);
+  const r = await fetch("/api/upload", { method: "POST", body });
+  if (!r.ok) {
+    let detail = `${r.status} ${r.statusText}`;
+    try {
+      const j = await r.json();
+      detail = typeof j.detail === "string" ? j.detail : j.detail?.message ?? detail;
+    } catch {
+      /* not JSON */
+    }
+    throw new Error(detail);
+  }
+  return (await r.json()) as { id: string; total: number; stages: string[] };
+}
+
+export async function uploadStatus(id: string): Promise<UploadJob> {
+  return getJson<UploadJob>(`/api/upload/${encodeURIComponent(id)}`);
 }
 
 export const NO_MARKET_REASON =

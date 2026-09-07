@@ -176,8 +176,15 @@ def _write_portfolio(wb: Workbook, run: ValuationRun, sources: dict[str, Positio
     cols = list(PORTFOLIO_COLUMNS)
     ws.append(cols)
     notes: list[tuple[str, str]] = []
-    for i, c in enumerate(run.companies, start=2):
+    i = 1
+    for c in run.companies:
         src = sources.get(c.company)
+        if src is None and c.invested_after == 0 and c.booked_mark == 0 and c.ownership_after == 0:
+            # a placeholder for a refused row naming a company the book did not have: nothing to carry
+            notes.append((c.company, "Named on the activity tab but not in the Portfolio tab, and the row was refused; "
+                                     "no position is carried. Correct the company name, or add the row as a New Investment."))
+            continue
+        i += 1
         if src is None:
             src = _entered_from_activity(c, run)
             notes.append((c.company, f"Entered the book in {run.manifest.quarter_label} from a New Investment row (M-014, X-918): "

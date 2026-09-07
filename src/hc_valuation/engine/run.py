@@ -226,15 +226,18 @@ def _refuse_book_row(w: Working, p: Position, issues: list[ValidationIssue]) -> 
 
 
 def _positions_to_roll(portfolio: PortfolioSnapshot, activity: ActivityFeed) -> list[Position]:
-    """The book, plus one synthesised zero position per `New Investment` naming a company the
-    book does not have (M-014). Appended after the book in activity order, so the run is a
-    pure function of the two inputs."""
+    """The book, plus one synthesised zero position per company the activity tab names that the
+    book does not have. For a `New Investment` that position is HC's first holding (M-014, X-918).
+    For any other event it is a placeholder that carries nothing: its row was refused at ingest
+    (X-901), the refusal blocks it (X-900), and the reviewer sees a card in the queue — a name the
+    book does not know is a question for a person, never a line that only the data-checks drawer
+    shows. Appended after the book in activity order, so the run is a pure function of the inputs."""
     positions = list(portfolio.positions)
     book = portfolio.by_company()
     known_sectors = {p.sector for p in portfolio.positions}
     seen: set[str] = set()
     for e in activity.events:
-        if e.event_type == EventType.NEW_INVESTMENT.value and e.company not in book and e.company not in seen:
+        if e.company not in book and e.company not in seen:
             positions.append(marking.synthesise_position(e, known_sectors))
             seen.add(e.company)
     return positions

@@ -692,14 +692,19 @@ def test_event_with_a_blank_date_refuses_the_row_not_the_book(build, bad_date, f
 
 # =============================================================================== 8. companies not on the book / duplicated
 
-def test_event_for_a_company_not_on_the_portfolio_tab_is_x901_and_never_reaches_a_position(build):
+def test_event_for_a_company_not_on_the_portfolio_tab_is_x901_and_a_blocked_placeholder(build):
+    """A name the book does not have is a question for a person: the row is refused (X-901) and a
+    zero placeholder position carries the refusal as a Blocked card, so it is in the queue and not
+    only in the data-checks drawer. Nothing is applied to it; the real book is untouched."""
     run, issues = build([position()], [event(R, company="Ghost", detail="Series B", value=200.0, ownership_after=0.09)])
     assert [(i.rule_id, i.severity, i.blocking, i.company, i.row_index) for i in issues] == [("X-901", Severity.BLOCK, True, "Ghost", 2)]
-    assert [c.company for c in run.companies] == ["Alpha"], "no position is invented for a priced round"
-    c = only(run)
+    assert [c.company for c in run.companies] == ["Alpha", "Ghost"]
+    c = run.by_company()["Alpha"]
     assert rule_ids(c) == ["M-000"] and c.proposed_mark == PRIOR and c.flags == ()
     assert c.readiness is Readiness.READY and c.disposition is Disposition.CLEAR
-    assert run.blocked, "the run blocks on the orphan row even though every position is clean"
+    ghost = run.by_company()["Ghost"]
+    assert ghost.readiness is Readiness.BLOCKED and flag_ids(ghost) == {"X-900"} and ghost.proposed_mark == 0.0 and ghost.invested_after == 0.0
+    assert run.blocked, "the run blocks on the orphan row even though every real position is clean"
     assert run.totals.proposed_nav == pytest.approx(PRIOR)
 
 

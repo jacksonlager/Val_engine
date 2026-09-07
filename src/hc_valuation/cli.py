@@ -506,10 +506,26 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
 
     from .api.app import STATIC_DIR, create_app, watch_inputs
 
-    paths = _paths(input_path, policy, overrides, ledger_dir)
-    application = create_app(paths, provider=_default_provider(paths, provider), provider_explicit=provider,
-                             refresh_market=refresh_market, recommender=recommender)
-    typer.echo(_headline(application.state.result.run))
+    from .config import repo_root
+
+    if input_path is None:
+        # The dashboard is upload-driven: with no --input it opens on the most recently uploaded workbook,
+        # or empty (the Upload button) when nothing has been uploaded yet. The CLI commands keep their
+        # file defaults; `run` is the one that a person drives from the browser.
+        uploads = sorted((p for p in (repo_root() / "data" / "uploads").rglob("*.xlsx")
+                          if not p.name.startswith("~$") and p.parent.name != "incoming"), key=lambda p: p.stat().st_mtime)
+        if uploads:
+            input_path = uploads[-1]
+            typer.echo(f"opening the most recent upload: {input_path.relative_to(repo_root())}")
+    if input_path is None:
+        application = create_app(None, provider=provider, provider_explicit=provider, refresh_market=refresh_market,
+                                 recommender=recommender, start_empty=True)
+        typer.echo("no workbook loaded: upload one from the dashboard (or pass --input)")
+    else:
+        paths = _paths(input_path, policy, overrides, ledger_dir)
+        application = create_app(paths, provider=_default_provider(paths, provider), provider_explicit=provider,
+                                 refresh_market=refresh_market, recommender=recommender)
+        typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")
     if watch:
