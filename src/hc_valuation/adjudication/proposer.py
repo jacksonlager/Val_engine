@@ -15,6 +15,7 @@ Neither produces a mark. Both produce a rule the engine may later compute with.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import logging
 import os
@@ -221,9 +222,31 @@ class StubProposer:
             proposed_mark_at_proposal=float(packet.prior_result["proposed_mark"]),
             analogue_rule_id=h.analogue, proposed_kind=h.kind, formula=h.formula, parameter_map=dict(h.parameter_map),
             suggested_severity=h.severity, rationale=h.rationale, missing_facts=list(h.missing_facts), confidence=h.confidence,
+            briefing=_stub_briefing(ev, h),
             provenance=Provenance(model=self.label, prompt_sha256=prompt_sha, catalogue_version=packet.catalogue_version,
                                   created_at=now_utc()),
         )
+
+
+def _stub_briefing(ev: dict[str, Any], h: _Heuristic) -> dict[str, str]:
+    """The heuristic's draft in a reviewer's words. Generic by construction: the stub knows keywords,
+    not the case, and says so."""
+    what = f"The row records a '{ev.get('event_type', '')}' ({ev.get('detail', '') or 'no detail'}) on {ev.get('date', '')}."
+    if h is UNKNOWN:
+        return {
+            "what_happened": what,
+            "why_no_rule": "No marking rule is written for this event type and none of the built-in analogues matched the wording.",
+            "what_it_means": "The engine has not changed the mark; whether this event changes what a market participant would pay for HC's position is undetermined until a person reads it.",
+            "suggested_course": "Hold the mark and keep the position blocked; decide the treatment as a committee override, or define a rule if the case will recur.",
+            "what_to_check": "; ".join(h.missing_facts) + ".",
+        }
+    return {
+        "what_happened": what,
+        "why_no_rule": f"No marking rule is written for this event type; the wording resembles cases handled by {h.analogue}.",
+        "what_it_means": h.rationale,
+        "suggested_course": f"Treat it as {h.analogue} would ({h.formula}), once the facts below are confirmed; the number comes from the engine, not from this draft.",
+        "what_to_check": "; ".join(h.missing_facts) + ".",
+    }
 
 
 def _signature_of(ev: dict[str, Any]) -> str:
@@ -243,7 +266,14 @@ every fact the schema does not contain that a reviewer must supply in `missing_f
 ["none"]). `suggested_severity` must be "REVIEW" or "BLOCK". Respond with ONE JSON object and nothing
 else, with exactly these keys:
 {{"analogue_rule_id": str, "proposed_kind": "reuse"|"new_rule", "formula": str, "parameter_map": {{str: str}},
- "suggested_severity": "REVIEW"|"BLOCK", "rationale": str, "missing_facts": [str], "confidence": float}}
+ "suggested_severity": "REVIEW"|"BLOCK", "rationale": str, "missing_facts": [str], "confidence": float,
+ "briefing": {{"what_happened": str, "why_no_rule": str, "what_it_means": str, "suggested_course": str, "what_to_check": str}}}}
+
+`briefing` is for the CFO who reads the card, in plain words, one or two sentences each, no rule ids
+and no number to book: what the row says happened; why none of the existing rules covers it; what it
+means for the fair value of HC's position (ASC 820: what a market participant would pay today, and
+how the event bears on that); the course you suggest and why (consistent with `formula`); what a
+person must check before deciding.
 """
 
 
@@ -263,8 +293,16 @@ class ClaudeProposer:
         self.prompt_sha256 = hashlib.sha256(self.system_prompt.encode()).hexdigest()
 
     @property
+    def unavailable_reason(self) -> str | None:
+        if not self.api_key:
+            return "ANTHROPIC_API_KEY not set"
+        if importlib.util.find_spec("anthropic") is None:
+            return "the anthropic package is not installed for this Python"
+        return None
+
+    @property
     def available(self) -> bool:
-        return bool(self.api_key)
+        return self.unavailable_reason is None
 
     def _fallback(self, packet: ContextPacket, why: str) -> TreatmentProposal:
         log.warning("claude proposer unavailable (%s); using stub draft", why)
@@ -282,7 +320,7 @@ class ClaudeProposer:
 
     def propose(self, packet: ContextPacket) -> TreatmentProposal:
         if not self.available:
-            return self._fallback(packet, "ANTHROPIC_API_KEY not set")
+            return self._fallback(packet, self.unavailable_reason or "unavailable")
         try:
             text = self._call(packet)
             return self.parse(text, packet)
@@ -299,8 +337,9 @@ class ClaudeProposer:
             raise ValueError("model reply is not a JSON object")
         expected = {"analogue_rule_id", "proposed_kind", "formula", "parameter_map", "suggested_severity",
                     "rationale", "missing_facts", "confidence"}
-        if set(data) != expected:
-            raise ValueError(f"model reply keys {sorted(data)} != {sorted(expected)}")
+        if set(data) - {"briefing"} != expected:
+            raise ValueError(f"model reply keys {sorted(data)} != {sorted(expected | {'briefing'})}")
+        briefing = data.get("briefing") if isinstance(data.get("briefing"), dict) else {}
         ev = packet.event
         return TreatmentProposal(
             event_signature=_signature_of(ev), event_type=ev["event_type"], company=ev["company"],
@@ -310,6 +349,7 @@ class ClaudeProposer:
             parameter_map={str(k): str(v) for k, v in dict(data["parameter_map"]).items()},
             suggested_severity=Severity(data["suggested_severity"]), rationale=str(data["rationale"]),
             missing_facts=[str(s) for s in data["missing_facts"]], confidence=float(data["confidence"]),
+            briefing={str(k): str(v) for k, v in briefing.items()},
             provenance=Provenance(model=self.model, prompt_sha256=self.prompt_sha256,
                                   catalogue_version=packet.catalogue_version, created_at=now_utc()),
         )

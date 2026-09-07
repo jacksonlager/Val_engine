@@ -41,6 +41,7 @@ ENGINE_FIELDS: tuple[str, ...] = (
 ENGINE_OPERATORS: tuple[str, ...] = ("*", "/", "+", "-", "min", "max")
 
 ProposedKind = Literal["reuse", "new_rule"]
+BRIEFING_KEYS: tuple[str, ...] = ("what_happened", "why_no_rule", "what_it_means", "suggested_course", "what_to_check")
 ProposalStatus = Literal["pending", "accepted_once", "promoted", "rejected"]
 Decision = Literal["accept_once", "promote", "reject"]
 
@@ -119,6 +120,9 @@ class TreatmentProposal(BaseModel):
     missing_facts: list[str]
     confidence: float = Field(ge=0.0, le=1.0)
     provenance: Provenance
+    # The draft in a reviewer's words: what happened, why no rule covers it, what it means for the
+    # mark, the suggested course, what to check. Prose only — the formula above is the treatment.
+    briefing: dict[str, str] = Field(default_factory=dict)
     status: ProposalStatus = "pending"
     decision: dict[str, Any] | None = None
 
@@ -164,6 +168,18 @@ class TreatmentProposal(BaseModel):
         if any(s.lower() == "none" for s in cleaned) and len(cleaned) != 1:
             raise ValueError("missing_facts may say 'none' only on its own")
         return cleaned
+
+    @field_validator("briefing")
+    @classmethod
+    def _briefing_keys(cls, v: dict[str, str]) -> dict[str, str]:
+        out = {}
+        for k, text in (v or {}).items():
+            if k not in BRIEFING_KEYS:
+                continue                                    # a key the card does not show is dropped, not fatal
+            text = " ".join(str(text or "").split())
+            if text:
+                out[k] = text[:600]
+        return out
 
     @field_validator("rationale")
     @classmethod

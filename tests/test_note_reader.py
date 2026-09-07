@@ -269,3 +269,32 @@ def test_missing_sdk_switches_the_reader_off_once_rather_than_failing_every_row(
     reader = ClaudeReader(tmp_path / "cache", model="m", api_key="k")
     readings, report = read_feed(feed, reader)
     assert readings == {} and report.status == "off" and "not installed" in report.reason and reader.calls == 0
+
+
+
+def test_meaning_reaches_the_card_with_three_courses(tmp_path: Path, cfg):
+    pos = position(company="Alpha", ownership=0.05, latest_post_money=100.0, prior_mark=5.0, invested=3.0)
+    rnd = event(date=date(2026, 8, 15), company="Alpha", detail="Series B", value=150.0, ownership_after=0.045,
+                notes="The new money carries a 3x senior participating preference ahead of every earlier class.")
+    wb = make_workbook(tmp_path, [pos], [rnd])
+    readings = {2: RowReading(row_index=2, aspects=(
+        {"kind": AspectKind.LIQUIDATION_PREFERENCE, "quote": "3x senior participating preference", "note": "senior 3x participating",
+         "meaning": "At $150M post the new class takes the first $45M plus a share of the rest before HC's common-equivalent sees anything, so ownership x post overstates HC's claim."},
+    ), confidence=0.9, source="fake")}
+    c = _run(wb, cfg, readings).by_company()["Alpha"]
+    fl = _flags(c)
+    # the keyword screen does not know "3x senior participating preference" as its own terms here? it does ("participating", "preference"):
+    # so X-105 covers the kind and X-130 is not raised twice -- take the X-105/X-130 that carries the meaning
+    x = fl.get("X-130") or fl["X-105"]
+    if "X-130" in fl:
+        assert x.points[2].startswith("What it means:") and "overstates HC's claim" in x.evidence["meaning"]
+        assert [s.key for s in x.suggestions] == ["as_proposed", "hold_prior", "at_cost"]
+        assert x.suggestions[2].booked == pytest.approx(3.0)
+    # a kind the keyword screen does not know carries the meaning either way
+    readings2 = {2: RowReading(row_index=2, aspects=(
+        {"kind": AspectKind.RELATED_PARTY, "quote": "ahead of every earlier class", "note": "insider terms",
+         "meaning": "Insiders set terms that favour themselves over HC; the round price is weaker evidence."},), source="fake")}
+    c2 = _run(wb, cfg, readings2).by_company()["Alpha"]
+    x2 = _flags(c2)["X-130"]
+    assert x2.points[2].startswith("What it means:") and x2.evidence["meaning"].startswith("Insiders")
+    assert [s.key for s in x2.suggestions] == ["as_proposed", "hold_prior", "at_cost"] and x2.suggestions[2].booked == pytest.approx(3.0)

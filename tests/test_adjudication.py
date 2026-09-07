@@ -91,7 +91,9 @@ def test_spac_blocks_with_m999_and_yields_m040_proposal(paths):
     assert p.missing_facts and p.missing_facts != ["none"]
     assert p.formula == "ownership_after * deal_value"
     assert p.status == "pending" and p.decision is None
-    assert p.provenance.model == "stub-heuristics" and p.provenance.catalogue_version.startswith(r.config.policy_version)
+    # the policy asks for Claude; with no key visible the built-in heuristics answer, and say so
+    assert p.provenance.model.startswith("stub") and p.provenance.catalogue_version.startswith(r.config.policy_version)
+    assert set(p.briefing) == {"what_happened", "why_no_rule", "what_it_means", "suggested_course", "what_to_check"}
     assert p.proposal_id == make_proposal_id(p.event_signature, p.provenance.catalogue_version)
     assert proposal_path(paths.proposals_dir, p.proposal_id).exists()
     # the proposal sits beside the run; the run itself is untouched
@@ -402,3 +404,45 @@ def test_real_workbook_has_no_novel_events_and_repo_data_stays_clean():
     assert r.proposals == []
     assert sorted((ROOT / "data" / "proposals").glob("*")) == before
     assert not (ROOT / "data" / "precedent.yaml").exists() or yaml.safe_load((ROOT / "data" / "precedent.yaml").read_text())
+
+
+
+# ---------------------------------------------------------------- the reviewer briefing
+
+def test_claude_briefing_is_parsed_and_a_stale_stub_draft_is_replaced(paths, monkeypatch):
+    r = execute(paths, adjudicate=False)
+    cfg = r.config
+    reg = build_registry(cfg)
+    from hc_valuation.ingest.reader import read_workbook
+    from hc_valuation.adjudication import adjudicate_run
+    _, feed = read_workbook(paths.workbook, cfg)
+    pk = build_packet(feed.events[0], None, _company(r), cfg, reg, None)
+    reply = json.dumps({"analogue_rule_id": "M-040", "proposed_kind": "reuse", "formula": "ownership_after * deal_value",
+                        "parameter_map": {"deal_value": "pro-forma EV"}, "suggested_severity": "BLOCK", "rationale": "listing",
+                        "missing_facts": ["the closing market cap"], "confidence": 0.7,
+                        "briefing": {"what_happened": "The company combined with a listed vehicle.",
+                                     "why_no_rule": "No rule is written for a SPAC combination.",
+                                     "what_it_means": "HC now holds a listed security; the mark should follow the market.",
+                                     "suggested_course": "Treat it as a listing once the close is known.",
+                                     "what_to_check": "Whether the combination has closed; the redemption rate.",
+                                     "not_a_key": "dropped"}})
+    cp = ClaudeProposer(api_key="sk-not-real")
+    monkeypatch.setattr(cp, "_call", lambda packet: reply)
+    monkeypatch.setattr(type(cp), "unavailable_reason", property(lambda self: None))
+    with validation_scope(cfg, reg):
+        p = cp.propose(pk)
+    assert p.provenance.model == "claude-sonnet-4-5" and "not_a_key" not in p.briefing
+    assert p.briefing["what_it_means"].startswith("HC now holds") and len(p.briefing) == 5
+
+    # a pending draft the stub left in the cache is replaced by the model's once the model is reachable
+    stub_run = execute(paths, generated_at=GENERATED_AT)                       # no key visible here: stub draft cached
+    cached = list(paths.proposals_dir.glob("*.json"))
+    assert len(cached) == 1 and "stub" in json.loads(cached[0].read_text())["provenance"]["model"]
+    props = adjudicate_run(stub_run.run, feed, cfg, paths, proposer=cp)
+    assert props[0].provenance.model == "claude-sonnet-4-5" and props[0].briefing["what_happened"].startswith("The company combined")
+    assert "claude" in json.loads(cached[0].read_text())["provenance"]["model"]  # overwritten in place, same id
+    # ... but a decided one is never rewritten
+    decided = props[0].model_copy(update={"status": "rejected", "decision": {"approver": "Tom", "reason": "no"}})
+    cached[0].write_text(decided.model_dump_json(indent=2))
+    again = adjudicate_run(stub_run.run, feed, cfg, paths, proposer=cp)
+    assert again[0].status == "rejected"

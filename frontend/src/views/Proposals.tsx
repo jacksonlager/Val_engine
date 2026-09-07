@@ -7,6 +7,18 @@ import { DispChip, Empty, Field, KV, Modal, useAsync, WriteButton } from "../com
 
 type Action = "accept_once" | "promote" | "reject";
 
+const BRIEFING_ROWS: [string, string][] = [
+  ["what_happened", "What happened"],
+  ["why_no_rule", "Why no rule covers it"],
+  ["what_it_means", "What it means for the mark"],
+  ["suggested_course", "Suggested course"],
+  ["what_to_check", "What to check first"],
+];
+
+function draftedByClaude(p: TreatmentProposal): boolean {
+  return Boolean(p.provenance?.model && String(p.provenance.model).startsWith("claude"));
+}
+
 export function ProposalsView({
   run,
   mode,
@@ -70,10 +82,26 @@ export function ProposalsView({
               {typeof p.repeat_count === "number" && p.repeat_count > 0 && (
                 <span className="text-[11px] text-muted">seen {p.repeat_count}× before</span>
               )}
+              <span className={`chip no-dot ${draftedByClaude(p) ? "chip-ai" : "disp-MONITOR"}`} title={p.provenance?.model ? `Drafted by ${p.provenance.model}` : ""}>
+                {draftedByClaude(p) ? "Drafted by Claude" : "Drafted by built-in heuristics"}
+              </span>
               <span className="ml-auto text-[11px] text-muted num" title="How sure the model is of this draft. Shown for context; it decides nothing.">
                 Model confidence {pct(p.confidence, 0)}
               </span>
             </div>
+            {p.briefing && Object.keys(p.briefing).length > 0 && (
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-[180px_1fr] gap-x-4 gap-y-1.5 text-[12.5px] leading-relaxed">
+                {BRIEFING_ROWS.filter(([k]) => p.briefing?.[k]).map(([k, label]) => (
+                  <div key={k} className="contents">
+                    <div className="text-[11px] uppercase tracking-wider text-muted pt-0.5">{label}</div>
+                    <div className="text-ink">{p.briefing![k]}</div>
+                  </div>
+                ))}
+                <div className="md:col-span-2 text-[11px] text-muted">
+                  A draft for a person to weigh, not a decision: the mark is unchanged until the committee accepts, promotes or rejects it below.
+                </div>
+              </div>
+            )}
             {c && (
               <div className="text-[11px] text-muted mt-1 num">
                 {c.fund} · {c.sector} · prior {musd(c.prior_mark)} · proposed {musd(c.proposed_mark)} · <DispChip d={c.disposition} />

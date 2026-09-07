@@ -329,6 +329,7 @@ export interface TreatmentProposal {
   rationale: string;
   missing_facts: string[];
   confidence: number; // displayed only; gates nothing
+  briefing?: Record<string, string>; // what_happened, why_no_rule, what_it_means, suggested_course, what_to_check — prose for the reviewer
   provenance?: Provenance;
   status?: string; // pending | accepted | promoted | rejected
   decision?: Record<string, unknown> | null;

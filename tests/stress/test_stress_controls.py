@@ -638,7 +638,7 @@ def test_D3_malformed_reply_or_exception_falls_back_without_raising(run_real, tm
         ch = _Fake(tmp_path / name.replace(" ", "_"), reply)
         rec = ch.choose(brief, f)                  # never raises
         assert rec.source == "policy" and rec.key == f.suggestions[0].key, (name, rec)
-        assert rec.note and "policy default" in rec.note, (name, rec.note)
+        assert rec.note and "rule's own default" in rec.note, (name, rec.note)
     # and through the run: every flag still carries one recommendation, the run is intact
     ch = _Fake(tmp_path / "run", RuntimeError("down"))
     out = recommend_run(run_real, ch, None)
@@ -917,14 +917,14 @@ def test_F_a_missing_input_leads_and_the_prompt_says_so(run_real, tmp_path: Path
     ({"choice": "write_up"}, "a candidate key that does not exist"),
     ({"covers": ["X-304", "X-777"]}, "covers naming a finding that is not actionable here"),
     ({"confidence": 1.7}, "confidence outside [0, 1]"),
-    ({"label": "x" * 200}, "a label that does not fit the card"),
+    ({"label": ""}, "an empty label"),          # a long label is clipped to the card now, not rejected (stress workbook 2)
 ])
 def test_F_a_step_that_does_not_fit_the_position_falls_back_to_policy(run_real, tmp_path: Path, bad: dict, why: str):
     c = _umberly(run_real)
     ch = _chooser(tmp_path, _step_reply(**bad))
     step = ch.choose_position(build_position_brief(c, run_real), c)
     assert step.source == "policy", why
-    assert step.rule_id == "X-304" and step.note and "claude unavailable" in step.note
+    assert step.rule_id == "X-304" and step.note and "could not be used" in step.note
     assert ch.fallbacks and "Umberly (position)" in ch.fallbacks[0]
 
 

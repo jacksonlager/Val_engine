@@ -106,7 +106,7 @@ logic and the `disp-*` / `rd-*` CSS classes, so never rename a value to make a s
 — add or fix a label. Rule ids (X-101, M-080) stay visible in evidence, chips and tooltips; they
 do not belong in a headline, a button or a dialog title.
 
-**6. The note reader only adds.** Claude reads each activity row's free text against the case
+**6. Claude only adds.** The same rule binds all three uses (note reader, E-09 adjudicator, recommender): a model may explain, classify, draft a rule or pick among the engine's priced options, never produce a number, lower a severity or unblock a position. The note reader: Claude reads each activity row's free text against the case
 catalogue (`src/hc_valuation/notes/catalogue.py`) and the engine turns the reading into review
 findings (X-130 what no rule applied, X-131 a conflict with a column, X-126 supersedes the tab,
 X-132 not read). A reading never produces a number, never lowers a severity, never removes a

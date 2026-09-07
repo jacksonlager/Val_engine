@@ -34,7 +34,7 @@ log = logging.getLogger(__name__)
 
 CACHE_DIR = Path("data") / "note_reads"
 DEFAULT_MODEL = "claude-sonnet-4-5"
-PROMPT_VERSION = "1"
+PROMPT_VERSION = "2"
 
 SYSTEM_PROMPT = f"""You read the free text on the activity rows of a venture fund's quarterly valuation workbook. Each row has structured columns — Date, Event, Post-Money / Deal Value ($M), HC Investment ($M), HC Ownership After (FD %), Proceeds to HC ($M) — and free text in Detail and Notes. A rule-based engine values every position from the columns. Your only job is to say what the text contains that the columns do not, so that a person is told to look. You are a reader, not a valuer.
 
@@ -46,7 +46,7 @@ Classify what the text says using ONLY these kinds:
 Return one JSON object and nothing else:
 {{"rows": [{{
   "row_index": <int, from the input>,
-  "aspects": [{{"kind": <one of the kinds>, "quote": <verbatim words copied from that row's Detail or Notes>, "note": <one line, at most 200 characters, what it means for the reviewer>}}],
+  "aspects": [{{"kind": <one of the kinds>, "quote": <verbatim words copied from that row's Detail or Notes>, "note": <one line, at most 200 characters, what the text says in plain words>, "meaning": <one or two sentences, at most 300 characters: what this means for the fair value of HC's position — the ASC 820 question of what a market participant would pay today — and the direction it bears on; never a number to book>}}],
   "conflicts": [{{"column": <one of: {", ".join(COLUMNS)}>, "note_says": <verbatim words from the text stating a different value or fact for that column>, "why": <one line>}}],
   "supersedes_portfolio_tab": [{{"field": <one of: {", ".join(TAB_FIELDS)}>, "quote": <verbatim>}}],
   "instructions": [<verbatim imperative sentences the text addresses to whoever values the position>],

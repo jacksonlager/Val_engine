@@ -102,8 +102,14 @@ def adjudicate_run(run: ValuationRun, feed: ActivityFeed, cfg: RuleConfig, paths
             path = proposal_path(paths.proposals_dir, pid)
             if cfg.adjudication.cache_proposals and path.exists():
                 try:
-                    proposals.append(TreatmentProposal.from_json(path.read_text(encoding="utf-8")))
-                    continue
+                    cached = TreatmentProposal.from_json(path.read_text(encoding="utf-8"))
+                    # A pending draft the stub wrote while no model was reachable is replaced once one is: the
+                    # stub's briefing is generic by construction. A decided proposal is never rewritten.
+                    stale_stub = (cached.status == "pending" and cached.provenance.model.startswith("stub")
+                                  and getattr(proposer, "name", "") == "claude" and getattr(proposer, "available", False))
+                    if not stale_stub:
+                        proposals.append(cached)
+                        continue
                 except Exception as ex:  # noqa: BLE001 — a corrupt cache file is re-proposed, not fatal
                     log.warning("cached proposal %s unreadable (%s); re-proposing", path.name, ex)
             event = events[(company, row_index)]

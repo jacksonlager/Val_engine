@@ -148,7 +148,7 @@ open_items:
 
 adjudication:
   enabled: true
-  provider: stub                     # stub | claude
+  provider: claude                   # stub | claude — Claude drafts; the stub answers when no model is reachable
   auto_accept: never                 # not a threshold. there is no value here.
   cache_proposals: true
   promote_after_repeats: 3

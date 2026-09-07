@@ -88,6 +88,20 @@ person. The reader never sets a number, never lowers a severity, never removes a
 off (the footer says so) only the keyword screen runs. Readings are cached, so a rerun of the same
 workbook is identical and needs no network.
 
+**Where Claude sits, and what it may never do.** Three places, all outside the pure engine and all
+advisory. (1) The *note reader* classifies each row's free text against the case catalogue and says,
+quoting, what it found and what it means for the mark; the engine turns that into review findings.
+(2) The *adjudicator* (E-09) drafts a treatment when an event type has no rule: the closest existing
+rule, the calculation it would apply, and a briefing in plain words — what happened, why no rule
+covers it, what it means for the mark, the suggested course, what to check first. The position stays
+Blocked until a person accepts, promotes or rejects the draft. (3) The *recommender* picks, for each
+card, one of the engine's own priced options as the suggested next step and says why. None of the
+three can produce a number, lower a severity, remove a finding or mark a position Ready; every answer
+is cached, quoted and labelled with the model that gave it; and each falls back to a deterministic
+default (keyword screen, built-in heuristics, policy default) that the footer names when the model is
+not reachable. That is the line the assessment draws — "does it know when to escalate to a human" —
+and the models are there to make the escalation better explained, never to make it less often.
+
 ### Stage 4 — Human review
 
 **What it does:** the review tool (`hc-valuation run`) opens on the **Activity** tab (the review queue), whose first group is every position the Activity tab touched — with the row, the rule that applied it and the mark it produced, Blocked first — followed by the rest of the book that still needs a person. Each card has one primary action that addresses the actual blocker ("Add closing price" on a listing with no quarter-end quote; otherwise the suggested step), and Override as the secondary route. Every route ends in the same confirmation, which will not close without a name and a reason. The decision is appended to `data/overrides.yaml` and the run recomputes.

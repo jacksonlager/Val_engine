@@ -90,21 +90,30 @@ def apply_readings(w: Working, events: list[Event], readings: Mapping[int, RowRe
                 second = "See the row's note."
             if unverified:
                 second += " (a quoted passage could not be matched to the row text — read the note itself)"
-            third = ("The note also instructs: " + "; ".join(_clip(i, 80) for i in r.instructions[:2]) + "."
-                     if r.instructions else "**No rule took account of this**; the mark ignores it until a person decides.")
+            meanings = [a.meaning for a in open_aspects if a.meaning]
+            if meanings:
+                third = "What it means: " + _clip(meanings[0], 150) + ("" if len(meanings) == 1 else f" (+{len(meanings) - 1} more)")
+            elif r.instructions:
+                third = "The note also instructs: " + "; ".join(_clip(i, 80) for i in r.instructions[:2]) + "."
+            else:
+                third = "**No rule took account of this**; the mark ignores it until a person decides."
             w.flag("X-130", "notes", Severity.REVIEW,
                    f"The text on row {e.row_index} ({e.event_type}) describes {', '.join(labels).lower()} — which no rule took account "
                    f"of on this row. The engine applied the columns and ignored the rest. "
                    + " ".join(f"{BY_KIND[a.kind].label}: “{_clip(a.quote, 200)}”" + (f" — {a.note}" if a.note else "") for a in open_aspects if a.quote)
                    + (" " + " ".join(f"{BY_KIND[a.kind].label}: {a.note}" for a in open_aspects if not a.quote and a.note) if any(not a.quote for a in open_aspects) else "")
-                   + (" Instructions in the note: " + " | ".join(r.instructions) if r.instructions else ""),
+                   + (" Instructions in the note: " + " | ".join(r.instructions) if r.instructions else "")
+                   + (" What it means: " + " ".join(meanings) if meanings else ""),
                    points=(f"The note describes **{', '.join(labels).lower()}** that **no rule applied** on row {e.row_index}.", second, third),
                    suggestions=(
                        Suggest("as_proposed", "Book as proposed; reflect the note's terms by override once read.", ("The engine applied every term the columns can hold.", "Unrepresented terms need a human number, not a guess."), "proposed"),
+                       Suggest("hold_prior", "Hold the prior mark until the note's terms have been weighed.", ("Nothing is booked from a term nobody has priced.", "Rerun, or override, once the terms are understood."), "prior"),
+                       Suggest("at_cost", "Mark down to invested cost pending a decision on the terms.", ("A defensible floor while a term that may cut HC's share is open.", "Right when the text describes something senior to or ahead of HC."), "cost"),
                    ),
                    action=f"Read the note on row {e.row_index}: {', '.join(labels).lower()}. Decide whether the mark should reflect it (override) or the row needs correcting.",
                    row_index=e.row_index, kinds=[a.kind.value for a in open_aspects], quotes=[a.quote for a in open_aspects],
-                   notes=[a.note for a in open_aspects], instructions=list(r.instructions), confidence=r.confidence, source=src,
+                   notes=[a.note for a in open_aspects], meanings=meanings, meaning=" ".join(meanings),
+                   instructions=list(r.instructions), confidence=r.confidence, source=src,
                    unverified_quotes=len(unverified))
         for c in r.conflicts:
             col = COLUMNS.get(c.column, c.column)

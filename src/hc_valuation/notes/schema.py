@@ -27,6 +27,7 @@ class Aspect(_Frozen):
     kind: AspectKind
     quote: str = ""
     note: str = ""              # ≤ 200 chars, the model's one-line gloss (or its own kind word when coerced to `other`)
+    meaning: str = ""           # ≤ 300 chars, what it means for the fair value of HC's position — words, never a number
     verified: bool = True       # the quote was found in the row's text
 
 
@@ -128,7 +129,7 @@ def validate_row(raw: dict[str, Any], e: Event, source: str) -> tuple[RowReading
         ok = quote_in(quote, text)
         if quote and not ok:
             unverified += 1
-        aspects.append(Aspect(kind=kind, quote=quote, note=note, verified=ok))
+        aspects.append(Aspect(kind=kind, quote=quote, note=note, meaning=_str(a.get("meaning"), 300), verified=ok))
     conflicts: list[Conflict] = []
     for c in raw.get("conflicts") or []:
         if not isinstance(c, dict):
