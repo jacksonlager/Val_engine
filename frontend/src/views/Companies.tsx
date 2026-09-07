@@ -12,6 +12,7 @@ import {
 import type { CompanyResult, Disposition, ValuationRun } from "../types";
 import { DISPOSITIONS } from "../types";
 import { deltaPct, months, mult, musd, pct, signed, signClass } from "../lib/format";
+import { dispositionLabel } from "../lib/labels";
 import { CompanyDetail } from "../components/CompanyDetail";
 import { DispChip, EscalatedChip, escalatedReviewFamilies, FlagChip } from "../components/ui";
 
@@ -110,15 +111,15 @@ export function CompaniesView({
           <span className="font-medium">
             {i.getValue()}
             {i.row.original.override && (
-              <span className="chip no-dot disp-REVIEW ml-1" title="Booked mark overridden (E-01)">
-                override
+              <span className="chip no-dot disp-REVIEW ml-1" title="A committee decision set the booked mark on this position (E-01).">
+                Decision recorded
               </span>
             )}
           </span>
         ),
       }),
       col.accessor("disposition", {
-        header: "Disposition",   // right after the name: the column the reader sorts by, never at the scroll edge
+        header: "Review status",   // right after the name: the column the reader sorts by, never at the scroll edge
         sortingFn: (a, b) => DISP_ORDER[a.original.disposition] - DISP_ORDER[b.original.disposition],
         cell: (i) => {
           const n = escalatedReviewFamilies(i.row.original);
@@ -186,7 +187,7 @@ export function CompaniesView({
       }),
       col.accessor("invested_after", { header: "Inv.", meta: { r: true }, cell: (i) => <Num v={i.getValue()} /> }),
       col.accessor("realized_quarter", {
-        header: "Real. Q",
+        header: "Realized (Q)",
         meta: { r: true },
         cell: (i) => <span className={`num ${i.getValue() ? "" : "text-muted"}`}>{i.getValue() ? musd(i.getValue()) : "—"}</span>,
       }),
@@ -204,7 +205,7 @@ export function CompaniesView({
         cell: (i) => <span className="num">{months(i.getValue())}</span>,
       }),
       col.accessor("implied_multiple", {
-        header: "Impl. ×",
+        header: "Implied ×",
         meta: { r: true },
         sortUndefined: "last",
         cell: (i) => <span className="num">{mult(i.getValue())}</span>,
@@ -252,7 +253,7 @@ export function CompaniesView({
           <option value="ALL">Any finding</option>
           {DISPOSITIONS.map((d) => (
             <option key={d} value={d}>
-              {d} ({run.totals.dispositions[d] ?? 0})
+              {dispositionLabel(d)} ({run.totals.dispositions[d] ?? 0})
             </option>
           ))}
         </select>
@@ -275,7 +276,7 @@ export function CompaniesView({
           ))}
         </select>
         <label className="flex items-center gap-1 text-[12px] cursor-pointer">
-          <input type="checkbox" checked={hasEvent} onChange={(e) => setHasEvent(e.target.checked)} /> has event
+          <input type="checkbox" checked={hasEvent} onChange={(e) => setHasEvent(e.target.checked)} /> New activity
         </label>
         <span className="ml-auto text-[11px] text-muted num">
           {rows.length} of {run.companies.length} · prior {musd(sumPrior, 1)} → proposed {musd(sumProposed, 1)}

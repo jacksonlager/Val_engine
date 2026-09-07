@@ -4,7 +4,8 @@ import { currentRunStamp, loadHistory, loadProposals, loadRationale, loadRun, lo
 import { HistoryProvider, type HistoryState } from "./lib/history";
 import { SourcesProvider } from "./lib/sources";
 import { RationaleProvider } from "./lib/rationale";
-import { isoDateTime, shortSha } from "./lib/format";
+import { shortDate, isoDateTime } from "./lib/format";
+import { marketSourceLabel, shortRef } from "./lib/labels";
 import { DispChip } from "./components/ui";
 import { PublishControls } from "./components/Publish";
 import { QueueView } from "./views/Queue";
@@ -125,10 +126,6 @@ export default function App() {
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 min-w-0">
             <span className="font-semibold text-[15px] tracking-tight">Quarterly portfolio valuation engine</span>
             <span className="text-[13px] font-medium">{m.quarter_label}</span>
-            <span className="text-[11px] text-muted mono">policy {m.policy_version}</span>
-            <span className="text-[11px] text-muted mono" title={`input sha256 ${m.input_sha256}`}>
-              run {m.run_id}
-            </span>
           </div>
           <nav className="flex flex-wrap gap-1 ml-2" aria-label="Views">
             {[...VIEWS, ...(proposalCount > 0 || view === "proposals" ? [{ id: "proposals" as View, label: "Proposals" }] : [])].map((v) => (
@@ -163,9 +160,9 @@ export default function App() {
             <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} onGoto={gotoCompany} />
             <span
               className={`chip no-dot ${mode === "static" ? "disp-MONITOR" : "disp-CLEAR"} hint`}
-              title={mode === "static" ? STATIC_REASON : "Connected to the API; decisions are recorded to the ledger"}
+              title={mode === "static" ? STATIC_REASON : "Decisions taken here are recorded to the ledger."}
             >
-              {mode === "static" ? "static report" : "served"}
+              {mode === "static" ? "Read-only copy" : "Decisions are being recorded"}
             </span>
           </div>
         </div>
@@ -191,34 +188,64 @@ export default function App() {
         {view === "proposals" && <ProposalsView run={run} mode={mode} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />}
       </main>
 
-      <footer className="border-t border-line bg-surface px-4 py-2 text-[11px] text-muted flex flex-wrap gap-x-5 gap-y-1 items-center">
+      {/* The footer used to be eight lowercase `key value` pairs — a log line, not a footer. The
+          two dates are the only things a reviewer reads at a glance; everything else is provenance
+          that has to stay available (a run id ties a screenshot to a ledger entry, the file
+          fingerprint proves which workbook was read) but belongs behind a disclosure. */}
+      <footer className="border-t border-line bg-surface px-4 py-2 text-[11px] text-muted flex flex-wrap gap-x-4 gap-y-1 items-center">
         <span>
-          run <span className="mono text-ink2">{m.run_id}</span>
+          Valued at <span className="text-ink2">{shortDate(m.measurement_date)}</span> against the{" "}
+          <span className="text-ink2">{shortDate(m.prior_close)}</span> close.
         </span>
-        <span title={m.input_sha256}>
-          input <span className="mono text-ink2">{m.input_file}</span> sha256 <span className="mono text-ink2">{shortSha(m.input_sha256, 12)}</span>
-        </span>
-        <span>
-          policy <span className="mono text-ink2">{m.policy_version}</span>
-        </span>
-        <span>
-          engine <span className="mono text-ink2">{m.engine_version}</span>
-        </span>
-        <span>
-          generated <span className="mono text-ink2">{isoDateTime(m.generated_at)}</span>
-        </span>
-        <span>
-          measurement <span className="mono text-ink2">{m.measurement_date}</span> · prior close <span className="mono text-ink2">{m.prior_close}</span>
-        </span>
-        <span>
-          market data <span className="mono text-ink2">{m.market_data_source}</span>
-        </span>
-        <span>
-          adjudication <span className="mono text-ink2">{m.adjudication_enabled ? "enabled" : "disabled"}</span>
-        </span>
+        <details className="rundetails">
+          <summary>Run details</summary>
+          <div className="rundetails-body">
+            <div>
+              <span>Run reference</span>
+              <span className="mono" title={m.run_id}>
+                {shortRef(m.run_id, 12)}
+              </span>
+            </div>
+            <div>
+              <span>Source workbook</span>
+              <span>{m.input_file}</span>
+            </div>
+            <div>
+              <span title="SHA-256 of the workbook this run read — it identifies the exact file, byte for byte">File fingerprint</span>
+              <span className="mono" title={m.input_sha256}>
+                {shortRef(m.input_sha256, 12)}
+              </span>
+            </div>
+            <div>
+              <span>Policy version</span>
+              <span className="mono">{m.policy_version}</span>
+            </div>
+            <div>
+              <span>Engine version</span>
+              <span className="mono">{m.engine_version}</span>
+            </div>
+            <div>
+              <span>Generated</span>
+              <span>{isoDateTime(m.generated_at)}</span>
+            </div>
+            <div>
+              <span>Market data</span>
+              <span title={m.market_data_source}>{marketSourceLabel(m.market_data_source)}</span>
+            </div>
+            <div>
+              <span title="When an event matches no marking rule, the engine drafts a suggested treatment beside the blocked position.">
+                Drafting for uncovered events
+              </span>
+              <span>{m.adjudication_enabled ? "On" : "Off"}</span>
+            </div>
+          </div>
+        </details>
         <button className={`btn ml-auto ${blockingIssues ? "disp-BLOCK btn-danger" : ""}`} onClick={() => setDrawer(true)}>
-          validation issues <span className="mono">{run.validation.length}</span>
-          {blockingIssues > 0 && <span className="mono">({blockingIssues} blocking)</span>}
+          {run.validation.length === 0
+            ? "Data checks: all passed"
+            : `Data checks: ${run.validation.length} issue${run.validation.length === 1 ? "" : "s"}${
+                blockingIssues > 0 ? ` (${blockingIssues} blocking)` : ""
+              }`}
         </button>
       </footer>
 
@@ -227,7 +254,7 @@ export default function App() {
           <div className="fixed inset-0 z-30" onClick={() => setDrawer(false)} />
           <aside className="drawer p-4" aria-label="Validation issues">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold">Validation issues (X-9xx)</h2>
+              <h2 className="font-semibold">Data checks on the workbook</h2>
               <button className="btn btn-ghost" onClick={() => setDrawer(false)}>
                 Close
               </button>
@@ -251,7 +278,11 @@ export default function App() {
                           {v.row_index !== null && ` row ${v.row_index}`}
                         </span>
                       )}
-                      {v.blocking && <span className="ml-auto text-[10px] uppercase tracking-wider text-[var(--block-text)]">blocking</span>}
+                      {v.blocking && (
+                        <span className="ml-auto text-[10px] uppercase tracking-wider text-[var(--block-text)]" title="This has to be fixed before the quarter can be published.">
+                          Blocking
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1 text-ink2">{v.message}</p>
                   </li>

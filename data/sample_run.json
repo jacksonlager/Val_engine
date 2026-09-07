@@ -1,6 +1,6 @@
 {
  "manifest": {
-  "run_id": "b36c794a9720",
+  "run_id": "e14eec14d3c9",
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
   "input_file": "HC_Mock_Portfolio_Data.xlsx",
   "policy_version": "2026Q3-0.2",
@@ -8,10 +8,10 @@
   "quarter_label": "Q3 2026",
   "measurement_date": "2026-09-30",
   "prior_close": "2026-06-30",
-  "generated_at": "2026-09-07T04:18:41Z",
+  "generated_at": "2026-09-07T08:54:33Z",
   "adjudication_enabled": true,
   "market_data_source": "live:edgar+yahoo",
-  "recommender": "policy"
+  "recommender": "claude:claude-sonnet-4-5"
  },
  "companies": [
   {
@@ -45,6 +45,7 @@
    "moic_after": 2.313,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 6.978,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -142,6 +143,24 @@
    "moic_after": 1.35,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-304",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "booked": 8.1,
+    "covers": [
+     "X-304"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -241,7 +260,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "runway_months_aged": 4.96,
@@ -315,7 +334,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 26.8,
@@ -366,6 +385,7 @@
    "moic_after": 2.82,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 10.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -431,6 +451,7 @@
    "moic_after": 1.4272,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 1.609,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -528,6 +549,7 @@
    "moic_after": 0.72,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -636,6 +658,7 @@
    "moic_after": 7.1375,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 35.016,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -702,6 +725,24 @@
    "moic_after": 1.1648,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 1.1592,
+   "recommendation": {
+    "rule_id": "X-101",
+    "key": "as_proposed",
+    "label": "Ratify the 0.90-weighted mark of $4.66M.",
+    "reasons": [
+     "Reflects a signed agreement with a real chance of not closing.",
+     "Policy default for an announced, unclosed deal."
+    ],
+    "booked": 4.6592,
+    "covers": [
+     "X-101"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -722,7 +763,7 @@
      },
      "prior_value": 3.5,
      "new_value": 4.6592,
-     "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Treatment 'probability_weighted': 0.90 \u00d7 $4.79M (closes at 3.6% \u00d7 $133M) + 0.10 \u00d7 $3.50M (breaks; standalone at the last round) = $4.66M. Alternatives: full $4.79M, hold $3.50M.",
+     "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Marked probability-weighted: 0.90 \u00d7 $4.79M (closes at 3.6% \u00d7 $133M) + 0.10 \u00d7 $3.50M (breaks; standalone at the last round) = $4.66M. Alternatives: full $4.79M, hold $3.50M.",
      "evidence": {
       "sheet": "Q3 2026 Activity",
       "row_index": 15,
@@ -784,7 +825,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "deal_value": 133.0,
@@ -863,6 +904,24 @@
    "moic_after": 1.35,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-202",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "booked": 2.7,
+    "covers": [
+     "X-202"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -969,7 +1028,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 71.0,
@@ -1046,6 +1105,7 @@
    "moic_after": 4.8399,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 13.2396,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1128,6 +1188,7 @@
    "moic_after": 1.2561,
    "new_investment_quarter": 1.3,
    "valuation_change_quarter": 0.573,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1211,6 +1272,7 @@
    "moic_after": 2.7414,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1268,6 +1330,7 @@
    "moic_after": 0.8,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1342,6 +1405,7 @@
    "moic_after": 1.2185,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": -0.228,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1364,7 +1428,7 @@
      },
      "prior_value": 12.9,
      "new_value": 8.772,
-     "rationale": "Sold 32% of the position for $3.9M at $516.0M post (row value (implied valuation for secondaries)) vs $516.0M last round, +0.0%; proceeds \u00f7 stake sold gives $487.5M (-5.5%), rounding of a 3-dp ownership figure. Remainder 1.7% marked on basis 'last_round'.",
+     "rationale": "Sold 32% of the position for $3.9M at $516.0M post (row value (implied valuation for secondaries)) vs $516.0M last round, +0.0%; proceeds \u00f7 stake sold gives $487.5M (-5.5%), rounding of a 3-dp ownership figure. Remainder 1.7% marked at the last-round price.",
      "evidence": {
       "sheet": "Q3 2026 Activity",
       "row_index": 8,
@@ -1415,6 +1479,7 @@
    "moic_after": 1.804,
    "new_investment_quarter": 0.9,
    "valuation_change_quarter": 0.9668,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1498,6 +1563,24 @@
    "moic_after": 1.7375,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-202",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "booked": 13.9,
+    "covers": [
+     "X-202"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1583,7 +1666,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 61.4,
@@ -1632,6 +1715,24 @@
    "moic_after": 2.7309,
    "new_investment_quarter": 1.1,
    "valuation_change_quarter": -0.1723,
+   "recommendation": {
+    "rule_id": "X-106",
+    "key": "as_proposed",
+    "label": "Keep the mark on the extension price as proposed.",
+    "reasons": [
+     "New money came in at that price, even without a new lead.",
+     "Nothing in the file says the company is worth less."
+    ],
+    "booked": 13.9277,
+    "covers": [
+     "X-106"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1725,7 +1826,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "post_money": 176.3,
@@ -1775,7 +1876,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 59.7,
@@ -1824,6 +1925,7 @@
    "moic_after": 1.2333,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1922,6 +2024,7 @@
    "moic_after": 1.3182,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -1980,6 +2083,7 @@
    "moic_after": 1.7451,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -2054,6 +2158,24 @@
    "moic_after": 0.8738,
    "new_investment_quarter": 0.3,
    "valuation_change_quarter": -1.164,
+   "recommendation": {
+    "rule_id": "X-102",
+    "key": "as_proposed",
+    "label": "Book the recap figure as proposed.",
+    "reasons": [
+     "It is the only priced transaction and reflects the new capital structure.",
+     "Right if HC's class shares roughly pro rata with the new money."
+    ],
+    "booked": 1.136,
+    "covers": [
+     "X-102"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -2135,7 +2257,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "prior_post_money": 23.9,
@@ -2194,7 +2316,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "arr_growth": -0.16
@@ -2257,6 +2379,24 @@
    "moic_after": 2.41,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-304",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "booked": 24.1,
+    "covers": [
+     "X-304"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -2356,7 +2496,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "runway_months_aged": 3.12,
@@ -2405,6 +2545,7 @@
    "moic_after": 3.7833,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -2463,6 +2604,24 @@
    "moic_after": 2.0667,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 12.4,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -2586,7 +2745,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 43.2,
@@ -2637,6 +2796,7 @@
    "moic_after": 1.525,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -2735,6 +2895,24 @@
    "moic_after": 1.0833,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 1.3,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -2858,7 +3036,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 27.2,
@@ -2909,6 +3087,7 @@
    "moic_after": 0.44,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -3007,6 +3186,24 @@
    "moic_after": 0.9333,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 1.4,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -3121,7 +3318,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 34.7,
@@ -3172,6 +3369,24 @@
    "moic_after": 1.85,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-302",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "The last round is still the latest priced transaction.",
+     "The decline is recorded and will price into the next round."
+    ],
+    "booked": 18.5,
+    "covers": [
+     "X-302"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -3271,7 +3486,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "arr_growth": -0.21
@@ -3319,6 +3534,7 @@
    "moic_after": 1.5122,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -3393,6 +3609,24 @@
    "moic_after": 5.5034,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 29.768,
+   "recommendation": {
+    "rule_id": "X-101",
+    "key": "as_proposed",
+    "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
+    "reasons": [
+     "Level 1: the quoted price is fair value under ASC 820.",
+     "ASU 2022-03: a contractual lock-up is not a characteristic of the security, so no discount."
+    ],
+    "booked": 110.068,
+    "covers": [
+     "X-101"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": true,
    "provisional_reason": "Missing the 30 Sep 2026 closing price. The mark stands in the listing-day market cap ($3,931M) until the close is obtained.",
    "steps": [
@@ -3455,7 +3689,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "price_source": "stub:seeded_to_ipo_print",
@@ -3533,6 +3767,7 @@
    "moic_after": 0.2833,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -3607,6 +3842,7 @@
    "moic_after": 2.575,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -3705,6 +3941,24 @@
    "moic_after": 1.0214,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 14.3,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -3828,7 +4082,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 38.7,
@@ -3879,6 +4133,7 @@
    "moic_after": 2.5546,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -3977,6 +4232,7 @@
    "moic_after": 1.46,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -4075,6 +4331,24 @@
    "moic_after": 1.43,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-304",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "booked": 14.3,
+    "covers": [
+     "X-304"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -4174,7 +4448,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "runway_months_aged": 3.4,
@@ -4248,7 +4522,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 30.9,
@@ -4299,6 +4573,24 @@
    "moic_after": 0.8182,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 0.9,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -4413,7 +4705,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 27.7,
@@ -4464,6 +4756,7 @@
    "moic_after": 0.0667,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": -11.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -4527,6 +4820,7 @@
    "moic_after": 1.8875,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -4625,6 +4919,7 @@
    "moic_after": 0.7273,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -4723,6 +5018,24 @@
    "moic_after": 0.3951,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": -3.369,
+   "recommendation": {
+    "rule_id": "X-102",
+    "key": "as_proposed",
+    "label": "Book the recap figure as proposed.",
+    "reasons": [
+     "It is the only priced transaction and reflects the new capital structure.",
+     "Right if HC's class shares roughly pro rata with the new money."
+    ],
+    "booked": 2.331,
+    "covers": [
+     "X-102"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -4804,7 +5117,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "prior_post_money": 71.0,
@@ -4899,6 +5212,24 @@
    "moic_after": 1.2167,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 7.3,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5022,7 +5353,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 33.4,
@@ -5073,6 +5404,24 @@
    "moic_after": 0.8889,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-302",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "The last round is still the latest priced transaction.",
+     "The decline is recorded and will price into the next round."
+    ],
+    "booked": 1.6,
+    "covers": [
+     "X-302"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5126,7 +5475,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "arr_growth": -0.32
@@ -5172,6 +5521,7 @@
    "moic_after": 0.5641,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5270,6 +5620,7 @@
    "moic_after": 0.931,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5344,6 +5695,7 @@
    "moic_after": 1.2,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5418,6 +5770,7 @@
    "moic_after": 0.5556,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5490,6 +5843,7 @@
    "moic_after": 1.9667,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5562,6 +5916,24 @@
    "moic_after": 1.03,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 20.6,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5685,7 +6057,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 42.8,
@@ -5736,6 +6108,24 @@
    "moic_after": 0.3,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 0.6,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -5850,7 +6240,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 32.9,
@@ -5901,6 +6291,24 @@
    "moic_after": 0.7115,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 3.7,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -6015,7 +6423,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 31.9,
@@ -6066,6 +6474,7 @@
    "moic_after": 1.8929,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -6124,6 +6533,24 @@
    "moic_after": 2.7756,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-202",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "booked": 43.3,
+    "covers": [
+     "X-202"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -6209,7 +6636,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 64.7,
@@ -6259,7 +6686,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "arr_growth": -0.2
@@ -6307,6 +6734,7 @@
    "moic_after": 3.65,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -6381,6 +6809,24 @@
    "moic_after": 1.082,
    "new_investment_quarter": 0.5,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-107",
+    "key": "as_proposed",
+    "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
+    "reasons": [
+     "A cap is not a price; cost is the only observable value for the note.",
+     "Standard treatment until the note converts."
+    ],
+    "booked": 6.6,
+    "covers": [
+     "X-107"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -6474,7 +6920,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "hc_investment": 0.5,
@@ -6539,7 +6985,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "runway_months_aged": 4.11,
@@ -6606,6 +7052,7 @@
    "moic_after": 4.76,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -6680,6 +7127,24 @@
    "moic_after": 6.625,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 26.5,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -6817,7 +7282,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 35.5,
@@ -6869,6 +7334,7 @@
    "moic_after": 1.4762,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -6943,6 +7409,7 @@
    "moic_after": 1.7143,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7000,6 +7467,24 @@
    "moic_after": 0.5,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 3.0,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7114,7 +7599,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 24.9,
@@ -7165,6 +7650,7 @@
    "moic_after": 1.2174,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7223,6 +7709,7 @@
    "moic_after": 2.2,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7297,6 +7784,7 @@
    "moic_after": 0.7333,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7355,6 +7843,24 @@
    "moic_after": 1.65,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-405",
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "booked": 6.6,
+    "covers": [
+     "X-405"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7467,7 +7973,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 34.7,
@@ -7518,6 +8024,24 @@
    "moic_after": 1.42,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-202",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "booked": 21.3,
+    "covers": [
+     "X-202"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7603,7 +8127,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 49.1,
@@ -7652,6 +8176,24 @@
    "moic_after": 1.825,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-304",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "booked": 7.3,
+    "covers": [
+     "X-304"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7714,7 +8256,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "runway_months_aged": 2.5,
@@ -7776,6 +8318,7 @@
    "moic_after": 1.0833,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7834,6 +8377,7 @@
    "moic_after": 1.4833,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -7908,6 +8452,7 @@
    "moic_after": 1.22,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8006,6 +8551,24 @@
    "moic_after": 1.2143,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-304",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "booked": 1.7,
+    "covers": [
+     "X-304"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8105,7 +8668,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "runway_months_aged": 3.67,
@@ -8154,6 +8717,7 @@
    "moic_after": 0.8571,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8212,6 +8776,7 @@
    "moic_after": 1.1538,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8298,6 +8863,7 @@
    "moic_after": 1.6519,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8356,6 +8922,7 @@
    "moic_after": 0.7833,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8430,6 +8997,7 @@
    "moic_after": 2.855,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8528,6 +9096,7 @@
    "moic_after": 1.0,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8600,6 +9169,7 @@
    "moic_after": 0.85,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8712,6 +9282,7 @@
    "moic_after": 1.3,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8798,6 +9369,7 @@
    "moic_after": 1.45,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8896,6 +9468,7 @@
    "moic_after": 1.0833,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -8970,6 +9543,7 @@
    "moic_after": 1.9306,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9028,6 +9602,7 @@
    "moic_after": 0.0,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9085,6 +9660,7 @@
    "moic_after": 0.871,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9183,6 +9759,7 @@
    "moic_after": 0.6,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9241,6 +9818,7 @@
    "moic_after": 1.1296,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9299,6 +9877,7 @@
    "moic_after": 0.0,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": -10.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9362,6 +9941,24 @@
    "moic_after": 0.35,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-202",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "booked": 0.7,
+    "covers": [
+     "X-202"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9447,7 +10044,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 60.5,
@@ -9511,6 +10108,24 @@
    "moic_after": 3.4857,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-202",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "booked": 48.8,
+    "covers": [
+     "X-202"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9596,7 +10211,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 48.9,
@@ -9645,6 +10260,7 @@
    "moic_after": 2.4867,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9703,6 +10319,24 @@
    "moic_after": 6.2752,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-202",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "booked": 68.4,
+    "covers": [
+     "X-202"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9788,7 +10422,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 52.3,
@@ -9866,6 +10500,7 @@
    "moic_after": 2.41,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -9978,6 +10613,7 @@
    "moic_after": 1.3,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -10052,6 +10688,24 @@
    "moic_after": 0.9444,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-302",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "The last round is still the latest priced transaction.",
+     "The decline is recorded and will price into the next round."
+    ],
+    "booked": 1.7,
+    "covers": [
+     "X-302"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -10105,7 +10759,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "arr_growth": -0.3
@@ -10166,6 +10820,7 @@
    "moic_after": 1.3,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -10240,6 +10895,7 @@
    "moic_after": 0.3793,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -10314,6 +10970,7 @@
    "moic_after": 1.41,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -10372,6 +11029,24 @@
    "moic_after": 0.7778,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": {
+    "rule_id": "X-202",
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "booked": 2.1,
+    "covers": [
+     "X-202"
+    ],
+    "source": "policy",
+    "model": null,
+    "rationale": null,
+    "confidence": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+   },
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -10457,7 +11132,7 @@
       "model": null,
       "rationale": null,
       "confidence": null,
-      "note": null
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
      },
      "evidence": {
       "months": 56.9,
@@ -10521,6 +11196,7 @@
    "moic_after": 1.0952,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -10579,6 +11255,7 @@
    "moic_after": 2.0,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [
@@ -10653,6 +11330,7 @@
    "moic_after": 0.0,
    "new_investment_quarter": 0.0,
    "valuation_change_quarter": 0.0,
+   "recommendation": null,
    "provisional": false,
    "provisional_reason": null,
    "steps": [

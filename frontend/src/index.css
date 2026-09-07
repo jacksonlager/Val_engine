@@ -191,6 +191,33 @@ body {
   background: var(--review-wash); border-bottom: 1px solid color-mix(in srgb, var(--review) 30%, var(--hairline));
 }
 
+/* ---- run details: provenance, out of the footer's sentence ---------------- */
+/* Everything a reviewer needs to tie this screen to a ledger entry, and nothing
+   they have to read to use the page. Opens upward so it never pushes the footer. */
+.rundetails { position: relative; }
+.rundetails > summary {
+  cursor: pointer; list-style: none; color: var(--muted);
+  text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px;
+}
+.rundetails > summary::-webkit-details-marker { display: none; }
+.rundetails > summary:hover { color: var(--ink-2); }
+.rundetails > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.rundetails[open] > summary { color: var(--ink-2); }
+.rundetails-body {
+  position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 40;
+  min-width: 320px; padding: 8px 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.10);
+}
+.rundetails-body > div {
+  display: flex; justify-content: space-between; gap: 20px;
+  padding: 3px 0; border-bottom: 1px solid var(--hairline);
+}
+.rundetails-body > div:last-child { border-bottom: 0; }
+.rundetails-body > div > span:first-child { color: var(--muted); white-space: nowrap; }
+.rundetails-body > div > span:last-child { color: var(--ink-2); text-align: right; }
+.rundetails-body [title] { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
+
 /* ---- queue card: the reviewer's to-do list -------------------------------- */
 /* The disposition wash carries the severity; the eyebrow names what the panel is
    for. Both take their color from the --c/--ct/--cw set the .disp-* class sets. */
@@ -307,11 +334,10 @@ details[open] > summary::before { content: "▾ "; }
 /* a read-only export cannot take a decision: the call to action loses its accent */
 .suggest:disabled .suggest-cta { color: var(--muted); }
 /* the recommendation and, to its right, the approver's own two routes */
-.resolve { display: grid; grid-template-columns: minmax(0, 1fr) 176px; gap: 8px; align-items: stretch; }
+/* the findings on the left, the position's one next step on the right */
+.resolve { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); gap: 10px 24px; align-items: start; }
 .resolve-col { display: flex; flex-direction: column; min-width: 0; }
-.resolve-col > .suggest, .resolve-col > .inline-block, .resolve-col > .decide { flex: 1 1 auto; }
-.resolve-col > .inline-block > .suggest { height: 100%; }
-@media (max-width: 1180px) { .resolve { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 980px) { .resolve { grid-template-columns: minmax(0, 1fr); } }
 .decide {
   display: flex; flex-direction: column; gap: 6px; min-width: 0;
   padding: 7px 9px 6px; border-radius: 6px;
@@ -327,6 +353,24 @@ details[open] > summary::before { content: "▾ "; }
 .decide-input { width: 100%; min-width: 0; padding: 4px 6px; font-size: 13px; text-align: right; }
 .decide-confirm { padding: 4px 8px; font-size: 11.5px; }
 .decide-hint { font-size: 10.5px; line-height: 1.3; color: var(--muted); margin-top: auto; }
+/* the findings, numbered: one list per position, the step lives in its own panel beside them */
+.finding-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.finding { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; padding: 6px 0; border-top: 1px solid var(--hairline); }
+.finding:first-child { border-top: 0; padding-top: 2px; }
+.finding-n {
+  display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-top: 1px;
+  border-radius: 50%; border: 1px solid var(--border); background: var(--surface);
+  font-size: 10.5px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.finding-body { min-width: 0; }
+/* what a decision closes: ticked by the chooser, signed by the reviewer */
+.settles {
+  margin-bottom: 12px; padding: 8px 10px; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--hairline);
+}
+.settles-row { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.4; padding: 2px 0; }
+.settles-row input { margin-top: 3px; flex: none; }
+
 /* the suggested next step: a sentence, its source, the number; reasoning behind a disclosure */
 .step { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .step-label { font-size: 12.5px; font-weight: 600; line-height: 1.35; flex: 1 1 200px; }

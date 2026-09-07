@@ -5,23 +5,26 @@ import { useMemo, useState } from "react";
 import type { CompanyResult, Disposition, RuleRationale, ValuationRun } from "../types";
 import { useRationale } from "../lib/rationale";
 import { musd } from "../lib/format";
+import { familyLabel, familyPhrase, joinPhrases } from "../lib/labels";
 import { DispChip, EscalatedChip, escalatedReviewFamilies } from "../components/ui";
 
 const DISP_ORDER: Record<Disposition, number> = { BLOCK: 0, REVIEW: 1, MONITOR: 2, CLEAR: 3 };
 
-/** Which check in disposition() decided this position, in the reviewer's words. */
+/** Which of the six checks decided this position, in the reviewer's words. */
 export function whyDisposition(c: CompanyResult): string {
   const addressed = new Set(c.override?.rule_ids_addressed ?? []);
   const blocks = c.flags.filter((f) => f.severity === "BLOCK" && !addressed.has(f.rule_id));
   const families = [...new Set(c.flags.filter((f) => f.severity === "REVIEW" && !addressed.has(f.rule_id)).map((f) => f.family))].sort();
   const terminal = c.status_after !== "Active";
-  if (blocks.length) return `BLOCK flag on the position (${blocks.map((f) => f.rule_id).join(", ")})`;
-  if (terminal && families.length === 0 && !c.flags.some((f) => f.severity === "MONITOR")) return "terminal, nothing left to check";
-  if (families.length >= 2 && !c.override) return `escalated — ${families.length} REVIEW families (${families.join(" + ")})`;
-  if (families.length) return `one REVIEW family (${families[0]})`;
-  if (c.override) return "overridden — the decision stays visible";
-  if (c.flags.some((f) => f.severity === "MONITOR")) return "MONITOR flags only";
-  return "no flag fired";
+  if (blocks.length) return `A blocking finding is open on this position (${blocks.map((f) => f.rule_id).join(", ")}).`;
+  if (terminal && families.length === 0 && !c.flags.some((f) => f.severity === "MONITOR"))
+    return "The company no longer exists, so nothing is left to check.";
+  if (families.length >= 2 && !c.override)
+    return `${families.length} unrelated concerns each need a review, so together they block: ${joinPhrases(families.map(familyPhrase))}.`;
+  if (families.length) return `One concern needs a review: ${familyPhrase(families[0])}.`;
+  if (c.override) return "A decision is on file, and it stays visible here.";
+  if (c.flags.some((f) => f.severity === "MONITOR")) return "Watch items only — nothing to decide.";
+  return "No rule fired on this position.";
 }
 
 function SourceTag({ r }: { r: RuleRationale }) {
@@ -31,7 +34,7 @@ function SourceTag({ r }: { r: RuleRationale }) {
     </span>
   ) : (
     <span className="rtag rtag-ours" title="A rule we added; the two bullets are its defence">
-      our call
+      rule we added
     </span>
   );
 }
@@ -54,8 +57,8 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
           <SourceTag r={r} />
         </span>
       </div>
-      <div className="mono text-[10.5px] text-muted">
-        family {r.family} · reads {r.reads}
+      <div className="text-[10.5px] text-muted">
+        {familyLabel(r.family)} · reads {r.reads}
       </div>
       <ul className="flag-points m-0">
         <li>
@@ -70,11 +73,11 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
 }
 
 const STEPS: { q: string; a: string; d: Disposition }[] = [
-  { q: "Any BLOCK flag no override has addressed?", a: "The engine has a number but will not book it until a named person decides.", d: "BLOCK" },
-  { q: "Terminal (exited, written off) with no REVIEW and no MONITOR left?", a: "Nothing left to check on a company that no longer exists.", d: "CLEAR" },
-  { q: "REVIEW flags from two or more different families?", a: "Two independent reasons to doubt one number compound to a committee decision (escalation).", d: "BLOCK" },
-  { q: "Any REVIEW flag?", a: "The number stands; a human confirms it.", d: "REVIEW" },
-  { q: "Any MONITOR flag, or an override on file?", a: "Booked. Visible on the queue, nothing to decide.", d: "MONITOR" },
+  { q: "Any blocking flag no override has addressed?", a: "The engine has a number but will not book it until a named person decides.", d: "BLOCK" },
+  { q: "Terminal (exited, written off), with nothing left to review or watch?", a: "Nothing left to check on a company that no longer exists.", d: "CLEAR" },
+  { q: "Flags needing review from two or more different families?", a: "Two independent reasons to doubt one number compound to a committee decision (escalation).", d: "BLOCK" },
+  { q: "Any flag needing review?", a: "The number stands; a human confirms it.", d: "REVIEW" },
+  { q: "Any watch-only flag, or an override on file?", a: "Booked. Visible on the queue, nothing to decide.", d: "MONITOR" },
   { q: "Otherwise", a: "Booked, no flags.", d: "CLEAR" },
 ];
 
@@ -103,9 +106,15 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
   if (!rationale)
     return (
       <div className="card p-4 text-[12.5px] text-ink2">
-        No rule rationale is available: neither <span className="mono">/api/rationale</span> answered nor was{" "}
-        <span className="mono">window.__HC_RATIONALE__</span> inlined into this file. Re-run <span className="mono">hc-valuation run</span> or{" "}
-        <span className="mono">hc-valuation build</span> from a tree that has <span className="mono">rules/rationale.yaml</span>.
+        <p className="m-0">The rule catalogue did not load, so this page cannot show what each rule is for. Every other page in this run is unaffected.</p>
+        <details className="mt-2">
+          <summary className="text-[11.5px] text-muted cursor-pointer select-none">Technical details</summary>
+          <p className="text-[11.5px] text-muted mt-1 mb-0 leading-snug">
+            Neither <span className="mono">/api/rationale</span> answered nor was <span className="mono">window.__HC_RATIONALE__</span> inlined into
+            this file. Re-run <span className="mono">hc-valuation run</span> or <span className="mono">hc-valuation build</span> from a tree that has{" "}
+            <span className="mono">rules/rationale.yaml</span>.
+          </p>
+        </details>
       </div>
     );
 
@@ -121,10 +130,7 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
       <section>
         <div className="flex items-baseline gap-3 mb-2">
           <h2 className="text-[14px] font-semibold m-0">How a position gets its label</h2>
-          <span className="text-[11.5px] text-muted">
-            <span className="mono">disposition()</span> · six checks in order, the first that matches wins · policy{" "}
-            <span className="mono">{run.manifest.policy_version}</span>
-          </span>
+          <span className="text-[11.5px] text-muted">Six checks, in order; the first one that matches decides.</span>
         </div>
         <div className="card p-0 overflow-hidden">
           <ol className="m-0 p-0 list-none">
@@ -140,10 +146,11 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
           </ol>
         </div>
         <p className="text-[11.5px] text-muted mt-2 mb-0 leading-snug max-w-[92ch]">
-          A flag is a rule id, a severity and a <b>family</b>; the family is what step 3 counts. Two REVIEWs from the same family (a stale round and
-          a stale-round screen) stay REVIEW; two from different families (stale + shrinking ARR) compound to BLOCK. A terminal position drops its
-          carry-side screens — staleness, growth, runway, multiples mean nothing for a company that no longer exists — but keeps every BLOCK and
-          every event-driven flag. An override names the flags it resolves; those stop waiting, the rest still count.
+          A flag is a rule id, a severity and a <b>family</b>; the family is what step 3 counts. Two flags needing review from the same family (a
+          stale round and a stale-round screen) still only need a review; two from different families (a stale round and shrinking ARR) compound to
+          a block. A terminal position drops its carry-side screens — staleness, growth, runway, multiples mean nothing for a company that no longer
+          exists — but keeps every blocking flag and every event-driven flag. An override names the flags it resolves; those stop waiting, the rest
+          still count.
         </p>
       </section>
 
@@ -152,15 +159,15 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <h2 className="text-[14px] font-semibold m-0 mr-2">Why each rule exists, and why that severity</h2>
           <select className="select" value={source} onChange={(e) => setSource(e.target.value as "" | "brief" | "policy")}>
-            <option value="">Brief and our call</option>
-            <option value="brief">In the brief ({briefCount})</option>
-            <option value="policy">Our call ({rationale.rules.length - briefCount})</option>
+            <option value="">Named in the brief, and rules we added</option>
+            <option value="brief">Named in the brief ({briefCount})</option>
+            <option value="policy">Rules we added ({rationale.rules.length - briefCount})</option>
           </select>
           <label className="flex items-center gap-1.5 text-[12px] cursor-pointer">
             <input type="checkbox" checked={onlyFired} onChange={(e) => setOnlyFired(e.target.checked)} /> only rules that fired this quarter
           </label>
           <span className="text-[11px] text-muted ml-auto max-w-[60ch] text-right leading-snug">
-            <span className="rtag rtag-brief">in the brief</span> = one of the five exceptions the assessment names. <span className="rtag rtag-ours">our call</span> = a
+            <span className="rtag rtag-brief">in the brief</span> = one of the five exceptions the assessment names. <span className="rtag rtag-ours">rule we added</span> = a
             rule we added and must defend. Severity test: <i>could a reviewer change the booked number?</i>
           </span>
         </div>
@@ -171,7 +178,6 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
               <div key={g.key}>
                 <div className="flex items-baseline gap-2 mb-1.5">
                   <h3 className="text-[12.5px] font-semibold m-0">{g.title}</h3>
-                  <span className="mono text-[10.5px] text-muted">family {g.key}</span>
                   {g.brief_text && <span className="text-[11px] text-muted italic">— “{g.brief_text}”</span>}
                 </div>
                 <div className="grid grid-cols-2 gap-2 max-[1100px]:grid-cols-1">
@@ -190,7 +196,7 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
           <h2 className="text-[14px] font-semibold m-0 mr-2">Every flagged company, and exactly why</h2>
           <input className="input w-[240px]" placeholder="Filter by company or rule id…" value={q} onChange={(e) => setQ(e.target.value)} />
           <span className="text-[11px] text-muted ml-auto">
-            {flagged.length} of {run.companies.length} positions carry a flag · {run.companies.length - run.companies.filter((c) => c.disposition !== "CLEAR").length} CLEAR
+            {flagged.length} of {run.companies.length} positions carry a flag · {run.companies.length - run.companies.filter((c) => c.disposition !== "CLEAR").length} are clear
           </span>
         </div>
         <div className="card dtable-wrap">
@@ -198,7 +204,7 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
             <thead>
               <tr>
                 <th>Company</th>
-                <th>Disposition · which check decided it</th>
+                <th>Disposition · why the engine gave it</th>
                 <th>Flags · the engine's reason</th>
               </tr>
             </thead>

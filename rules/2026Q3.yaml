@@ -151,8 +151,16 @@ history:
 # Who picks the one resolution shown first on each BLOCK/REVIEW flag. `claude` chooses among the
 # engine's priced suggestions (never a number of its own) and caches answers in data/recommendations/;
 # set ANTHROPIC_API_KEY and run `hc-valuation recommend` once to fill the cache.
+#
+# Two levels. Each actionable flag gets its own recommendation, which is what prices the options
+# a reviewer picks from; on top of it each position gets ONE next step, chosen across all its
+# findings — which to act on first and what it settles. That cross-finding call is the judgment
+# a model is useful for; the per-flag one is mostly the rule's own default restated. Either way
+# the step must name a finding on the position and one of that finding's priced suggestions, and
+# the number comes from the suggestion. Without a key it falls back to the policy default (lead
+# with the first finding) and the card says so.
 recommendation:
-  provider: policy                   # policy | claude
+  provider: claude                   # policy | claude
   model: claude-sonnet-4-5
   cache: true
 

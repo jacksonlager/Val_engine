@@ -160,6 +160,31 @@ class Recommendation(_Frozen):
     note: str | None = None         # why a model was not used, when it was asked for
 
 
+class PositionRecommendation(_Frozen):
+    """The one next step put to the reviewer for the whole position, chosen across every
+    finding on it rather than one per flag.
+
+    A position with three findings has three sets of priced resolutions; a reviewer wants one
+    thing to do first. `rule_id` names the finding whose resolution leads and `key` the
+    suggestion on it, so `booked` is still a number the engine computed — the chooser weighs
+    the findings against each other and explains the order; it never prices. `covers` is the
+    chooser's read of which findings this step settles: always includes `rule_id`, always a
+    subset of the position's actionable findings, and always shown to the reviewer as an
+    editable list before anything is recorded. `source` says who chose.
+    """
+    rule_id: str
+    key: str
+    label: str
+    reasons: tuple[str, ...]
+    booked: float
+    covers: tuple[str, ...] = ()
+    source: str = "policy"          # "policy" | "claude"
+    model: str | None = None
+    rationale: str | None = None
+    confidence: float | None = None
+    note: str | None = None         # why a fallback happened, when one did
+
+
 class Flag(_Frozen):
     """A reason a human should look at a position. Never changes a mark.
 
@@ -266,6 +291,9 @@ class CompanyResult(_Frozen):
     #     closing = prior + new investment + valuation gain/loss - realized proceeds
     new_investment_quarter: float = 0.0     # cash HC put in this quarter (rounds, notes, secondaries bought)
     valuation_change_quarter: float = 0.0   # what is left once capital in and cash out are taken off
+    # The one next step for this position, chosen across all its findings (recommend.py, outside
+    # the engine). None when nothing is actionable, or when the run was not passed through it.
+    recommendation: PositionRecommendation | None = None
     provisional: bool = False               # the mark rests on a stand-in for an input that is not on file
     provisional_reason: str | None = None   # what is missing, in the reviewer's words
 

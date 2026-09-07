@@ -135,6 +135,24 @@ export const READINESS_HINT: Record<Readiness, string> = {
   Ready: "Checks complete — ready for approval",
 };
 
+/** The one next step for a position, chosen across all its findings (recommend.py). `rule_id`
+    names the finding it leads with and `key` the priced suggestion on it, so `booked` is always
+    a number the engine computed. `covers` is which findings the chooser reads this step as
+    settling — shown to the reviewer as an editable list before anything is recorded. */
+export interface PositionRecommendation {
+  rule_id: string;
+  key: string;
+  label: string;
+  reasons: string[];
+  booked: number;
+  covers: string[];
+  source: "policy" | "claude";
+  model: string | null;
+  rationale: string | null;
+  confidence: number | null;
+  note: string | null;
+}
+
 export interface CompanyResult {
   company: string;
   fund: string;
@@ -176,6 +194,8 @@ export interface CompanyResult {
       closing = prior + new_investment_quarter + valuation_change_quarter − realized_quarter */
   new_investment_quarter: number;
   valuation_change_quarter: number;
+  /** The single next step for this position, across its findings. Null when nothing is actionable. */
+  recommendation: PositionRecommendation | null;
   /** A proposal built on a stand-in input, and the sentence saying which. */
   provisional: boolean;
   provisional_reason: string | null;

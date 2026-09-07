@@ -19,6 +19,13 @@ import { SensitivityView } from "./Sensitivity";
 
 const TAIL_AFTER = 12;
 
+/** "2026-09" -> "September 2026". Kept local: Market.tsx has its own copy. */
+function monthLabel(ym: string): string {
+  const t = Date.parse(`${ym}-01T00:00:00Z`);
+  if (!Number.isFinite(t)) return ym;
+  return new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(t));
+}
+
 interface Bridge {
   name: string;
   kind: "total" | "up" | "down";
@@ -135,7 +142,8 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
         </SectionTitle>
         <p className="text-[11px] text-muted mb-2 num">
           Prior NAV {musd(run.totals.prior_nav, 1)} → proposed {musd(run.totals.proposed_nav, 1)} ({signed(run.totals.net_movement, 1)},{" "}
-          {pct(run.totals.net_movement / run.totals.prior_nav, 1, true)}). Top {TAIL_AFTER} movers by |Δ|; the rest fold into Other. Axis starts at{" "}
+          {pct(run.totals.net_movement / run.totals.prior_nav, 1, true)}). The {TAIL_AFTER} largest moves, up or down; the rest fold into Other. Axis
+          starts at{" "}
           {musd(floor, 0)} so single-company steps stay legible. $M.
         </p>
         {showTable ? (
@@ -280,15 +288,20 @@ function CompsMoveCard({ m }: { m: CompsMove }) {
       <SectionTitle
         right={
           m.all_live ? (
-            <span className="chip disp-CLEAR no-dot">live comps</span>
+            <span className="chip disp-CLEAR no-dot" title="Multiples observed from the live market data provider">
+              Live market data
+            </span>
           ) : (
-            <span className="chip disp-MONITOR no-dot" title="Vendor-shaped fixture; run with --provider live for an observed history">
-              fixture comps
+            <span
+              className="chip disp-MONITOR no-dot"
+              title="Stand-in multiples shipped with the app, shaped like the provider's. Connect a live market data provider for an observed history."
+            >
+              Sample market data
             </span>
           )
         }
       >
-        Observed · public comps {m.prior_month} → {m.now_month}
+        Observed · public comparables, {monthLabel(m.prior_month)} → {monthLabel(m.now_month)}
       </SectionTitle>
       <p className="text-[11px] text-muted mb-2 num">
         Each sector's basket EV/revenue move this quarter applied to that sector's multiple-exposed marks. Had the book re-rated with its
@@ -301,9 +314,9 @@ function CompsMoveCard({ m }: { m: CompsMove }) {
           <thead>
             <tr>
               <th>Sector</th>
-              <th className="r">QoQ</th>
-              <th className="r">Exposed</th>
-              <th className="r">Δ</th>
+              <th className="r" title="The sector basket's EV/revenue multiple this quarter against last">Multiple move</th>
+              <th className="r" title="The marks in this sector that a multiple regime drives">Exposed marks</th>
+              <th className="r" title="What those marks would have done had they moved with the basket">Change</th>
             </tr>
           </thead>
           <tbody>
@@ -337,7 +350,7 @@ function BridgeTable({ data }: { data: Bridge[] }) {
       <thead>
         <tr>
           <th>Step</th>
-          <th className="r">Δ / total</th>
+          <th className="r">Change or total</th>
           <th className="r">Running NAV</th>
         </tr>
       </thead>

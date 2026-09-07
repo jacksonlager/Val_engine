@@ -148,6 +148,9 @@ def test_recommend_run_with_claude_labels_the_manifest(base, tmp_path: Path):
 
 def test_make_chooser_follows_policy_then_override():
     cfg = load_config(RunPaths.default().policy)
-    assert isinstance(make_chooser(cfg, Path("/tmp")), PolicyChooser)
+    # the shipped policy asks for claude; an explicit argument still wins in either direction
+    assert cfg.recommendation.provider == "claude"
+    assert isinstance(make_chooser(cfg, Path("/tmp")), ClaudeChooser)
+    assert isinstance(make_chooser(cfg, Path("/tmp"), "policy"), PolicyChooser)
     ch = make_chooser(cfg, Path("/tmp"), "claude")
     assert isinstance(ch, ClaudeChooser) and ch.cache_dir == Path("/tmp") / CACHE_DIR and ch.model == cfg.recommendation.model

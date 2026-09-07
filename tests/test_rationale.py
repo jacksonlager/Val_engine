@@ -31,8 +31,12 @@ def test_every_raisable_rule_has_its_two_bullets():
     assert not missing, f"rules/rationale.yaml has no entry for {missing}"
     for r in by.values():
         assert len(r["why_flag"]) > 25 and len(r["why_severity"]) > 40, r["id"]
-        assert r["why_severity"].split()[0] in {"BLOCK", "REVIEW", "MONITOR"}, \
-            f"{r['id']}: the severity bullet should open with the severity it defends"
+        # The dialog supplies the lead-in ("Why it blocks approval.") and the rule card supplies
+        # "Why this severity.", so the body continues a sentence rather than restating the enum.
+        # It used to be required to OPEN with the bare enum, which is what put "Why BLOCK. BLOCK
+        # because …" on a reviewer's screen.
+        assert r["why_severity"].split()[0] not in {"BLOCK", "REVIEW", "MONITOR", "CLEAR"}, \
+            f"{r['id']}: the severity bullet should read as prose, not open with the raw severity"
 
 
 def test_brief_rules_quote_the_brief_and_cover_its_five_exceptions():

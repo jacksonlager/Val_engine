@@ -21,6 +21,13 @@ from .state import Suggest, Working
 EFFECTIVE = date(2026, 7, 1)   # policy 2026Q3 in force from the start of the quarter
 V = "2026Q3.1"
 
+# The config keys are stable identifiers; a rationale a reviewer reads should not contain one.
+TREATMENT_WORDS = {
+    "probability_weighted": "probability-weighted",
+    "full_deal_value": "at the full deal value",
+    "hold_prior": "at the prior mark",
+}
+
 
 def months_between(a: date, b: date) -> float:
     """Age in months as a duration, to one decimal: a round dated 2022-09-02 is 48.9 months old on
@@ -527,7 +534,7 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
            f"${w.latest_post:.1f}M last round" + (f", {spread:+.1%}" if spread is not None else "")
            + (f"; proceeds ÷ stake sold gives ${implied_from_ownership:.1f}M ({cross:+.1%}), rounding of a 3-dp ownership figure"
               if cross is not None else "")
-           + f". Remainder {after:.1%} marked on basis '{basis}'.", e)
+           + f". Remainder {after:.1%} marked at the {'last-round' if basis == 'last_round' else 'secondary'} price.", e)
     if at_secondary is not None:
         w.alternative_marks["at_secondary_price" if basis == "last_round" else "at_last_round"] = (
             at_secondary if basis == "last_round" else at_last_round)
@@ -642,7 +649,8 @@ def announced(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
                         "at_full_deal_value": full, "standalone_if_deal_breaks": hold, "probability_weighted": weighted,
                         "hold_prior": hold, "detail": e.detail},
            w.proposed_mark, new_equity + w.note_at_cost,
-           f"Definitive agreement at ${deal:.0f}M, not closed ({e.notes or 'no closing detail'}). Treatment '{treatment}': "
+           f"Definitive agreement at ${deal:.0f}M, not closed ({e.notes or 'no closing detail'}). "
+           f"Marked {TREATMENT_WORDS[treatment]}: "
            + (f"{p:.2f} × ${full:.2f}M (closes at {w.ownership:.1%} × ${deal:.0f}M) + {1 - p:.2f} × ${hold:.2f}M (breaks; standalone at the last round)"
               if treatment == "probability_weighted" else f"{w.ownership:.1%} × ${deal:.0f}M")
            + f" = ${new_equity:.2f}M. Alternatives: full ${full:.2f}M, hold ${hold:.2f}M.", e)

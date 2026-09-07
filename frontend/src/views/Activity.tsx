@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import type { CompanyResult, Readiness, ValuationRun } from "../types";
 import { READINESS, READINESS_HINT } from "../types";
 import { musd, signed, signClass } from "../lib/format";
+import { readinessPhrase } from "../lib/labels";
 import { activitySteps, hasActivity, PositionCard } from "../components/PositionCard";
 import { rdClass } from "../components/Flags";
 
@@ -54,7 +55,7 @@ export function ActivityView({
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
           <div>
             <h2 className="text-[15px] font-semibold m-0">
-              {events.length} row{events.length === 1 ? "" : "s"} on the <span className="mono text-[13px]">{sheet}</span> tab · {touched.length} position
+              {events.length} row{events.length === 1 ? "" : "s"} on the “{sheet}” tab, across {touched.length} position
               {touched.length === 1 ? "" : "s"}
             </h2>
             <p className="text-[12px] text-ink2 m-0 mt-1 max-w-[80ch] leading-snug">
@@ -89,7 +90,7 @@ export function ActivityView({
           >
             <div className="flex items-center justify-between">
               <span className="badge">{r}</span>
-              <span className="text-[11px] text-muted">{bucket === r ? "filtering" : ""}</span>
+              <span className="text-[11px] text-muted">{bucket === r ? "Filtering the list" : ""}</span>
             </div>
             <div className="text-[28px] font-semibold leading-none mt-2">{counts[r]}</div>
             <div className="text-[11px] text-muted mt-1">of the positions with new activity</div>
@@ -101,7 +102,7 @@ export function ActivityView({
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-2">
           <h2 className="text-[13px] font-semibold">
             {list.length} position{list.length === 1 ? "" : "s"}
-            {bucket ? ` · ${bucket.toLowerCase()}` : ""}
+            {bucket ? ` ${readinessPhrase(bucket)}` : ""}
             <span className="font-normal text-muted"> · {counts.Blocked + counts["Needs Review"]} need a person, {counts.Ready} ready</span>
           </h2>
           <span className="text-[11px] text-muted">blocked first, then in the order the rows were entered</span>
@@ -125,7 +126,7 @@ export function ActivityView({
 
       {touched.length > 0 && (
         <p className="text-[11.5px] text-muted m-0">
-          Realized this quarter from these rows: {musd(touched.reduce((a, c) => a + c.realized_quarter, 0), 1)} · the same positions carry a{" "}
+          Realized this quarter from these rows: {musd(touched.reduce((a, c) => a + c.realized_quarter, 0), 1)} $M. The same positions carry a{" "}
           <span className="tag-activity">New activity</span> label on the Queue.
         </p>
       )}

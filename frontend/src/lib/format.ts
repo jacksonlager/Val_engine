@@ -41,10 +41,6 @@ export function deltaPct(prior: number, proposed: number): number | null {
   return (proposed - prior) / prior;
 }
 
-export function shortSha(s: string, n = 8): string {
-  return s ? s.slice(0, n) : "—";
-}
-
 export function isoDate(s: string | null | undefined): string {
   return s ? s.slice(0, 10) : "—";
 }
@@ -83,24 +79,4 @@ export function signClass(v: number | null | undefined): string {
   return v > 0 ? "up" : "down";
 }
 
-export const KIND_LABEL: Record<string, string> = {
-  convertible_note: "Convertible note",
-  pending_acquisition: "Pending acquisition",
-  term_sheet: "Term sheet",
-  ipo_lockup: "IPO lock-up",
-};
-
-export const ALT_LABEL: Record<string, string> = {
-  at_secondary_price: "At secondary price",
-  at_full_deal_value: "At full deal value",
-  hold_prior: "Hold prior",
-  at_ipo_print: "At IPO print",
-  at_market_close: "At market close",
-  calibrated_to_comps: "Calibrated to comps",
-  with_lockup_discount: "With lock-up discount",
-  probability_weighted: "Probability-weighted",
-};
-
-export function altLabel(k: string): string {
-  return ALT_LABEL[k] ?? k.replace(/_/g, " ");
-}
+// Wording — every enum, key and label a reviewer reads — lives in ./labels.

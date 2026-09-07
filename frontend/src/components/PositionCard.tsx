@@ -5,7 +5,8 @@
 import { useState } from "react";
 import type { CompanyResult, MarkStep } from "../types";
 import { READINESS_HINT } from "../types";
-import { deltaPct, musd, pct, signed, signClass } from "../lib/format";
+import { deltaPct, musd, pct, shortDate, signed, signClass } from "../lib/format";
+import { actionPhrase, familyLabel, priceSourceLabel, severityShort } from "../lib/labels";
 import { CompanyDetail } from "./CompanyDetail";
 import {
   DecisionBar,
@@ -13,6 +14,7 @@ import {
   flagName,
   FlagActionList,
   FlagNoteList,
+  PositionStep,
   orderedActionable,
   plainPoint,
   rdClass,
@@ -47,7 +49,7 @@ function Marks({ c }: { c: CompanyResult }) {
           →
         </span>
         <div>
-          <dt>{c.provisional ? "Provisional" : "Proposed"}</dt>
+          <dt>{c.provisional ? "Stand-in" : "Proposed"}</dt>
           <dd>
             {c.provisional ? (
               <span className="provisional" title={c.provisional_reason ?? "Stands in for an input that is not on file"}>
@@ -68,7 +70,7 @@ function Marks({ c }: { c: CompanyResult }) {
         <div className="qstate">
           <dt>{published ? "Booked" : recorded !== null ? "Recorded" : "Approval"}</dt>
           <dd className={recorded !== null ? "overridden" : "text-muted font-medium"}>
-            {recorded !== null ? musd(recorded) : "pending"}
+            {recorded !== null ? musd(recorded) : "Pending"}
           </dd>
         </div>
         <span className="qunit">$M</span>
@@ -122,7 +124,7 @@ export function PositionCard({
           <div className="text-[11px] text-muted mt-0.5">
             {c.fund} · {c.sector} · {c.stage}
             {c.fv_level !== null && ` · Level ${c.fv_level}`}
-            {c.action !== "Carry" && <> · {c.action.toLowerCase()} this quarter</>}
+            {c.action !== "Carry" && <> · {actionPhrase(c.action)}</>}
           </div>
         </div>
         <Marks c={c} />
@@ -137,9 +139,11 @@ export function PositionCard({
               <li key={i} className="activity-row">
                 <div className="activity-what">
                   <span className="font-semibold text-[12.5px]">{s.evidence?.event_type ?? "Event"}</span>
-                  <span className="text-[11px] text-muted num">
-                    {s.evidence?.date ?? ""}
-                    {s.evidence && <> · {s.evidence.sheet}, row {s.evidence.row_index}</>}
+                  <span className="text-[11px] text-muted">
+                    {s.evidence &&
+                      [s.evidence.date ? shortDate(s.evidence.date) : null, `row ${s.evidence.row_index} of the ${s.evidence.sheet} tab`]
+                        .filter(Boolean)
+                        .join(" · ")}
                   </span>
                 </div>
                 <div className="activity-how">
@@ -158,7 +162,15 @@ export function PositionCard({
       {acts.length > 0 && (
         <div className="px-3.5 pl-4 pt-2.5 pb-2 border-t border-hair">
           <h3 className="qheadline">{headline}</h3>
-          <FlagActionList c={c} flags={acts} writeDisabled={writeDisabled} onChanged={onChanged} primaryFor={lead?.rule_id} />
+          <div className="resolve">
+            <div className="resolve-col">
+              <FlagActionList c={c} flags={acts} writeDisabled={writeDisabled} onChanged={onChanged} covered={c.recommendation?.covers} />
+            </div>
+            <div className="resolve-col">
+              <div className="eyebrow-sm">Suggested next step</div>
+              <PositionStep c={c} writeDisabled={writeDisabled} onChanged={onChanged} apply={false} />
+            </div>
+          </div>
         </div>
       )}
 
@@ -199,7 +211,7 @@ export function PositionCard({
                   <li key={i} className="flex items-center gap-2 text-[11.5px]">
                     <FlagChip f={f} />
                     <span className="text-ink2">{flagName(f, names)}</span>
-                    <span className="text-muted">· {f.severity.toLowerCase()} · {f.family}</span>
+                    <span className="text-muted">· {severityShort(f.severity)} · {familyLabel(f.family)}</span>
                   </li>
                 ))}
                 {c.flags.length === 0 && <li className="text-[11.5px] text-muted">None.</li>}
@@ -212,13 +224,15 @@ export function PositionCard({
               {acts.some((f) => typeof f.evidence.price_source === "string") && (
                 <p className="text-[11.5px] text-muted leading-snug mt-1 mb-0">
                   Price source on file:{" "}
-                  <span className="mono">{String(acts.find((f) => typeof f.evidence.price_source === "string")!.evidence.price_source)}</span>
+                  <span className="text-ink2">
+                    {priceSourceLabel(String(acts.find((f) => typeof f.evidence.price_source === "string")!.evidence.price_source))}
+                  </span>
                   {typeof lead?.evidence.price_source_note === "string" && <> — {lead.evidence.price_source_note}</>}
                 </p>
               )}
               {c.override && (
                 <p className="text-[11.5px] text-ink2 leading-snug mt-2 mb-0">
-                  <b>Decision on record:</b> {musd(c.override.booked)} by {c.override.approver} on {c.override.created_at}
+                  <b>Decision on record:</b> ${musd(c.override.booked)}M by {c.override.approver} on {shortDate(c.override.created_at)}
                   {c.override.rule_ids_addressed.length > 0 && <> · resolves {c.override.rule_ids_addressed.join(", ")}</>}
                   {c.override.evidence && typeof c.override.evidence.source === "string" && <> · evidence: {String(c.override.evidence.source)}</>}
                   <br />
@@ -226,7 +240,7 @@ export function PositionCard({
                 </p>
               )}
               <div className="text-[11px] text-muted mt-2">
-                Approval: {c.approval.toLowerCase()} · publication: {c.approval === "Approved and published" ? "released" : "not yet released"}
+                Approval: {c.approval}. {c.approval === "Approved and published" ? "Released with the quarter." : "Not yet released."}
               </div>
             </div>
             <div>

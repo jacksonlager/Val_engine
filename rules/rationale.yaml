@@ -13,7 +13,8 @@
 #            be ready to defend them"). The two bullets are the defence.
 #
 # The one test behind every severity: could a reviewer, looking at this, change the booked
-# number? No → MONITOR. Plausibly → REVIEW. Cannot be booked until someone chooses → BLOCK.
+# number? No → Monitor. Plausibly → Needs review. Cannot be booked until someone chooses →
+# Blocking.
 
 version: 2026Q3-0.2
 groups:
@@ -57,10 +58,10 @@ rules:
       engine books a policy default (for a signed deal, 0.9 × deal value + 0.1 × hold) and refuses
       to book it unratified.
     why_severity: >-
-      BLOCK because two legitimate treatments exist and a committee, not code, chooses — this is
-      the brief's "activity that takes judgment". REVIEW only where the arithmetic works but a gap
-      needs a reason: exit cash short of ownership × deal value (escrow? fees?), a shutdown that
-      returned more than its carrying value, a note cap the text would not give up.
+      Because two legitimate treatments exist and a committee, not code, chooses — this is the
+      brief's "activity that takes judgment". It only needs a review where the arithmetic works
+      but a gap needs a reason: exit cash short of ownership × deal value (escrow? fees?), a
+      shutdown that returned more than its carrying value, a note cap the text would not give up.
   - id: X-102
     name: Down round / recapitalisation
     family: treatment
@@ -72,9 +73,9 @@ rules:
       liquidation preference, ratchets, pay-to-play — so "ownership × post-money" is the wrong
       number for HC's specific share class.
     why_severity: >-
-      BLOCK because the headline can over- or under-state HC's class: down if HC is junior to the
-      new senior class, up if HC funded it. Standard practice (AICPA PE/VC guide) is a waterfall;
-      the engine offers the headline, a 25% structure haircut and hold-prior, and a human picks.
+      Because the headline can over- or under-state HC's class: down if HC is junior to the new
+      senior class, up if HC funded it. Standard practice (AICPA PE/VC guide) is a waterfall; the
+      engine offers the headline, a 25% structure haircut and hold-prior, and a human picks.
   - id: X-103
     name: Dilution, HC did not participate
     family: treatment
@@ -85,9 +86,8 @@ rules:
       HC skipped its pro rata and ownership fell more than 20% in relative terms — a reserves
       question the partnership should see.
     why_severity: >-
-      MONITOR because the mark rests on a fresh arm's-length round: the price is fine. It is a
-      portfolio signal about HC's stake, not a valuation signal, so a reviewer could not change
-      the number.
+      Because the mark rests on a fresh arm's-length round: the price is fine. It is a portfolio
+      signal about HC's stake, not a valuation signal, so a reviewer could not change the number.
   - id: X-104
     name: Secondary price off the last round
     family: treatment
@@ -98,9 +98,9 @@ rules:
       A secondary trade implies a price for the whole company; more than 5% away from the last
       round, the market is saying something about the mark.
     why_severity: >-
-      REVIEW because policy keeps the remainder at the last-round basis (a partial, negotiated
-      print is weaker evidence than a primary round) but a reviewer may decide the secondary is
-      the better price — "book the remainder at the secondary price" is offered as a priced option.
+      Because policy keeps the remainder at the last-round basis (a partial, negotiated print is
+      weaker evidence than a primary round) but a reviewer may decide the secondary is the better
+      price — "book the remainder at the secondary price" is offered as a priced option.
   - id: X-105
     name: Note-language screen
     family: notes
@@ -112,8 +112,8 @@ rules:
       earn-out, ratchet, preference, litigation, going concern. The engine never parses it into
       a number.
     why_severity: >-
-      REVIEW because its only job is to guarantee a human reads that sentence. It is its own
-      family, so a note plus a treatment question counts as two independent reasons and escalates.
+      Because its only job is to guarantee a human reads that sentence. It is its own family, so a
+      note plus a treatment question counts as two independent reasons and escalates.
   - id: X-106
     name: Flat extension, no price discovery
     family: treatment
@@ -124,8 +124,8 @@ rules:
       Insiders re-upped at the old price. The mark is repriced to the new ownership, but the
       staleness clock is not reset — no new market test happened.
     why_severity: >-
-      REVIEW because the brief says fresh rounds set marks and a same-terms extension is not a
-      fresh price; the reviewer decides whether the old price still holds.
+      Because the brief says fresh rounds set marks and a same-terms extension is not a fresh
+      price; the reviewer decides whether the old price still holds.
   - id: X-107
     name: Bridge note HC funded
     family: treatment
@@ -136,8 +136,8 @@ rules:
       A convertible note is not a priced round — a cap is a ceiling, not a price. HC's note is
       carried at cost on its own leg and the equity mark is untouched.
     why_severity: >-
-      REVIEW because a bridge HC had to fund is often a distress signal that should pull the
-      equity leg down, and that is a call a reviewer can make.
+      Because a bridge HC had to fund is often a distress signal that should pull the equity leg
+      down, and that is a call a reviewer can make.
   - id: X-108
     name: Bridge note HC did not fund
     family: treatment
@@ -148,7 +148,7 @@ rules:
       The company raised a note from others. Worth knowing; the cap says where the next round
       may price.
     why_severity: >-
-      MONITOR because nothing about HC's position changed and a cap is not evidence of value.
+      Because nothing about HC's position changed and a cap is not evidence of value.
   - id: X-109
     name: Term sheet disclosed
     family: treatment
@@ -159,9 +159,9 @@ rules:
       Non-binding, so nothing is booked; the indicated value is recorded as an open item that
       ages in the register and escalates if it never closes.
     why_severity: >-
-      MONITOR by default. REVIEW when the indication is at or below 80% of the last round: a
-      lower price in writing is evidence a market participant would not pay the carried price
-      (ASC 820), so "mark down to the indication" becomes a real option.
+      Monitor by default; it needs a review when the indication is at or below 80% of the last
+      round: a lower price in writing is evidence a market participant would not pay the carried
+      price (ASC 820), so "mark down to the indication" becomes a real option.
   - id: X-110
     name: Ownership moved with no price event
     family: treatment
@@ -172,8 +172,8 @@ rules:
       Warrant exercise, option-pool expansion or a cap-table restatement changed HC's percentage
       with no money changing hands. Re-marked on the unchanged last-round basis.
     why_severity: >-
-      REVIEW because a percentage that moved without a price is where cap-table errors hide;
-      the reviewer confirms the new ownership against the cap table.
+      Because a percentage that moved without a price is where cap-table errors hide; the reviewer
+      confirms the new ownership against the cap table.
   - id: X-111
     name: Cash distribution received
     family: treatment
@@ -183,8 +183,8 @@ rules:
     why_flag: >-
       Cash came back with the stake unchanged (an escrow release, a dividend). Realized moves up.
     why_severity: >-
-      MONITOR because it is information, not a valuation question — but it stays visible even on
-      an exited company so post-exit cash never disappears from the queue.
+      Because it is information, not a valuation question — but it stays visible even on an exited
+      company so post-exit cash never disappears from the queue.
   - id: X-112
     name: Consideration was shares
     family: treatment
@@ -195,8 +195,8 @@ rules:
       An acquisition closed for acquirer stock, not cash. The position stays active at
       ownership × deal value.
     why_severity: >-
-      BLOCK because the acquirer, whether it is listed, the share count and any lock-up all
-      change the number and none of them are in the feed.
+      Because the acquirer, whether it is listed, the share count and any lock-up all change the
+      number and none of them are in the feed.
   - id: X-113
     name: Listed position with no measurement-date price
     family: treatment
@@ -206,8 +206,8 @@ rules:
     why_flag: >-
       A public position needs the 30 Sep close and the quote feed had none.
     why_severity: >-
-      BLOCK because the engine will not carry a stale quote as if it were current; Level 1 means
-      the exchange price or nothing.
+      Because the engine will not carry a stale quote as if it were current; Level 1 means the
+      exchange price or nothing.
   - id: X-114
     name: Announced deal fell through
     family: treatment
@@ -217,8 +217,8 @@ rules:
     why_flag: >-
       The mark reverts to the last-round basis after a period carried at the deal price.
     why_severity: >-
-      REVIEW because the reviewer confirms nothing about that basis changed while the deal was
-      pending — a failed sale is itself information about value.
+      Because the reviewer confirms nothing about that basis changed while the deal was pending —
+      a failed sale is itself information about value.
   - id: X-115
     name: Note repaid
     family: treatment
@@ -228,8 +228,8 @@ rules:
     why_flag: >-
       Principal on a note HC held came back as cash; realized moves up and the note leg is closed.
     why_severity: >-
-      REVIEW because if the note sat inside the prior mark rather than on its own leg, the
-      carrying basis should come down by the principal — a reviewer has to know which.
+      Because if the note sat inside the prior mark rather than on its own leg, the carrying basis
+      should come down by the principal — a reviewer has to know which.
   - id: X-116
     name: Chapter 11
     family: treatment
@@ -239,8 +239,8 @@ rules:
     why_flag: >-
       Reorganisation. The mark is unchanged and the position is not terminal.
     why_severity: >-
-      BLOCK because the carrying value is almost certainly impaired and the recovery estimate
-      is a human's job.
+      Because the carrying value is almost certainly impaired and the recovery estimate is a
+      human's job.
   - id: X-117
     name: HC-led round
     family: related_party
@@ -251,8 +251,8 @@ rules:
       The round that sets the new mark was led by Human Capital. A related-party price is not
       arm's-length.
     why_severity: >-
-      REVIEW because HC pricing its own mark is the classic auditor question; the reviewer
-      confirms an independent investor set or validated the price.
+      Because HC pricing its own mark is the classic auditor question; the reviewer confirms an
+      independent investor set or validated the price.
   - id: X-118
     name: Insider-led round
     family: related_party
@@ -262,9 +262,9 @@ rules:
     why_flag: >-
       Existing investors, not HC, priced the round. Weaker evidence than new money at the table.
     why_severity: >-
-      MONITOR because insiders are still third parties. REVIEW when they re-priced the company
-      2× or more with no new investor testing it — a reviewer could reasonably book less, and
-      "hold the prior mark" is offered.
+      Monitor because insiders are still third parties; it needs a review when they re-priced the
+      company 2× or more with no new investor testing it — a reviewer could reasonably book less,
+      and "hold the prior mark" is offered.
   - id: X-119
     name: Cheque price mismatch
     family: treatment
@@ -275,8 +275,8 @@ rules:
       HC's cheque divided by the stake it bought implies a different post-money than the row
       states, by more than 10% (only when HC bought at least a percentage point).
     why_severity: >-
-      REVIEW because one of the two cells is wrong or HC bought at a different price from the
-      headline; "book at the cheque price" is a priced option.
+      Because one of the two cells is wrong or HC bought at a different price from the headline;
+      "book at the cheque price" is a priced option.
   - id: X-123
     name: Stake rose without a cheque
     family: treatment
@@ -288,9 +288,9 @@ rules:
       exercise does that legitimately; a mis-typed ownership cell does it too, and the row cannot
       say which. The mark rises with the stated stake either way.
     why_severity: >-
-      REVIEW because the mark rests on a mechanism the workbook does not show: a person confirms
-      the protection from the round documents, or books the prior stake against the new
-      post-money until it is confirmed. The rule that screens dilution (X-103) only looked one way.
+      Because the mark rests on a mechanism the workbook does not show: a person confirms the
+      protection from the round documents, or books the prior stake against the new post-money
+      until it is confirmed. The rule that screens dilution (X-103) only looked one way.
   - id: X-120
     name: New position entered at cost
     family: treatment
@@ -300,7 +300,7 @@ rules:
     why_flag: >-
       First investment in the quarter, created from the activity tab.
     why_severity: >-
-      MONITOR because cost is the fair value of a round that just closed; nothing to decide.
+      Because cost is the fair value of a round that just closed; nothing to decide.
   - id: X-121
     name: Secondary purchase at the last-round price
     family: treatment
@@ -310,8 +310,8 @@ rules:
     why_flag: >-
       HC bought more and the implied price is within 5% of the last round.
     why_severity: >-
-      MONITOR because inside the tolerance it is the same price with negotiation noise; outside
-      it X-104 carries the spread instead.
+      Because inside the tolerance it is the same price with negotiation noise; outside it X-104
+      carries the spread instead.
   - id: X-122
     name: Outsized step-up
     family: treatment
@@ -321,9 +321,9 @@ rules:
     why_flag: >-
       A priced round re-priced the company 3× or more against the prior post-money.
     why_severity: >-
-      MONITOR when the notes name a new lead or outside investor — the price was tested. REVIEW
-      otherwise: a step-up that size with nobody new at the table is a price a reviewer should
-      confirm, and "hold the prior mark" is offered.
+      Monitor when the notes name a new lead or outside investor — the price was tested. It needs
+      a review otherwise: a step-up that size with nobody new at the table is a price a reviewer
+      should confirm, and "hold the prior mark" is offered.
   - id: M-999
     name: Unrecognised event type
     family: treatment
@@ -334,9 +334,9 @@ rules:
       An event the rule file does not know. The position halts with its prior mark; it never
       falls through to "carry".
     why_severity: >-
-      BLOCK because the difference between an engine that says "I don't know what a SPAC merger
-      is" and one that reports an unchanged mark and looks confident doing it is the whole point.
-      An adjudication proposal is drafted beside it for a human to accept, reject or promote.
+      Because the difference between an engine that says "I don't know what a SPAC merger is" and
+      one that reports an unchanged mark and looks confident doing it is the whole point. An
+      adjudication proposal is drafted beside it for a human to accept, reject or promote.
 
   # ---------------------------------------------------------------- staleness
   - id: X-201
@@ -350,9 +350,9 @@ rules:
       Venture companies raise every 18–24 months; one cycle without a price means the mark is
       due a refresh.
     why_severity: >-
-      MONITOR because age alone is not evidence the value moved. Named in the brief, so it is
-      always visible — but a reviewer has nothing to change yet. On a company with a signed deal
-      pending, the deal is the price test and this stays MONITOR.
+      Because age alone is not evidence the value moved. Named in the brief, so it is always
+      visible — but a reviewer has nothing to change yet. On a company with a signed deal pending,
+      the deal is the price test and this stays a watch item.
   - id: X-202
     name: Round older than 48 months
     family: staleness
@@ -363,9 +363,9 @@ rules:
     why_flag: >-
       Two cycles without a price — the round probably predates the business it now describes.
     why_severity: >-
-      REVIEW because this is the brief's core exception: a reviewer could reasonably move the
-      mark. Carries the comps-calibration option (M-080) as a priced alternative when live comps
-      history can price the move since the round.
+      Because this is the brief's core exception: a reviewer could reasonably move the mark.
+      Carries the comps-calibration option (M-080) as a priced alternative when live comps history
+      can price the move since the round.
 
   # ---------------------------------------------------------------- growth
   - id: X-301
@@ -378,8 +378,8 @@ rules:
     why_flag: >-
       Year-on-year ARR growth below 0%. Any contraction in a growth company is worth noticing.
     why_severity: >-
-      MONITOR because mild contraction does not by itself invalidate the last round's price; it
-      becomes a case only when combined with a stale price (X-405).
+      Because mild contraction does not by itself invalidate the last round's price; it becomes a
+      case only when combined with a stale price (X-405).
   - id: X-302
     name: ARR down more than 15%
     family: growth
@@ -390,7 +390,7 @@ rules:
     why_flag: >-
       Roughly one lost growth cohort — the growth assumptions behind the last round no longer hold.
     why_severity: >-
-      REVIEW because the brief names shrinking ARR as an exception and at −15% a reviewer could
+      Because the brief names shrinking ARR as an exception and at −15% a reviewer could
       reasonably mark down; the number is theirs to confirm.
 
   # ---------------------------------------------------------------- liquidity
@@ -404,7 +404,7 @@ rules:
     why_flag: >-
       One raise cycle of cash — the company must be in market this quarter.
     why_severity: >-
-      MONITOR because twelve months is normal between rounds; it is context until it gets tight.
+      Because twelve months is normal between rounds; it is context until it gets tight.
   - id: X-304
     name: Runway under 6 months
     family: liquidity
@@ -415,8 +415,8 @@ rules:
     why_flag: >-
       The company must close a round before the next measurement date or fail.
     why_severity: >-
-      REVIEW because this is the brief's "short runway": a going-concern risk a reviewer may need
-      to reflect in the mark (down round, bridge, write-down).
+      Because this is the brief's "short runway": a going-concern risk a reviewer may need to
+      reflect in the mark (down round, bridge, write-down).
 
   # ---------------------------------------------------------------- valuation
   - id: X-401
@@ -430,8 +430,8 @@ rules:
       Implied post-money ÷ ARR is more than 2× the live sector median (30× when no live comps
       are on file) — the mark is rich against public peers.
     why_severity: >-
-      MONITOR because a multiple is a screen, not a valuation; on a fresh round the price is the
-      price. It becomes REVIEW only when paired with a stale anchor (X-405).
+      Because a multiple is a screen, not a valuation; on a fresh round the price is the price. It
+      needs a review only when paired with a stale anchor (X-405).
   - id: X-402
     name: Revenue multiple low
     family: valuation
@@ -443,8 +443,8 @@ rules:
       Implied post-money ÷ ARR is below 0.5× the live sector median (3× absolute). Fires in the
       other direction too — a stale-low mark is also wrong.
     why_severity: >-
-      MONITOR for the same reason as X-401: a screen, not a valuation, until a stale price is
-      arguing with it.
+      For the same reason as X-401: a screen, not a valuation, until a stale price is arguing
+      with it.
   - id: X-403
     name: ARR below the screening floor
     family: valuation
@@ -455,7 +455,7 @@ rules:
       ARR under $0.5M — any multiple on that base is meaningless, so the company sits in its own
       bucket rather than being screened.
     why_severity: >-
-      MONITOR because it is a statement about the screen, not the company.
+      Because it is a statement about the screen, not the company.
   - id: X-404
     name: MOIC outlier on a stale round
     family: valuation
@@ -466,8 +466,8 @@ rules:
       An unrealised multiple on cost above 5× resting on a round older than 24 months — where
       optimistic write-ups hide.
     why_severity: >-
-      MONITOR because a big gain is not evidence of a move; it is the kind of context an auditor
-      asks about, so it stays visible and feeds X-405.
+      Because a big gain is not evidence of a move; it is the kind of context an auditor asks
+      about, so it stays visible and feeds X-405.
   - id: X-405
     name: Stale price with a screen against it
     family: valuation
@@ -480,9 +480,9 @@ rules:
       contraction) arguing with it — exactly the brief's "performance has moved away from the
       last mark".
     why_severity: >-
-      REVIEW because each half alone is MONITOR; together they are the case the brief describes.
-      Suppressed when X-202 or X-302 already put the position in REVIEW, so nothing is counted
-      twice.
+      Because each half alone is only a watch item; together they are the case the brief
+      describes. Suppressed when X-202 or X-302 already put the position under review, so nothing
+      is counted twice.
 
   # ---------------------------------------------------------------- ledger
   - id: E-01
@@ -490,13 +490,13 @@ rules:
     family: treatment
     severity: [REVIEW]
     source: policy
-    reads: data/overrides.yaml vs the current proposal
+    reads: the override ledger vs the current proposal
     why_flag: >-
       A committee override exists for this company and quarter but the proposal it was written
       against has since changed (a refreshed file, a policy change).
     why_severity: >-
-      REVIEW because the booked number may no longer match the reason recorded for it; the
-      reason is re-read against the new proposal.
+      Because the booked number may no longer match the reason recorded for it; the reason is
+      re-read against the new proposal.
   - id: E-07
     name: Aged open item
     family: treatment
@@ -507,8 +507,8 @@ rules:
       An item outlived its allowance: a deal pending more than two quarters, a term sheet older
       than one, a note unconverted after three, a lock-up past expiry.
     why_severity: >-
-      REVIEW because unfinished business that spans a quarter boundary should not depend on
-      someone remembering it.
+      Because unfinished business that spans a quarter boundary should not depend on someone
+      remembering it.
 
   # ---------------------------------------------------------------- ingest
   - id: X-900
@@ -522,24 +522,24 @@ rules:
       duplicate row, an event dated after 30 Sep. The row is recorded and not applied; the prior
       mark carries.
     why_severity: >-
-      BLOCK because the brief asks that a refreshed file "flow through without rework", and the
-      honest version of that is refusing a cell rather than guessing it — a number nobody read
-      cannot be booked.
+      Because the brief asks that a refreshed file "flow through without rework", and the honest
+      version of that is refusing a cell rather than guessing it — a number nobody read cannot be
+      booked.
   - id: X-923
     name: Row applied on a corrected reading
     family: data
     severity: [REVIEW]
     source: policy
-    reads: a REVIEW-severity ingest correction anchored to a row that was applied (X-904, X-905 inside grace, X-916)
+    reads: an ingest correction that needs review, anchored to a row that was applied (X-904, X-905 inside grace, X-916)
     why_flag: >-
       Ingest read the cell the way a person would — 5.5 as 5.5%, a row dated a week before the
       window as a transaction missed at the last close, a prior mark that departs from the last
       round as an explained departure — and the mark moved on that reading. Nobody has confirmed
       it. A corrected reading that changes a number and reads clean is a number nobody read.
     why_severity: >-
-      REVIEW because the row is plausible and was applied: the engine has a proposal, and a
-      person confirms the reading or fixes the cell. BLOCK is for a cell that could not be read
-      at all (X-900).
+      Because the row is plausible and was applied: the engine has a proposal, and a person
+      confirms the reading or fixes the cell. A cell that could not be read at all blocks approval
+      instead (X-900).
   - id: X-918
     name: New company created from activity
     family: data
@@ -550,5 +550,5 @@ rules:
       The activity tab names a company the book does not have. The position is created at cost
       so the cheque is not lost.
     why_severity: >-
-      REVIEW because the Portfolio row is missing: sector, fund, stage and the operating metrics
-      all need to be added before the position can be screened like the others.
+      Because the Portfolio row is missing: sector, fund, stage and the operating metrics all need
+      to be added before the position can be screened like the others.

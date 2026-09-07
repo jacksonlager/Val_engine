@@ -65,6 +65,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 32.52,
    "sector": "Climate & Energy",
    "stage": "Series B",
@@ -141,7 +142,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -196,6 +197,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 8.1,
+    "confidence": null,
+    "covers": [
+     "X-304"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "rule_id": "X-304",
+    "source": "policy"
+   },
    "runway_months_aged": 4.96,
    "sector": "Fintech",
    "stage": "Series A",
@@ -254,6 +273,7 @@
    "readiness": "Ready",
    "realized_cumulative": 28.2,
    "realized_quarter": 28.2,
+   "recommendation": null,
    "runway_months_aged": 32.47,
    "sector": "Developer Tools",
    "stage": "Series B",
@@ -350,6 +370,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 24.62,
    "sector": "Fintech",
    "stage": "Series B",
@@ -458,6 +479,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 12.08,
    "sector": "Cybersecurity",
    "stage": "Seed",
@@ -524,6 +546,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 31.09,
    "sector": "Infrastructure",
    "stage": "Series D",
@@ -591,7 +614,7 @@
       "key": "as_proposed",
       "label": "Ratify the 0.90-weighted mark of $4.66M.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "Reflects a signed agreement with a real chance of not closing.",
@@ -682,6 +705,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 4.6592,
+    "confidence": null,
+    "covers": [
+     "X-101"
+    ],
+    "key": "as_proposed",
+    "label": "Ratify the 0.90-weighted mark of $4.66M.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "Reflects a signed agreement with a real chance of not closing.",
+     "Policy default for an announced, unclosed deal."
+    ],
+    "rule_id": "X-101",
+    "source": "policy"
+   },
    "runway_months_aged": 24.0,
    "sector": "AI/ML",
    "stage": "Series B",
@@ -709,7 +750,7 @@
      },
      "new_value": 4.6592,
      "prior_value": 3.5,
-     "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Treatment 'probability_weighted': 0.90 \u00d7 $4.79M (closes at 3.6% \u00d7 $133M) + 0.10 \u00d7 $3.50M (breaks; standalone at the last round) = $4.66M. Alternatives: full $4.79M, hold $3.50M.",
+     "rationale": "Definitive agreement at $133M, not closed (Expected to close in Q4 2026, subject to regulatory approval. No cash received.). Marked probability-weighted: 0.90 \u00d7 $4.79M (closes at 3.6% \u00d7 $133M) + 0.10 \u00d7 $3.50M (breaks; standalone at the last round) = $4.66M. Alternatives: full $4.79M, hold $3.50M.",
      "rule_id": "M-050",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -764,7 +805,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -822,6 +863,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 2.7,
+    "confidence": null,
+    "covers": [
+     "X-202"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "rule_id": "X-202",
+    "source": "policy"
+   },
    "runway_months_aged": 15.15,
    "sector": "Cybersecurity",
    "stage": "Series A",
@@ -902,6 +961,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 13.49,
    "sector": "Developer Tools",
    "stage": "Series D",
@@ -984,6 +1044,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 25.52,
    "sector": "Enterprise SaaS",
    "stage": "Series A",
@@ -1051,6 +1112,7 @@
    "readiness": "Ready",
    "realized_cumulative": 15.9,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": null,
    "sector": "Developer Tools",
    "stage": "Series B",
@@ -1108,6 +1170,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 21.0,
    "sector": "AI/ML",
    "stage": "Seed",
@@ -1168,6 +1231,7 @@
    "readiness": "Ready",
    "realized_cumulative": 3.9,
    "realized_quarter": 3.9,
+   "recommendation": null,
    "runway_months_aged": 15.75,
    "sector": "AI/ML",
    "stage": "Series C",
@@ -1197,7 +1261,7 @@
      },
      "new_value": 8.772,
      "prior_value": 12.9,
-     "rationale": "Sold 32% of the position for $3.9M at $516.0M post (row value (implied valuation for secondaries)) vs $516.0M last round, +0.0%; proceeds \u00f7 stake sold gives $487.5M (-5.5%), rounding of a 3-dp ownership figure. Remainder 1.7% marked on basis 'last_round'.",
+     "rationale": "Sold 32% of the position for $3.9M at $516.0M post (row value (implied valuation for secondaries)) vs $516.0M last round, +0.0%; proceeds \u00f7 stake sold gives $487.5M (-5.5%), rounding of a 3-dp ownership figure. Remainder 1.7% marked at the last-round price.",
      "rule_id": "M-030",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -1255,6 +1319,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 13.83,
    "sector": "AI/ML",
    "stage": "Series A",
@@ -1318,7 +1383,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -1364,6 +1429,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 13.9,
+    "confidence": null,
+    "covers": [
+     "X-202"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "rule_id": "X-202",
+    "source": "policy"
+   },
    "runway_months_aged": 15.13,
    "sector": "Space & Defense",
    "stage": "Series D+",
@@ -1418,7 +1501,7 @@
       "key": "as_proposed",
       "label": "Keep the mark on the extension price as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "New money came in at that price, even without a new lead.",
@@ -1459,7 +1542,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -1505,6 +1588,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 13.9277,
+    "confidence": null,
+    "covers": [
+     "X-106"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark on the extension price as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "New money came in at that price, even without a new lead.",
+     "Nothing in the file says the company is worth less."
+    ],
+    "rule_id": "X-106",
+    "source": "policy"
+   },
    "runway_months_aged": 19.2,
    "sector": "Climate & Energy",
    "stage": "Series B",
@@ -1586,6 +1687,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 13.82,
    "sector": "Infrastructure",
    "stage": "Series A",
@@ -1644,6 +1746,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 15.4,
    "sector": "Developer Tools",
    "stage": "Seed",
@@ -1702,6 +1805,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 22.88,
    "sector": "Fintech",
    "stage": "Series A",
@@ -1761,7 +1865,7 @@
       "key": "as_proposed",
       "label": "Book the recap figure as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "It is the only priced transaction and reflects the new capital structure.",
@@ -1834,7 +1938,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -1880,6 +1984,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 1.136,
+    "confidence": null,
+    "covers": [
+     "X-102"
+    ],
+    "key": "as_proposed",
+    "label": "Book the recap figure as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "It is the only priced transaction and reflects the new capital structure.",
+     "Right if HC's class shares roughly pro rata with the new money."
+    ],
+    "rule_id": "X-102",
+    "source": "policy"
+   },
    "runway_months_aged": 32.45,
    "sector": "Enterprise SaaS",
    "stage": "Series A",
@@ -1958,7 +2080,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -2013,6 +2135,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 24.1,
+    "confidence": null,
+    "covers": [
+     "X-304"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "rule_id": "X-304",
+    "source": "policy"
+   },
    "runway_months_aged": 3.12,
    "sector": "AI/ML",
    "stage": "Series B",
@@ -2071,6 +2211,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 17.86,
    "sector": "Space & Defense",
    "stage": "Series C",
@@ -2144,6 +2285,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 15.97,
    "sector": "Fintech",
    "stage": "Series C",
@@ -2217,6 +2359,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 25.54,
    "sector": "Infrastructure",
    "stage": "Series B",
@@ -2290,6 +2433,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 14.62,
    "sector": "Healthcare",
    "stage": "Seed",
@@ -2363,6 +2507,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 31.86,
    "sector": "Enterprise SaaS",
    "stage": "Seed",
@@ -2448,7 +2593,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -2494,6 +2639,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 1.4,
+    "confidence": null,
+    "covers": [
+     "X-405"
+    ],
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "rule_id": "X-405",
+    "source": "policy"
+   },
    "runway_months_aged": 28.0,
    "sector": "Developer Tools",
    "stage": "Seed",
@@ -2561,7 +2724,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -2616,6 +2779,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 18.5,
+    "confidence": null,
+    "covers": [
+     "X-302"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "The last round is still the latest priced transaction.",
+     "The decline is recorded and will price into the next round."
+    ],
+    "rule_id": "X-302",
+    "source": "policy"
+   },
    "runway_months_aged": 24.11,
    "sector": "AI/ML",
    "stage": "Series B",
@@ -2690,6 +2871,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 17.31,
    "sector": "AI/ML",
    "stage": "Series A",
@@ -2748,7 +2930,7 @@
       "key": "as_proposed",
       "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "Level 1: the quoted price is fair value under ASC 820.",
@@ -2806,6 +2988,24 @@
    "readiness": "Blocked",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 110.068,
+    "confidence": null,
+    "covers": [
+     "X-101"
+    ],
+    "key": "as_proposed",
+    "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "Level 1: the quoted price is fair value under ASC 820.",
+     "ASU 2022-03: a contractual lock-up is not a characteristic of the security, so no discount."
+    ],
+    "rule_id": "X-101",
+    "source": "policy"
+   },
    "runway_months_aged": 25.69,
    "sector": "Space & Defense",
    "stage": "Public",
@@ -2889,6 +3089,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 20.09,
    "sector": "Enterprise SaaS",
    "stage": "Series A",
@@ -2962,6 +3163,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 24.85,
    "sector": "Data & Analytics",
    "stage": "Series B",
@@ -3035,6 +3237,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 27.52,
    "sector": "Fintech",
    "stage": "Series C",
@@ -3108,6 +3311,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 23.35,
    "sector": "AI/ML",
    "stage": "Series C",
@@ -3181,6 +3385,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 19.4,
    "sector": "AI/ML",
    "stage": "Series B",
@@ -3249,7 +3454,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -3304,6 +3509,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 14.3,
+    "confidence": null,
+    "covers": [
+     "X-304"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "rule_id": "X-304",
+    "source": "policy"
+   },
    "runway_months_aged": 3.4,
    "sector": "Cybersecurity",
    "stage": "Series B",
@@ -3377,6 +3600,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 19.5,
    "sector": "Fintech",
    "stage": "Seed",
@@ -3435,6 +3659,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.4,
    "realized_quarter": 0.4,
+   "recommendation": null,
    "runway_months_aged": 4.71,
    "sector": "Consumer",
    "stage": "Series A",
@@ -3513,6 +3738,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 21.05,
    "sector": "Developer Tools",
    "stage": "Series D+",
@@ -3586,6 +3812,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 21.0,
    "sector": "Enterprise SaaS",
    "stage": "Seed",
@@ -3645,7 +3872,7 @@
       "key": "as_proposed",
       "label": "Book the recap figure as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "It is the only priced transaction and reflects the new capital structure.",
@@ -3752,6 +3979,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 2.331,
+    "confidence": null,
+    "covers": [
+     "X-102"
+    ],
+    "key": "as_proposed",
+    "label": "Book the recap figure as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "It is the only priced transaction and reflects the new capital structure.",
+     "Right if HC's class shares roughly pro rata with the new money."
+    ],
+    "rule_id": "X-102",
+    "source": "policy"
+   },
    "runway_months_aged": 22.57,
    "sector": "Healthcare",
    "stage": "Series B",
@@ -3847,7 +4092,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -3902,6 +4147,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 7.3,
+    "confidence": null,
+    "covers": [
+     "X-405"
+    ],
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "rule_id": "X-405",
+    "source": "policy"
+   },
    "runway_months_aged": 26.73,
    "sector": "Cybersecurity",
    "stage": "Series A",
@@ -3955,7 +4218,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -4001,6 +4264,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 1.6,
+    "confidence": null,
+    "covers": [
+     "X-302"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "The last round is still the latest priced transaction.",
+     "The decline is recorded and will price into the next round."
+    ],
+    "rule_id": "X-302",
+    "source": "policy"
+   },
    "runway_months_aged": 27.28,
    "sector": "AI/ML",
    "stage": "Seed",
@@ -4074,6 +4355,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 14.0,
    "sector": "Robotics",
    "stage": "Series A",
@@ -4148,6 +4430,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 14.45,
    "sector": "Infrastructure",
    "stage": "Series A",
@@ -4206,6 +4489,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 30.52,
    "sector": "Healthcare",
    "stage": "Seed",
@@ -4278,6 +4562,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 18.09,
    "sector": "Healthcare",
    "stage": "Seed",
@@ -4350,6 +4635,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 24.4,
    "sector": "Developer Tools",
    "stage": "Series A",
@@ -4423,6 +4709,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 18.41,
    "sector": "Enterprise SaaS",
    "stage": "Series D+",
@@ -4508,7 +4795,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -4554,6 +4841,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 0.6,
+    "confidence": null,
+    "covers": [
+     "X-405"
+    ],
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "rule_id": "X-405",
+    "source": "policy"
+   },
    "runway_months_aged": 29.87,
    "sector": "Consumer",
    "stage": "Series A",
@@ -4627,6 +4932,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 16.69,
    "sector": "Healthcare",
    "stage": "Series A",
@@ -4685,6 +4991,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 29.53,
    "sector": "Data & Analytics",
    "stage": "Series B",
@@ -4739,7 +5046,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -4779,7 +5086,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -4834,6 +5141,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 43.3,
+    "confidence": null,
+    "covers": [
+     "X-202"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "rule_id": "X-202",
+    "source": "policy"
+   },
    "runway_months_aged": 17.45,
    "sector": "Cybersecurity",
    "stage": "Series D+",
@@ -4892,6 +5217,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 26.78,
    "sector": "Fintech",
    "stage": "Series B",
@@ -4947,7 +5273,7 @@
       "key": "as_proposed",
       "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "A cap is not a price; cost is the only observable value for the note.",
@@ -5017,7 +5343,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -5084,6 +5410,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 6.6,
+    "confidence": null,
+    "covers": [
+     "X-107"
+    ],
+    "key": "as_proposed",
+    "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "A cap is not a price; cost is the only observable value for the note.",
+     "Standard treatment until the note converts."
+    ],
+    "rule_id": "X-107",
+    "source": "policy"
+   },
    "runway_months_aged": 4.11,
    "sector": "Data & Analytics",
    "stage": "Series A",
@@ -5166,6 +5510,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 23.62,
    "sector": "AI/ML",
    "stage": "Series B",
@@ -5266,7 +5611,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -5321,6 +5666,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 26.5,
+    "confidence": null,
+    "covers": [
+     "X-405"
+    ],
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "rule_id": "X-405",
+    "source": "policy"
+   },
    "runway_months_aged": 30.08,
    "sector": "Climate & Energy",
    "stage": "Series B",
@@ -5379,6 +5742,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 21.31,
    "sector": "AI/ML",
    "stage": "Series A",
@@ -5437,6 +5801,7 @@
    "readiness": "Ready",
    "realized_cumulative": 1.2,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": null,
    "sector": "Fintech",
    "stage": "Seed",
@@ -5509,6 +5874,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 21.7,
    "sector": "Developer Tools",
    "stage": "Series A",
@@ -5567,6 +5933,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 23.08,
    "sector": "Robotics",
    "stage": "Series A",
@@ -5625,6 +5992,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 29.83,
    "sector": "Fintech",
    "stage": "Series A",
@@ -5683,6 +6051,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 22.81,
    "sector": "Data & Analytics",
    "stage": "Seed",
@@ -5766,7 +6135,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -5821,6 +6190,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 6.6,
+    "confidence": null,
+    "covers": [
+     "X-405"
+    ],
+    "key": "as_proposed",
+    "label": "Affirm the last-round mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction has repriced the company; the round is still the last real price.",
+     "The screen is a cross-check, not a valuation."
+    ],
+    "rule_id": "X-405",
+    "source": "policy"
+   },
    "runway_months_aged": 28.07,
    "sector": "Climate & Energy",
    "stage": "Series B",
@@ -5875,7 +6262,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -5921,6 +6308,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 21.3,
+    "confidence": null,
+    "covers": [
+     "X-202"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "rule_id": "X-202",
+    "source": "policy"
+   },
    "runway_months_aged": 17.32,
    "sector": "Robotics",
    "stage": "Series C",
@@ -5975,7 +6380,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -6030,6 +6435,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 7.3,
+    "confidence": null,
+    "covers": [
+     "X-304"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "rule_id": "X-304",
+    "source": "policy"
+   },
    "runway_months_aged": 2.5,
    "sector": "Data & Analytics",
    "stage": "Series B",
@@ -6088,6 +6511,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 16.53,
    "sector": "Consumer",
    "stage": "Series A",
@@ -6146,6 +6570,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 26.39,
    "sector": "Climate & Energy",
    "stage": "Series A",
@@ -6219,6 +6644,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 24.43,
    "sector": "Developer Tools",
    "stage": "Series B",
@@ -6287,7 +6713,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -6342,6 +6768,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 1.7,
+    "confidence": null,
+    "covers": [
+     "X-304"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "Cash on hand does not change the last-round price.",
+     "The runway is tracked; the next round will reprice it."
+    ],
+    "rule_id": "X-304",
+    "source": "policy"
+   },
    "runway_months_aged": 3.67,
    "sector": "Data & Analytics",
    "stage": "Seed",
@@ -6400,6 +6844,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 19.0,
    "sector": "Healthcare",
    "stage": "Seed",
@@ -6486,6 +6931,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 25.96,
    "sector": "AI/ML",
    "stage": "Seed",
@@ -6544,6 +6990,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 25.07,
    "sector": "AI/ML",
    "stage": "Series D+",
@@ -6602,6 +7049,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 16.46,
    "sector": "Cybersecurity",
    "stage": "Series A",
@@ -6675,6 +7123,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 16.58,
    "sector": "Cybersecurity",
    "stage": "Series D+",
@@ -6747,6 +7196,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 18.26,
    "sector": "Robotics",
    "stage": "Seed",
@@ -6834,6 +7284,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 11.62,
    "sector": "Robotics",
    "stage": "Series B",
@@ -6920,6 +7371,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 13.0,
    "sector": "AI/ML",
    "stage": "Seed",
@@ -6993,6 +7445,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 18.36,
    "sector": "Healthcare",
    "stage": "Series C",
@@ -7051,6 +7504,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 31.5,
    "sector": "Enterprise SaaS",
    "stage": "Seed",
@@ -7109,6 +7563,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 28.92,
    "sector": "Developer Tools",
    "stage": "Series C",
@@ -7167,6 +7622,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": null,
    "sector": "Enterprise SaaS",
    "stage": "Series B",
@@ -7239,6 +7695,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 17.98,
    "sector": "Enterprise SaaS",
    "stage": "Series C",
@@ -7297,6 +7754,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 20.36,
    "sector": "AI/ML",
    "stage": "Seed",
@@ -7355,6 +7813,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 23.86,
    "sector": "Infrastructure",
    "stage": "Series A",
@@ -7413,6 +7872,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 7.02,
    "sector": "Infrastructure",
    "stage": "Series B",
@@ -7472,7 +7932,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -7533,6 +7993,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 0.7,
+    "confidence": null,
+    "covers": [
+     "X-202"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "rule_id": "X-202",
+    "source": "policy"
+   },
    "runway_months_aged": 25.59,
    "sector": "Enterprise SaaS",
    "stage": "Series A",
@@ -7587,7 +8065,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -7633,6 +8111,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 48.8,
+    "confidence": null,
+    "covers": [
+     "X-202"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "rule_id": "X-202",
+    "source": "policy"
+   },
    "runway_months_aged": 17.32,
    "sector": "AI/ML",
    "stage": "Series C",
@@ -7691,6 +8187,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 12.54,
    "sector": "Enterprise SaaS",
    "stage": "Series C",
@@ -7745,7 +8242,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -7805,6 +8302,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 68.4,
+    "confidence": null,
+    "covers": [
+     "X-202"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "rule_id": "X-202",
+    "source": "policy"
+   },
    "runway_months_aged": 14.92,
    "sector": "Robotics",
    "stage": "Series D+",
@@ -7892,6 +8407,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 7.12,
    "sector": "Cybersecurity",
    "stage": "Series B",
@@ -7950,6 +8466,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 20.39,
    "sector": "Developer Tools",
    "stage": "Series B",
@@ -8003,7 +8520,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -8064,6 +8581,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 1.7,
+    "confidence": null,
+    "covers": [
+     "X-302"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "The last round is still the latest priced transaction.",
+     "The decline is recorded and will price into the next round."
+    ],
+    "rule_id": "X-302",
+    "source": "policy"
+   },
    "runway_months_aged": 18.26,
    "sector": "Infrastructure",
    "stage": "Seed",
@@ -8138,6 +8673,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 17.52,
    "sector": "Fintech",
    "stage": "Series A",
@@ -8196,6 +8732,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 13.35,
    "sector": "Data & Analytics",
    "stage": "Series A",
@@ -8254,6 +8791,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 22.18,
    "sector": "Space & Defense",
    "stage": "Series D+",
@@ -8308,7 +8846,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": null,
+      "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -8354,6 +8892,24 @@
    "readiness": "Needs Review",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": {
+    "booked": 2.1,
+    "confidence": null,
+    "covers": [
+     "X-202"
+    ],
+    "key": "as_proposed",
+    "label": "Keep the mark as proposed.",
+    "model": null,
+    "note": "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default",
+    "rationale": null,
+    "reasons": [
+     "No transaction or metric in the file says the value moved.",
+     "Staleness alone is not evidence of a decline."
+    ],
+    "rule_id": "X-202",
+    "source": "policy"
+   },
    "runway_months_aged": 19.94,
    "sector": "Data & Analytics",
    "stage": "Series A",
@@ -8412,6 +8968,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 30.87,
    "sector": "Developer Tools",
    "stage": "Seed",
@@ -8486,6 +9043,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": 21.67,
    "sector": "Enterprise SaaS",
    "stage": "Series A",
@@ -8544,6 +9102,7 @@
    "readiness": "Ready",
    "realized_cumulative": 0.0,
    "realized_quarter": 0.0,
+   "recommendation": null,
    "runway_months_aged": null,
    "sector": "AI/ML",
    "stage": "Seed",
@@ -8747,8 +9306,8 @@
   "policy_version": "2026Q3-0.2",
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
-  "recommender": "policy",
-  "run_id": "59b9dc6df4f4"
+  "recommender": "claude:claude-sonnet-4-5",
+  "run_id": "aec1099b483a"
  },
  "open_items": [
   {

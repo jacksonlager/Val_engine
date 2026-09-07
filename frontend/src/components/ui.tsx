@@ -1,12 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { CompanyResult, Disposition, Flag, Severity } from "../types";
 import { musd, signClass, signed } from "../lib/format";
+import { dispositionLabel, familyLabel, severityShort } from "../lib/labels";
 
 export function DispChip({ d, className = "" }: { d: Disposition | Severity; className?: string }) {
-  return <span className={`chip disp-${d} ${className}`}>{d}</span>;
+  return <span className={`chip disp-${d} ${className}`}>{dispositionLabel(d)}</span>;
 }
 
-export const ESCALATION_HINT = "Two or more REVIEW findings from different families compound to BLOCK";
+export const ESCALATION_HINT =
+  "Two or more findings that each need review, in different areas of the policy, together block approval.";
 
 /**
  * A BLOCK with no BLOCK-severity flag got there by escalation: policy
@@ -19,20 +21,21 @@ export function escalatedReviewFamilies(c: Pick<CompanyResult, "disposition" | "
   return new Set(c.flags.filter((f) => f.severity === "REVIEW").map((f) => f.family)).size;
 }
 
-/** "escalated · 2 review items" — sits beside the BLOCK chip so the reader knows no single rule blocked. */
+/** "2 review findings combined" — sits beside the blocking chip so the reader knows no single
+    rule blocked this position. */
 export function EscalatedChip({ n, className = "", short = false }: { n: number; className?: string; short?: boolean }) {
   if (n <= 0) return null;
-  const long = `escalated · ${n} review item${n === 1 ? "" : "s"}`;
+  const long = `${n} review finding${n === 1 ? "" : "s"} combined`;
   return (
     <span className={`chip no-dot escalated disp-BLOCK hint ${className}`} title={`${long}. ${ESCALATION_HINT}`}>
-      {short ? `${n}× review` : long}
+      {short ? `${n} reviews` : long}
     </span>
   );
 }
 
 /** Rule-id chip: severity color, mono rule id, action + message as native tooltip. */
 export function FlagChip({ f }: { f: Flag }) {
-  const title = `${f.severity} · ${f.family}\n${f.action ? `${f.action}\n\n` : ""}${f.message}`;
+  const title = `${familyLabel(f.family)} · ${severityShort(f.severity)}\n${f.action ? `${f.action}\n\n` : ""}${f.message}`;
   return (
     <span className={`chip disp-${f.severity} hint`} title={title}>
       <span className="mono">{f.rule_id}</span>
@@ -148,7 +151,11 @@ export function MarkTriple({
       <Arrow />
       <span
         className={overridden ? "font-semibold underline decoration-dotted underline-offset-2" : "text-ink2"}
-        title={overridden ? "Booked differs from proposed: committee override (E-01)" : "Booked = proposed"}
+        title={
+          overridden
+            ? "The booked mark differs from the proposal: a committee override is on record (ledger reference E-01)."
+            : "The booked mark is the proposal, unchanged."
+        }
       >
         {musd(booked, decimals)}
       </span>

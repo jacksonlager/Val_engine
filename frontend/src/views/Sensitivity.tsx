@@ -144,12 +144,12 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
             </div>
           </div>
           <div className="sens-tile">
-            <div className="k">Policy points (engine)</div>
+            <div className="k">Policy points · ±20%</div>
             <div className="v num">
               {musd(run.sensitivity[scope === "software" ? "nav_if_software_multiples_-20pct" : "nav_if_multiples_-20pct"], 1)} ·{" "}
               {musd(run.sensitivity[scope === "software" ? "nav_if_software_multiples_+20pct" : "nav_if_multiples_+20pct"], 1)}
             </div>
-            <div className="d text-muted">−20% · +20%, from run.sensitivity</div>
+            <div className="d text-muted">The two ends of the slider, as the engine computed them</div>
           </div>
         </div>
 
@@ -196,7 +196,8 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
           </ResponsiveContainer>
         </div>
         <div className="text-[11px] text-muted num">
-          Straight line by construction: NAV(s) = booked + exposed × s. Dashed line is the booked NAV; the dot is the slider.
+          A straight line by construction: the exposed marks move one-for-one with the multiple and everything else is held flat. The dashed line is
+          the booked NAV; the dot is where the slider sits.
         </div>
       </div>
 
@@ -208,7 +209,7 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
               <tr>
                 <th>Sector</th>
                 <th className="r">Exposed</th>
-                <th className="r">Δ</th>
+                <th className="r">Change</th>
               </tr>
             </thead>
             <tbody>
@@ -238,7 +239,7 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
                 <th>Fund</th>
                 <th className="r">NAV</th>
                 <th className="r">Exposed</th>
-                <th className="r">NAV at shock</th>
+                <th className="r">NAV at {signed(shockPct, 0)}%</th>
               </tr>
             </thead>
             <tbody>
@@ -266,7 +267,7 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
               <tr>
                 <th>Company</th>
                 <th className="r">Booked</th>
-                <th className="r">At shock</th>
+                <th className="r">Mark at {signed(shockPct, 0)}%</th>
               </tr>
             </thead>
             <tbody>

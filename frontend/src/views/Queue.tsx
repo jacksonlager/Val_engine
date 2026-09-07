@@ -19,6 +19,7 @@ import { useState } from "react";
 import type { Readiness, ValuationRun } from "../types";
 import { READINESS, READINESS_HINT } from "../types";
 import { deltaPct, musdTile, pct, signed } from "../lib/format";
+import { readinessPhrase } from "../lib/labels";
 import { rdClass } from "../components/Flags";
 import { PositionCard } from "../components/PositionCard";
 import { OpenItemsView } from "./OpenItems";
@@ -77,7 +78,7 @@ export function QueueView({
           >
             <div className="flex items-center justify-between">
               <span className="badge">{r}</span>
-              <span className="text-[11px] text-muted">{bucket === r ? "filtering" : ""}</span>
+              <span className="text-[11px] text-muted">{bucket === r ? "Filtering the list" : ""}</span>
             </div>
             <div className="text-[28px] font-semibold leading-none mt-2">{counts[r] ?? 0}</div>
             <div className="text-[11px] text-muted mt-1">{READINESS_HINT[r]}</div>
@@ -94,7 +95,11 @@ export function QueueView({
           <Headline label="After recorded decisions" value={musdTile(t.booked_nav)} sub="not approved until published" />
         )}
         <Headline label="Realized in quarter" value={musdTile(t.realized_quarter)} sub={`cumulative ${musdTile(t.realized_cumulative)}`} />
-        <Headline label="Written off" value={musdTile(t.written_off)} sub={`shutdowns at prior mark · exited ${musdTile(t.exited_at_prior_mark)}`} />
+        <Headline
+          label="Written off"
+          value={musdTile(t.written_off)}
+          sub={`Shutdowns at their prior mark · exits took a further ${musdTile(t.exited_at_prior_mark)}`}
+        />
         <Headline label="Top-10 concentration" value={pct(t.top10_concentration)} sub="share of the proposed book" />
         <div className="ml-auto text-[11px] text-muted">$M unless stated</div>
       </div>
@@ -103,7 +108,9 @@ export function QueueView({
       <div>
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-2">
           <h2 className="text-[13px] font-semibold">
-            {bucket ? `${list.length} ${bucket.toLowerCase()}` : `${list.length} position${list.length === 1 ? "" : "s"} need a person`}
+            {`${list.length} position${list.length === 1 ? "" : "s"} ${
+              bucket ? readinessPhrase(bucket) : list.length === 1 ? "needs a person" : "need a person"
+            }`}
             <span className="font-normal text-muted">
               {" · "}
               {bucket ? `${needsAPerson} need a person in total` : `${counts.Blocked ?? 0} blocked, ${counts["Needs Review"] ?? 0} to review`}
@@ -128,7 +135,9 @@ export function QueueView({
         {list.length > shown && (
           <div className="flex justify-center mt-3">
             <button className="btn" onClick={() => setShown((n) => n + PAGE)}>
-              Show {Math.min(PAGE, list.length - shown)} more of {list.length - shown}
+              {list.length - shown <= PAGE
+                ? `Show the last ${list.length - shown}`
+                : `Show ${PAGE} more of the ${list.length - shown} still hidden`}
             </button>
           </div>
         )}
@@ -138,8 +147,8 @@ export function QueueView({
       {run.open_items.length > 0 && (
         <details className="card p-3">
           <summary className="text-[11px] uppercase tracking-wider text-muted cursor-pointer select-none">
-            Open items carried from prior quarters ({run.open_items.length}
-            {run.open_items.some((o) => o.escalated) ? `, ${run.open_items.filter((o) => o.escalated).length} escalated` : ""})
+            Open items carried from prior quarters — {run.open_items.length} in total
+            {run.open_items.some((o) => o.escalated) ? `, ${run.open_items.filter((o) => o.escalated).length} open too long` : ""}
           </summary>
           <div className="mt-2">
             <OpenItemsView run={run} gotoCompany={gotoCompany} />

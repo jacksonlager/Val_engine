@@ -38,12 +38,13 @@ from hc_valuation.api.history import build_history
 from hc_valuation.api.publish import PublishBlocked, exec_payload, load_published, publish_run
 from hc_valuation.cli import app as cli_app
 from hc_valuation.config import RuleConfig, load_config, repo_root
-from hc_valuation.engine.models import (Approval, OverrideLedger, OverrideRecord, Readiness, Recommendation, Severity,
-                                        ValuationRun)
+from hc_valuation.engine.models import (Approval, OverrideLedger, OverrideRecord, PositionRecommendation, Readiness,
+                                        Recommendation, Severity, ValuationRun)
 from hc_valuation.engine.readiness import MISSING_INPUT_RULES
 from hc_valuation.engine.run import build_registry
 from hc_valuation.pipeline import RunPaths, execute
-from hc_valuation.recommend import ClaudeChooser, build_brief, recommend_run
+from hc_valuation.recommend import (POSITION_PROMPT, ClaudeChooser, PolicyChooser, actionable,
+                                    build_brief, build_position_brief, recommend_run)
 
 ROOT = repo_root()
 ACTIONABLE = (Severity.BLOCK, Severity.REVIEW)
@@ -656,13 +657,21 @@ class _Hostile:
         return Recommendation(key="write_up", label="Write it up.", reasons=("a", "b"), booked=9.99e9, source="claude",
                               model=self.model, rationale="because", confidence=1.0)
 
+    def choose_position(self, brief, c) -> PositionRecommendation:
+        # names a finding that is not on the position, a key that does not exist, and a wild number
+        return PositionRecommendation(rule_id="X-999", key="write_up", label="Write the whole book up.",
+                                      reasons=("a", "b"), booked=9.99e9, covers=("X-999",), source="claude",
+                                      model=self.model, rationale="because", confidence=1.0)
+
 
 def test_D4_the_recommender_runs_after_the_engine_and_reaches_nothing(run_real):
     before = json.loads(run_real.model_dump_json())
     after_run = recommend_run(run_real, _Hostile(), None)
     after = json.loads(after_run.model_dump_json())
     # the manifest labels the chooser by its class, not by what it returned: a foreign chooser reads as "policy"
-    assert run_real.manifest.recommender == "policy" and after_run.manifest.recommender == "policy"
+    # the label is derived from the chooser's class, not its self-declared name: a hostile object
+    # claiming to be claude is labelled policy, so the manifest cannot be spoofed either
+    assert after_run.manifest.recommender == "policy"
     n = 0
     for a, b in zip(before["companies"], after["companies"]):
         for key in ("proposed_mark", "booked_mark", "readiness", "disposition", "approval", "provisional", "steps", "override", "monitor"):
@@ -854,3 +863,112 @@ def test_E_novel_event_block_reads_as_blocked(build):
     m999 = next(f for f in c.flags if f.rule_id == "M-999")
     assert m999.severity is Severity.BLOCK and m999.action
     assert c.proposed_mark == c.prior_mark == 10.0
+
+
+# ============================================================================ F. the position-level step
+
+def _step_reply(**over: Any) -> str:
+    body = {"rule_id": "X-304", "choice": "to_cost", "label": "Mark down to cost pending the raise.",
+            "reasons": ["Three months of cash.", "Cost is a defensible floor."], "covers": ["X-304"],
+            "rationale": "Runway first: the round that saves it may reprice below this mark.", "confidence": 0.7}
+    body.update(over)
+    return json.dumps(body)
+
+
+def _umberly(run_real: ValuationRun):
+    return next(c for c in run_real.companies if c.company == "Umberly")
+
+
+def _chooser(tmp_path: Path, reply: str) -> ClaudeChooser:
+    ch = ClaudeChooser(tmp_path / "rec", model="test-model", api_key="k", use_cache=False)
+    ch._call = lambda brief, system=None: reply          # the SDK seam
+    return ch
+
+
+def test_F_one_step_per_position_not_one_per_flag(run_real, tmp_path: Path):
+    """The card asks for one next step. The chooser sees every actionable finding at once and
+    picks the finding to lead with, not a step per flag."""
+    c = _umberly(run_real)
+    assert {f.rule_id for f in c.flags} >= {"X-201", "X-304"}
+    brief = build_position_brief(c, run_real)
+    assert [f["rule_id"] for f in brief["findings"]] == ["X-304"], "MONITOR findings are not steps"
+    assert brief["findings"][0]["candidates"], "every actionable finding arrives with its priced options"
+    assert "flag" not in brief and "candidates" not in brief, "the per-flag framing is gone"
+    step = _chooser(tmp_path, _step_reply()).choose_position(brief, c)
+    assert step.rule_id == "X-304" and step.key == "to_cost" and step.source == "claude"
+    assert step.covers == ("X-304",) and step.confidence == 0.7
+
+
+def test_F_a_missing_input_leads_and_the_prompt_says_so(run_real, tmp_path: Path):
+    """Drayvenn's mark stands in for a price nobody fetched. Whatever else is on the position,
+    the finding that says an input is missing is the one presented first."""
+    d = next(c for c in run_real.companies if c.company == PROVISIONAL_COMPANY)
+    brief = build_position_brief(d, run_real)
+    assert brief["findings"][0]["rule_id"] == "X-101"
+    assert brief["findings"][0]["blocks_for_a_missing_input"] is True
+    assert "A missing input outranks a judgment" in POSITION_PROMPT
+
+
+@pytest.mark.parametrize("bad, why", [
+    ({"rule_id": "X-999"}, "a finding that is not on the position"),
+    ({"rule_id": "X-201"}, "a MONITOR finding, which carries no priced option"),
+    ({"choice": "write_up"}, "a candidate key that does not exist"),
+    ({"covers": ["X-304", "X-777"]}, "covers naming a finding that is not actionable here"),
+    ({"confidence": 1.7}, "confidence outside [0, 1]"),
+    ({"label": "x" * 200}, "a label that does not fit the card"),
+])
+def test_F_a_step_that_does_not_fit_the_position_falls_back_to_policy(run_real, tmp_path: Path, bad: dict, why: str):
+    c = _umberly(run_real)
+    ch = _chooser(tmp_path, _step_reply(**bad))
+    step = ch.choose_position(build_position_brief(c, run_real), c)
+    assert step.source == "policy", why
+    assert step.rule_id == "X-304" and step.note and "claude unavailable" in step.note
+    assert ch.fallbacks and "Umberly (position)" in ch.fallbacks[0]
+
+
+def test_F_the_number_always_comes_from_the_engines_candidate(run_real, tmp_path: Path):
+    """A reply carrying its own figure cannot smuggle it in: `booked` is read off the named
+    suggestion, and the reply has no field for a number at all."""
+    c = _umberly(run_real)
+    priced = {s.key: s.booked for f in c.flags if f.rule_id == "X-304" for s in f.suggestions}
+    step = _chooser(tmp_path, _step_reply()).choose_position(build_position_brief(c, run_real), c)
+    assert step.booked == priced["to_cost"]
+    with pytest.raises(ValueError, match="reply keys"):
+        ClaudeChooser.parse_position(_step_reply(booked=9.99e9), c)
+
+
+def test_F_covers_may_name_several_findings_and_is_validated(run_real, tmp_path: Path):
+    """A step that genuinely settles more than one finding may say so — but only findings that
+    are actually actionable on this position, and always including the one it leads with."""
+    j = next(c for c in run_real.companies if c.company == "Pellagrin")
+    ids = [f.rule_id for f in actionable(j)]
+    assert len(ids) >= 2, ids
+    reply = json.dumps({"rule_id": ids[0], "choice": actionable(j)[0].suggestions[0].key,
+                        "label": "One step that settles both.", "reasons": ["a", "b"],
+                        "covers": [ids[1]],       # omits its own id on purpose
+                        "rationale": "r", "confidence": 0.5})
+    step = _chooser(tmp_path, reply).choose_position(build_position_brief(j, run_real), j)
+    assert step.covers[0] == ids[0] and set(step.covers) == {ids[0], ids[1]}, "its own finding is always included"
+
+
+def test_F_policy_default_leads_with_the_first_finding_and_claims_only_it(run_real):
+    c = _umberly(run_real)
+    step = PolicyChooser().choose_position(build_position_brief(c, run_real), c)
+    assert step.source == "policy" and step.rule_id == "X-304" and step.covers == ("X-304",)
+    assert step.booked == next(s.booked for f in c.flags if f.rule_id == "X-304" for s in f.suggestions[:1])
+
+
+def test_F_a_ready_position_has_no_step(run_real):
+    ready = next(c for c in run_real.companies if c.readiness is Readiness.READY)
+    assert actionable(ready) == []
+    assert PolicyChooser().choose_position({}, ready) is None
+
+
+def test_F_the_step_changes_no_mark_flag_or_readiness(run_real, tmp_path: Path):
+    before = json.loads(run_real.model_dump_json())
+    after = json.loads(recommend_run(run_real, _chooser(tmp_path, _step_reply()), None).model_dump_json())
+    for b, a in zip(before["companies"], after["companies"]):
+        for k in ("proposed_mark", "booked_mark", "readiness", "approval", "disposition", "provisional"):
+            assert b[k] == a[k], (b["company"], k)
+        assert [f["rule_id"] for f in b["flags"]] == [f["rule_id"] for f in a["flags"]]
+    assert before["totals"] == after["totals"]

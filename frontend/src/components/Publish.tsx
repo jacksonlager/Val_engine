@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CompanyResult, PublishRecord, ValuationRun } from "../types";
 import { fetchPublished, publishRun, type Mode } from "../lib/api";
 import { musd, relativeTime } from "../lib/format";
+import { dispositionLabel, publishStatusLabel, shortRef } from "../lib/labels";
 import { Field, Modal, useAsync, WriteButton } from "./ui";
 
 /** The decision gate. A position that is still BLOCK ("decision required before booking") or REVIEW
@@ -26,7 +27,7 @@ export function outstanding(run: ValuationRun): Outstanding[] {
   return out.sort((a, b) => (a.c.disposition === b.c.disposition ? a.c.company.localeCompare(b.c.company) : a.c.disposition === "BLOCK" ? -1 : 1));
 }
 
-const EXEC_STATIC_REASON = "Available when served";
+const EXEC_STATIC_REASON = "Not available in this static report — run the dashboard app to publish and to open the executive view.";
 
 /** "just now" … "6d ago" within the last week; otherwise (older, or dated in the future) the date itself. */
 const ago = relativeTime;
@@ -67,18 +68,21 @@ export function PublishControls({
   return (
     <>
       {served && (
-        <span className="mono text-[11px] text-muted whitespace-nowrap" aria-live="polite">
+        <span className="text-[11px] text-muted whitespace-nowrap" aria-live="polite">
           {published.error ? (
-            <span title={published.error}>published status unavailable</span>
+            <span title={`The publication status could not be loaded. Technical detail: ${published.error}`}>Publication status unavailable</span>
           ) : current ? (
             <>
               <span title={`Published ${current.published_at} by ${current.published_by} (run ${current.run_id ?? "?"})`}>
-                Published {current.status} · {ago(current.published_at)} · {current.published_by}
+                Published as {publishStatusLabel(current.status)} · {ago(current.published_at)} · {current.published_by}
               </span>
               {changedSince && (
-                <span className="text-[var(--review-text)]" title={`Executives see run ${current.run_id}; this is run ${m.run_id}`}>
+                <span
+                  className="text-[var(--review-text)]"
+                  title={`The published snapshot is older than the current run. Executives see run ${shortRef(current.run_id)}; this is run ${shortRef(m.run_id)}.`}
+                >
                   {" "}
-                  · changes since
+                  · changed since publication
                 </span>
               )}
             </>
@@ -93,7 +97,11 @@ export function PublishControls({
         disabledReason={writeDisabled ? EXEC_STATIC_REASON : null}
         className={`btn btn-primary${locked ? " btn-locked" : ""}`}
         onClick={() => (locked ? setGate(true) : setOpen(true))}
-        title={locked ? `${waiting.length} position(s) still need a decision or confirmation before publishing` : "Release the booked marks to executives"}
+        title={
+          locked
+            ? `${waiting.length} position${waiting.length === 1 ? " still needs" : "s still need"} a decision or confirmation before publishing`
+            : "Release the booked marks to executives"
+        }
       >
         {locked ? (
           <>
@@ -132,7 +140,7 @@ export function PublishControls({
           onClose={() => setOpen(false)}
           onDone={(rec) => {
             setOpen(false);
-            setToast(`Published ${rec.quarter} as ${rec.status.toUpperCase()} by ${rec.published_by}`);
+            setToast(`Published ${rec.quarter} as ${publishStatusLabel(rec.status)}, released by ${rec.published_by}.`);
             published.refetch();
           }}
         />
@@ -187,8 +195,8 @@ function PublishModal({ run, onClose, onDone }: { run: ValuationRun; onClose: ()
           <input className="input w-full" value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
         <div className="text-[12px] text-[var(--clear-text)] mb-3">
-          Every BLOCK and REVIEW position has been decided or confirmed ({decided} committee {decided === 1 ? "decision" : "decisions"} on the
-          ledger). This will publish as <span className="font-semibold">FINAL</span>.
+          Every blocked position, and every one that needed review, has been decided or confirmed ({decided} committee{" "}
+          {decided === 1 ? "decision" : "decisions"} on the ledger). This will publish as <span className="font-semibold">final</span>.
         </div>
         {err && <div className="text-[12px] down mb-2">{err}</div>}
         <div className="flex justify-end gap-2">
@@ -237,13 +245,20 @@ function GateModal({
       </div>
       <ul className="gate-list" aria-label="Positions still waiting">
         {items.map(({ c, rules }) => (
-          <li key={c.company} className="gate-row">
-            <span className={`chip disp-${c.disposition} no-dot gate-disp`}>{c.disposition}</span>
+          <li key={c.company} className="gate-row" title={rules.length > 0 ? `Open findings: ${rules.join(", ")}` : undefined}>
+            <span className={`chip disp-${c.disposition} no-dot gate-disp`} title={c.disposition === "BLOCK" ? "Decision required" : "Confirmation required"}>
+              {dispositionLabel(c.disposition)}
+            </span>
             <span className="gate-name">
               <span className="font-semibold">{c.company}</span>
-              <span className="mono text-[10.5px] text-muted"> {rules.join(" · ")}</span>
+              {rules.length > 0 && (
+                <span className="text-[10.5px] text-muted">
+                  {" "}
+                  {rules.length} open finding{rules.length === 1 ? "" : "s"}
+                </span>
+              )}
             </span>
-            <span className="num text-[11.5px] text-ink2 whitespace-nowrap" title="proposed mark">
+            <span className="num text-[11.5px] text-ink2 whitespace-nowrap" title="Proposed mark">
               {musd(c.proposed_mark)}
             </span>
             <button type="button" className="btn btn-ghost gate-open" onClick={() => onGoto(c.company)}>

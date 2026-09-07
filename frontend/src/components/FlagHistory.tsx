@@ -3,19 +3,21 @@
 //
 // Reads the mark archive (/api/history): every point carries the flags the position had that
 // quarter and where they came from — a released snapshot, HC's backfill, or the prior-close
-// book re-screened by the current policy (tagged "reconstructed", the bridge for the first
-// quarter on the engine). Nothing here is a number; it is the trail behind the flags.
+// book re-screened by the current policy (source value "reconstructed", shown as "re-screened",
+// the bridge for the first quarter on the engine). Nothing here is a number; it is the trail
+// behind the flags.
 import { useState } from "react";
 import type { CompanyResult, Disposition, MarkHistoryPoint } from "../types";
 import { useHistory } from "../lib/history";
 import { musd } from "../lib/format";
+import { dispositionLabel, familyLabel, severityShort } from "../lib/labels";
 import { DispChip, Label } from "./ui";
 import { useRationale } from "../lib/rationale";
 
 const SOURCE_LABEL: Record<string, string> = {
   published: "released snapshot",
   backfill: "HC records",
-  reconstructed: "reconstructed from the prior-close book",
+  reconstructed: "re-screened from the prior-close book",
   live: "this run",
 };
 
@@ -27,7 +29,7 @@ export function priorPoints(asOf: string | undefined, points: MarkHistoryPoint[]
 }
 
 const NO_RECORD =
-  "No flag record for that quarter: the archive fills from the publish ledger, and nothing had been released before this one. " +
+  "No findings on record for that quarter: the archive fills from the publish ledger, and nothing had been released before this one. " +
   "Publish this quarter and next quarter's panel shows what each position was flagged for now.";
 
 function shortQuarter(q: string): string {
@@ -45,7 +47,7 @@ export function PriorFlagPill({ c, className = "" }: { c: CompanyResult; classNa
   if (!prior.disposition)
     return (
       <span className={`chip no-dot prior-pill prior-none hint ${className}`} title={`${prior.quarter}: ${NO_RECORD}`}>
-        <span className="prior-q">{shortQuarter(prior.quarter)}</span> no flag record
+        <span className="prior-q">{shortQuarter(prior.quarter)}</span>: no findings on record
       </span>
     );
   const d = prior.disposition as Disposition;
@@ -56,14 +58,14 @@ export function PriorFlagPill({ c, className = "" }: { c: CompanyResult; classNa
   const fresh = c.flags.map((f) => f.rule_id).filter((id) => !ids.includes(id));
   const moved = d !== c.disposition;
   const title =
-    `${prior.quarter}: ${d}${ids.length ? " — " + ids.join(", ") : " — no flags"} (${SOURCE_LABEL[prior.flags_source ?? ""] ?? "archive"}).` +
-    (moved ? ` Now ${c.disposition}.` : " Unchanged.") +
+    `${prior.quarter}: ${dispositionLabel(d)}${ids.length ? " — " + ids.join(", ") : " — no flags"} (${SOURCE_LABEL[prior.flags_source ?? ""] ?? "archive"}).` +
+    (moved ? ` Now ${dispositionLabel(c.disposition).toLowerCase()}.` : " Unchanged.") +
     (carried.length ? ` Still open: ${carried.join(", ")}.` : "") +
     (fresh.length ? ` New this quarter: ${fresh.join(", ")}.` : "") +
     (gone.length ? ` Cleared: ${gone.join(", ")}.` : "");
   return (
     <span className={`chip no-dot disp-${d} prior-pill hint ${className}`} title={title}>
-      <span className="prior-q">{shortQuarter(prior.quarter)}</span> {d}
+      <span className="prior-q">{shortQuarter(prior.quarter)}</span>: {dispositionLabel(d)}
       {moved && <span className="prior-arrow" aria-hidden>→</span>}
     </span>
   );
@@ -105,13 +107,20 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
             <span className="fh-q">{data?.as_of_quarter ? shortQuarter(data.as_of_quarter) : "now"}</span>
             {/* this quarter reads as readiness — the vocabulary the card uses; earlier rows keep the
                 disposition that was on record, because that is what was released */}
-            <span className={`badge ${c.readiness === "Needs Review" ? "rd-NeedsReview" : `rd-${c.readiness}`}`} title={`Disposition of the findings: ${c.disposition}`}>
+            <span
+              className={`badge ${c.readiness === "Needs Review" ? "rd-NeedsReview" : `rd-${c.readiness}`}`}
+              title={`Where the findings leave this position: ${dispositionLabel(c.disposition).toLowerCase()}`}
+            >
               {c.readiness}
             </span>
             <span className="fh-flags">
               {c.flags.length === 0 && <span className="text-[11px] text-muted">no flags</span>}
               {c.flags.map((f) => (
-                <span key={f.rule_id} className={`chip disp-${f.severity}`} title={`${f.severity} · ${f.family}${nameOf(f.rule_id) ? " · " + nameOf(f.rule_id) : ""}`}>
+                <span
+                  key={f.rule_id}
+                  className={`chip disp-${f.severity}`}
+                  title={`${familyLabel(f.family)} · ${severityShort(f.severity)}${nameOf(f.rule_id) ? " · " + nameOf(f.rule_id) : ""}`}
+                >
                   <span className="mono">{f.rule_id}</span>
                   {last && !lastIds.has(f.rule_id) && <span className="fh-new">new</span>}
                 </span>
@@ -123,7 +132,7 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
               <div key={p.quarter} className="fh-row fh-none">
                 <span className="fh-q">{shortQuarter(p.quarter)}</span>
                 <span className="chip no-dot prior-none">not on record</span>
-                <span className="fh-flags text-[11px] text-muted">mark {musd(p.mark)} is on record; its flags are not</span>
+                <span className="fh-flags text-[11px] text-muted">The mark of ${musd(p.mark)}M is on record; its flags are not.</span>
                 <span className="fh-src" />
               </div>
             ) : (
@@ -138,13 +147,15 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
                   <span
                     key={f.rule_id}
                     className={`chip ${f.severity ? `disp-${f.severity}` : "no-dot"}`}
-                    title={`${f.severity ?? "severity not recorded"}${f.family ? " · " + f.family : ""}${nameOf(f.rule_id) ? " · " + nameOf(f.rule_id) : ""}`}
+                    title={`${f.family ? familyLabel(f.family) + " · " : ""}${
+                      f.severity ? severityShort(f.severity) : "severity not recorded"
+                    }${nameOf(f.rule_id) ? " · " + nameOf(f.rule_id) : ""}`}
                   >
                     <span className="mono">{f.rule_id}</span>
                   </span>
                 ))}
               </span>
-              <span className="fh-src">{p.flags_source === "reconstructed" ? "reconstructed" : p.flags_source === "backfill" ? "HC records" : p.flags_source === "published" ? "released" : ""}</span>
+              <span className="fh-src">{p.flags_source === "reconstructed" ? "re-screened" : p.flags_source === "backfill" ? "HC records" : p.flags_source === "published" ? "released" : ""}</span>
             </div>
             ),
           )}
@@ -153,14 +164,18 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
       {prior.some((p) => !p.disposition) && (
         <p className="text-[10.5px] text-muted mt-2 mb-0 leading-snug">
           The trail fills itself: publishing a quarter writes that quarter's flags into the archive, so from the next close this card shows
-          what each position was flagged for now. Earlier quarters can be entered by hand in <span className="mono">data/mark_history.yaml</span>.
+          what each position was flagged for now. Earlier quarters can be entered by hand in the{" "}
+          <span className="hint underline decoration-dotted underline-offset-2" title="data/mark_history.yaml">
+            mark history file
+          </span>
+          .
         </p>
       )}
       {prior.some((p) => p.flags_source === "reconstructed") && (
         <p className="text-[10.5px] text-muted mt-2 mb-0 leading-snug">
-          <i>reconstructed</i> = no snapshot was released for that quarter, so the book it closed on was re-screened by the current policy
-          at that date: staleness at the prior close, growth, runway and multiple screens on the metrics the book carried. Once a quarter
-          is published, its released flags replace this.
+          <i>Re-screened</i> means no snapshot was released for that quarter, so the book it closed on was screened again by the current
+          policy at that date: staleness at the prior close, growth, runway and multiple screens on the metrics the book carried. Once a
+          quarter is published, its released flags replace this.
         </p>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { Fragment, useState, type ReactNode } from "react";
 import { DISPOSITION_HINT, type CompanyResult, type MarkStep } from "../types";
-import { altLabel, isoDate, KIND_LABEL, musd, pct, shortSha, signed, signClass } from "../lib/format";
+import { isoDate, musd, pct, signed, signClass } from "../lib/format";
+import { altLabel, evidenceLabel, familyLabel, humanize, kindLabel, severityShort, shortRef } from "../lib/labels";
 import { postOverride } from "../lib/api";
 import { eventRowRef, inputRef, portfolioRowRef, useSources } from "../lib/sources";
 import { FlagActionList, FlagDetailModal, FlagNoteList } from "./Flags";
@@ -38,7 +39,9 @@ function StepInputs({ s, company }: { s: MarkStep; company: string }) {
         const cell = inputRef(sources, k, company, eventRow);
         return (
           <Fragment key={k}>
-            <span className="mono text-[11px] text-muted">{k}</span>
+            <span className="text-[11px] text-muted" title={k}>
+              {evidenceLabel(k)}
+            </span>
             <span className="num text-[11.5px] text-right">{inputValue(v)}</span>
             {!sources ? (
               <span />
@@ -81,7 +84,7 @@ function StepRow({ s, last, company }: { s: MarkStep; last: boolean; company: st
           <span className="flex items-baseline gap-1.5 text-[11px] text-muted">
             {rowRef ? <CopyRef text={rowRef} /> : <span className="mono">{s.evidence.sheet} row {s.evidence.row_index}</span>}
             <span>
-              {s.evidence.event_type} · {isoDate(s.evidence.date)}
+              {humanize(s.evidence.event_type)} · {isoDate(s.evidence.date)}
             </span>
           </span>
         )}
@@ -105,7 +108,9 @@ function SourceCard({ c }: { c: CompanyResult }) {
         <span className="text-[12px] font-medium">{wb.name}</span>
         <CopyRef text={wb.path} label="copy path" mono={false} title={wb.path} />
       </div>
-      <div className="mono text-[10.5px] text-muted mt-1">sha256 {shortSha(wb.sha256, 12)}</div>
+      <div className="text-[10.5px] text-muted mt-1" title="SHA-256 of the workbook this run read — it identifies the exact file, byte for byte">
+        File fingerprint <span className="mono">{shortRef(wb.sha256, 12)}</span>
+      </div>
       <div className="mt-2 flex flex-col gap-1.5">
         {posRef && (
           <div className="flex items-baseline gap-2">
@@ -119,7 +124,7 @@ function SourceCard({ c }: { c: CompanyResult }) {
             <div key={i} className="flex items-baseline gap-2">
               {ref && <CopyRef text={ref} />}
               <span className="text-[11px] text-muted">
-                {e.event_type} · {isoDate(e.date)}
+                {humanize(e.event_type)} · {isoDate(e.date)}
               </span>
             </div>
           );
@@ -164,7 +169,7 @@ export function OverrideModal({
   return (
     <Modal title={`Override · ${c.company}`} onClose={onClose}>
       <p className="text-[12px] text-ink2 mb-3">
-        Records an E-01 override. The engine's proposed mark ({musd(c.proposed_mark)}) is never changed; the booked mark
+        Records the committee's decision. The engine's proposed mark ({musd(c.proposed_mark)}) is never changed; the booked mark
         is replaced and the decision is written to the ledger with your name.
       </p>
       {needsRules && (
@@ -174,8 +179,8 @@ export function OverrideModal({
               <label key={f.rule_id} className="flex items-baseline gap-2 text-[12px] cursor-pointer">
                 <input type="checkbox" checked={addressed.has(f.rule_id)} onChange={() => toggle(f.rule_id)} />
                 <span className="mono">{f.rule_id}</span>
-                <span className="text-muted">{f.severity}</span>
-                <span className="text-ink2 truncate">{f.family}</span>
+                <span className="text-muted">{severityShort(f.severity)}</span>
+                <span className="text-ink2 truncate">{familyLabel(f.family)}</span>
               </label>
             ))}
           </div>
@@ -314,7 +319,7 @@ export function CompanyDetail({
           <div className="flex items-baseline justify-between mb-1.5">
             <h3 className="font-semibold">What moved and why</h3>
             <span className="text-[11px] text-muted">
-              proposed = last step · {c.steps.length} step{c.steps.length === 1 ? "" : "s"}
+              {c.steps.length} step{c.steps.length === 1 ? "" : "s"} · the proposed mark is the last one
             </span>
           </div>
           <ol className="mt-1">
@@ -353,7 +358,9 @@ export function CompanyDetail({
           {/* the recorded decision, or the door to a custom one */}
           <div className="card p-2.5 mt-2 flex flex-wrap items-start gap-x-4 gap-y-1.5">
             <div className="min-w-0 flex-1 text-[12px]">
-              <Label>Committee decision (E-01)</Label>
+              <Label>
+                <span title="Rule E-01 — a decision recorded against the engine's proposed mark">Committee decision</span>
+              </Label>
               {c.override ? (
                 <>
                   <div>
@@ -373,8 +380,8 @@ export function CompanyDetail({
               ) : (
                 <p className="text-muted">
                   {canOverride
-                    ? "None recorded; booked = proposed. Accept a suggestion above, or record a custom figure."
-                    : "Not needed: only BLOCK and REVIEW positions take a decision."}
+                    ? "None recorded, so the booked mark is the proposed mark. Accept a suggestion above, or record a custom figure."
+                    : "Not needed: only blocking positions, and those needing a review, take a decision."}
                 </p>
               )}
             </div>
@@ -413,12 +420,12 @@ export function CompanyDetail({
               />
               <Fact k="Invested" v={musd(c.invested_after)} />
               {(Math.abs(c.realized_quarter) > 1e-6 || Math.abs(c.realized_cumulative) > 1e-6) && (
-                <Fact k="Realized (qtr / cum.)" v={`${musd(c.realized_quarter)} / ${musd(c.realized_cumulative)}`} />
+                <Fact k="Realized this quarter / to date" v={`${musd(c.realized_quarter)} / ${musd(c.realized_cumulative)}`} />
               )}
               <Fact k="MOIC" v={c.moic_after === null ? "—" : `${musd(c.moic_after)}×`} />
-              <Fact k="FV level" v={c.fv_level === null ? "—" : `Level ${c.fv_level}`} />
+              <Fact k="Fair value level" v={c.fv_level === null ? "—" : `Level ${c.fv_level}`} />
               <Fact k="Status" v={c.status_before === c.status_after ? c.status_after : `${c.status_before} → ${c.status_after}`} />
-              <Fact k="Staleness anchor" v={isoDate(c.staleness_anchor)} mono />
+              <Fact k="Priced from" v={isoDate(c.staleness_anchor)} mono />
             </div>
 
             {alts.length > 0 && (
@@ -447,10 +454,10 @@ export function CompanyDetail({
                 <ul className="text-[12px] space-y-1">
                   {c.open_items.map((o, i) => (
                     <li key={i}>
-                      <span className="font-medium">{KIND_LABEL[o.kind] ?? o.kind}</span>
+                      <span className="font-medium">{kindLabel(o.kind)}</span>
                       <span className="text-muted"> · opened {isoDate(o.opened)}</span>
                       {o.expected_resolution && <span className="text-muted"> · expected {isoDate(o.expected_resolution)}</span>}
-                      {o.escalated && <span className="chip disp-REVIEW ml-1">escalated</span>}
+                      {o.escalated && <span className="chip disp-REVIEW ml-1">Escalated</span>}
                       <div className="text-ink2 leading-snug">{o.detail}</div>
                     </li>
                   ))}

@@ -10,7 +10,16 @@ the reviewer reads. Two choosers:
 - `claude` — the Anthropic SDK is asked to choose among the candidates and explain the
   choice for this company's facts (the flag, the position, the vendor signals). Its reply
   is validated hard: the `choice` must be one of the candidate keys, and the booked number
-  is taken from that candidate, never from the reply. Every answer is cached under
+  is taken from that candidate, never from the reply.
+
+Two levels. Every actionable flag still gets its own `Recommendation`, because that is what
+prices the options a reviewer can pick from. On top of it each *position* gets one
+`PositionRecommendation`: the single next step, chosen across every finding on the position
+rather than one per flag. That is the harder judgment and the one a model is actually useful
+for — three findings on one company are not three independent questions, and a reviewer wants
+to know which to act on first and what it settles. The same fences apply: the step must name a
+finding on the position and one of that finding's priced suggestions, `covers` must be a subset
+of the position's actionable findings, and the number comes from the suggestion. Every answer is cached under
   `data/recommendations/<sha>.json`, keyed by a hash of the case brief, the prompt and the
   model, so a rerun is deterministic and needs no network; a miss without an API key falls
   back to `policy` and the recommendation says so.
@@ -32,7 +41,8 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from .config import RuleConfig
-from .engine.models import CompanyResult, Flag, Recommendation, Severity, ValuationRun
+from .engine.models import CompanyResult, Flag, PositionRecommendation, Recommendation, Severity, ValuationRun
+from .engine.readiness import MISSING_INPUT_RULES
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +67,37 @@ Reply with ONE JSON object and nothing else:
  "label": "<one sentence, imperative, at most 110 characters, ending with a period>",
  "reasons": ["<short line, at most 110 characters>", "<short line, at most 110 characters>"],
  "rationale": "<at most 60 words on why this beats the other candidates>",
+ "confidence": <number between 0 and 1>}"""
+
+POSITION_PROMPT = """You are the assistant to the valuation reviewer at a venture capital fund. Each quarter the fund's
+valuation engine proposes a mark for every portfolio company and raises findings a human must resolve before the
+mark is booked. For ONE company you will receive its position, what the engine proposed, and EVERY open finding,
+each with the CANDIDATE RESOLUTIONS the engine has already priced for it.
+
+The reviewer wants one thing to do first. Choose the finding to lead with and one of that finding's candidates.
+
+Rules you must follow:
+- Choose one `rule_id` from the findings given, and a `choice` that is one of THAT finding's candidate keys.
+  Never propose a different number, a different treatment, or a finding that is not listed.
+- Lead with what the others depend on. A missing input outranks a judgment: there is no supported mark until it
+  is supplied, so a step that obtains it comes before any step that argues about the number. Among judgments,
+  lead with the one that moves the mark most, or that the others are downstream of.
+- `covers` lists the rule_ids this step actually settles — always including the one you chose. Include another
+  finding only when acting on your step genuinely resolves it too (the same underlying fact, or a mark that
+  supersedes it). When in doubt, list only your own. Do not sweep findings up to make the position look clean.
+- Reason from fair-value principles (ASC 820: the price an orderly market participant would pay at the
+  measurement date; observable inputs over unobservable; a quoted price for a listed security is Level 1),
+  from the fund's stated policy defaults, and from conservatism where the evidence is thin.
+- Be specific to the brief: cite the figures and facts given. Do not invent facts.
+- Keep the wording plain. No hedging filler.
+
+Reply with ONE JSON object and nothing else:
+{"rule_id": "<the finding to lead with>",
+ "choice": "<a candidate key on that finding>",
+ "label": "<one sentence, imperative, at most 140 characters, ending with a period>",
+ "reasons": ["<short line, at most 140 characters>", "<short line, at most 140 characters>"],
+ "covers": ["<rule_id>", ...],
+ "rationale": "<at most 70 words: why this finding first, and how it stands against the others>",
  "confidence": <number between 0 and 1>}"""
 
 _CANDIDATE_LIMIT = 3
@@ -105,6 +146,53 @@ def build_brief(c: CompanyResult, f: Flag, run: ValuationRun, signals: dict[str,
     }
 
 
+def missing_input(c: CompanyResult, f: Flag) -> bool:
+    """Does this finding say an input the mark needs is not on file? Either it is one of the
+    rules that always means that, or the mark itself is a stand-in and this is the finding the
+    engine hung that on. Until it is supplied there is no supported number to argue about."""
+    if f.rule_id in MISSING_INPUT_RULES:
+        return True
+    return bool(c.provisional and f.family == "treatment")
+
+
+def actionable(c: CompanyResult) -> list[Flag]:
+    """The findings a person must resolve, in the order the card meets them: a missing input
+    first (there is no supported mark until it is supplied), then BLOCK before REVIEW, then as
+    the engine raised them. MONITOR findings and findings with no priced option are not steps."""
+    rank = {}
+    for i, f in enumerate(c.flags):
+        if f.severity is Severity.MONITOR or not f.suggestions:
+            continue
+        rank[f.rule_id] = (0 if missing_input(c, f) else 1 if f.severity is Severity.BLOCK else 2, i)
+    return sorted((f for f in c.flags if f.rule_id in rank), key=lambda f: rank[f.rule_id])
+
+
+def build_position_brief(c: CompanyResult, run: ValuationRun, signals: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Every open finding on one position, with its priced candidates — the whole question the
+    reviewer faces, so the chooser can weigh the findings against each other rather than
+    answering each in isolation."""
+    acts = actionable(c)
+    lead = acts[0] if acts else None
+    brief = build_brief(c, lead, run, signals) if lead is not None else {}
+    brief.pop("flag", None)
+    brief.pop("other_flags", None)
+    brief.pop("candidates", None)
+    brief.pop("policy_default_key", None)
+    brief["findings"] = [{
+        "rule_id": f.rule_id, "family": f.family, "severity": f.severity.value, "action": f.action,
+        "blocks_for_a_missing_input": missing_input(c, f),
+        "points": [p.replace("**", "") for p in f.points], "message": f.message,
+        "evidence": {k: _round(v) for k, v in f.evidence.items() if not isinstance(v, (dict, list))},
+        "candidates": [{"key": s.key, "label": s.label, "reasons": list(s.reasons), "booked_musd": _round(s.booked)}
+                       for s in f.suggestions[:_CANDIDATE_LIMIT]],
+    } for f in acts]
+    brief["mark_is_a_stand_in"] = ({"reason": c.provisional_reason} if c.provisional else None)
+    brief["noted_only"] = [{"rule_id": g.rule_id, "message": g.message}
+                           for g in c.flags if g.severity is Severity.MONITOR][:6]
+    brief["policy_default"] = {"rule_id": lead.rule_id, "choice": lead.suggestions[0].key} if lead else None
+    return brief
+
+
 def brief_hash(brief: dict[str, Any], prompt_sha: str, model: str) -> str:
     payload = json.dumps(brief, sort_keys=True, default=str) + "|" + prompt_sha + "|" + model
     return hashlib.sha256(payload.encode()).hexdigest()[:24]
@@ -117,6 +205,8 @@ class Chooser(Protocol):
 
     def choose(self, brief: dict[str, Any], f: Flag) -> Recommendation: ...
 
+    def choose_position(self, brief: dict[str, Any], c: CompanyResult) -> PositionRecommendation | None: ...
+
 
 @dataclass
 class PolicyChooser:
@@ -126,6 +216,17 @@ class PolicyChooser:
     def choose(self, brief: dict[str, Any], f: Flag, note: str | None = None) -> Recommendation:
         s = f.suggestions[0]
         return Recommendation(key=s.key, label=s.label, reasons=s.reasons, booked=s.booked, source="policy", note=note)
+
+    def choose_position(self, brief: dict[str, Any], c: CompanyResult, note: str | None = None) -> PositionRecommendation | None:
+        """Without a model there is no cross-finding judgment to make: lead with the first
+        finding in the card's own order, and claim to settle only that one."""
+        acts = actionable(c)
+        if not acts:
+            return None
+        f = acts[0]
+        s = f.suggestions[0]
+        return PositionRecommendation(rule_id=f.rule_id, key=s.key, label=s.label, reasons=s.reasons,
+                                      booked=s.booked, covers=(f.rule_id,), source="policy", note=note)
 
 
 class ClaudeChooser:
@@ -142,6 +243,7 @@ class ClaudeChooser:
         self.timeout_s = timeout_s
         self.max_tokens = max_tokens
         self.prompt_sha = hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest()
+        self.position_prompt_sha = hashlib.sha256(POSITION_PROMPT.encode()).hexdigest()
         self.policy = PolicyChooser()
         self.calls = 0
         self.cache_hits = 0
@@ -170,16 +272,19 @@ class ClaudeChooser:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         record = {"key": key, "model": self.model, "prompt_sha256": self.prompt_sha,
                   "created_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
-                  "company": brief["company"]["name"], "rule_id": brief["flag"]["rule_id"],
-                  "candidates": [c["key"] for c in brief["candidates"]], "answer": answer}
+                  "company": brief["company"]["name"],
+                  "rule_id": (brief.get("flag") or {}).get("rule_id", "position"),
+                  "candidates": [x["key"] for x in brief.get("candidates", [])]
+                                or [f"{f['rule_id']}/{x['key']}" for f in brief.get("findings", []) for x in f["candidates"]],
+                  "answer": answer}
         self._path(key).write_text(json.dumps(record, indent=2, sort_keys=True))
 
     # -- the call
-    def _call(self, brief: dict[str, Any]) -> str:
+    def _call(self, brief: dict[str, Any], system: str | None = None) -> str:
         import anthropic  # optional dependency: the `adjudication` extra
         client = anthropic.Anthropic(api_key=self.api_key, timeout=self.timeout_s)
         msg = client.messages.create(
-            model=self.model, max_tokens=self.max_tokens, system=SYSTEM_PROMPT,
+            model=self.model, max_tokens=self.max_tokens, system=system or SYSTEM_PROMPT,
             messages=[{"role": "user", "content": "CASE BRIEF (JSON):\n" + json.dumps(brief, default=str)}],
         )
         self.calls += 1
@@ -211,6 +316,80 @@ class ClaudeChooser:
             raise ValueError("confidence outside [0, 1]")
         return {"choice": data["choice"], "label": label, "reasons": reasons,
                 "rationale": str(data["rationale"]).strip()[:600], "confidence": round(conf, 3)}
+
+    @staticmethod
+    def parse_position(text: str, c: CompanyResult) -> dict[str, Any]:
+        """Strict: one JSON object; the finding must be one of this position's actionable
+        findings; the choice must be one of THAT finding's candidate keys; `covers` must be a
+        subset of the actionable findings and must include the one chosen."""
+        body = text.strip()
+        if body.startswith("```"):
+            body = re.sub(r"^```(?:json)?\s*|\s*```$", "", body, flags=re.S)
+        data = json.loads(body)
+        if not isinstance(data, dict):
+            raise ValueError("reply is not a JSON object")
+        expected = {"rule_id", "choice", "label", "reasons", "covers", "rationale", "confidence"}
+        if set(data) != expected:
+            raise ValueError(f"reply keys {sorted(data)} != {sorted(expected)}")
+        by_id = {f.rule_id: f for f in actionable(c)}
+        rid = str(data["rule_id"])
+        if rid not in by_id:
+            raise ValueError(f"rule_id {rid!r} is not an actionable finding ({sorted(by_id)})")
+        keys = {s.key for s in by_id[rid].suggestions}
+        if data["choice"] not in keys:
+            raise ValueError(f"choice {data['choice']!r} is not a candidate on {rid} ({sorted(keys)})")
+        covers = [str(x) for x in data["covers"]]
+        unknown = sorted(set(covers) - set(by_id))
+        if unknown:
+            raise ValueError(f"covers names {unknown}, which are not actionable findings on this position")
+        if rid not in covers:
+            covers = [rid] + covers
+        label = str(data["label"]).strip()
+        reasons = [str(r).strip() for r in data["reasons"]]
+        if not label or len(label) > 140 or len(reasons) != 2 or not all(0 < len(r) <= 140 for r in reasons):
+            raise ValueError("label/reasons do not fit the card")
+        if not label.endswith("."):
+            label += "."
+        conf = float(data["confidence"])
+        if not 0.0 <= conf <= 1.0:
+            raise ValueError("confidence outside [0, 1]")
+        return {"rule_id": rid, "choice": data["choice"], "label": label, "reasons": reasons,
+                "covers": list(dict.fromkeys(covers)), "rationale": str(data["rationale"]).strip()[:700],
+                "confidence": round(conf, 3)}
+
+    def _to_position(self, answer: dict[str, Any], c: CompanyResult) -> PositionRecommendation:
+        f = next(x for x in actionable(c) if x.rule_id == answer["rule_id"])
+        chosen = next(s for s in f.suggestions if s.key == answer["choice"])
+        return PositionRecommendation(rule_id=f.rule_id, key=chosen.key, label=answer["label"],
+                                      reasons=tuple(answer["reasons"]), booked=chosen.booked,
+                                      covers=tuple(answer["covers"]), source="claude", model=self.model,
+                                      rationale=answer["rationale"], confidence=answer["confidence"])
+
+    def choose_position(self, brief: dict[str, Any], c: CompanyResult) -> PositionRecommendation | None:
+        if not actionable(c):
+            return None
+        key = brief_hash(brief, self.position_prompt_sha, self.model)
+        cached = self._read(key)
+        if cached is not None:
+            try:
+                answer = self.parse_position(json.dumps(cached["answer"]), c)
+                self.cache_hits += 1
+                return self._to_position(answer, c)
+            except Exception as ex:  # noqa: BLE001
+                log.warning("position recommendation cache %s no longer fits %s (%s); refetching", key, c.company, ex)
+        if not self.available:
+            why = "ANTHROPIC_API_KEY not set and no cached answer; showing the policy default"
+            self.fallbacks.append(f"{c.company} (position): {why}")
+            return self.policy.choose_position(brief, c, note=why)
+        try:
+            answer = self.parse_position(self._call(brief, POSITION_PROMPT), c)
+        except Exception as ex:  # noqa: BLE001 — by contract this never raises into the run
+            why = f"claude unavailable ({type(ex).__name__}: {str(ex)[:120]}); showing the policy default"
+            log.warning("%s (position): %s", c.company, why)
+            self.fallbacks.append(f"{c.company} (position): {why}")
+            return self.policy.choose_position(brief, c, note=why)
+        self._write(key, brief, answer)
+        return self._to_position(answer, c)
 
     def _to_recommendation(self, answer: dict[str, Any], f: Flag) -> Recommendation:
         chosen = next(s for s in f.suggestions if s.key == answer["choice"])
@@ -260,8 +439,10 @@ def recommender_label(chooser: Chooser) -> str:
 
 
 def recommend_run(run: ValuationRun, chooser: Chooser, signals: dict[str, Any] | None = None) -> ValuationRun:
-    """The run with one `recommendation` on every flag that carries suggestions. Marks, flags,
-    dispositions and totals are untouched — only the recommendation field is filled in."""
+    """The run with one `recommendation` on every flag that carries suggestions, and one
+    `recommendation` on every position with something actionable — the single next step,
+    chosen across its findings. Marks, flags, dispositions, readiness and totals are
+    untouched: only the two recommendation fields are filled in."""
     companies: list[CompanyResult] = []
     for c in run.companies:
         flags: list[Flag] = []
@@ -273,6 +454,8 @@ def recommend_run(run: ValuationRun, chooser: Chooser, signals: dict[str, Any] |
             rec = chooser.choose(build_brief(c, f, run, signals), f)
             flags.append(f.model_copy(update={"recommendation": rec}))
             changed = True
-        companies.append(c.model_copy(update={"flags": tuple(flags)}) if changed else c)
+        c2 = c.model_copy(update={"flags": tuple(flags)}) if changed else c
+        step = chooser.choose_position(build_position_brief(c2, run, signals), c2)
+        companies.append(c2.model_copy(update={"recommendation": step}) if step is not None else c2)
     manifest = run.manifest.model_copy(update={"recommender": recommender_label(chooser)})
     return run.model_copy(update={"companies": tuple(companies), "manifest": manifest})

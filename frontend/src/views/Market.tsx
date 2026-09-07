@@ -12,8 +12,9 @@ import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Too
 import type { CompanyResult, ConstituentStatus, MarketConstituent, MarketReport, MarketSector, ValuationRun } from "../types";
 import { loadMarket, type Mode } from "../lib/api";
 import { isoDateTime, mult, musd, pct, shortDate, signClass } from "../lib/format";
+import { altLabel, humanize } from "../lib/labels";
 import { useChartTheme } from "../lib/theme";
-import { SectionTitle, useAsync } from "../components/ui";
+import { DispChip, SectionTitle, useAsync } from "../components/ui";
 
 const MONO = "IBM Plex Mono, ui-monospace, monospace";
 
@@ -26,75 +27,99 @@ function liveParts(source: string | undefined): string[] {
   return parts.map((p) => (p.toLowerCase() === "edgar" ? "EDGAR" : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()));
 }
 
+/** Where the numbers came from, said in a sentence rather than as a provider id. */
+function sourceWords(source: string | undefined, live: boolean): string {
+  if (!live) return "an illustrative set of multiples shipped with the engine, not from live market data";
+  const parts = liveParts(source);
+  if (parts.length < 2) return "SEC filings and month-end closing prices";
+  return `${parts[0]} filings and ${parts.slice(1).join(" and ")} month-end closing prices`;
+}
+
+const ILLUSTRATIVE_TIP =
+  "Illustrative sector multiples shipped with the engine, in the shape a market-data vendor would supply. They stand in for live market data, and no booked mark depends on them.";
+
 /** Where a number came from. Green only when a live source actually answered; the label names the sources in `source`. */
 function SourceChip({ live, long = false, source }: { live: boolean; long?: boolean; source?: string }) {
   const parts = liveParts(source);
   const names = parts.length ? parts.join(" + ") : "EDGAR + prices";
   const prices = parts.length > 1 ? parts.slice(1).join(" + ") : "the price source";
   return live ? (
-    <span className="chip disp-CLEAR" title={`Priced from SEC EDGAR XBRL frames and ${prices} month-end closes`}>
-      {long ? `LIVE · ${names}` : "LIVE"}
+    <span className="chip disp-CLEAR" title={`Priced from SEC EDGAR company filings and ${prices} month-end closes`}>
+      {long ? `Live market data · ${names}` : "Live market data"}
     </span>
   ) : (
-    <span className="chip disp-NONE" title="Fixture: the PitchBook-shaped stub shipped with the engine (data/market_multiples.json)">
-      {long ? "FIXTURE · PitchBook-shaped stub" : "FIXTURE"}
+    <span className="chip disp-NONE" title={ILLUSTRATIVE_TIP}>
+      {long ? "Illustrative · not live market data" : "Illustrative"}
     </span>
   );
 }
 
-/** `ok` priced; `error` is shown as "unpriced" in the watch hue — a constituent the feed could not
-    price is left out of the median, which is a gap to know about, not a fault in the book. */
+/** A constituent the feed could not price is left out of the median — a gap to know about, not a
+    fault in the book — so it keeps the watch hue rather than an error one. */
+const STATUS_LABEL: Record<string, string> = { ok: "Priced", error: "Unpriced", fixture: "Illustrative" };
+
 function StatusChip({ s }: { s: ConstituentStatus }) {
   const cls = s === "ok" ? "disp-CLEAR" : s === "error" ? "disp-MONITOR" : "disp-NONE";
-  return <span className={`chip ${cls}`}>{s === "error" ? "unpriced" : s}</span>;
+  return <span className={`chip ${cls}`}>{STATUS_LABEL[s] ?? humanize(s)}</span>;
 }
 
 // ---------------------------------------------------------------- header strip
 
-function Meta({ k, children }: { k: string; children: React.ReactNode }) {
+function Meta({ k, title, children }: { k: string; title?: string; children: React.ReactNode }) {
   return (
-    <span className="text-[11px] text-muted whitespace-nowrap">
+    <span className="text-[11px] text-muted whitespace-nowrap" title={title}>
       {k} <span className="mono text-ink2">{children}</span>
     </span>
   );
 }
 
+/** What this policy does with the sector multiples, in the reviewer's words rather than as a
+    config dump. The engine's own wording stays verbatim under Technical details. */
+function policySentences(rep: MarketReport): string {
+  const screens =
+    rep.used_by.multiple_mode === "relative_to_comps"
+      ? "Screens X-401 and X-402 compare each mark's implied multiple against these sector multiples."
+      : "Screens X-401 and X-402 use absolute thresholds under this policy, so these multiples do not currently bite on a mark.";
+  const cal = rep.used_by.calibration_enabled
+    ? "Stale-round calibration (M-080) reads the monthly history to write the calibrated alternative mark."
+    : "Stale-round calibration is switched off for this run, so no alternative mark is written from this history.";
+  return `${screens} ${cal}`;
+}
+
 function HeaderStrip({ rep }: { rep: MarketReport }) {
   const [showErrors, setShowErrors] = useState(false);
   const n = rep.errors.length;
+  const askedLive = rep.provider === "live";
+  // the requested source and the one that answered are worth a reviewer's attention only when they differ
+  const mismatch = askedLive !== rep.reached_live;
+  const names = useMemo(() => new Set(rep.sectors.flatMap((s) => s.constituents.map((c) => c.ticker))).size, [rep]);
   return (
     <div className="card p-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <SourceChip live={rep.reached_live} long source={rep.source} />
-        <Meta k="asked">{rep.provider}</Meta>
-        <Meta k="answered">{rep.source}</Meta>
+        <span className="text-[11px] text-muted">Sector multiples priced from {sourceWords(rep.source, rep.reached_live)}.</span>
         <span className="border-l border-line h-4" aria-hidden />
-        <Meta k="as-of">{rep.as_of}</Meta>
-        {rep.reached_live ? (
-          <>
-            <Meta k="fetched">{rep.fetched_at ? isoDateTime(rep.fetched_at) : "—"}</Meta>
-            <Meta k="cache">
-              {rep.cache ? (
-                <>
-                  {rep.cache.dir} <span className={rep.cache.hit ? "text-[var(--clear-text)]" : "text-[var(--review-text)]"}>{rep.cache.hit ? "hit" : "miss"}</span>
-                </>
-              ) : (
-                "—"
-              )}
-            </Meta>
-          </>
-        ) : (
-          /* the fixture answered: nothing was fetched and nothing was cached, said in words rather than dashes */
-          <Meta k="status">Fixture · not fetched · no cache</Meta>
+        <Meta k="Valuation date">{shortDate(rep.as_of)}</Meta>
+        {rep.reached_live && (
+          <Meta k="Retrieved">
+            <span title={rep.fetched_at ?? undefined}>{rep.fetched_at ? shortDate(rep.fetched_at) : "—"}</span>
+          </Meta>
         )}
-        <Meta k="baskets">{rep.baskets_file}</Meta>
+        <Meta k="Comparables" title={`Basket definitions: ${rep.baskets_file}`}>
+          {rep.sectors.length} sectors, {names} public companies
+        </Meta>
       </div>
-      <p className="text-[11px] text-muted mt-2">
-        {rep.used_by.note}{" "}
-        <span className="mono">
-          multiple.mode={rep.used_by.multiple_mode} · calibration={rep.used_by.calibration_enabled ? "on" : "off"}
-        </span>
-      </p>
+      {mismatch && (
+        <p className="text-[11.5px] mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="chip disp-REVIEW no-dot">Substituted source</span>
+          <span className="text-ink2">
+            {askedLive
+              ? "Live market data was requested, but the illustrative set answered. Read every multiple on this page as illustrative."
+              : "The illustrative set was requested, but live market data answered."}
+          </span>
+        </p>
+      )}
+      <p className="text-[11px] text-muted mt-2">{policySentences(rep)}</p>
       {n > 0 && (
         <div className="mt-2 text-[12px]">
           <button
@@ -117,6 +142,38 @@ function HeaderStrip({ rep }: { rep: MarketReport }) {
           )}
         </div>
       )}
+      {/* the operator's half of the provenance: the exact source ids, the cache, the files and the
+          policy switches. Kept whole, one click away from the page a reviewer reads. */}
+      <details className="mt-2">
+        <summary className="text-[11px] text-muted cursor-pointer select-none">Technical details</summary>
+        <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px] m-0">
+          <dt className="text-muted">Requested source</dt>
+          <dd className="m-0 mono text-ink2">{rep.provider}</dd>
+          <dt className="text-muted">Source that answered</dt>
+          <dd className="m-0 mono text-ink2">{rep.source}</dd>
+          <dt className="text-muted">Fetched at</dt>
+          <dd className="m-0 mono text-ink2">{rep.fetched_at ? isoDateTime(rep.fetched_at) : "nothing was fetched"}</dd>
+          <dt className="text-muted">Cache</dt>
+          <dd className="m-0 mono text-ink2">
+            {rep.cache ? (
+              <>
+                {rep.cache.dir}{" "}
+                <span className={rep.cache.hit ? "text-[var(--clear-text)]" : "text-[var(--review-text)]"}>{rep.cache.hit ? "hit" : "miss"}</span>
+              </>
+            ) : (
+              "no cache was used"
+            )}
+          </dd>
+          <dt className="text-muted">Basket definitions</dt>
+          <dd className="m-0 mono text-ink2">{rep.baskets_file}</dd>
+          <dt className="text-muted">Policy settings</dt>
+          <dd className="m-0 mono text-ink2">
+            multiple.mode={rep.used_by.multiple_mode} · calibration={rep.used_by.calibration_enabled ? "on" : "off"}
+          </dd>
+          <dt className="text-muted">Engine note</dt>
+          <dd className="m-0 text-ink2">{rep.used_by.note}</dd>
+        </dl>
+      </details>
     </div>
   );
 }
@@ -312,12 +369,12 @@ function SectorTable({ sectors, selected, onSelect }: { sectors: MarketSector[];
       scol.accessor("positions", { header: "Positions", meta: { r: true }, cell: (i) => <span className="num">{i.getValue()}</span> }),
       scol.accessor("ev_to_revenue", { header: "EV/Revenue", meta: { r: true }, cell: (i) => <span className="mono">{mult(i.getValue(), 1)}</span> }),
       scol.accessor("qoq_pct", {
-        header: "QoQ",
+        header: "Change on the quarter",
         meta: { r: true },
         sortUndefined: "last",
         cell: (i) => <span className={`num ${signClass(i.getValue())}`}>{pct(i.getValue(), 1, true)}</span>,
       }),
-      scol.accessor("as_of_month", { header: "As-of", cell: (i) => <span className="mono">{i.getValue()}</span> }),
+      scol.accessor("as_of_month", { header: "Multiple as of", cell: (i) => <span>{monthLabel(i.getValue())}</span> }),
       scol.accessor("live", { header: "Source", cell: (i) => <SourceChip live={i.getValue()} source={i.row.original.source} /> }),
       scol.accessor((s) => okCount(s).ok, {
         id: "ok",
@@ -326,8 +383,8 @@ function SectorTable({ sectors, selected, onSelect }: { sectors: MarketSector[];
         cell: (i) => {
           const { ok, total, sampled } = okCount(i.row.original);
           return sampled ? (
-            <span className="num text-muted" title="Sample constituents named by the fixture; not priced">
-              {total} sample
+            <span className="num text-muted" title="An illustrative basket: the constituents are named, but none of them is priced.">
+              {total} named
             </span>
           ) : (
             <span className="num" title={`${ok} of ${total} constituents priced`}>
@@ -538,15 +595,18 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
           const c = i.row.original;
           const basis = c.shares_basis ?? null;
           const tip = basis
-            ? `${basis}${c.shares_as_of ? ` as of ${c.shares_as_of}` : ""}${typeof c.shares_age_days === "number" ? ` (${c.shares_age_days} days before the valuation date)` : ""}`
+            ? `${humanize(basis)}${c.shares_as_of ? `, as filed on ${shortDate(c.shares_as_of)}` : ""}${
+                typeof c.shares_age_days === "number" ? ` (${c.shares_age_days} days before the valuation date)` : ""
+              }`
             : undefined;
           return (
             <span className="block" title={tip}>
               <Num v={i.getValue()} d={1} />
               {basis && (
+                /* the whole basis, not a fragment of it: "cover page" on its own names nothing */
                 <span className={`block text-[10.5px] whitespace-nowrap ${isDilutedBasis(c) ? "text-[var(--review-text)]" : "text-muted"}`}>
-                  {basis.replace("outstanding, ", "")}
-                  {c.shares_as_of && <span className="mono"> · {c.shares_as_of}</span>}
+                  {humanize(basis)}
+                  {c.shares_as_of && <span> · {shortDate(c.shares_as_of)}</span>}
                 </span>
               )}
             </span>
@@ -557,7 +617,7 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
       ccol.accessor("net_cash_musd", { header: "Net cash ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
       ccol.accessor("ttm_revenue_musd", { header: "TTM revenue ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
       ccol.accessor("revenue_through", { header: "Revenue through", cell: (i) => <span className="mono">{i.getValue() ?? "—"}</span> }),
-      ccol.accessor("ev_to_revenue", { header: "EV/Rev", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} x /> }),
+      ccol.accessor("ev_to_revenue", { header: "EV/Revenue", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} x /> }),
       ccol.accessor((c) => constituentCaveats(c).length, {
         id: "quality",
         header: "Quality",
@@ -571,7 +631,7 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
             </span>
           ) : (
             <span className="chip disp-CLEAR no-dot" title="Share count current and outstanding; split basis verified; no month excluded">
-              clean
+              Clean
             </span>
           );
         },
@@ -691,7 +751,7 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
         right={
           rows.length ? (
             <span className="num">
-              {rows.length} calibrated · {pinned} at the ±35% bound · net{" "}
+              {rows.length} calibrated · {pinned} capped at ±35% · net{" "}
               <span className={signClass(total)}>
                 {total >= 0 ? "+" : ""}
                 {musd(total, 1)}
@@ -703,17 +763,23 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
           )
         }
       >
-        Stale-round calibration · M-080
+        <span className="flex items-center gap-2">
+          Stale-round calibration
+          <span className="chip disp-NONE no-dot mono" style={{ fontSize: 10 }} title="The policy rule behind this table">
+            M-080
+          </span>
+        </span>
       </SectionTitle>
       <p className="text-[11px] text-muted mb-2">
         For a Level 3 position whose price anchor is 24+ months old: calibrated = equity mark × (sector comps now ÷ sector comps in the round
-        month), bounded ±35%. Written as the <span className="mono">calibrated_to_comps</span> alternative — the base mark never moves; a
-        reviewer books it through the "Calibrate to public comps" resolution on X-202 / X-106 / X-405.
+        month), capped at ±35%. It is written as the “{altLabel("calibrated_to_comps")}” alternative — the base mark never moves; a reviewer
+        books it through the "Calibrate to public comps" resolution offered on the finding that raised it.
         {!rep.reached_live && (
           <>
             {" "}
-            <span className="chip disp-MONITOR no-dot">gated</span> Only an observed comps history calibrates; the fixture never does. Run with{" "}
-            <span className="mono">--provider live</span>.
+            <span className="chip disp-MONITOR no-dot">Nothing calibrated</span> Calibration needs an observed history of comparable multiples
+            to measure the movement since each round closed. This run is on illustrative multiples, which carry no such history, so no position
+            was calibrated.
           </>
         )}
       </p>
@@ -727,7 +793,7 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
                 <th className="r">Round</th>
                 <th className="r">Age</th>
                 <th className="r">Comps then → now</th>
-                <th className="r">Factor</th>
+                <th className="r">Adjustment factor</th>
                 <th className="r">Equity mark</th>
                 <th className="r">Calibrated</th>
                 <th className="r">Δ</th>
@@ -746,12 +812,17 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
                       ) : (
                         <span className="font-medium">{r.c.company}</span>
                       )}{" "}
-                      <span className={`chip disp-${r.c.disposition} no-dot`} style={{ fontSize: 9 }}>
-                        {r.c.disposition}
-                      </span>
+                      <DispChip d={r.c.disposition} className="no-dot" />
                     </td>
                     <td className="text-ink2">{r.c.sector}</td>
-                    <td className="r mono" title={r.monthUsed !== r.roundMonth ? `no basket value in ${r.roundMonth}; read at ${r.monthUsed}` : undefined}>
+                    <td
+                      className="r mono"
+                      title={
+                        r.monthUsed !== r.roundMonth
+                          ? `No basket value in ${monthLabel(r.roundMonth)}; the nearest month on file, ${monthLabel(r.monthUsed)}, was used instead.`
+                          : undefined
+                      }
+                    >
                       {r.roundMonth}
                       {r.monthUsed !== r.roundMonth && <span className="text-muted"> ≈{r.monthUsed}</span>}
                     </td>
@@ -759,9 +830,9 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
                     <td className="r num">
                       {r.then.toFixed(1)}× → {r.now.toFixed(1)}×
                     </td>
-                    <td className="r num" title={r.bounded ? `raw ${r.raw.toFixed(3)}, pinned at the bound` : undefined}>
+                    <td className="r num" title={r.bounded ? `Uncapped ratio ${r.raw.toFixed(3)}, held at the ±35% limit.` : undefined}>
                       {r.factor.toFixed(3)}
-                      {r.bounded && <span className="text-muted"> ⌐</span>}
+                      {r.bounded && <span className="text-muted"> capped</span>}
                     </td>
                     <td className="r num">{musd(r.equity, 2)}</td>
                     <td className="r num font-medium">{musd(r.calibrated, 2)}</td>
@@ -775,7 +846,9 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
             </tbody>
           </table>
           {pinned > 0 && (
-            <p className="text-[11px] text-muted mt-1">⌐ factor pinned at the ±35% bound (the raw ratio is in the tooltip).</p>
+            <p className="text-[11px] text-muted mt-1">
+              A capped factor moved further than the ±35% limit allows and was held at it. Hover the factor to see the uncapped ratio.
+            </p>
           )}
         </div>
       )}
@@ -796,20 +869,27 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
     return (
       <div className="p-8 max-w-[640px] mx-auto">
         <h1 className="font-semibold text-[16px] mb-2">Could not load the market feed</h1>
-        <p className="text-ink2 mono text-[12px] mb-4">{error}</p>
-        <p className="text-[12px] text-muted">
-          {mode === "static" ? (
-            <>
-              This export predates the market feed. Rebuild it with <span className="mono">hc-valuation build</span> on an engine that inlines{" "}
-              <span className="mono">window.__HC_MARKET__</span>, or serve the dashboard with <span className="mono">hc-valuation run</span>.
-            </>
-          ) : (
-            <>
-              The server did not answer <span className="mono">GET /api/market</span>. It may predate the market feed; restart it with{" "}
-              <span className="mono">hc-valuation run --provider live</span> (or <span className="mono">stub</span>) to expose the sector comps.
-            </>
-          )}
+        <p className="text-[12px] text-ink2 mb-4">
+          The sector comparables are not available in this copy of the dashboard, so this page cannot show where the market multiples came
+          from. Nothing else in the valuation depends on it. Ask whoever produced this dashboard to rebuild it with the market feed included.
         </p>
+        <details>
+          <summary className="text-[11px] text-muted cursor-pointer select-none">Technical details</summary>
+          <p className="text-ink2 mono text-[11px] mt-1.5 mb-2">{error}</p>
+          <p className="text-[11px] text-muted">
+            {mode === "static" ? (
+              <>
+                This export predates the market feed. Rebuild it with <span className="mono">hc-valuation build</span> on an engine that inlines{" "}
+                <span className="mono">window.__HC_MARKET__</span>, or serve the dashboard with <span className="mono">hc-valuation run</span>.
+              </>
+            ) : (
+              <>
+                The server did not answer <span className="mono">GET /api/market</span>. It may predate the market feed; restart it with{" "}
+                <span className="mono">hc-valuation run --provider live</span> (or <span className="mono">stub</span>) to expose the sector comps.
+              </>
+            )}
+          </p>
+        </details>
       </div>
     );
   if (loading || !rep) return <div className="p-8 text-muted">Loading market feed…</div>;
@@ -830,7 +910,7 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
             <SectionTitle
               right={
                 <>
-                  {liveCount}/{rep.sectors.length} sectors live · EV / TTM revenue at {rep.as_of}
+                  {liveCount} of {rep.sectors.length} sectors on live data · EV to trailing revenue at {shortDate(rep.as_of)}
                 </>
               }
             >
@@ -857,8 +937,8 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
                   </span>
                 </SectionTitle>
                 <p className="text-[11px] text-muted mb-1 num">
-                  {Object.keys(sector.history).length} months through {sector.as_of_month} · source <span className="mono">{sector.source}</span>.
-                  Hairline marks the value in force at as-of.
+                  {Object.keys(sector.history).length} months of history through {monthLabel(sector.as_of_month)}, priced from{" "}
+                  {sourceWords(sector.source, sector.live)}. The hairline marks the multiple in force at the valuation date.
                 </p>
                 <HistoryChart sector={sector} />
               </div>
@@ -867,14 +947,22 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
 
           {sector && (
             <div className="card p-4 xl:col-span-2 min-w-0">
-              <SectionTitle right={<>{okCount(sector).sampled ? "sample basket · not priced" : `${okCount(sector).ok}/${okCount(sector).total} priced`}</>}>
+              <SectionTitle
+                right={
+                  <>
+                    {okCount(sector).sampled
+                      ? `${okCount(sector).total} named, none priced`
+                      : `${okCount(sector).ok} of ${okCount(sector).total} priced`}
+                  </>
+                }
+              >
                 Constituents · {sector.sector}
               </SectionTitle>
               {(okCount(sector).sampled || !rep.reached_live) && (
                 <p className="text-[12px] text-ink2 mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="chip disp-NONE">FIXTURE</span>
+                  <SourceChip live={false} source={sector.source} />
                   <span>
-                    Sample basket — not priced (fixture data). Run with <span className="mono">--provider live</span> to price constituents.
+                    These constituents are named to show what the basket contains, but they carry no prices and no booked mark depends on them.
                   </span>
                 </p>
               )}

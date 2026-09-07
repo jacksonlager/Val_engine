@@ -1,10 +1,20 @@
 import { useMemo, useState } from "react";
 import type { ValuationRun } from "../types";
-import { isoDate, KIND_LABEL, musd } from "../lib/format";
+import { isoDate, musd } from "../lib/format";
+import { kindLabel } from "../lib/labels";
 
 function monthsBetween(a: string, b: string): number {
   const da = new Date(a), db = new Date(b);
   return (db.getFullYear() - da.getFullYear()) * 12 + (db.getMonth() - da.getMonth());
+}
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/** How far off a date is, from the measurement date, in words. */
+function monthsAway(n: number): string {
+  if (n < 0) return `${plural(-n, "month")} overdue`;
+  if (n === 0) return "this month";
+  return `in ${plural(n, "month")}`;
 }
 
 export function OpenItemsView({ run, gotoCompany }: { run: ValuationRun; gotoCompany: (n: string) => void }) {
@@ -23,15 +33,16 @@ export function OpenItemsView({ run, gotoCompany }: { run: ValuationRun; gotoCom
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
         <select className="select" value={kind} onChange={(e) => setKind(e.target.value)}>
-          <option value="">All kinds</option>
+          <option value="">All types</option>
           {kinds.map((k) => (
             <option key={k} value={k}>
-              {KIND_LABEL[k] ?? k}
+              {kindLabel(k)}
             </option>
           ))}
         </select>
-        <span className="text-[11px] text-muted ml-auto">
-          {items.length} item{items.length === 1 ? "" : "s"} · carried across the quarter boundary (E-07); each ages and escalates on its own
+        <span className="text-[11px] text-muted ml-auto" title="Rule E-07 — open items carry across the quarter boundary">
+          {items.length} item{items.length === 1 ? "" : "s"} carried over from an earlier quarter. Each one ages on its own and escalates once it has
+          waited too long.
         </span>
       </div>
       <div className="card overflow-x-auto">
@@ -39,7 +50,7 @@ export function OpenItemsView({ run, gotoCompany }: { run: ValuationRun; gotoCom
           <thead>
             <tr>
               <th>Company</th>
-              <th>Kind</th>
+              <th>Type</th>
               <th>Opened</th>
               <th>Expected resolution</th>
               <th className="r">Amount</th>
@@ -56,25 +67,26 @@ export function OpenItemsView({ run, gotoCompany }: { run: ValuationRun; gotoCom
                     {o.company}
                   </button>
                 </td>
-                <td>{KIND_LABEL[o.kind] ?? o.kind}</td>
+                <td>{kindLabel(o.kind)}</td>
                 <td className="mono">
-                  {isoDate(o.opened)} <span className="text-muted">{o.opened_quarter}</span>
+                  {isoDate(o.opened)} <span className="text-muted">({o.opened_quarter})</span>
                 </td>
                 <td className="mono">
                   {o.expected_resolution ? (
                     <>
                       {isoDate(o.expected_resolution)}
-                      <span className="text-muted"> ({monthsBetween(md, o.expected_resolution)} mo)</span>
+                      <span className="text-muted"> ({monthsAway(monthsBetween(md, o.expected_resolution))})</span>
                     </>
                   ) : (
-                    <span className="text-muted">open-ended</span>
+                    <span className="text-muted">Open-ended</span>
                   )}
                 </td>
                 <td className="r num">{o.amount_musd === null ? "—" : musd(o.amount_musd)}</td>
                 <td className="r num">
-                  {o.age_quarters} q<span className="text-muted"> · {monthsBetween(o.opened, md)} mo</span>
+                  {plural(o.age_quarters, "quarter")}
+                  <span className="text-muted"> ({plural(monthsBetween(o.opened, md), "month")})</span>
                 </td>
-                <td>{o.escalated ? <span className="chip disp-REVIEW">escalated</span> : <span className="text-muted">no</span>}</td>
+                <td>{o.escalated ? <span className="chip disp-REVIEW">Escalated</span> : <span className="text-muted">Not yet</span>}</td>
                 <td className="whitespace-normal min-w-[280px] text-ink2">{o.detail}</td>
               </tr>
             ))}
