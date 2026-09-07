@@ -398,3 +398,28 @@ c7bacce  Synthetic chain: Q4 2026 and Q1 2027 run, decided and published; Q2 202
   "30 Sep" / "late August" wording (now "the measurement date" / "the reporting lag"). Remaining by design:
   the vendor-signal stubs cover five Q3 companies and are labelled as fixtures; rule versions are dated from
   the policy's first quarter.
+
+## Follow-up 2: a walkthrough with the reviewer at the controls, and what it changed
+
+Working the tool by hand from the Q3 close onward found more than the overnight chain did, because a person
+does what the policy's own first option says.
+
+- **Publish emits next quarter's workbook** (`Q4 2026 HC Mock Portfolio Data.xlsx` beside the closed one, with its
+  sidecar) — the close is the moment the opening book exists. A book re-run after its own close ignores the
+  sidecar it wrote (`sidecar_for`). The suite is pinned to an empty ledger through `HC_LEDGER_DIR`, because a real
+  close filling `data/overrides.yaml` is the product working, not a regression (it turned 34 tests red the first
+  time, exactly as D-0 had).
+- **The Q2 2026 test file** (`training/HC_Q2_2026_Test_Portfolio.xlsx`, a quarter *earlier* than the base policy):
+  every built-in rule was dated 2026-07-01, so a 30 Jun 2026 run raised — base rules are now undated and
+  `next-policy --for "Q2 2026"` writes an out-of-order policy; a non-binding LOI was probability-weighted like a
+  signed deal — M-050 now reads "non-binding" / "letter of intent" and holds the mark; a first investment filed as
+  `Priced Equity Round` on an unknown company was refused rather than created — it is now read as an initial
+  investment. The engine ties to that file's answer key on every company (`tests/test_q2_2026_fixture.py`).
+- **Unknown companies are Blocked cards.** Any row naming a company the book does not have produces a position: an
+  initial investment becomes HC's first holding (X-918, Blocked); anything else a zero placeholder blocked by its
+  refused row — in the queue, never only in the data-checks drawer — and not carried into the next quarter.
+- **Upload-driven start.** `hc-valuation run` with no `--input` opens on a landing page; `POST /api/upload`
+  processes a workbook stage by stage on a worker thread (`execute(progress=…)`), writes the quarter's policy file
+  from the base policy if none exists, and the dialog ends on the quarter's readiness counts. Synthetic data is
+  never offered beside a real book; a real book never reads the synthetic multiples file; a workbook with no
+  activity rows (the one a close emits) is "nothing to review yet" until its first row is entered.

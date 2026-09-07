@@ -53,10 +53,15 @@ hc-valuation run
 > build". Install a current Python (`brew install python@3.12`, or python.org) and create the
 > venv with it: `python3.12 -m venv .venv`. Upgrading pip inside the venv is always safe.
 
-`run` computes the Q3 2026 valuation, starts a local server on http://127.0.0.1:8765 and
-opens the review dashboard in your browser (`--no-browser` to skip that, `--port` to move
-it). The dashboard bundle is committed under `src/hc_valuation/api/static/`, so no Node is
-required; if it is absent the same URL serves a plain report page instead.
+`run` starts a local server on http://127.0.0.1:8765 and opens the review dashboard in your
+browser (`--no-browser` to skip that, `--port` to move it). With nothing uploaded yet the page
+is a landing screen with one **Upload workbook** button: pick the quarter's `.xlsx` (a `Portfolio`
+tab and a `Qn YYYY Activity` tab), watch it processed stage by stage, and open the queue. The file
+is kept under `data/uploads/<quarter>/`; on the next start `run` reopens the most recent upload.
+`run --input <workbook>` opens a specific file straight away (`hc-valuation run --input
+data/HC_Mock_Portfolio_Data.xlsx` is the Q3 2026 deliverable). The dashboard bundle is committed
+under `src/hc_valuation/api/static/`, so no Node is required; if it is absent the same URL serves
+a plain report page instead.
 
 `hc-valuation run --watch` keeps the run current: the server polls the workbook, the policy
 folder, the override and precedent ledgers, the carried open items and the proposals for
