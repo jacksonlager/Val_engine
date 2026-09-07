@@ -580,3 +580,19 @@ pre.json { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11p
   border: 1px solid color-mix(in srgb, var(--c) 45%, var(--border));
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
+
+/* ---- working: the upload dialog's spinner and the full-page overlay while a workbook is switched ---- */
+@keyframes hc-spin { to { transform: rotate(360deg); } }
+@keyframes hc-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+.spinner {
+  display: inline-block; width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--hairline); border-top-color: var(--accent); animation: hc-spin 0.8s linear infinite;
+  vertical-align: -2px;
+}
+.spinner-lg { width: 28px; height: 28px; border-width: 3px; }
+.bar-active { animation: hc-pulse 1.4s ease-in-out infinite; }
+.overlay {
+  position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--surface) 78%, transparent); backdrop-filter: blur(2px);
+}
+.overlay-card { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; }

@@ -76,6 +76,10 @@ class WorkbookIn(BaseModel):
     id: str = Field(min_length=1)   # a profile id from GET /api/workbooks (the path relative to the repo root)
 
 
+class ResetIn(BaseModel):
+    confirm: str = ""               # must be the word RESET: this deletes every decision and upload
+
+
 class DecisionIn(BaseModel):
     decision: str            # accept_once | promote | reject (the adjudication module validates)
     approver: str = Field(min_length=1)
@@ -411,6 +415,24 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         app.state.jobs[job_id] = job
         threading.Thread(target=_run_upload, args=(job, data, name), name=f"hc-upload-{job_id}", daemon=True).start()
         return {"id": job_id, "total": len(stages), "stages": stages}
+
+    @app.post("/api/reset")
+    def post_reset(body: ResetIn) -> dict[str, Any]:
+        """Back to 'nothing uploaded yet': removes the uploads, the decisions, the published snapshots, the
+        carried open items, proposals, precedents and cached recommendations; keeps the market cache, the
+        fixtures, the policies and the repository's own workbook. The body must say confirm: RESET."""
+        from ..config import repo_root
+        from ..reset import reset_workspace
+        if body.confirm != "RESET":
+            raise HTTPException(400, {"message": "Type RESET to confirm: this removes every upload, decision and published snapshot."})
+        with lock:
+            outcome = reset_workspace(app.state.paths)
+            app.state.result = None
+            app.state.known_workbooks = []
+            app.state.jobs = {}
+            app.state.paths = RunPaths.default(root=app.state.paths.root or repo_root())
+            app.state.provider = app.state.provider_explicit
+        return {"status": "empty", **outcome}
 
     @app.get("/api/upload/{job_id}")
     def get_upload(job_id: str) -> dict[str, Any]:

@@ -393,6 +393,15 @@ export interface UploadJob {
   } | null;
 }
 
+/** What POST /api/reset removed. */
+export interface ResetResult {
+  status: "empty";
+  removed: string[];
+  files: number;
+  ledger: string;
+  kept: string[];
+}
+
 export interface PublishRecord {
   quarter: string;
   slug: string;
@@ -402,6 +411,8 @@ export interface PublishRecord {
   status: "proposed" | "final";
   open_blocks?: string[];
   run_id?: string;
+  /** sha256 of the workbook the snapshot was made from; a different one than the loaded book is said so in the header */
+  input_sha256?: string;
   booked_nav: number;
   /** a FINAL publish emits next quarter's input workbook beside the one just closed */
   next_quarter_input?: string;
