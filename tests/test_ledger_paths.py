@@ -31,8 +31,10 @@ REAL_LEDGER = ROOT / "data" / "overrides.yaml"
 REAL_PUBLISHED = ROOT / "data" / "published"
 
 
-def _snapshot_real_ledger() -> tuple[bytes, list[str]]:
-    return REAL_LEDGER.read_bytes(), sorted(str(p.relative_to(REAL_PUBLISHED)) for p in REAL_PUBLISHED.rglob("*"))
+def _snapshot_real_ledger() -> tuple[bytes, list[str], list[str]]:
+    """The committee ledger, the publish archive, and the workbooks in data/ (a close emits next quarter's beside the book)."""
+    return (REAL_LEDGER.read_bytes(), sorted(str(p.relative_to(REAL_PUBLISHED)) for p in REAL_PUBLISHED.rglob("*")),
+            sorted(p.name for p in (ROOT / "data").glob("*.xlsx")))
 
 
 # ------------------------------------------------------------------ RunPaths
@@ -87,8 +89,13 @@ def test_environment_stands_in_for_the_flags(tmp_path: Path, monkeypatch):
 
 @pytest.fixture()
 def chain(tmp_path: Path) -> RunPaths:
-    """A run over the real workbook whose every decision record lands under tmp/chain."""
-    return RunPaths.default(root=ROOT, ledger_dir=tmp_path / "chain")
+    """A run over a copy of the real workbook whose every decision record lands under tmp/chain.
+    A copy, because a FINAL publish emits next quarter's workbook beside the book it closes, and
+    that must land in tmp — never beside the repository's fixture in data/."""
+    wb = tmp_path / "book" / "HC_Mock_Portfolio_Data.xlsx"
+    wb.parent.mkdir()
+    shutil.copy(ROOT / "data" / "HC_Mock_Portfolio_Data.xlsx", wb)
+    return RunPaths.default(root=ROOT, workbook=wb, ledger_dir=tmp_path / "chain")
 
 
 def test_api_override_appends_to_the_chain_ledger_and_not_to_data(chain: RunPaths, tmp_path: Path):
