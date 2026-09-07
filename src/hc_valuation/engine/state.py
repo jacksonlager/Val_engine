@@ -82,6 +82,8 @@ class Working:
     # row_index -> note-screen terms a marking rule already took account of on that row (a note the
     # round converted, an escrow the exit's own gap finding carries): X-105 does not raise them again
     handled_terms: dict[int, set[str]] = field(default_factory=dict)
+    # activity rows ingest refused, with the checks that refused them: one X-900 per position at the end
+    refused_rows: list[tuple[Event, list]] = field(default_factory=list)
 
     def handled(self, e: Event, *terms: str) -> None:
         self.handled_terms.setdefault(e.row_index, set()).update(t.lower() for t in terms)

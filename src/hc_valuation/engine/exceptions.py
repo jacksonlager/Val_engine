@@ -208,6 +208,14 @@ def _exempted(term: str, exempt: set[str]) -> bool:
     return any(norm(term).startswith(norm(x)) or norm(x).startswith(norm(term)) for x in exempt)
 
 
+def _clip(text: str, limit: int = 160) -> str:
+    """Cut at a word boundary, never mid-word, and say so."""
+    if len(text) <= limit:
+        return text
+    head = text[:limit].rsplit(" ", 1)[0].rstrip(",;:")
+    return head + " …"
+
+
 def screen_notes(w: Working, events: list[Event], cfg: RuleConfig) -> None:
     """X-105 — free text carrying a treatment the schema cannot encode. Escalates; never parses a number."""
     if not cfg.note_screen.enabled or not cfg.note_screen.terms:
@@ -226,7 +234,7 @@ def screen_notes(w: Working, events: list[Event], cfg: RuleConfig) -> None:
                    f"account of them: \"{e.notes or e.detail}\"",
                    points=(f"The row note mentions **{', '.join(hits)}** — terms the columns cannot represent.",
                            "**No rule has taken account of them**; the mark ignores the terms entirely.",
-                           f"The note has to be read: \"{(e.notes or e.detail)[:120]}\""),
+                           f"The note has to be read: \"{_clip(e.notes or e.detail)}\""),
                    suggestions=(
                        Suggest("as_proposed", "Book as proposed; reflect the note's terms by override once read.", ("The engine applied every term the columns can hold.", "Unrepresented terms need a human number, not a guess."), "proposed"),
                    ),

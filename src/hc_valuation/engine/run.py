@@ -28,6 +28,8 @@ edited — and an X-900 BLOCK says which cell to fix.
 """
 from __future__ import annotations
 
+import re
+
 import hashlib
 import json
 from datetime import date, datetime, time
@@ -184,25 +186,81 @@ def _refused(e: Event, blocked: dict[int, list[ValidationIssue]], registry: Regi
     return issues
 
 
+# What fixes a refused row, by the check that refused it. One sentence an analyst can act on; the
+# check's own message (the cells, the rows) is in the finding's evidence and the data-checks footer.
+_FIX = {
+    "X-901": "Add the company to the Portfolio tab, or correct its name on the row, and rerun.",
+    "X-902": "Fill in the missing figure on the row and rerun.",
+    "X-903": "Correct the figure that is out of range and rerun.",
+    "X-905": "Correct the row's date and rerun.",
+    "X-906": "Delete one of the duplicate rows and rerun.",
+    "X-907": "Remove the row, or correct the company's status on the Portfolio tab, and rerun.",
+}
+
+
+def _short(msg: str) -> str:
+    """The check's message up to its first clause break: what is wrong, without the lecture."""
+    head = re.sub(r"\s*\([^()]*\)\s*$", "", msg.split(";", 1)[0].strip())   # drop a trailing "(company, event, …)" list
+    return head[0].upper() + head[1:] if head else msg
+
+
 def _refuse(w: Working, e: Event, issues: list[ValidationIssue]) -> None:
-    """Record a refused row on the position and block it. Nothing about the mark changes."""
+    """Record a refused row on the position. Nothing about the mark changes; the position's one
+    X-900 finding is raised by `_flag_refused` once every row has been seen."""
     ids = sorted({v.rule_id for v in issues})
-    why = "; ".join(f"{v.rule_id}: {v.message}" for v in issues)
     w.step("M-000", marking.V, {"refused_event": e.event_type, "row_index": e.row_index, "validation": ids},
            w.proposed_mark, w.proposed_mark,
-           f"{e.event_type} on {e.date.isoformat()} recorded but not applied: the row failed validation ({why}). "
-           "The mark is carried unchanged.", e)
+           f"{e.event_type} on {e.date.isoformat()} recorded, not applied ({', '.join(ids)}): "
+           f"{_short('; '.join(v.message for v in issues))}. Mark carried unchanged.", e)
+    w.refused_rows.append((e, list(issues)))
+
+
+def _rows(rows: list[int], bold: bool = False) -> str:
+    n = [f"**{r}**" if bold else str(r) for r in rows]
+    return f"row {n[0]}" if len(n) == 1 else "rows " + ", ".join(n[:-1]) + f" and {n[-1]}"
+
+
+def _refused_points(groups: dict[tuple[str, str], list[int]], fixes: list[str]) -> tuple[str, ...]:
+    """At most three lines: the refused rows (one line per reason, the third and later reasons
+    folded into the second line), the fix, and the carry — the carry shares the fix's line when
+    there is more than one reason."""
+    lines = [f"{_rows(sorted(r), bold=True).capitalize()} ({et}) could not be applied. {why}." for (et, why), r in groups.items()]
+    if len(lines) > 2:
+        rest = sorted(r for grp in list(groups.values())[1:] for r in grp)
+        lines = [lines[0], f"{_rows(rest, bold=True).capitalize()} could not be applied either; the data checks list each reason."]
+    if len(lines) == 1:
+        return (lines[0], f"**{' '.join(fixes)}**", "The **prior mark is carried**; nothing from the row is booked.")
+    return (*lines, f"**{' '.join(fixes)}** The **prior mark is carried** meanwhile; nothing from the rows is booked.")
+
+
+def _flag_refused(w: Working) -> None:
+    """One X-900 per position, however many rows were refused. Rows refused for the same reason
+    (the two copies of a duplicate, say) are one line, not one finding each: the reviewer needs
+    to know what to fix on the tab, once."""
+    if not w.refused_rows:
+        return
+    groups: dict[tuple[str, str], list[int]] = {}
+    for e, issues in w.refused_rows:
+        why = (_short("; ".join(v.message for v in sorted(issues, key=lambda v: v.rule_id)))
+               + f" ({', '.join(sorted({v.rule_id for v in issues}))})")
+        groups.setdefault((e.event_type, why), []).append(e.row_index)
+    ids = sorted({v.rule_id for _, issues in w.refused_rows for v in issues})
+    rows = sorted({e.row_index for e, _ in w.refused_rows})
+    fixes = list(dict.fromkeys(_FIX.get(i, "Correct the cell the check names and rerun.") for i in ids))
+    if len(fixes) > 1:   # "Fill in the missing figure; correct the row's date, then rerun." — one sentence, one rerun
+        cores = [re.sub(r",? and rerun\.$", "", f) for f in fixes]
+        fixes = ["; ".join([cores[0]] + [c[0].lower() + c[1:] for c in cores[1:]]) + ", then rerun."]
+    lines = [f"{_rows(sorted(r)).capitalize()} ({et}) could not be applied. {why}." for (et, why), r in groups.items()]
     w.flag("X-900", "data", Severity.BLOCK,
-           f"Row {e.row_index} of the activity tab ({e.event_type}) could not be applied: {why}. The engine will not "
-           "book a number from a cell it could not read, so the prior mark is carried until the workbook is corrected.",
-           points=(f"Activity row **{e.row_index}** ({e.event_type}) **could not be applied**: {why}.",
-                   "The engine **will not book a number from a cell it could not read**.",
-                   "The **prior mark is carried** until the workbook is corrected."),
+           " ".join(lines) + " Nothing from " + ("the row" if len(rows) == 1 else "these rows") + " is booked; the prior mark is carried "
+           "until the activity tab is corrected and the quarter rerun. " + " ".join(fixes),
+           points=_refused_points(groups, fixes),
            suggestions=(
-               Suggest("hold_prior", "Hold the prior mark; correct the cell and rerun.", ("The engine will not book a number from a cell it could not read.", "Rerunning after the fix clears this without an override."), "prior"),
+               Suggest("hold_prior", "Hold the prior mark; fix the activity tab and rerun.", ("The engine will not book a number from a row it could not apply.", "Rerunning after the fix clears this without an override."), "prior"),
            ),
-           action=f"Correct the cell(s) named in {', '.join(ids)} on row {e.row_index} of the activity tab and rerun.",
-           sheet="activity", row_index=e.row_index, validation=ids)
+           action=f"{' '.join(fixes)[:-1]} ({_rows(rows)} of the activity tab, {', '.join(ids)}).",
+           sheet="activity", row_index=rows[0], rows=rows, validation=ids,
+           checks=[f"{v.rule_id}: {v.message}" for _, issues in w.refused_rows for v in issues])
 
 
 def _refuse_book_row(w: Working, p: Position, issues: list[ValidationIssue]) -> None:
@@ -339,6 +397,7 @@ def run_valuation(
                 applied.append(e)
                 if rv := review_rows.get(e.row_index):
                     _confirm_reading(w, rv, sheet="activity", row_index=e.row_index, what=e.event_type)
+            _flag_refused(w)
             if applied:
                 screen_notes(w, applied, config)
         elif evs:
@@ -369,7 +428,10 @@ def run_valuation(
                 marking.listed_carry(w, config, market)
             elif not applied:   # every row refused or skipped: the position is carried as if the quarter were quiet
                 marking.apply_carry(w, reason="No activity could be applied this quarter")
-            screen_notes(w, evs, config)   # note language is screened even on rows that were not applied
+            _flag_refused(w)
+            # note language is screened on rows that were skipped as superseded, not on refused rows: a
+            # refused row is fixed and rerun, and its note is read then
+            screen_notes(w, live, config)
         elif listed:
             marking.listed_carry(w, config, market)   # M-041: a public security is worth its close, not its history
         else:
