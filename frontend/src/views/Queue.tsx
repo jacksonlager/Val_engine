@@ -1,13 +1,18 @@
 // The review queue: the landing page, and the only page that is a to-do list.
 //
-// One card per position, in the order a reviewer works: who and what state it is in, what the
-// mark did, why it stopped (in a sentence), the facts beside the suggested step, the verbs in
-// one bar at the bottom, and everything technical folded away under Evidence & history.
+// Two groups, in the order a reviewer works. First, every position the quarter's activity tab
+// touched — Ready ones included, because a priced round that produced a clean mark is still new
+// information someone should have seen — each card opening with the row, the rule that applied
+// it and the mark it produced. Then the rest of the book that still needs a person: the stale
+// rounds, the shrinking revenue, the short runway that nothing on the tab explains.
+//
+// One card per position: who and what state it is in, what the mark did, why it stopped (in a
+// sentence), the facts beside the suggested step, the verbs in one bar at the bottom, and
+// everything technical folded away under Evidence & history.
 //
 // The status on a card is `readiness` — Blocked, Needs Review, Ready — one bucket per position.
-// `approval` is a second thing:
-// nothing is booked until the quarter is published, so the summary says "Approval pending"
-// rather than showing a booked number that does not exist yet.
+// `approval` is a second thing: nothing is booked until the quarter is published, so the summary
+// says "Approval pending" rather than showing a booked number that does not exist yet.
 //
 // Three things the card must never do, each of which it used to:
 //   · shout — the severity is a 3px rail and one quiet badge, not a saturated panel behind the
@@ -15,16 +20,17 @@
 //   · say "Booked" before publication;
 //   · lead with a rule code — X-101 is traceability, and lives under Evidence. The headline is
 //     a sentence a person would say: "Missing quarter-end share price".
-import { useState } from "react";
-import type { Readiness, ValuationRun } from "../types";
+import { useMemo, useState } from "react";
+import type { CompanyResult, Readiness, ValuationRun } from "../types";
 import { READINESS, READINESS_HINT } from "../types";
-import { deltaPct, musdTile, pct, signed } from "../lib/format";
+import { deltaPct, musdTile, pct, signClass, signed } from "../lib/format";
 import { readinessPhrase } from "../lib/labels";
 import { rdClass } from "../components/Flags";
-import { PositionCard } from "../components/PositionCard";
+import { activitySteps, hasActivity, PositionCard } from "../components/PositionCard";
 import { OpenItemsView } from "./OpenItems";
 
 const PAGE = 12;
+const RANK: Record<Readiness, number> = { Blocked: 0, "Needs Review": 1, Ready: 2 };
 
 function Headline({ label, value, sub, cls = "" }: { label: string; value: string; sub?: string; cls?: string }) {
   return (
@@ -34,6 +40,10 @@ function Headline({ label, value, sub, cls = "" }: { label: string; value: strin
       {sub && <div className="text-[11px] text-ink2 num">{sub}</div>}
     </div>
   );
+}
+
+function firstRow(c: CompanyResult): number {
+  return activitySteps(c)[0]?.evidence?.row_index ?? 0;
 }
 
 export function QueueView({
@@ -55,11 +65,36 @@ export function QueueView({
   const counts = t.readiness ?? {};
   const needsAPerson = (counts.Blocked ?? 0) + (counts["Needs Review"] ?? 0);
 
-  const rank: Record<Readiness, number> = { Blocked: 0, "Needs Review": 1, Ready: 2 };
-  const list = run.companies
+  // Group 1: everything the activity tab touched, blocked first, then in the order the rows were
+  // entered. The bucket tiles filter it like the rest; with no filter, Ready positions stay in it.
+  const touched = useMemo(() => run.companies.filter(hasActivity), [run]);
+  const activity = touched
+    .filter((c) => !bucket || c.readiness === bucket)
+    .sort((a, b) => RANK[a.readiness] - RANK[b.readiness] || firstRow(a) - firstRow(b));
+  const rows = useMemo(() => touched.flatMap((c) => activitySteps(c)), [touched]);
+  const sheet = rows[0]?.evidence?.sheet ?? "activity";
+  const movement = touched.reduce((a, c) => a + (c.proposed_mark - c.prior_mark), 0);
+  const activityOpen = touched.filter((c) => c.readiness !== "Ready").length;
+
+  // Group 2: the rest of the book that still needs a person, blocked first, then by size of change.
+  const rest = run.companies
+    .filter((c) => !hasActivity(c))
     .filter((c) => (bucket ? c.readiness === bucket : c.readiness !== "Ready"))
-    .sort((a, b) => rank[a.readiness] - rank[b.readiness] || Math.abs(b.proposed_mark - b.prior_mark) - Math.abs(a.proposed_mark - a.prior_mark));
-  const visible = list.slice(0, shown);
+    .sort((a, b) => RANK[a.readiness] - RANK[b.readiness] || Math.abs(b.proposed_mark - b.prior_mark) - Math.abs(a.proposed_mark - a.prior_mark));
+  const visible = rest.slice(0, shown);
+
+  const card = (c: CompanyResult, showActivity: boolean) => (
+    <PositionCard
+      key={c.company}
+      c={c}
+      open={open === c.company}
+      toggle={() => setOpen(open === c.company ? null : c.company)}
+      writeDisabled={writeDisabled}
+      onChanged={onChanged}
+      gotoCompany={gotoCompany}
+      showActivity={showActivity}
+    />
+  );
 
   return (
     <div className="space-y-5">
@@ -104,40 +139,52 @@ export function QueueView({
         <div className="ml-auto text-[11px] text-muted">$M unless stated</div>
       </div>
 
-      {/* the queue itself */}
+      {/* group 1: what the quarter brought in — read these first */}
+      <div>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-2">
+          <h2 className="text-[13px] font-semibold flex flex-wrap items-baseline gap-x-2">
+            <span className="tag-activity">New activity</span>
+            <span>
+              {activity.length} position{activity.length === 1 ? "" : "s"}
+              {bucket ? ` ${readinessPhrase(bucket)}` : ""} from {rows.length} row{rows.length === 1 ? "" : "s"} on the “{sheet}” tab
+            </span>
+            <span className="font-normal text-muted">
+              · {activityOpen} need a person, {touched.length - activityOpen} ready · movement{" "}
+              <span className={`num ${signClass(movement)}`}>{signed(movement, 1)}</span> of {signed(t.net_movement, 1)} across the book
+            </span>
+          </h2>
+          <span className="text-[11px] text-muted">read these first · blocked first, then in the order the rows were entered</span>
+        </div>
+        {activity.length === 0 && (
+          <div className="card p-4 text-center text-muted text-[12px]">
+            {touched.length === 0 ? "No activity rows this quarter." : `No positions with new activity are ${readinessPhrase(bucket!)}.`}
+          </div>
+        )}
+        <div className="space-y-2.5">{activity.map((c) => card(c, true))}</div>
+      </div>
+
+      {/* group 2: the rest of the book that still needs a person */}
       <div>
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-2">
           <h2 className="text-[13px] font-semibold">
-            {`${list.length} position${list.length === 1 ? "" : "s"} ${
-              bucket ? readinessPhrase(bucket) : list.length === 1 ? "needs a person" : "need a person"
-            }`}
+            {`${rest.length} ${bucket ? "" : "more "}position${rest.length === 1 ? "" : "s"} ${
+              bucket ? readinessPhrase(bucket) : rest.length === 1 ? "needs a person" : "need a person"
+            } with no activity this quarter`}
             <span className="font-normal text-muted">
               {" · "}
-              {bucket ? `${needsAPerson} need a person in total` : `${counts.Blocked ?? 0} blocked, ${counts["Needs Review"] ?? 0} to review`}
+              {bucket ? `${needsAPerson} need a person in total` : `${counts.Blocked ?? 0} blocked, ${counts["Needs Review"] ?? 0} to review across the book`}
             </span>
           </h2>
-          <span className="text-[11px] text-muted">blocked first, then by size of change</span>
+          <span className="text-[11px] text-muted">stale rounds, shrinking revenue, short runway · blocked first, then by size of change</span>
         </div>
-        {list.length === 0 && <div className="card p-6 text-center text-muted">Nothing here.</div>}
-        <div className="space-y-2.5">
-          {visible.map((c) => (
-            <PositionCard
-              key={c.company}
-              c={c}
-              open={open === c.company}
-              toggle={() => setOpen(open === c.company ? null : c.company)}
-              writeDisabled={writeDisabled}
-              onChanged={onChanged}
-              gotoCompany={gotoCompany}
-            />
-          ))}
-        </div>
-        {list.length > shown && (
+        {rest.length === 0 && <div className="card p-6 text-center text-muted">Nothing here.</div>}
+        <div className="space-y-2.5">{visible.map((c) => card(c, false))}</div>
+        {rest.length > shown && (
           <div className="flex justify-center mt-3">
             <button className="btn" onClick={() => setShown((n) => n + PAGE)}>
-              {list.length - shown <= PAGE
-                ? `Show the last ${list.length - shown}`
-                : `Show ${PAGE} more of the ${list.length - shown} still hidden`}
+              {rest.length - shown <= PAGE
+                ? `Show the last ${rest.length - shown}`
+                : `Show ${PAGE} more of the ${rest.length - shown} still hidden`}
             </button>
           </div>
         )}
@@ -158,4 +205,3 @@ export function QueueView({
     </div>
   );
 }
-

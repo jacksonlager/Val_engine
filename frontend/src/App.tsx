@@ -9,8 +9,6 @@ import { marketSourceLabel, shortRef } from "./lib/labels";
 import { DispChip } from "./components/ui";
 import { PublishControls } from "./components/Publish";
 import { QueueView } from "./views/Queue";
-import { ActivityView } from "./views/Activity";
-import { hasActivity } from "./components/PositionCard";
 import { CompaniesView } from "./views/Companies";
 import { MovementView } from "./views/Movement";
 import { FundsView } from "./views/Funds";
@@ -19,21 +17,21 @@ import { ProposalsView } from "./views/Proposals";
 import { MarketView } from "./views/Market";
 import { RulesView } from "./views/Rules";
 
-type View = "activity" | "queue" | "companies" | "movement" | "funds" | "market" | "rules" | "open" | "proposals";
-// New Activity first — what the quarter brought in and how the engine treated it — then the
-// four views the brief asks for: the decisions, the auditor's table, what moved and why,
+type View = "queue" | "companies" | "movement" | "funds" | "market" | "rules" | "open" | "proposals";
+// The Queue first — what the quarter brought in sits at its top, then the rest of the book that
+// needs a person — then the views the brief asks for: the auditor's table, what moved and why,
 // and where the market numbers came from. Funds lives on the executive dashboard; open items
 // sit at the foot of the Queue; Proposals appears only when the engine actually has one.
-// The other routes still answer to their hash (#funds, #open) for anyone who bookmarked them.
+// The other routes still answer to their hash (#funds, #open) for anyone who bookmarked them;
+// #activity, the former New Activity tab, lands on the Queue.
 const VIEWS: { id: View; label: string }[] = [
-  { id: "activity", label: "New Activity" },
   { id: "queue", label: "Queue" },
   { id: "companies", label: "Companies" },
   { id: "movement", label: "Movement" },
   { id: "market", label: "Market" },
   { id: "rules", label: "Rules" },
 ];
-const ALL_VIEWS: View[] = ["activity", "queue", "companies", "movement", "funds", "market", "rules", "open", "proposals"];
+const ALL_VIEWS: View[] = ["queue", "companies", "movement", "funds", "market", "rules", "open", "proposals"];
 
 /** The workbook the served run reads, and the others it could. Switching asks the server to
     recompute on that file — with its quarter's policy and its own decision ledger — so the run
@@ -88,7 +86,7 @@ function WorkbookSwitcher({ served, refreshKey, onSwitched }: { served: boolean;
 
 function viewFromHash(): View {
   const h = window.location.hash.replace("#", "");
-  return (ALL_VIEWS.includes(h as View) ? h : "activity") as View;
+  return (ALL_VIEWS.includes(h as View) ? h : "queue") as View;
 }
 
 export default function App() {
@@ -165,7 +163,6 @@ export default function App() {
   const writeDisabled = mode === "static" ? STATIC_REASON : null;
   const m = run.manifest;
   const blockingIssues = run.validation.filter((v) => v.blocking).length;
-  const activityOpen = run.companies.filter((c) => hasActivity(c) && c.readiness !== "Ready").length;
 
   return (
     <SourcesProvider value={state.sources}>
@@ -187,11 +184,6 @@ export default function App() {
                 aria-current={view === v.id ? "page" : undefined}
               >
                 {v.label}
-                {v.id === "activity" && activityOpen > 0 && (
-                  <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--review-text)]"}`} title="Positions with new activity that still need a person">
-                    {activityOpen}
-                  </span>
-                )}
                 {v.id === "queue" && (run.totals.readiness?.Blocked ?? 0) > 0 && (
                   <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--block-text)]"}`} title="Blocked positions">
                     {run.totals.readiness?.Blocked ?? 0}
@@ -238,7 +230,6 @@ export default function App() {
       </header>
 
       <main className="flex-1 px-4 py-4 max-w-[1600px] w-full mx-auto">
-        {view === "activity" && <ActivityView run={run} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />}
         {view === "queue" && (
           <QueueView run={run} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />
         )}
