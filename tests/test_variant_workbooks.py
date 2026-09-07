@@ -142,8 +142,9 @@ def test_renumbered_book_catches_exactly_the_unreconciled_marks(runs):
 def test_busy_quarter_blocks_what_it_must_and_applies_the_rest(runs):
     run = runs["v3_busy"][0].run
     by = run.by_company()
-    for name in ("Brumewell", "Nettlebay"):                       # unknown event types
-        assert by[name].readiness is Readiness.BLOCKED and "M-999" in {f.rule_id for f in by[name].flags}, name
+    assert by["Nettlebay"].readiness is Readiness.BLOCKED and "M-999" in {f.rule_id for f in by["Nettlebay"].flags}   # Stock Split: unknown
+    b = by["Brumewell"]                                           # Operating Update: handled (M-072), the ARR in prose reaches a reviewer
+    assert b.readiness is Readiness.NEEDS_REVIEW and "X-126" in {f.rule_id for f in b.flags} and "M-999" not in {f.rule_id for f in b.flags}
     assert by["Nonesuch Ventures"].readiness is Readiness.BLOCKED and "X-900" in {f.rule_id for f in by["Nonesuch Ventures"].flags}
     q = by["Quillbrook Labs"]                                     # a new company with a second row the same quarter
     assert q.readiness is Readiness.BLOCKED and "X-918" in {f.rule_id for f in q.flags} and "X-900" not in {f.rule_id for f in q.flags}

@@ -123,6 +123,14 @@ _SYNONYMS: dict[str, tuple[str, ...]] = {
     ),
     EventType.IPO.value: ("initial public offering", "ipo", "listing", "public listing", "listed", "went public"),
     EventType.DIRECT_LISTING.value: ("direct listing", "direct list"),
+    EventType.TERM_SHEET_WITHDRAWN.value: (
+        "term sheet withdrawn", "term sheet cancelled", "term sheet canceled", "term sheet rescinded", "term sheet lapsed",
+        "financing cancelled", "financing canceled", "financing withdrawn", "proposal withdrawn", "round withdrawn",
+    ),
+    EventType.OPERATING_UPDATE.value: (
+        "operating update", "management update", "metrics update", "trading update", "kpi update", "financial update",
+        "operating metrics", "board update",
+    ),
     EventType.ACQ_CLOSED.value: (
         "acquisition closed", "acquired", "exit", "exit closed", "m&a closed", "sale of company", "sold",
         "acquisition - closed", "acquisition: closed", "acqui-hire", "acquihire", "trade sale", "merger closed",

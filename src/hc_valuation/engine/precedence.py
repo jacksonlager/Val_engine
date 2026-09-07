@@ -44,6 +44,8 @@ TIER: dict[str, int] = {
     EventType.ACQ_ANNOUNCED.value: 5,
     EventType.CONVERTIBLE_NOTE.value: 6,
     EventType.TERM_SHEET.value: 7,
+    EventType.TERM_SHEET_WITHDRAWN.value: 7,
+    EventType.OPERATING_UPDATE.value: 7,
 }
 TERMINAL: frozenset[str] = frozenset({EventType.SHUTDOWN.value, EventType.ACQ_CLOSED.value})
 

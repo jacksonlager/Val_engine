@@ -35,6 +35,8 @@ class EventType(str, Enum):
     NOTE_REPAID = "Note Repaid"
     BANKRUPTCY_CH11 = "Bankruptcy (Chapter 11)"
     DIRECT_LISTING = "Direct Listing"
+    TERM_SHEET_WITHDRAWN = "Term Sheet Withdrawn"   # M-071: a signed proposal fell through
+    OPERATING_UPDATE = "Operating Update"           # M-072: metrics reported in prose, no transaction
 
 
 KNOWN_EVENT_TYPES: frozenset[str] = frozenset(e.value for e in EventType)

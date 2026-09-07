@@ -218,7 +218,7 @@ def screen_notes(w: Working, events: list[Event], cfg: RuleConfig) -> None:
         text = f"{e.detail} {e.notes}".lower()
         # a term that names the event type itself ("Earn-out True-up", a promoted custom rule) is
         # the treatment, not an unhandled one
-        exempt = {x.lower() for x in exempt_map.get(e.event_type, ())} | {e.event_type.lower()}
+        exempt = {x.lower() for x in exempt_map.get(e.event_type, ())} | {e.event_type.lower()} | w.handled_terms.get(e.row_index, set())
         hits = [t for t in terms if _term_in(t, text) and not _exempted(t, exempt) and not _term_in(t, e.event_type.lower())]
         if hits:
             w.flag("X-105", "notes", Severity.REVIEW,

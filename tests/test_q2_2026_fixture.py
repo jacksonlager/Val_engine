@@ -1,5 +1,6 @@
 """The Q2 2026 test file (training/HC_Q2_2026_Test_Portfolio.xlsx): a quarter *earlier* than the base
-policy, with five event types the engine has never seen, two initial investments filed as priced
+policy, with event types the engine had never seen (two of them — Term Sheet Withdrawn and Operating
+Update — are handled since the Q3 scenario rows; the rest still block), two initial investments filed as priced
 rounds, a non-binding acquisition offer, and an answer key in its extra tabs.
 
 What it found (all fixed here): every built-in rule was dated 2026-07-01, so a 30 Jun 2026 run raised
@@ -78,8 +79,15 @@ def test_marks_invested_and_realized_tie_to_the_answer_key(q2):
 def test_unknown_event_types_block_visibly_and_the_rest_reach_a_reviewer(q2):
     run, _ = q2
     by = run.by_company()
-    for name in ("Drayvenn", "Umberly", "Brumewell", "Halcyra"):      # Stock Split, Debt Facility, Operating Update, Term Sheet Withdrawn
+    for name in ("Drayvenn", "Umberly"):                              # Stock Split, Debt Facility: still unknown, still Blocked
         assert by[name].readiness.value == "Blocked" and "M-999" in {f.rule_id for f in by[name].flags}, name
+    # Operating Update (M-072) and Term Sheet Withdrawn (M-071) are handled now: the mark holds and a reviewer
+    # gets the right question — the figures belong on the tab (X-126); the failed raise is weighed (X-125)
+    b, h = by["Brumewell"], by["Halcyra"]
+    assert b.readiness.value == "Needs Review" and [s.rule_id for s in b.steps] == ["M-072"] and "X-126" in {f.rule_id for f in b.flags}
+    assert h.readiness.value == "Needs Review" and [s.rule_id for s in h.steps] == ["M-070", "M-071"]
+    assert "X-125" in {f.rule_id for f in h.flags} and not any(i.kind.value == "term_sheet" for i in h.open_items)
+    assert not {"M-999", "X-109"} & {f.rule_id for f in list(b.flags) + list(h.flags)}
     assert by["Drayvenn"].proposed_mark == pytest.approx(80.3) and by["Drayvenn"].ownership_after == pytest.approx(0.034)
     assert by["Kolvani Health"].realized_cumulative == pytest.approx(15.9) and by["Kolvani Health"].proposed_mark == 0.0
     assert by["Hearthwick"].status_after.value == "Acquired" and by["Hearthwick"].realized_cumulative == pytest.approx(1.2)

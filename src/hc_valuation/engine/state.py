@@ -79,6 +79,12 @@ class Working:
     # financings that closed this quarter (a priced round, a funded note, a new investment) with the
     # date and HC's cheque — the runway screen says when the cash figure predates them
     financings: list[tuple[date, str, float]] = field(default_factory=list)
+    # row_index -> note-screen terms a marking rule already took account of on that row (a note the
+    # round converted, an escrow the exit's own gap finding carries): X-105 does not raise them again
+    handled_terms: dict[int, set[str]] = field(default_factory=dict)
+
+    def handled(self, e: Event, *terms: str) -> None:
+        self.handled_terms.setdefault(e.row_index, set()).update(t.lower() for t in terms)
 
     @classmethod
     def from_position(cls, p: Position, quarter_label: str, sheet_name: str) -> "Working":

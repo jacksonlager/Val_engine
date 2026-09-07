@@ -162,6 +162,48 @@ rules:
       Monitor by default; it needs a review when the indication is at or below 80% of the last
       round: a lower price in writing is evidence a market participant would not pay the carried
       price (ASC 820), so "mark down to the indication" becomes a real option.
+  - id: X-124
+    name: Note converted in the round
+    family: treatment
+    severity: [REVIEW]
+    source: policy
+    reads: Event = Priced Equity Round or IPO with a note leg carried at cost, Ownership After, Post-Money
+    why_flag: >-
+      HC's convertible note converts into the round: the separate note leg disappears and the whole
+      stake is marked at the round price, with the note's principal in invested capital exactly once.
+      The bridge questions (is the note still at cost, has it funded) are settled and are dropped;
+      what remains to confirm is the conversion itself — cap or discount, accrued interest, share count.
+    why_severity: >-
+      Review because the closing cap table is the only evidence that the ownership on the row already
+      includes the converted shares; a reviewer who takes the row at face value could double count
+      the note or miss accrued interest that changes the stake.
+  - id: X-125
+    name: Term sheet withdrawn
+    family: treatment
+    severity: [REVIEW]
+    source: policy
+    reads: Event = Term Sheet Withdrawn, the open term sheet and its indicated value
+    why_flag: >-
+      A signed proposal fell through before closing. Nothing was booked from it, so the mark still
+      rests on the last round, but an investor walking away is evidence a market participant would
+      not pay that price today (ASC 820), and the company still has to raise.
+    why_severity: >-
+      Review because the engine cannot tell a withdrawal on terms from a withdrawal on the company;
+      the reviewer weighs holding the last-round mark against a mark-down to cost pending a new raise.
+  - id: X-126
+    name: Operating metrics reported in prose
+    family: liquidity
+    severity: [REVIEW]
+    source: policy
+    reads: Event = Term Sheet Withdrawn or Operating Update, the row's Notes
+    why_flag: >-
+      The note reports cash, burn, runway or revenue in a sentence. The engine never reads a number
+      out of prose, so the runway and growth screens still run on the Portfolio tab's columns, which
+      the note may supersede; a two-month runway in the note can sit behind a fifteen-month runway
+      in the tab.
+    why_severity: >-
+      Review because the input is wrong, not the rule: a person updates the Portfolio tab from the
+      note (or confirms the tab is current) and the screens re-run on the corrected figures.
   - id: X-110
     name: Ownership moved with no price event
     family: treatment

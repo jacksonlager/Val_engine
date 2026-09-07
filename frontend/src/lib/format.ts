@@ -48,9 +48,12 @@ export function isoDate(s: string | null | undefined): string {
 /** "2 Oct 2026" from an ISO timestamp; falls back to the ISO date when it does not parse. */
 export function shortDate(s: string | null | undefined): string {
   if (!s) return "—";
-  const t = Date.parse(s);
-  if (!Number.isFinite(t)) return isoDate(s);
-  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(t));
+  // A bare calendar date ("2026-09-17") is a day, not an instant: Date.parse reads it as UTC
+  // midnight, which west of Greenwich formats as the evening before. Build it in local time.
+  const bare = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  const d = bare ? new Date(Number(bare[1]), Number(bare[2]) - 1, Number(bare[3])) : new Date(Date.parse(s));
+  if (!Number.isFinite(d.getTime())) return isoDate(s);
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(d);
 }
 
 /**

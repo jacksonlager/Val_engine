@@ -439,7 +439,8 @@ def test_ipo_with_no_market_cap_is_refused_and_carried(build):
 def test_convertible_note_then_priced_round_converts_the_note_leg(build):
     """The note leg does NOT survive: it converts into the round, the open item is dropped, and the
     mark is ownership_after × post with nothing added for the note (its cost sits in invested).
-    The X-107 REVIEW raised at the note stays on the record even though the note has converted."""
+    The X-107 REVIEW raised at the note is settled by the conversion and replaced by X-124 (same
+    severity): the reviewer confirms the conversion terms, not a bridge that no longer exists."""
     run, issues = build([position()], [
         event(EventType.CONVERTIBLE_NOTE, date=date(2026, 7, 10), detail="Bridge note, $150M cap", hc_investment=1.0),
         event(R, date=date(2026, 9, 10), detail="Series B", value=200.0, ownership_after=0.095, hc_investment=2.0),
@@ -456,7 +457,8 @@ def test_convertible_note_then_priced_round_converts_the_note_leg(build):
     assert c.invested_after == pytest.approx(8.0) and c.new_investment_quarter == pytest.approx(3.0)
     assert c.open_items == (), "the note item is resolved by the round"
     assert c.staleness_anchor == date(2026, 9, 10)
-    assert flag_ids(c) == {"X-107"} and _flag(c, "X-107").severity is Severity.REVIEW
+    assert flag_ids(c) == {"X-124"} and _flag(c, "X-124").severity is Severity.REVIEW
+    assert _flag(c, "X-124").evidence["note_leg"] == pytest.approx(1.0)
     assert c.readiness is Readiness.NEEDS_REVIEW and c.disposition is Disposition.REVIEW
     _assert_actionable(c)
 

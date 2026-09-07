@@ -46,7 +46,7 @@ expect:
   companies:
     Solvantra:            { disposition: CLEAR, rules: [M-010, M-010], proposed: 10.5, invested_after: 6.1, ownership_after: 0.10, latest_post_money: 105.0, flags_must_not: [X-106, X-102] }
     Ambercrest:           { disposition: CLEAR, rules: [M-010, M-020], proposed: 0.0, invested_after: 6.6, realized_quarter: 18.0, status: Acquired, flags_must_not: [X-101] }
-    Kilnbrook:            { rules: [M-060, M-010], proposed: 6.75, note_at_cost: 0.0, equity_mark: 6.75, invested_after: 2.5, ownership_after: 0.075, flags_must: [X-107], open_items_must_not: [convertible_note] }
+    Kilnbrook:            { rules: [M-060, M-010], proposed: 6.75, note_at_cost: 0.0, equity_mark: 6.75, invested_after: 2.5, ownership_after: 0.075, flags_must: [X-124], flags_must_not: [X-107], open_items_must_not: [convertible_note] }
     Oxbowlane:            { disposition: CLEAR, rules: [M-000, M-020], proposed: 0.0, realized_quarter: 21.5, status: Acquired, open_items_count: 0, flags_must_not: [X-101] }
     Coppermoss Energy:    { disposition: CLEAR, rules: [M-021, M-000], proposed: 0.0, status: "Shut Down", open_items_count: 0, flags_must_not: [X-109] }
     Lanternfell Space:    { disposition: CLEAR, rules: [M-030, M-010], proposed: 30.4, realized_quarter: 11.1112, ownership_after: 0.038, latest_post_money: 800.0, flags_must_not: [X-104] }

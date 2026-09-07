@@ -528,10 +528,10 @@ def test_new_types_have_tiers_and_resolutions():
     assert RESOLVES["Direct Listing"] == RESOLVES["IPO"]
 
 
-def test_all_sixteen_types_are_registered(cfg):
+def test_every_event_type_is_registered(cfg):
     from hc_valuation.engine.run import build_registry
     reg = build_registry(cfg)
-    assert len(EventType) == 16
+    assert len(EventType) == 18      # the sixteen in the assignment plus Term Sheet Withdrawn and Operating Update
     for et in EventType:
         meta, _ = reg.handler_for(et.value, cfg.quarter.measurement_date)
         assert meta.rule_id != "M-999", et

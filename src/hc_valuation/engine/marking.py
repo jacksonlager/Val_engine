@@ -367,6 +367,8 @@ def priced_round(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
     _dilution_check(w, e, cfg, before, after)
     _related_party_flags(w, e, rid, cfg, post=post, prior_post=prior_post)
     w.equity_mark = new_equity
+    if note_converted:
+        _note_converted(w, e, note_converted, post, after, "the round")
     w.note_at_cost = 0.0   # converted; cost basis already in `invested`
     w.open_items = [i for i in w.open_items if i.kind != OpenItemKind.CONVERTIBLE_NOTE]   # a note converts at the round
     w.ownership = after
@@ -441,6 +443,13 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
                ),
                action=f"Reconcile the ${abs(implied - proceeds):.2f}M difference between proceeds and deal value.",
                implied=implied, proceeds=proceeds)
+        w.handled(e, "escrow", "holdback", "earn-out", "earnout", "contingent", "milestone")
+        # The gap is a claim HC still holds. If the committee carries it (the `carry_gap` option), the
+        # position rolls forward open with this item ageing on it until the escrow is released.
+        w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.UNCONFIRMED_EXIT, opened=e.date,
+                                     opened_quarter=w.quarter_label, amount_musd=round(max(0.0, implied - proceeds), 6),
+                                     detail=f"exit closed {e.date.isoformat()}: ${proceeds:.2f}M received against ${implied:.2f}M implied; "
+                                            f"${abs(implied - proceeds):.2f}M in escrow, holdback or fees to confirm"))
     w.realized_quarter += proceeds
     w.equity_mark = 0.0
     w.note_at_cost = 0.0
@@ -656,6 +665,8 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
                                  opened_quarter=w.quarter_label, expected_resolution=lockup_end,
                                  detail=f"180-day lock-up; {after:.1%} of listed equity"))
     w.equity_mark = new_equity
+    if note_converted:
+        _note_converted(w, e, note_converted, cap, after, "the listing")
     w.note_at_cost = 0.0
     w.open_items = [i for i in w.open_items if i.kind != OpenItemKind.CONVERTIBLE_NOTE]   # converts on listing
     w.ownership = after
@@ -832,6 +843,102 @@ def term_sheet(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
                ratio_to_last_round=(round(ratio_, 4) if ratio_ is not None else None))
     w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.TERM_SHEET, opened=e.date,
                                  opened_quarter=w.quarter_label, amount_musd=e.value, detail=e.notes or e.detail))
+
+
+def _note_converted(w: Working, e: Event, leg: float, post: float, after: float, into: str) -> None:
+    """X-124 — HC's note converted into this round or listing. The bridge questions (X-107 funded,
+    X-108 unfunded) are settled by the conversion and are dropped; what a reviewer now confirms is the
+    conversion itself: the cap or discount applied, accrued interest, and that the principal is in
+    `invested` exactly once (it is: the note leg was cost, the round re-marks the whole stake)."""
+    w.flags = [f for f in w.flags if f.rule_id not in ("X-107", "X-108")]
+    w.handled(e, "conversion", "convert", "converts", "converted")
+    w.flag("X-124", "treatment", Severity.REVIEW,
+           f"HC's ${leg:.2f}M note converted into {into}: the note leg carried at cost is gone and the whole {after:.1%} stake is "
+           f"marked at ${post:.1f}M post. The ${leg:.2f}M is in invested capital once. Confirm the conversion terms — the cap or "
+           "discount applied, accrued interest, the share count — against the closing cap table.",
+           points=(f"HC's **${leg:.2f}M note converted** into {into}; the separate note leg is **removed**.",
+                   f"The whole **{after:.1%}** stake is marked at **${post:.1f}M** post; the ${leg:.2f}M is in invested capital **once**.",
+                   "Confirm the **conversion terms** (cap or discount, accrued interest, share count) against the cap table."),
+           suggestions=(
+               Suggest("as_proposed", "Book the converted stake at the round price as proposed.", ("The round is an arm's-length price for the whole stake.", "Right when the cap table's ownership matches the row."), "proposed"),
+           ),
+           action="Confirm the note's conversion terms and that its principal is counted once.",
+           note_leg=round(leg, 6), post_money=post, ownership_after=after)
+
+
+_METRIC_WORDS = ("cash", "burn", "runway", "revenue", "arr", "headcount", "margin")
+
+
+def _prose_metrics(w: Working, e: Event) -> None:
+    """X-126 — operating metrics reported in the row's prose. The engine never reads a number out of a
+    sentence, so a cash balance or burn rate in a note does not reach the runway screen: the Portfolio
+    tab still carries the old figures. A person updates the tab (or confirms the note is not newer)
+    and the screens re-run on the corrected inputs."""
+    text = _text(e)
+    hits = [t for t in _METRIC_WORDS if any_term_in((t,), text)]
+    if not hits:
+        return
+    w.handled(e, *hits)
+    w.flag("X-126", "liquidity", Severity.REVIEW,
+           f"The row's note reports operating figures ({', '.join(hits)}) in prose. The engine does not read numbers out of a "
+           "sentence, so the runway, growth and multiple screens still run on the Portfolio tab's columns, which this note may "
+           f"supersede: \"{(e.notes or e.detail)[:160]}\"",
+           points=(f"The note reports **{', '.join(hits)}** in prose; the screens read the **Portfolio tab**, not the note.",
+                   "If the note is newer, the tab's cash, burn or ARR are **stale** and the runway screen is wrong.",
+                   "Update the Portfolio tab from the note and rerun, or confirm the tab is current."),
+           suggestions=(
+               Suggest("as_proposed", "Keep the mark as proposed; update the Portfolio tab's metrics from the note and rerun.", ("A metric in prose is not an input until it is in the tab.", "Rerunning on the corrected tab re-screens runway and growth."), "proposed"),
+               Suggest("at_cost", "Mark down to invested cost pending the raise.", ("Cost is a defensible floor for a company that must raise to survive.", "Right if the note says the cash is nearly gone."), "cost"),
+           ),
+           action="Update the Portfolio tab's Cash, Net Burn and ARR from the note (or confirm the tab is current), then rerun.",
+           terms=hits, row_index=e.row_index)
+
+
+@rule(rule_id="M-071", version=V, applies_to=(EventType.TERM_SHEET_WITHDRAWN.value,), severity=Severity.REVIEW,
+      effective_from=EFFECTIVE, tier=7,
+      description="Term sheet withdrawn: the pending financing falls away; mark unchanged; an adverse signal a reviewer weighs.")
+def term_sheet_withdrawn(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
+    had = [i for i in w.open_items if i.kind == OpenItemKind.TERM_SHEET]
+    indicated = w.alternative_marks.pop("term_sheet_indicated", None)
+    w.flags = [f for f in w.flags if f.rule_id != "X-109"]      # the disclosure is moot: the proposal is gone
+    w.step("M-071", V, {"withdrawn": e.detail, "term_sheet_indicated": indicated, "open_term_sheets_closed": len(had)},
+           w.proposed_mark, w.proposed_mark,
+           f"Term sheet withdrawn ({e.detail}). No financing closed, no cash, no shares: the mark is unchanged at "
+           f"${w.proposed_mark:.2f}M" + (f" and the ${indicated:.2f}M stake the term sheet indicated is no longer an alternative" if indicated else "")
+           + ". A financing that fell through is evidence about the company, not a transaction in it.", e)
+    w.flag("X-125", "treatment", Severity.REVIEW,
+           f"A signed term sheet was withdrawn before closing. Nothing was booked from it, so the mark still rests on the last "
+           f"round — but an investor walking away is evidence a market participant would not pay that price today, and the "
+           "company still has to raise.",
+           points=("A signed **term sheet was withdrawn**; nothing was booked from it.",
+                   "An investor **walking away** is evidence about the last-round price, and the **raise is still ahead**.",
+                   f"The mark stays at **${w.proposed_mark:.2f}M** until a reviewer says otherwise."),
+           suggestions=(
+               Suggest("as_proposed", "Hold the mark at the last round; the withdrawal changes the evidence, not the price paid.", ("No transaction occurred either way.", "Right if the company can still raise on its plan."), "proposed"),
+               Suggest("at_cost", "Mark down to invested cost pending a new financing.", ("A failed raise is the strongest sign the last price is high.", "Cost is a defensible floor until the company prices again."), "cost"),
+           ),
+           action="Weigh the withdrawn financing: hold the last-round mark, or mark down pending a new raise.",
+           detail=e.detail, term_sheet_indicated=indicated)
+    _prose_metrics(w, e)
+
+
+@rule(rule_id="M-072", version=V, applies_to=(EventType.OPERATING_UPDATE.value,), severity=Severity.REVIEW,
+      effective_from=EFFECTIVE, tier=7,
+      description="Operating update: no transaction, mark unchanged; the figures it reports belong on the Portfolio tab.")
+def operating_update(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
+    w.step("M-072", V, {"detail": e.detail}, w.proposed_mark, w.proposed_mark,
+           f"Operating update ({e.detail}): no transaction, so the mark is unchanged at ${w.proposed_mark:.2f}M. Figures reported "
+           "in the note belong on the Portfolio tab, where the screens read them.", e)
+    _prose_metrics(w, e)
+    if not any(f.rule_id == "X-126" for f in w.flags):
+        w.flag("X-126", "liquidity", Severity.REVIEW,
+               f"An operating update was recorded ({e.detail}) but its figures are not on the Portfolio tab; the screens ran on "
+               "the tab's columns. Confirm the tab is current or update it and rerun.",
+               points=("An **operating update** was recorded with **no figures in the columns**.",
+                       "The screens ran on the **Portfolio tab**, which the update may supersede.",
+                       "Confirm the tab is current, or update it and rerun."),
+               suggestions=(Suggest("as_proposed", "Keep the mark as proposed; update the Portfolio tab and rerun.", ("No transaction occurred.", "The tab is the input; the note is context."), "proposed"),),
+               action="Confirm the Portfolio tab reflects this update, then rerun.", detail=e.detail, row_index=e.row_index)
 
 
 # --------------------------------------------------------------------------- M-013

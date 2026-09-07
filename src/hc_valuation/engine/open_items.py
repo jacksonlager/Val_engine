@@ -61,4 +61,5 @@ RESOLVES: dict[str, set[OpenItemKind]] = {
     "Direct Listing": {OpenItemKind.CONVERTIBLE_NOTE, OpenItemKind.TERM_SHEET, OpenItemKind.PENDING_ACQUISITION},
     "Acquisition (Terminated)": {OpenItemKind.PENDING_ACQUISITION},
     "Note Repaid": {OpenItemKind.CONVERTIBLE_NOTE},
+    "Term Sheet Withdrawn": {OpenItemKind.TERM_SHEET},
 }
