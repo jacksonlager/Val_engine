@@ -8,16 +8,16 @@
   "status": "final",
   "open_blocks": [],
   "open_positions": [],
-  "run_id": "28c1475c6d04",
+  "run_id": "8cefe0cb2697",
   "policy_version": "2027Q1-0.1",
   "engine_version": "0.1.0",
-  "input_sha256": "2169bce96c7e217bb910b8fedaf0bf87dc6db9805553961e12e472c632965729",
+  "input_sha256": "4268aea8aefefbde0fa2c55db3b6c1698ce8eeeec295417009eb2db39889b49e",
   "booked_nav": 1149.4082
  },
  "run": {
   "manifest": {
-   "run_id": "28c1475c6d04",
-   "input_sha256": "2169bce96c7e217bb910b8fedaf0bf87dc6db9805553961e12e472c632965729",
+   "run_id": "8cefe0cb2697",
+   "input_sha256": "4268aea8aefefbde0fa2c55db3b6c1698ce8eeeec295417009eb2db39889b49e",
    "input_file": "SYNTHETIC_portfolio_Q1_2027.xlsx",
    "policy_version": "2027Q1-0.1",
    "engine_version": "0.1.0",
@@ -5436,19 +5436,7 @@
     "action": "Revalue",
     "approval": "Not approved",
     "monitor": true,
-    "open_items": [
-     {
-      "company": "Redgrove Health",
-      "kind": "term_sheet",
-      "opened": "2027-03-15",
-      "opened_quarter": "Q1 2027",
-      "expected_resolution": null,
-      "amount_musd": 40.0,
-      "detail": "Signed the morning of the close.",
-      "age_quarters": 0,
-      "escalated": false
-     }
-    ],
+    "open_items": [],
     "alternative_marks": {
      "term_sheet_indicated": 3.8
     }
@@ -10114,7 +10102,19 @@
     "action": "Full exit",
     "approval": "Decision recorded",
     "monitor": false,
-    "open_items": [],
+    "open_items": [
+     {
+      "company": "Knollward",
+      "kind": "unconfirmed_exit",
+      "opened": "2027-02-20",
+      "opened_quarter": "Q1 2027",
+      "expected_resolution": null,
+      "amount_musd": 30.0,
+      "detail": "exit closed 2027-02-20 at $30.0M with no cash recorded; record the closing with its proceeds when the cash arrives, or write the position to zero",
+      "age_quarters": 0,
+      "escalated": false
+     }
+    ],
     "alternative_marks": {}
    },
    {
@@ -11729,13 +11729,13 @@
     "escalated": false
    },
    {
-    "company": "Redgrove Health",
-    "kind": "term_sheet",
-    "opened": "2027-03-15",
+    "company": "Knollward",
+    "kind": "unconfirmed_exit",
+    "opened": "2027-02-20",
     "opened_quarter": "Q1 2027",
     "expected_resolution": null,
-    "amount_musd": 40.0,
-    "detail": "Signed the morning of the close.",
+    "amount_musd": 30.0,
+    "detail": "exit closed 2027-02-20 at $30.0M with no cash recorded; record the closing with its proceeds when the cash arrives, or write the position to zero",
     "age_quarters": 0,
     "escalated": false
    }

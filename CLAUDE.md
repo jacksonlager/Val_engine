@@ -128,6 +128,22 @@ at 1440px, screenshot the affected card or view, and check the console is clean.
 rendered `document.body.innerText` and grepping it for snake_case, raw enums, CLI flags and repo
 paths is a cheap way to catch machine vocabulary leaking onto a reviewer's screen.
 
+## Test quarters and ledgers (added by the hardening pass — see HARDENING_REPORT.md)
+
+- `data/overrides.yaml` and `data/published/` are the **committee's** ledger. Anything that is not a real
+  committee decision goes to its own ledger: `--ledger-dir <dir>` (every engine command) or
+  `RunPaths.default(ledger_dir=…)` moves overrides, proposals, precedent and published snapshots together.
+  A trial decision clicked into the real ledger and committed once cost 34 red tests (D-0 in the report).
+- `data/quarters/synthetic/` is the synthetic test chain (Q4 2026 → Q2 2027) with its own `ledger/`;
+  `scripts/synthetic_chain.py` builds and drives it; expectations live beside it and are committed before a
+  run. Every workbook there says SYNTHETIC in its name and first sheet. Never write to `Assignment context/`.
+- `--provider synthetic` reads `data/synthetic_market/<as_of>.yaml` (invented multiples for dates no feed can
+  price; `scripts/make_synthetic_market.py`). It labels everything `synthetic:` and never calibrates a mark.
+  The served dashboard's Workbook select (`GET /api/workbooks`, `POST /api/workbook`) picks the policy,
+  ledger and provider per workbook.
+- Threshold comparisons go through `marking.ratio` / `ratio_change`; a figure exactly at a policy line is
+  *at* it, not beyond it (`tests/test_threshold_boundaries.py`).
+
 ## State
 
 Branch **`v1-refresh`**. `main` holds an earlier full-redesign UI that was set aside — work

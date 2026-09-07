@@ -448,6 +448,8 @@ def write_malformed(slug: str, clean: Path) -> None:
     if mdir.exists():
         shutil.rmtree(mdir)
     mdir.mkdir(parents=True)
+    # the clean quarter's sidecar travels with the variants, so each one shows exactly its own defect
+    shutil.copy(clean.parent / "open_items_carry.yaml", mdir / "open_items_carry.yaml")
     label = LABEL[slug]
     act_name = f"{label} Activity"
     year = label.split()[1]
@@ -520,6 +522,16 @@ def write_malformed(slug: str, clean: Path) -> None:
         ws.append([c.value for c in ws[2]])
     variant("duplicate_activity_row", duplicate_activity)
 
+    def duplicate_priced_round(wb):
+        ws = wb[act_name]
+        ev, inv = _find(ws, "Event"), _find(ws, "HC Investment ($M)")
+        for r in range(2, ws.max_row + 1):
+            if ws.cell(row=r, column=ev).value == "Priced Equity Round" and ws.cell(row=r, column=inv).value:
+                ws.append([c.value for c in ws[r]])
+                return
+        raise KeyError("no funded priced round to duplicate")
+    variant("duplicate_funded_round_row", duplicate_priced_round)
+
 
 # ----------------------------------------------------------------------------- compare
 
@@ -527,7 +539,17 @@ def compare(slug: str) -> int:
     """Run the quarter and diff against expectations/<slug>.yaml. Exit code = number of mismatches."""
     exp_path = CHAIN / "expectations" / f"{slug}.yaml"
     exp = yaml.safe_load(exp_path.read_text())
-    r, paths, provider = run_quarter(slug)
+    # Expectations describe the quarter *before* anyone decides it. The chain ledger may already carry
+    # this quarter's decisions (a re-run after a fix), so compare against a copy with them removed.
+    paths = paths_for(slug)
+    undecided = CHAIN / "build" / f"undecided_{slug}_overrides.yaml"
+    raw = yaml.safe_load(paths.overrides.read_text()) if paths.overrides.exists() else {}
+    keep = [o for o in (raw or {}).get("overrides", []) or [] if o.get("quarter") != LABEL[slug]]
+    undecided.parent.mkdir(parents=True, exist_ok=True)
+    undecided.write_text(yaml.safe_dump({"overrides": keep}, sort_keys=False, allow_unicode=True))
+    paths.overrides = undecided
+    provider = provider_for(ROOT, paths.policy)
+    r = execute(paths, provider=provider, adjudicate=False, generated_at=GENERATED_AT[slug])
     run = r.run
     by = run.by_company()
     mismatches: list[str] = []

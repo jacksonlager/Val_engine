@@ -139,6 +139,12 @@ companies:
     proposed_mark: 37.2552
     readiness: Ready
     flags_include: [X-201]
+    superseded: true
+    resolution: >
+      Derivation error, found on the first run (03:10): I computed ownership x post-money (37.2552) where the
+      book's own Prior Mark is 37.3 — the original workbook rounds marks to one decimal and the two agree
+      within the 0.05 reconciliation tolerance — and M-000 carries the book's figure, not a recomputation.
+      X-201 and Ready matched. Kept as first written.
   Nightloom Security:       # round 2023-05-09: 49.7 months -> X-202
     proposed_mark: 0.8
     readiness: Needs Review

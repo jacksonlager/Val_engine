@@ -274,6 +274,22 @@ position blocks (X-900), and the flag names the cell to fix. The gauntlet is par
 `pytest` (`tests/test_gauntlet.py`), so a future rule change that breaks any scenario
 fails the build.
 
+## Test quarters, separate ledgers, invented market data
+
+Every engine command accepts `--ledger-dir <dir>` (and `--overrides <file>`): decisions, proposals,
+precedents and published snapshots for that run land there instead of `data/`. Use it for any run that
+is not the committee's book — a rehearsal, a synthetic quarter — so `data/overrides.yaml` stays the
+audit trail it is meant to be. The served dashboard reports which ledger it writes to (`/api/health`),
+and its header carries a **Workbook** select: switching to another workbook brings that quarter's policy
+file, its own ledger and the market provider that can price its date, and produces a distinct run id.
+
+`--provider synthetic` reads `data/synthetic_market/<measurement date>.yaml`, a file that must declare
+`synthetic: true`, and labels every multiple `synthetic:…`; the Market tab prints a warning above the
+numbers and the engine never calibrates a mark to them. `scripts/make_synthetic_market.py` writes those
+files. The synthetic test chain under `data/quarters/synthetic/` (three quarters rolled forward from the
+published Q3 book, each decided and published into its own ledger) is described in `HARDENING_REPORT.md`
+and driven by `scripts/synthetic_chain.py`.
+
 ## Refreshing next quarter
 
 1. Take `dist/portfolio_Q4_2026.xlsx` from the previous `build` (booked marks are now
