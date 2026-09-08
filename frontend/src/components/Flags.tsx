@@ -408,9 +408,8 @@ function ConfirmModal({
         )}
       </div>
       <p className="text-[11.5px] text-muted leading-snug mb-3">
-        This records a committee decision on “{finding}” under your name (ledger reference {f.rule_id}): the recorded mark
-        changes, the proposal does not. It re-runs into the totals, the exports and the archive. Nothing is booked until the
-        quarter is published.
+        Records your decision on “{finding}” under your name. The recorded mark changes; the proposed mark stays on file
+        beside it. Nothing is final until the quarter is published.
       </p>
       {gap && (
         <label className="ack">

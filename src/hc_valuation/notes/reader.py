@@ -133,7 +133,7 @@ class ClaudeReader:
     def unavailable_reason(self) -> str | None:
         """Why the model cannot be called from here, or None when it can."""
         if not self.api_key:
-            return "ANTHROPIC_API_KEY not set"
+            return "no model key is set in this environment"
         if importlib.util.find_spec("anthropic") is None:
             return "the anthropic package is not installed for this Python (pip install -e \".[adjudication]\")"
         return None

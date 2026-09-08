@@ -838,7 +838,7 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
                         "lockup_end": lockup_end, **({"note_converted": note_converted} if note_converted else {})},
            w.proposed_mark, new_equity,
            (f"{e.detail}." if (e.detail or "").lower().startswith("listed") else f"Listed ({e.detail}).")
-           + f" Mark = {after:.1%} × ${cap:,.0f}M market cap at measurement date (source: {source})"
+           + f" Mark = {after:.1%} × ${cap:,.0f}M market cap at measurement date ({price_source_words(source)})"
            + (f" less {disc:.0%} lock-up discount" if disc else
               (" with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security)" if has_lockup
                else " with no lock-up: the shares are freely tradable" + (" (per the row)" if said_no_lockup else " (a direct listing)")))
@@ -847,7 +847,7 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
     md = cfg.quarter.measurement_date
     seeded = source.startswith("stub:") or abs(cap - float(e.value)) < 1e-9
     if seeded:
-        quote_line = (f"No exchange quote is on file for the {md.isoformat()} close: the quote in this run is {source} "
+        quote_line = (f"No exchange quote is on file for the {md.isoformat()} close: the quote in this run is {price_source_words(source)} "
                       f"(${cap:,.0f}M market cap), so the proposed mark is the listing-day market cap of ${float(e.value):,.0f}M "
                       f"and stands in for the close until the actual {md.strftime('%d %b')} price is confirmed.")
         quote_point = (f"Now **listed**: the mark should be the **{md.isoformat()} close**; no quote is on file, so the "
@@ -1581,6 +1581,22 @@ def is_standin_price(source: object) -> bool:
     return src.startswith(STANDIN_PRICE_SOURCES) or "seeded" in src
 
 
+def price_source_words(source: object) -> str:
+    """The quote's provenance in words a reviewer reads; the machine label stays in the step inputs."""
+    src = str(source or "")
+    if src == "stub:seeded_to_ipo_print":
+        return "a stand-in seeded to the listing price, not an exchange close"
+    if src.startswith("stub:seeded_to_ipo_print"):
+        return "a stand-in drifted from the listing price, not an exchange close"
+    if src == "ipo_print":
+        return "the listing price"
+    if src.startswith("live:"):
+        return "the exchange close"
+    if src.startswith("stub:"):
+        return "illustrative, not an exchange close"
+    return src.replace("_", " ") or "unknown"
+
+
 def listed_carry(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     """A listed position has a daily price; carrying last quarter's number forward is a stale mark,
     not a carry. With a quote: ownership × market cap, Level 1. Without: M-000 and X-113 BLOCK.
@@ -1614,7 +1630,7 @@ def listed_carry(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     w.step("M-041", V, {"measurement_date_market_cap": cap, "price_source": quote.source, "ownership": w.ownership,
                         "prior_market_cap": w.latest_post, "quote_as_of": quote.as_of},
            w.proposed_mark, new_equity + w.note_at_cost,
-           f"Listed position, no event. Mark = {w.ownership:.1%} × ${cap:,.0f}M market cap at {md.isoformat()} (source: {quote.source})"
+           f"Listed position, no event. Mark = {w.ownership:.1%} × ${cap:,.0f}M market cap at {md.isoformat()} ({price_source_words(quote.source)})"
            + (f" vs ${w.latest_post:,.0f}M at the prior close" if w.latest_post else "") + ". Level 1.")
     w.equity_mark = new_equity
     w.latest_post = cap
@@ -1623,10 +1639,10 @@ def listed_carry(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     if is_standin_price(quote.source):
         w.flag("X-113", "treatment", Severity.BLOCK,
                f"{w.pos.company} is listed, and the market data has no {md.isoformat()} close for it: the ${cap:,.0f}M market "
-               f"cap behind the mark is a stand-in ({quote.source}), not a price. A Level 1 security is worth its close, so "
+               f"cap behind the mark is {price_source_words(quote.source)}. A Level 1 security is worth its close, so "
                "the position cannot be booked until the quarter-end market capitalisation is supplied.",
                points=(f"Listed, but the market data has **no close at {md.isoformat()}**.",
-                       f"The **${cap:,.0f}M market cap** in the mark is a **stand-in** ({quote.source}), not a price.",
+                       f"The **${cap:,.0f}M market cap** in the mark is **{price_source_words(quote.source)}**.",
                        "A **Level 1** security is worth its close; supply it to book the position."),
                suggestions=(
                    Suggest("hold_prior", "Hold last quarter's mark until the close is supplied.", ("The only stopgap without a quote; a stale Level 1 mark is still wrong.", "Rerun once the market cap is in the feed."), "prior"),

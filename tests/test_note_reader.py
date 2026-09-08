@@ -192,7 +192,7 @@ def test_claude_reader_without_a_key_is_off_and_makes_no_call(tmp_path: Path, cf
     _, feed = read_workbook(wb, cfg)
     reader = ClaudeReader(tmp_path / "cache", model="m", api_key="")
     readings, report = read_feed(feed, reader)
-    assert readings == {} and report.status == "off" and "ANTHROPIC_API_KEY" in report.reason and reader.calls == 0
+    assert readings == {} and report.status == "off" and "key" in report.reason and reader.calls == 0
     assert not (tmp_path / "cache").exists()
 
 

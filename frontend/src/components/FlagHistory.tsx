@@ -161,19 +161,6 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
           )}
         </div>
       )}
-      {prior.some((p) => !p.disposition) && (
-        <p className="text-[10.5px] text-muted mt-2 mb-0 leading-snug">
-          The trail fills itself: publishing a quarter writes that quarter's flags into the archive, so from the next close this card shows
-          what each position was flagged for now. Earlier quarters can be added from prior workpapers.
-        </p>
-      )}
-      {prior.some((p) => p.flags_source === "reconstructed") && (
-        <p className="text-[10.5px] text-muted mt-2 mb-0 leading-snug">
-          <i>Re-screened</i> means no snapshot was released for that quarter, so the book it closed on was screened again by the current
-          policy at that date: staleness at the prior close, growth, runway and multiple screens on the metrics the book carried. Once a
-          quarter is published, its released flags replace this.
-        </p>
-      )}
     </div>
   );
 }

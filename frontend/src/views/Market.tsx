@@ -116,7 +116,7 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
           </Meta>
         )}
         {served && <MarketStatusButton refreshKey={rep.fetched_at ? rep.fetched_at.length : 0} />}
-        <Meta k="Comparables" title={`Basket definitions: ${rep.baskets_file}`}>
+        <Meta k="Comparables" title="Comparable-company baskets: listed names per sector, medianed each month">
           {rep.sectors.length} sectors, {names} public companies
         </Meta>
       </div>
@@ -164,19 +164,10 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
           <dd className="m-0 mono text-ink2">{rep.source}</dd>
           <dt className="text-muted">Fetched at</dt>
           <dd className="m-0 mono text-ink2">{rep.fetched_at ? isoDateTime(rep.fetched_at) : "nothing was fetched"}</dd>
-          <dt className="text-muted">Cache</dt>
-          <dd className="m-0 mono text-ink2">
-            {rep.cache ? (
-              <>
-                {rep.cache.dir}{" "}
-                <span className={rep.cache.hit ? "text-[var(--clear-text)]" : "text-[var(--review-text)]"}>{rep.cache.hit ? "hit" : "miss"}</span>
-              </>
-            ) : (
-              "no cache was used"
-            )}
+          <dt className="text-muted">Data on file</dt>
+          <dd className="m-0 text-ink2">
+            {rep.cache ? (rep.cache.hit ? "Read from the saved feed for this quarter" : "Fetched fresh on this run and saved") : "Nothing saved for this run"}
           </dd>
-          <dt className="text-muted">Basket definitions</dt>
-          <dd className="m-0 mono text-ink2">{rep.baskets_file || "none — invented data has no constituents"}</dd>
           {rep.synthetic_file && (
             <>
               <dt className="text-muted">Synthetic data file</dt>

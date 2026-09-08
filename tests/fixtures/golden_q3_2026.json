@@ -2920,7 +2920,7 @@
       "price_source_note": "Synthetic ticker; no live feed can price it. Seeded to the IPO print \u2014 replace with the measurement-date close."
      },
      "family": "treatment",
-     "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round. No exchange quote is on file for the 2026-09-30 close: the quote in this run is stub:seeded_to_ipo_print ($3,931M market cap), so the proposed mark is the listing-day market cap of $3,931M and stands in for the close until the actual 30 Sep price is confirmed. HC also cannot sell until 2027-03-19. Under ASU 2022-03 a contractual sale restriction is not a characteristic of the security and takes no discount, so policy applies 0%; the committee ratifies that.",
+     "message": "The position is now listed, so the mark comes from a market capitalisation rather than a funding round. No exchange quote is on file for the 2026-09-30 close: the quote in this run is a stand-in seeded to the listing price, not an exchange close ($3,931M market cap), so the proposed mark is the listing-day market cap of $3,931M and stands in for the close until the actual 30 Sep price is confirmed. HC also cannot sell until 2027-03-19. Under ASU 2022-03 a contractual sale restriction is not a characteristic of the security and takes no discount, so policy applies 0%; the committee ratifies that.",
      "points": [
       "Now **listed**: the mark should be the **2026-09-30 close**; no quote is on file, so the **$3,931M listing-day market cap** stands in (stub:seeded_to_ipo_print).",
       "HC **cannot sell until 2027-03-19**.",
@@ -3033,7 +3033,7 @@
      },
      "new_value": 110.068,
      "prior_value": 80.3,
-     "rationale": "Listed on Nasdaq. Mark = 2.8% \u00d7 $3,931M market cap at measurement date (source: stub:seeded_to_ipo_print) with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security). Fair value hierarchy: Level 3 \u2192 Level 1.",
+     "rationale": "Listed on Nasdaq. Mark = 2.8% \u00d7 $3,931M market cap at measurement date (a stand-in seeded to the listing price, not an exchange close) with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security). Fair value hierarchy: Level 3 \u2192 Level 1.",
      "rule_id": "M-040",
      "rule_version": "2026Q3.1",
      "sequence": 1

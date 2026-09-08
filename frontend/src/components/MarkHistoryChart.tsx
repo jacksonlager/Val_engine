@@ -22,8 +22,8 @@ const SOURCE_LABEL: Record<MarkHistorySource, string> = {
 };
 
 const SOURCE_TITLE: Record<MarkHistorySource, string> = {
-  backfill: "From data/mark_history.yaml — HC's own record for a quarter before the engine's first run",
-  published: "The booked mark released to executives for this quarter (data/published/)",
+  backfill: "From HC's own records for a quarter before this tool's first run",
+  published: "The booked mark released to executives for this quarter",
   prior: "The previous quarter's close as the workbook's Prior Mark column carried it into this run",
   live: "This run's booked mark; not yet published, or changed since the last publish",
 };
