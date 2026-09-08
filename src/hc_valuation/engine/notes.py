@@ -18,6 +18,7 @@ nothing in it changes nothing. Pure: readings are inputs, like market data.
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 
 from ..config import RuleConfig
@@ -91,19 +92,23 @@ def apply_readings(w: Working, events: list[Event], readings: Mapping[int, RowRe
             if unverified:
                 second += " (a quoted passage could not be matched to the row text — read the note itself)"
             meanings = [a.meaning for a in open_aspects if a.meaning]
+            # A reading whose explanation brought its own figure had that sentence withheld at
+            # validation (notes/schema.py): the reviewer is told so rather than shown a number.
+            withheld = " (the reader's explanation named a figure the row does not carry and was withheld — read the note itself)" if r.withheld else ""
             if meanings:
-                third = "What it means: " + _clip(meanings[0], 150) + ("" if len(meanings) == 1 else f" (+{len(meanings) - 1} more)")
+                third = "What it means: " + _clip(meanings[0], 150) + ("" if len(meanings) == 1 else f" (+{len(meanings) - 1} more)") + withheld
             elif r.instructions:
-                third = "The note also instructs: " + "; ".join(_clip(i, 80) for i in r.instructions[:2]) + "."
+                third = "The note also instructs: " + "; ".join(_clip(i, 80) for i in r.instructions[:2]) + "." + withheld
             else:
-                third = "**No rule took account of this**; the mark ignores it until a person decides."
+                third = "**No rule took account of this**; the mark ignores it until a person decides." + withheld
             w.flag("X-130", "notes", Severity.REVIEW,
                    f"The text on row {e.row_index} ({e.event_type}) describes {', '.join(labels).lower()} — which no rule took account "
                    f"of on this row. The engine applied the columns and ignored the rest. "
                    + " ".join(f"{BY_KIND[a.kind].label}: “{_clip(a.quote, 200)}”" + (f" — {a.note}" if a.note else "") for a in open_aspects if a.quote)
                    + (" " + " ".join(f"{BY_KIND[a.kind].label}: {a.note}" for a in open_aspects if not a.quote and a.note) if any(not a.quote for a in open_aspects) else "")
                    + (" Instructions in the note: " + " | ".join(r.instructions) if r.instructions else "")
-                   + (" What it means: " + " ".join(meanings) if meanings else ""),
+                   + (" What it means: " + " ".join(meanings) if meanings else "")
+                   + (withheld.strip().capitalize().rstrip(")").lstrip("(") + "." if withheld else ""),
                    points=(f"The note describes **{', '.join(labels).lower()}** that **no rule applied** on row {e.row_index}.", second, third),
                    suggestions=(
                        Suggest("as_proposed", "Book as proposed; reflect the note's terms by override once read.", ("The engine applied every term the columns can hold.", "Unrepresented terms need a human number, not a guess."), "proposed"),
@@ -114,10 +119,12 @@ def apply_readings(w: Working, events: list[Event], readings: Mapping[int, RowRe
                    row_index=e.row_index, kinds=[a.kind.value for a in open_aspects], quotes=[a.quote for a in open_aspects],
                    notes=[a.note for a in open_aspects], meanings=meanings, meaning=" ".join(meanings),
                    instructions=list(r.instructions), confidence=r.confidence, source=src,
-                   unverified_quotes=len(unverified))
+                   unverified_quotes=len(unverified), figures_withheld=r.withheld)
         for c in r.conflicts:
+            if c.column_value in (None, "") and not any(ch.isdigit() for ch in c.note_says):
+                continue        # "no cash received" against a blank cell is agreement, not a conflict
             col = COLUMNS.get(c.column, c.column)
-            w.flag("X-131", "data", Severity.REVIEW,
+            w.flag("X-131", "notes", Severity.REVIEW,
                    f"On row {e.row_index} the note says “{_clip(c.note_says, 200)}” but the column {col} carries {_fmt(c.column_value)}"
                    + (f" ({c.why})" if c.why else "") + ". The engine used the column. One of them is wrong, and the mark depends on which."
                    + ("" if c.verified else " (The quoted passage could not be matched to the row text; read the note itself.)"),
@@ -131,9 +138,11 @@ def apply_readings(w: Working, events: list[Event], readings: Mapping[int, RowRe
                    action=f"Confirm {col} on row {e.row_index} against the note ({_clip(c.note_says, 60)}); correct the row and rerun, or decide by override.",
                    row_index=e.row_index, column=c.column, column_value=c.column_value, note_says=c.note_says, why=c.why,
                    verified=c.verified, source=src, confidence=r.confidence)
-        if r.supersedes and not any(f.rule_id == "X-126" and f.evidence.get("row_index") == e.row_index for f in w.flags):
-            fields = list(dict.fromkeys(s.field for s in r.supersedes))
-            quote = next((s.quote for s in r.supersedes if s.quote), "")
+        sups = [s for s in r.supersedes
+                if not (s.field == "status" and re.search(r"\b(remains|unchanged|stays|still|no change)\b", s.quote, re.I))]  # a confirmation, not a supersession
+        if sups and not any(f.rule_id == "X-126" and f.evidence.get("row_index") == e.row_index for f in w.flags):
+            fields = list(dict.fromkeys(s.field for s in sups))
+            quote = next((s.quote for s in sups if s.quote), "")
             w.flag("X-126", "liquidity", Severity.REVIEW,
                    f"The note on row {e.row_index} supersedes figures the Portfolio tab carries ({', '.join(fields)}): “{_clip(quote, 200)}”. "
                    "The engine does not read numbers out of a sentence, so the screens ran on the tab's columns.",

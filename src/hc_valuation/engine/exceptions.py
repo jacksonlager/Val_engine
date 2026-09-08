@@ -60,9 +60,9 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     if g is not None:
         if g < x.arr_growth.review_below:
             w.flag("X-302", "growth", Severity.REVIEW,
-                   f"Revenue is shrinking {g:+.0%} year on year. The mark comes from a round priced on growth that is no longer "
+                   f"Revenue is shrinking {abs(g):.0%} year on year. The mark comes from a round priced on growth that is no longer "
                    "happening, so the thesis behind it is materially broken.",
-                   points=(f"Revenue is **shrinking {g:+.0%}** year on year.",
+                   points=(f"Revenue is **shrinking {abs(g):.0%}** year on year.",
                            "The mark comes from a round **priced on growth that is no longer happening**.",
                            "The **thesis behind the price is materially broken**."),
                    suggestions=(
@@ -71,7 +71,7 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
                    ),
                    action=f"Confirm the mark survives a {abs(g):.0%} revenue decline.", arr_growth=g)
         elif g < x.arr_growth.monitor_below:
-            w.flag("X-301", "growth", Severity.MONITOR, f"Revenue is down {g:+.0%} year on year — mild, but the wrong direction.", arr_growth=g)
+            w.flag("X-301", "growth", Severity.MONITOR, f"Revenue is down {abs(g):.0%} year on year — mild, but the wrong direction.", arr_growth=g)
 
     # ---- X-303 / X-304 runway, recomputed and aged by the reporting lag
     rw = p.runway_months
@@ -133,13 +133,13 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
                 comp_txt = f" (sector comp {comp.ev_to_arr:.1f}×)"
             if mult > hi:
                 w.flag("X-401", "valuation", Severity.MONITOR,
-                       f"Carried at {mult:.0f}× revenue{comp_txt}" + (f", growing {g:+.0%}" if g is not None else "")
+                       f"Carried at {mult:.0f}× revenue{comp_txt}" + (f", {_growth(g)}" if g is not None else "")
                        + ". On this screen the mark looks generous — a rough cross-check, not a valuation.",
                        implied_multiple=round(mult, 2), threshold=hi,
                        basis=("live sector median" if (x.multiple.mode == "relative_to_comps" and usable) else "absolute policy bound"))
             elif mult < lo:
                 w.flag("X-402", "valuation", Severity.MONITOR,
-                       f"Carried at {mult:.1f}× revenue{comp_txt}" + (f", growing {g:+.0%}" if g is not None else "")
+                       f"Carried at {mult:.1f}× revenue{comp_txt}" + (f", {_growth(g)}" if g is not None else "")
                        + ". On this screen the mark looks understated — undermarking is the same failure with the opposite sign.",
                        implied_multiple=round(mult, 2), threshold=lo,
                        basis=("live sector median" if (x.multiple.mode == "relative_to_comps" and usable) else "absolute policy bound"))
@@ -172,11 +172,11 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
             w.flag("X-405", "valuation", Severity.REVIEW,
                    f"The price behind this mark is {age} months old, and the current numbers disagree with it: "
                    f"{'; '.join(hits)} ({mult_txt}"
-                   + (f", growing {g:+.0%}" if g is not None else "") + "). Neither fact alone would move the "
+                   + (f", {_growth(g)}" if g is not None else "") + "). Neither fact alone would move the "
                    "mark — an old price is not a wrong price, and a screen is not a valuation — but an old price "
                    "that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
                    points=(f"Price is **{age} months old** — and today's numbers **argue with it**.",
-                           f"Screen: **{'; '.join(hits)}** ({mult_txt}" + (f", growing {g:+.0%}" if g is not None else "") + ").",
+                           f"Screen: **{'; '.join(hits)}** ({mult_txt}" + (f", {_growth(g)}" if g is not None else "") + ").",
                            "Two independent signals point the same way: **affirm or reprice**."),
                    suggestions=(
                        Suggest("as_proposed", "Affirm the last-round mark as proposed.",
@@ -214,6 +214,11 @@ def _clip(text: str, limit: int = 160) -> str:
         return text
     head = text[:limit].rsplit(" ", 1)[0].rstrip(",;:")
     return head + " …"
+
+
+def _growth(g: float) -> str:
+    """"growing +173%" or "shrinking 30%" — never "growing -30%"."""
+    return f"growing {g:+.0%}" if g >= 0 else f"shrinking {abs(g):.0%}"
 
 
 def screen_notes(w: Working, events: list[Event], cfg: RuleConfig) -> None:

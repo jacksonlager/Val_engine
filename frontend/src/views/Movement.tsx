@@ -48,7 +48,7 @@ function buildBridge(run: ValuationRun): Bridge[] {
   if (tail.length) {
     seq.push({ name: `Other (${tail.length})`, d: tail.reduce((s, m) => s + m.d, 0), members: tail.map((m) => `${m.name} ${signed(m.d)}`) });
   }
-  const out: Bridge[] = [{ name: "Prior NAV", kind: "total", base: 0, size: t.prior_nav, value: t.prior_nav, running: t.prior_nav }];
+  const out: Bridge[] = [{ name: "Prior fair value", kind: "total", base: 0, size: t.prior_nav, value: t.prior_nav, running: t.prior_nav }];
   let running = t.prior_nav;
   for (const m of seq) {
     const next = running + m.d;
@@ -63,7 +63,7 @@ function buildBridge(run: ValuationRun): Bridge[] {
     });
     running = next;
   }
-  out.push({ name: "Proposed NAV", kind: "total", base: 0, size: t.proposed_nav, value: t.proposed_nav, running: t.proposed_nav });
+  out.push({ name: "Proposed fair value", kind: "total", base: 0, size: t.proposed_nav, value: t.proposed_nav, running: t.proposed_nav });
   return out;
 }
 
@@ -141,7 +141,7 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
           Quarter-over-quarter bridge · {run.manifest.prior_close} → {run.manifest.measurement_date}
         </SectionTitle>
         <p className="text-[11px] text-muted mb-2 num">
-          Prior NAV {musd(run.totals.prior_nav, 1)} → proposed {musd(run.totals.proposed_nav, 1)} ({signed(run.totals.net_movement, 1)},{" "}
+          Prior fair value {musd(run.totals.prior_nav, 1)} → proposed {musd(run.totals.proposed_nav, 1)} ({signed(run.totals.net_movement, 1)},{" "}
           {pct(run.totals.net_movement / run.totals.prior_nav, 1, true)}). The {TAIL_AFTER} largest moves, up or down; the rest fold into Other. Axis
           starts at{" "}
           {musd(floor, 0)} so single-company steps stay legible. $M.
@@ -213,7 +213,7 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
         <div className="flex gap-4 text-[11px] text-ink2 mt-1">
           <span className="flex items-center gap-1"><i className="inline-block w-3 h-3 rounded-sm" style={{ background: th.up }} /> mark up</span>
           <span className="flex items-center gap-1"><i className="inline-block w-3 h-3 rounded-sm" style={{ background: th.down }} /> mark down / realized / written off</span>
-          <span className="flex items-center gap-1"><i className="inline-block w-3 h-3 rounded-sm" style={{ background: th.neutral }} /> NAV total</span>
+          <span className="flex items-center gap-1"><i className="inline-block w-3 h-3 rounded-sm" style={{ background: th.neutral }} /> Fair value total</span>
         </div>
       </div>
 
@@ -307,7 +307,7 @@ function CompsMoveCard({ m }: { m: CompsMove }) {
         Each sector's basket EV/revenue move this quarter applied to that sector's multiple-exposed marks. Had the book re-rated with its
         comps: <span className="text-ink2">{musd(m.nav_if_marked_with_comps, 1)}</span> (
         <span className={signClass(m.delta)}>{signed(m.delta, 1)}</span>, {pct(m.delta / m.base_nav, 2, true)}). Covers {pct(share)} of the
-        exposed NAV. Nothing here moves a mark — it is the gap between the carried book and the public market's quarter.
+        exposed fair value. Nothing here moves a mark — it is the gap between the carried book and the public market's quarter.
       </p>
       <div className="overflow-x-auto">
         <table className="dtable text-[11.5px] w-full">
@@ -351,7 +351,7 @@ function BridgeTable({ data }: { data: Bridge[] }) {
         <tr>
           <th>Step</th>
           <th className="r">Change or total</th>
-          <th className="r">Running NAV</th>
+          <th className="r">Running total</th>
         </tr>
       </thead>
       <tbody>

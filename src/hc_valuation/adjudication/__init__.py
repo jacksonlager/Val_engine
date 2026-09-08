@@ -103,11 +103,19 @@ def adjudicate_run(run: ValuationRun, feed: ActivityFeed, cfg: RuleConfig, paths
             if cfg.adjudication.cache_proposals and path.exists():
                 try:
                     cached = TreatmentProposal.from_json(path.read_text(encoding="utf-8"))
-                    # A pending draft the stub wrote while no model was reachable is replaced once one is: the
-                    # stub's briefing is generic by construction. A decided proposal is never rewritten.
-                    stale_stub = (cached.status == "pending" and cached.provenance.model.startswith("stub")
-                                  and getattr(proposer, "name", "") == "claude" and getattr(proposer, "available", False))
-                    if not stale_stub:
+                    # The proposal id keys on the event and the rule catalogue, not on the prompt or the
+                    # model, so a pending draft is redrafted whenever a model is reachable and the cached
+                    # one is not that model's answer under today's prompt: a stub draft written while no
+                    # model was reachable (its briefing is generic by construction), or a model draft from
+                    # an earlier prompt or model. A decided proposal is never rewritten, and with no model
+                    # reachable an older model draft is kept — it is still better than the stub's.
+                    model_reachable = getattr(proposer, "name", "") == "claude" and getattr(proposer, "available", False)
+                    prov = cached.provenance
+                    stale = cached.status == "pending" and model_reachable and (
+                        prov.model.startswith("stub")
+                        or prov.prompt_sha256 != getattr(proposer, "prompt_sha256", prov.prompt_sha256)
+                        or prov.model != getattr(proposer, "model", prov.model))
+                    if not stale:
                         proposals.append(cached)
                         continue
                 except Exception as ex:  # noqa: BLE001 — a corrupt cache file is re-proposed, not fatal
@@ -119,7 +127,12 @@ def adjudicate_run(run: ValuationRun, feed: ActivityFeed, cfg: RuleConfig, paths
             except Exception as ex:  # noqa: BLE001 — adjudication is assist, never a dependency
                 log.warning("proposer %s failed for %s (%s); position stays blocked under M-999", proposer.name, company, ex)
                 continue
-            save_proposal(path, proposal)
+            try:
+                save_proposal(path, proposal)
+            except OSError as ex:
+                # The draft is in hand and reaches the run; a proposals folder that cannot be written
+                # costs one repeat call next run, never the run itself.
+                log.warning("could not save proposal %s for %s (%s); the draft is served from memory", pid, company, ex)
             proposals.append(proposal)
     return proposals
 

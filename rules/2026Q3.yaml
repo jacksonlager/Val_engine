@@ -120,7 +120,9 @@ note_screen:
           anti-dilution, waived, indemnification, indemnity, clawback, side letter, guarantee,
           redemption, impairment, write-down, writedown, write-off, recapitalization,
           insolvency, receivership, lawsuit, dispute, fraud, restatement, rollover, stock-for-stock,
-          layoffs, missed payroll, pari passu, waterfall, reconcile, reconciled, do not reconcile, does not reconcile]
+          layoffs, missed payroll, pari passu, waterfall, reconcile, reconciled, do not reconcile, does not reconcile,
+          liquidating, dissolved, dissolution, sale of the business, wound up, all-stock, acquirer shares,
+          shares of the acquirer, stock consideration, insolvent, euros, pounds, sterling, pre-money, pre money, payroll]
   # NB: a term that appears in the shipped Q3 2026 notes in a routine sense (pro rata, cash,
   # interest, bridge, recap, extension) is deliberately not on this list; the reader covers those.
 

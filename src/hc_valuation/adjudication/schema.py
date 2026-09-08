@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import contextvars
 import hashlib
+import re
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from typing import Any, Iterator, Literal
@@ -42,6 +43,11 @@ ENGINE_OPERATORS: tuple[str, ...] = ("*", "/", "+", "-", "min", "max")
 
 ProposedKind = Literal["reuse", "new_rule"]
 BRIEFING_KEYS: tuple[str, ...] = ("what_happened", "why_no_rule", "what_it_means", "suggested_course", "what_to_check")
+# A money amount in prose: "$15M", "$ 15.0 million", "15.0M", "12bn". A bare count or a percentage is not one.
+_AMOUNT = re.compile(r"\$\s?\d|\b\d[\d,]*(?:\.\d+)?\s?(?:m|mm|mn|bn|k|million|billion|thousand)\b", re.I)
+_NO_AMOUNT_KEYS = ("what_it_means", "suggested_course")
+_AMOUNT_WITHHELD = ("The draft's sentence here named an amount and was withheld: a draft proposes a rule, and the engine "
+                    "computes the number once a person has decided.")
 ProposalStatus = Literal["pending", "accepted_once", "promoted", "rejected"]
 Decision = Literal["accept_once", "promote", "reject"]
 
@@ -177,6 +183,11 @@ class TreatmentProposal(BaseModel):
             if k not in BRIEFING_KEYS:
                 continue                                    # a key the card does not show is dropped, not fatal
             text = " ".join(str(text or "").split())
+            if text and k in _NO_AMOUNT_KEYS and _AMOUNT.search(text):
+                # The two fields where a "number to book" would appear are never shown with one:
+                # the prompt forbids it, the formula is the treatment, and the engine computes the
+                # figure. The card says why the sentence is missing rather than showing the number.
+                text = _AMOUNT_WITHHELD
             if text:
                 out[k] = text[:600]
         return out

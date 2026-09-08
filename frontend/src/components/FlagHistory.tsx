@@ -164,11 +164,7 @@ export function FlagHistoryCard({ c }: { c: CompanyResult }) {
       {prior.some((p) => !p.disposition) && (
         <p className="text-[10.5px] text-muted mt-2 mb-0 leading-snug">
           The trail fills itself: publishing a quarter writes that quarter's flags into the archive, so from the next close this card shows
-          what each position was flagged for now. Earlier quarters can be entered by hand in the{" "}
-          <span className="hint underline decoration-dotted underline-offset-2" title="data/mark_history.yaml">
-            mark history file
-          </span>
-          .
+          what each position was flagged for now. Earlier quarters can be added from prior workpapers.
         </p>
       )}
       {prior.some((p) => p.flags_source === "reconstructed") && (

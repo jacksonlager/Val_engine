@@ -9,7 +9,6 @@ import { SourcesProvider } from "./lib/sources";
 import { RationaleProvider } from "./lib/rationale";
 import { shortDate, isoDateTime } from "./lib/format";
 import { marketSourceLabel, shortRef } from "./lib/labels";
-import { DispChip } from "./components/ui";
 import { PublishControls } from "./components/Publish";
 import { QueueView } from "./views/Queue";
 import { CompaniesView } from "./views/Companies";
@@ -260,8 +259,8 @@ export default function App() {
               >
                 {v.label}
                 {v.id === "queue" && (run.totals.readiness?.Blocked ?? 0) > 0 && (
-                  <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--block-text)]"}`} title="Blocked positions">
-                    {run.totals.readiness?.Blocked ?? 0}
+                  <span className={`ml-1.5 text-[10.5px] font-normal ${view === v.id ? "" : "text-[var(--block-text)]"}`} title="Positions blocked on a missing input">
+                    {run.totals.readiness?.Blocked ?? 0} blocked
                   </span>
                 )}
                 {v.id === "proposals" && proposalCount > 0 && (
@@ -433,7 +432,7 @@ export default function App() {
                 {run.validation.map((v, i) => (
                   <li key={i} className={`card disp-${v.severity} stripe p-2 pl-3 text-[12px]`}>
                     <div className="flex items-center gap-2">
-                      <DispChip d={v.severity} />
+                      <span className={`chip no-dot disp-${v.severity}`}>{v.blocking ? "Fix before publishing" : "Confirm"}</span>
                       <span className="mono font-medium">{v.rule_id}</span>
                       {v.company && <span>{v.company}</span>}
                       {v.sheet && (
@@ -442,13 +441,8 @@ export default function App() {
                           {v.row_index !== null && ` row ${v.row_index}`}
                         </span>
                       )}
-                      {v.blocking && (
-                        <span className="ml-auto text-[10px] uppercase tracking-wider text-[var(--block-text)]" title="This has to be fixed before the quarter can be published.">
-                          Blocking
-                        </span>
-                      )}
                     </div>
-                    <p className="mt-1 text-ink2">{v.message}</p>
+                    <p className="mt-1 text-ink2">{v.message.charAt(0).toUpperCase() + v.message.slice(1)}</p>
                   </li>
                 ))}
               </ul>

@@ -282,8 +282,12 @@ class ClaudeProposer:
 
     name = "claude"
 
+    # A reply carries a formula, a rationale, the missing facts and five briefing sentences of up
+    # to 600 characters each — close to 1,200 tokens on its own, so that cap could cut the JSON
+    # mid-briefing and the stub would answer instead, silently. The cap is a ceiling only; the
+    # timeout has to let a full reply finish.
     def __init__(self, model: str = DEFAULT_MODEL, fallback: Proposer | None = None, api_key: str | None = None,
-                 max_tokens: int = 1200, timeout_s: float = 30.0) -> None:
+                 max_tokens: int = 2500, timeout_s: float = 60.0) -> None:
         self.model = model
         self.fallback = fallback or StubProposer()
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")

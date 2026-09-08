@@ -105,6 +105,8 @@ def _related_party_flags(w: Working, e: Event, rid: str, cfg: RuleConfig, post: 
     text = _text(e)
     hc_led = any(t in text for t in _HC_LED_TERMS)
     insider = any(t in text for t in _INSIDER_TERMS)
+    if hc_led or insider:
+        w.handled(e, "insider", "internal round", "existing holders", "existing investors", "led by hc", "hc led", "no new investor", "no outside", "inside round")
     if hc_led:
         w.flag("X-117", "related_party", Severity.REVIEW,
                f"The notes say HC led this round ({rid}). A price set by an existing investor that is also the party marking "
@@ -206,6 +208,7 @@ def _primary_price_checks(w: Working, e: Event, cfg: RuleConfig, *, post: float,
         step = ratio(post, prior_post)
         text = _text(e)
         outside = any_term_in(_NEW_LEAD_TERMS, text)     # "no new investor" names nobody
+        w.handled(e, "insider", "internal round", "existing holders", "existing investors", "no new investor", "no outside", "outside investor", "step-up")
         if outside:
             w.flag("X-122", "treatment", Severity.MONITOR,
                    f"A {step:.1f}× step-up (${prior_post:.1f}M → ${post:.1f}M) set by an outside investor the row names. "
@@ -411,6 +414,20 @@ def priced_round(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
 
     _dilution_check(w, e, cfg, before, after)
     _related_party_flags(w, e, rid, cfg, post=post, prior_post=prior_post)
+    if prior_post and post >= prior_post and any_term_in(("down round", "down-round", "downround"), _text(e)):
+        w.handled(e, "down round", "down-round")
+        w.flag("X-135", "data", Severity.REVIEW,
+               f"The row calls this a down round, but the ${post:.1f}M post-money is not below the ${prior_post:.1f}M last round. "
+               "Either the label is wrong or the figure is: a down round priced above the last round cannot both be true.",
+               points=(f"The row says **down round**; the price says **${post:.1f}M ≥ ${prior_post:.1f}M**.",
+                       "The **label and the figure disagree**.",
+                       "Confirm which is right before the mark rests on it."),
+               suggestions=(
+                   Suggest("as_proposed", "Book the stated price; correct the label.", ("The columns are the input the engine can audit.", "Right if the wording is loose."), "proposed"),
+                   Suggest("hold_prior", "Hold the prior mark until the row is corrected.", ("A price that contradicts its own description is not evidence yet.", "Rerun after the fix."), "prior"),
+               ),
+               action=f"Confirm whether the ${post:.1f}M is right (the label is wrong) or the round really was priced below ${prior_post:.1f}M.",
+               post_money=post, prior_post_money=prior_post)
     w.equity_mark = new_equity
     if note_converted:
         _note_converted(w, e, note_converted, post, after, "the round")
@@ -475,7 +492,21 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
                                      opened_quarter=w.quarter_label, amount_musd=e.value,
                                      detail=f"exit closed {e.date.isoformat()} at ${float(e.value or 0):.1f}M with no cash recorded; "
                                             "record the closing with its proceeds when the cash arrives, or write the position to zero"))
-    elif implied is not None and abs(implied - proceeds) > cfg.tolerances.prior_mark_reconciliation_musd * 10:
+    elif implied is not None and proceeds - implied > cfg.tolerances.prior_mark_reconciliation_musd * 10:
+        w.flag("X-101", "treatment", Severity.REVIEW,
+               f"HC received ${proceeds:.2f}M, more than the ${implied:.2f}M its {w.ownership:.1%} of a ${float(e.value):.0f}M deal "
+               "would give pro rata. A liquidation preference or participation pays more than the common share; so does a wrong "
+               "ownership or deal-value cell.",
+               points=(f"Received **${proceeds:.2f}M**, **more than** the ${implied:.2f}M that {w.ownership:.1%} of ${float(e.value):.0f}M gives pro rata.",
+                       "A **preference or participation** pays more than the common share — or a cell is wrong.",
+                       "Confirm the waterfall; the cash received is booked either way."),
+               suggestions=(
+                   Suggest("as_proposed", "Book the cash received as realized; confirm the preference that produced it.", ("Cash received is the fact.", "A preference paying out is the ordinary reason for excess over pro rata."), "proposed"),
+               ),
+               action=f"Confirm why HC received ${proceeds - implied:.2f}M more than its pro-rata share (preference, participation, or a wrong cell).",
+               implied=implied, proceeds=proceeds, excess=round(proceeds - implied, 6))
+        w.handled(e, "preference", "participating", "participation", "waterfall", "senior")
+    elif implied is not None and implied - proceeds > cfg.tolerances.prior_mark_reconciliation_musd * 10:
         w.flag("X-101", "treatment", Severity.REVIEW,
                f"HC received ${proceeds:.2f}M, but its {w.ownership:.1%} of a ${float(e.value):.0f}M deal implies ${implied:.2f}M. "
                "A gap that size is usually escrow, a holdback, or transaction fees.",
@@ -496,6 +527,47 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
                                      detail=f"exit closed {e.date.isoformat()}: ${proceeds:.2f}M received against ${implied:.2f}M implied; "
                                             f"${abs(implied - proceeds):.2f}M in escrow, holdback or fees to confirm"))
     w.realized_quarter += proceeds
+    w.flags = [f for f in w.flags if f.rule_id != "X-116"]      # a Chapter 11 question is moot once the position has closed
+    retained = float(e.ownership_after) if e.ownership_after else 0.0
+    if retained > 0 and e.value:
+        # HC rolled part of its stake into the buyer: the cash is realized, the rest is a new holding in
+        # another company, priced at the deal like a stock-consideration exit (M-024), and blocked the same way.
+        # The proceeds gap the cash branch measured against the whole stake is not an escrow here: it is the
+        # rolled stake, which the finding below carries.
+        w.flags = [f for f in w.flags if not (f.rule_id == "X-101" and "implied" in f.evidence)]
+        w.open_items = [i for i in w.open_items if i.kind != OpenItemKind.UNCONFIRMED_EXIT]
+        deal = float(e.value)
+        rolled = retained * deal
+        w.step("M-024", V, {"deal_value": deal, "ownership_retained": retained, "proceeds": proceeds, "rolled_value": round(rolled, 6)},
+               0.0, rolled + 0.0,
+               f"HC kept {retained:.1%} of the deal in the buyer's shares (${rolled:.2f}M at the ${deal:.1f}M deal value) alongside the "
+               f"${proceeds:.2f}M of cash. The rolled stake is a new holding, not an escrow: it stays on the book, priced at the deal.", e)
+        w.flag("X-112", "treatment", Severity.BLOCK,
+               f"HC rolled {retained:.1%} into the buyer: ${rolled:.2f}M of the consideration is shares in another company, priced here "
+               "at the deal value, which is not a price for what HC now holds. If the buyer is listed this is Level 1; if private, a new "
+               "Level 3 position.",
+               points=(f"HC **rolled {retained:.1%}** into the buyer: **${rolled:.2f}M** in the buyer's shares.",
+                       "Priced at the **deal value**, which is not a price for what HC now holds.",
+                       "Listed buyer → **Level 1**; private → a new **Level 3** position."),
+               suggestions=(
+                   Suggest("as_proposed", "Carry the rolled stake at the deal value as proposed.", ("The deal value is the only price for the new holding.", "Right if the buyer is private or the lock-up is short."), "proposed"),
+                   Suggest("write_to_zero", "Book the cash only and carry the rolled stake at zero until it is priced.", ("Nothing observable prices the buyer's shares yet.", "Conservative; corrected once the buyer is identified and priced."), "value", value=0.0),
+               ),
+               action="Confirm the buyer, whether it is listed, the share count HC holds and any lock-up; then price the rolled stake.",
+               deal_value=deal, ownership_retained=retained, rolled_value=round(rolled, 6), proceeds=proceeds)
+        w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.ACQUIRER_SHARES, opened=e.date,
+                                     opened_quarter=w.quarter_label, amount_musd=round(rolled, 6),
+                                     detail=f"{retained:.1%} rolled into the buyer on a ${deal:.1f}M deal; {e.notes or e.detail}"))
+        w.equity_mark = rolled
+        w.note_at_cost = 0.0
+        w.ownership = retained
+        w.latest_post = deal
+        w.latest_round = e.date
+        w.staleness_anchor = e.date
+        w.stage = "Acquired (stock)"
+        w.status = Status.ACTIVE
+        w.fv_level = 3
+        return
     w.equity_mark = 0.0
     w.note_at_cost = 0.0
     w.status = Status.ACQUIRED
@@ -528,7 +600,8 @@ def stock_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
            ),
            action="Confirm the acquirer, whether it is listed, the share count HC received and any lock-up.",
            deal_value=deal, ownership=w.ownership, value_of_shares=round(new_equity, 6))
-    w.handled(e, "lock-up", "lockup", "cancelled", "canceled", "exchanged", "stock", "shares")
+    w.handled(e, "lock-up", "lockup", "cancelled", "canceled", "exchanged", "stock", "shares", "all-stock", "all stock",
+              "acquirer shares", "shares of the acquirer", "stock consideration", "stock-for-stock", "rollover")
     w.open_items.append(OpenItem(company=w.pos.company, kind=OpenItemKind.ACQUIRER_SHARES, opened=e.date,
                                  opened_quarter=w.quarter_label, amount_musd=round(new_equity, 6),
                                  detail=f"Shares of acquirer received on ${deal:.1f}M deal; {e.notes or e.detail}"))
@@ -546,6 +619,7 @@ def stock_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
       description="Shutdown: mark to zero, residual proceeds to realized, status Shut Down.")
 def shutdown(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
     proceeds = float(e.proceeds or 0.0)
+    w.flags = [f for f in w.flags if f.rule_id != "X-116"]      # a Chapter 11 question is moot once the company is gone
     w.step("M-021", V, {"proceeds": proceeds, "prior_mark": w.equity_mark, "detail": e.detail},
            w.proposed_mark, 0.0,
            f"Company ceased operations. ${w.equity_mark:.1f}M written off"
@@ -595,6 +669,35 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
     new_equity = at_secondary if (basis == "secondary_price" and at_secondary is not None) else at_last_round
     spread = ratio_change(implied_post, w.latest_post) if (implied_post and w.latest_post) else None
 
+    if after <= 1e-9 and sold > 1e-12:
+        # The whole stake was sold: cash realized, nothing left to mark. Terminal, like an exit.
+        implied_whole = float(e.value) if e.value else (proceeds / sold if sold else None)
+        w.step("M-030", V, {"ownership_before": before, "ownership_after": 0.0, "ownership_sold": round(sold, 6), "proceeds": proceeds,
+                            "implied_post_money": implied_whole, "last_round_post_money": w.latest_post},
+               w.proposed_mark, 0.0,
+               f"HC sold its entire {before:.1%} stake for ${proceeds:.1f}M"
+               + (f" at ${implied_whole:.1f}M post ({ratio_change(implied_whole, w.latest_post):+.1%} vs the last round)" if implied_whole and w.latest_post else "")
+               + ". Position realized; mark to zero.", e)
+        if implied_whole and w.latest_post and abs(ratio_change(implied_whole, w.latest_post)) > cfg.exceptions.secondary.spread_tolerance_pct:
+            w.flag("X-104", "treatment", Severity.REVIEW,
+                   f"The sale of the whole stake implies ${implied_whole:.1f}M for the company, {ratio_change(implied_whole, w.latest_post):+.1%} "
+                   f"against the ${w.latest_post:.1f}M last round. Nothing is left to mark, but the gap says something about the "
+                   "book's other marks on this basis.",
+                   points=(f"Whole stake sold at **${implied_whole:.1f}M** implied, **{ratio_change(implied_whole, w.latest_post):+.1%}** vs the last round.",
+                           "Nothing is left to mark on this position.",
+                           "The gap is evidence about **similar marks** in the book."),
+                   suggestions=(Suggest("as_proposed", "Book the cash as realized and close the position, as proposed.", ("The sale price is the exit price.", "No residual position to re-mark."), "proposed"),),
+                   action="Confirm the sale price against the last round; the position is closed either way.",
+                   implied_post_money=implied_whole, last_round_post_money=w.latest_post)
+        w.realized_quarter += proceeds
+        w.equity_mark = 0.0
+        w.note_at_cost = 0.0
+        w.ownership = 0.0
+        w.status = Status.ACQUIRED
+        w.stage = "Sold (secondary)"
+        w.terminal = True
+        w.fv_level = None
+        return
     if implied_post is None:
         # Nothing sold (ownership unchanged) or a proceeds-only row: the arithmetic has no meaning.
         w.step("M-030", V, {"ownership_before": before, "ownership_after": after, "proceeds": proceeds,
@@ -615,7 +718,7 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
                proceeds=proceeds, ownership_before=before, ownership_after=after)
         w.realized_quarter += proceeds
         return
-    price_source = "row value (implied valuation for secondaries)" if e.value else "proceeds ÷ stake sold"
+    price_source = "the row's implied valuation" if e.value else "proceeds ÷ stake sold"
     cross = (implied_from_ownership / implied_post - 1) if (e.value and implied_from_ownership and implied_post) else None
     w.step("M-030", V, {"ownership_before": before, "ownership_after": after, "ownership_sold": round(sold, 6),
                         "proceeds": proceeds, "implied_post_money": implied_post, "implied_price_source": price_source,
@@ -625,13 +728,41 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
            w.proposed_mark, new_equity + w.note_at_cost,
            f"Sold {sold/before:.0%} of the position for ${proceeds:.1f}M at ${implied_post:.1f}M post ({price_source}) vs "
            f"${w.latest_post:.1f}M last round" + (f", {spread:+.1%}" if spread is not None else "")
-           + (f"; proceeds ÷ stake sold gives ${implied_from_ownership:.1f}M ({cross:+.1%}), rounding of a 3-dp ownership figure"
+           + (f"; proceeds ÷ stake sold gives ${implied_from_ownership:.1f}M ({cross:+.1%}" + (", within tolerance" if abs(cross) <= cfg.exceptions.secondary.spread_tolerance_pct else ", a gap to confirm") + ")"
               if cross is not None else "")
            + f". Remainder {after:.1%} marked at the {'last-round' if basis == 'last_round' else 'secondary'} price.", e)
     if at_secondary is not None:
         w.alternative_marks["at_secondary_price" if basis == "last_round" else "at_last_round"] = (
             at_secondary if basis == "last_round" else at_last_round)
-    if spread is not None and abs(spread) > cfg.exceptions.secondary.spread_tolerance_pct:
+    w.handled(e, "discount", "premium", "secondary", "block", "spread", "partial", "no new capital")
+    # Ownership is carried to three decimals, so the stake sold is known only to ± one rounding unit each
+    # side: proceeds ÷ stake sold is a range (Marrowick: 0.8% sold, $433M–$557M around the $516M the row
+    # states). Only a value column outside that range, by more than the spread tolerance, disagrees.
+    unit = cfg.exceptions.indications.ownership_rounding
+    lo_p = proceeds / (sold + 2 * unit) if proceeds else None
+    hi_p = (proceeds / (sold - 2 * unit) if sold > 2 * unit else float("inf")) if proceeds else None
+    tol = cfg.exceptions.secondary.spread_tolerance_pct
+    disagree = (cross is not None and lo_p is not None
+                and (implied_post * (1 + tol) < lo_p or implied_post * (1 - tol) > hi_p))
+    if disagree:
+        # The row's own two prices disagree: the value column says one company value, proceeds ÷ the
+        # stake sold says another. A person decides which is the sale price before anything is marked on it.
+        w.alternative_marks["at_proceeds_price"] = after * implied_from_ownership + w.note_at_cost
+        w.flag("X-104", "treatment", Severity.REVIEW,
+               f"The row prices the sale two ways that disagree: the value column says ${implied_post:.1f}M for the company, but "
+               f"${proceeds:.2f}M for {sold:.1%} of it says ${implied_from_ownership:.1f}M ({cross:+.1%}). The remainder is marked on the "
+               "last round meanwhile.",
+               points=(f"Value column says **${implied_post:.1f}M**; proceeds ÷ stake sold says **${implied_from_ownership:.1f}M** ({cross:+.1%}).",
+                       "Both come from this row; **one of them is wrong**.",
+                       "Confirm the sale price before the remainder is marked on it."),
+               suggestions=(
+                   Suggest("as_proposed", "Keep the remainder at the last-round price; reconcile the row.", ("Neither of two disagreeing prices is evidence yet.", "Correct the row and rerun."), "proposed"),
+                   Suggest("at_proceeds_price", f"Mark the remainder at the price the proceeds imply (${implied_from_ownership:.1f}M).", ("Cash received against stake sold is the harder fact.", "Right if the value cell is the one that is wrong."), "alternative", value="at_proceeds_price"),
+               ),
+               action=f"Reconcile the sale price: the row says ${implied_post:.1f}M but ${proceeds:.2f}M for {sold:.1%} implies ${implied_from_ownership:.1f}M.",
+               implied_post_money=implied_post, implied_from_proceeds=round(implied_from_ownership, 6), gap_pct=round(cross, 4),
+               spread=(round(spread, 6) if spread is not None else None), last_round_post_money=w.latest_post)
+    elif spread is not None and abs(spread) > cfg.exceptions.secondary.spread_tolerance_pct:
         w.flag("X-104", "treatment", Severity.REVIEW,
                f"The sale implies the company is worth ${implied_post:.1f}M, {spread:+.1%} against the ${w.latest_post:.1f}M the last "
                "round set. One buyer taking one block is real evidence but not necessarily the principal market, so policy holds "
@@ -678,7 +809,8 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
                         "ownership_before": w.ownership, "ownership_after": after, "lockup_discount_pct": disc,
                         "lockup_end": lockup_end, **({"note_converted": note_converted} if note_converted else {})},
            w.proposed_mark, new_equity,
-           f"Listed ({e.detail}). Mark = {after:.1%} × ${cap:,.0f}M market cap at measurement date (source: {source})"
+           (f"{e.detail}." if (e.detail or "").lower().startswith("listed") else f"Listed ({e.detail}).")
+           + f" Mark = {after:.1%} × ${cap:,.0f}M market cap at measurement date (source: {source})"
            + (f" less {disc:.0%} lock-up discount" if disc else
               (" with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security)" if has_lockup
                else " with no lock-up: the shares are freely tradable" + (" (per the row)" if said_no_lockup else " (a direct listing)")))
@@ -883,6 +1015,7 @@ def term_sheet(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
     if indicated is not None:
         w.alternative_marks["term_sheet_indicated"] = indicated
     if ratio_ is not None and ratio_ <= limit:
+        w.handled(e, "down round", "down-round", "discount", "below", "lower", "66%", "of the last round")
         w.flag("X-109", "treatment", Severity.REVIEW,
                f"A signed term sheet indicates ~${float(e.value):.1f}M, {ratio_ - 1:+.0%} against the ${w.latest_post:.1f}M the mark "
                "rests on. It is non-binding, so nothing is booked from it — but a buyer putting a lower price in writing is "
@@ -1237,10 +1370,30 @@ def distribution(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
            f"Cash distribution of ${proceeds:.2f}M ({e.detail}); the stake is unchanged, so the mark is unchanged and the cash "
            "goes to realized proceeds."
            + (f" The position was already {w.status.value}; this is money arriving after the exit." if w.terminal else ""), e)
-    w.flag("X-111", "treatment", Severity.MONITOR,
-           f"Cash distribution of ${proceeds:.2f}M received; stake unchanged. Nothing to decide — realized proceeds rise, "
-           "the mark does not move.",
-           proceeds=proceeds)
+    carrying = w.equity_mark + w.note_at_cost
+    if w.terminal:
+        # Cash from a company that is already gone: liquidation language is the row's own nature here
+        w.handled(e, "liquidating", "liquidation", "dissolved", "dissolution", "wind-down", "wind down", "wound up", "estate", "residual")
+    if not w.terminal and proceeds > max(carrying, w.invested) + cfg.tolerances.prior_mark_reconciliation_musd:
+        w.flag("X-111", "treatment", Severity.REVIEW,
+               f"A ${proceeds:.2f}M distribution against a ${carrying:.2f}M carrying value (${w.invested:.2f}M invested) with the stake "
+               "unchanged is not a dividend: it reads like a sale, a liquidation or a return of capital typed as a distribution, and "
+               "the mark still stands at the full carrying value.",
+               points=(f"**${proceeds:.2f}M distributed** against a **${carrying:.2f}M** carrying value; stake unchanged.",
+                       "Larger than the mark and than invested capital: a **sale, liquidation or return of capital**, not a dividend.",
+                       "The mark **still stands** at the full carrying value."),
+               suggestions=(
+                   Suggest("as_proposed", "Book the cash as realized and keep the mark; confirm it really is a distribution.", ("Cash received is the fact.", "Right only if the company and HC's stake are intact."), "proposed"),
+                   Suggest("write_to_zero", "Treat it as the exit it looks like: cash realized, mark written to zero.", ("A distribution of the company's proceeds leaves nothing behind.", "Refile the row as an exit or shutdown next quarter."), "value", value=0.0),
+               ),
+               action=f"Confirm what the ${proceeds:.2f}M was: a dividend with the company intact, or the company's proceeds on exit or liquidation.",
+               proceeds=proceeds, carrying_value=round(carrying, 6), invested=round(w.invested, 6))
+        w.handled(e, "liquidating", "liquidation", "dissolved", "dissolution", "sale of the business", "wound up", "wind-down", "wind down")
+    else:
+        w.flag("X-111", "treatment", Severity.MONITOR,
+               f"Cash distribution of ${proceeds:.2f}M received; stake unchanged. Nothing to decide — realized proceeds rise, "
+               "the mark does not move.",
+               proceeds=proceeds)
     w.realized_quarter += proceeds
     # An exit earlier in the quarter whose cash fell short of the deal value raised X-101 for the
     # gap; a distribution that closes the gap (an escrow or holdback released) resolves it.
@@ -1333,6 +1486,7 @@ def secondary_purchase(w: Working, e: Event, cfg: RuleConfig, market: MarketData
            + f". Whole stake {after:.1%} marked at the last-round price: one buyer taking one block is evidence, not the principal market.", e)
     if at_implied is not None:
         w.alternative_marks["at_implied_price"] = at_implied
+    w.handled(e, "discount", "premium", "secondary", "block", "spread", "partial", "no new capital")
     if spread is not None and abs(spread) > cfg.exceptions.secondary.spread_tolerance_pct:
         w.flag("X-104", "treatment", Severity.REVIEW,
                f"HC paid a price that implies the company is worth ${implied_post:.1f}M, {spread:+.1%} against the ${w.latest_post:.1f}M "
@@ -1517,8 +1671,8 @@ UNKNOWN_RULE_ID = "M-999"
 def unrecognised(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
     w.step("M-999", V, {"event_type": e.event_type, "detail": e.detail, "value": e.value},
            w.proposed_mark, w.proposed_mark,
-           f"Event type {e.event_type!r} has no registered handler. Mark left unchanged and the position is BLOCKED — "
-           "an unrecognised event must never look like an uneventful quarter.", e)
+           f"No marking rule covers a {e.event_type!r}. The mark is held and the position is blocked until a person decides: "
+           "an event the engine does not understand must never look like an uneventful quarter.", e)
     w.flag("M-999", "treatment", Severity.BLOCK,
            f"No rule covers a {e.event_type!r} ({e.detail}). The mark is unchanged and the position is held, because an event the "
            "engine does not understand must never look like a quarter in which nothing happened.",
@@ -1526,7 +1680,7 @@ def unrecognised(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
                    "The mark is **unchanged** and the position is **held**.",
                    "An event the engine does not understand must **never look like a quiet quarter**."),
            suggestions=(
-               Suggest("hold_prior", "Hold the prior mark and adjudicate the event.", ("An event the engine does not understand must not book a number.", "The Proposals view offers accept-once or promote-to-rule."), "prior"),
+               Suggest("hold_prior", "Hold the prior mark and adjudicate the event.", ("An event the engine does not understand must not book a number.", "A drafted treatment waits on the Proposals tab to accept once or make a rule."), "prior"),
            ),
            action=f"Decide how a {e.event_type!r} should be treated, then accept it once or promote it to a rule.",
            event_type=e.event_type, signature=e.signature)

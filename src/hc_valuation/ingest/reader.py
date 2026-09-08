@@ -203,7 +203,7 @@ class _Sheet:
                 kept.append((r, row))
         if blanks:
             self.corrections.append(Correction(kind="structure", original=f"{blanks} blank row(s)", resolved="skipped",
-                                               method="blank-rows", detail=f"{blanks} blank row(s) inside the data skipped",
+                                               method="blank-rows", detail=f"{blanks} blank row{'s' if blanks != 1 else ''} inside the data skipped",
                                                sheet=self.title))
         return kept
 
@@ -259,9 +259,20 @@ class _Cells:
 
 # ---------------------------------------------------------------- Portfolio tab
 
+_STATUS_SYNONYMS: dict[str, Status] = {
+    "exited": Status.ACQUIRED, "realized": Status.ACQUIRED, "realised": Status.ACQUIRED, "sold": Status.ACQUIRED,
+    "acquired (stock)": Status.ACQUIRED, "merged": Status.ACQUIRED,
+    "public": Status.ACTIVE, "listed": Status.ACTIVE, "ipo": Status.ACTIVE, "live": Status.ACTIVE, "open": Status.ACTIVE, "held": Status.ACTIVE,
+    "shutdown": Status.SHUT_DOWN, "closed": Status.SHUT_DOWN, "dissolved": Status.SHUT_DOWN, "liquidated": Status.SHUT_DOWN,
+    "wound down": Status.SHUT_DOWN, "written off": Status.SHUT_DOWN, "write-off": Status.SHUT_DOWN, "writeoff": Status.SHUT_DOWN,
+    "bankrupt": Status.SHUT_DOWN, "ceased operations": Status.SHUT_DOWN, "defunct": Status.SHUT_DOWN,
+}
+
+
 def _status(raw: Any, cells: _Cells, company: str) -> Status:
-    """Exact status, else a case/whitespace-folded one (recorded); anything else is a hard
-    failure because a status the engine does not know cannot be marked."""
+    """Exact status, else a case/whitespace-folded one, else a known synonym (both recorded). A word
+    the engine does not know is that row's problem, not the workbook's: the position is read as
+    Active and a blocking correction refuses its row (X-925) — the other ninety-nine still value."""
     text = "" if raw is None else str(raw)
     try:
         return Status(text)
@@ -271,7 +282,19 @@ def _status(raw: Any, cells: _Cells, company: str) -> Status:
         if nz.fold(text) == nz.fold(member.value):
             cells._record([Correction(kind="value", original=text, resolved=member.value, method="fold")], "Status")
             return member
-    raise IngestError(f"row {cells.row_index}: unknown Status {text.strip()!r} for {company}")
+    syn = _STATUS_SYNONYMS.get(nz.fold(text))
+    if syn is not None:
+        prior = cells.number("Prior Mark ($M)") or 0.0
+        if syn is Status.ACTIVE or prior <= 0.0:
+            cells._record([Correction(kind="value", original=text, resolved=syn.value, method="synonym")], "Status")
+            return syn
+        cells._record([Correction(kind="status", original=text.strip(), resolved=Status.ACTIVE.value, method="synonym-with-mark",
+                                  detail=f"Status {text.strip()!r} reads as {syn.value}, but the row still carries a ${prior:.2f}M prior mark; "
+                                         "held as Active and blocked until the status or the mark is corrected")], "Status")
+        return Status.ACTIVE
+    cells._record([Correction(kind="status", original=text.strip(), resolved=Status.ACTIVE.value, method="unknown",
+                              detail=f"Status {text.strip()!r} is not Active, Acquired or Shut Down; the row is held as Active and blocked until it is corrected")], "Status")
+    return Status.ACTIVE
 
 
 def _read_portfolio(ws, config: RuleConfig, corrections: list[Correction]) -> PortfolioSnapshot:
@@ -289,7 +312,18 @@ def _read_portfolio(ws, config: RuleConfig, corrections: list[Correction]) -> Po
             cells._record([corr], "Company")
         status = _status(get("Status"), cells, company)
         first_inv = cells.day("First Investment", required=False)
-        latest_round = cells.day("Latest Round")
+        latest_round = cells.day("Latest Round", required=False)
+        if latest_round is None:
+            # A blank round date is that row's problem: carry the first-investment date (recorded) or, with
+            # neither, the prior close, and refuse the row (X-925) so a person fills the cell in.
+            if first_inv is not None:
+                cells._record([Correction(kind="value", original="", resolved=first_inv.isoformat(), method="first-investment",
+                                          detail="Latest Round blank; the First Investment date stands in")], "Latest Round")
+                latest_round = first_inv
+            else:
+                latest_round = config.quarter.prior_close
+                cells._record([Correction(kind="status", original="", resolved=latest_round.isoformat(), method="blank",
+                                          detail="Latest Round and First Investment are both blank; the prior close stands in and the row is blocked until a date is entered")], "Latest Round")
         positions.append(Position(
             company=company,
             sector=cells.text("Sector"),
@@ -335,6 +369,9 @@ def _read_activity(ws, sheet_name: str, config: RuleConfig, snapshot: PortfolioS
         get = sheet.getter(row)
         raw_company = get("Company")
         if raw_company is None or str(raw_company).strip() == "":
+            if any(get(col) not in (None, "") for col in ("Event", "Post-Money / Deal Value ($M)", "HC Investment ($M)", "Proceeds to HC ($M)")):
+                corrections.append(Correction(kind="ambiguous", original="", resolved="", method="company", sheet=ws.title, row_index=r,
+                                              column="Company", detail=f"row {r} carries an event but no company name; it cannot be attached to a position"))
             continue
         company, ccorr = nz.match_company(raw_company, book, ncfg)
         cells = _Cells(sheet, r, get, ncfg, company)

@@ -17,13 +17,14 @@ import { Fragment, useState, type ReactNode } from "react";
 import type { CompanyResult, Flag, PositionRecommendation, Readiness, Recommendation, Suggestion } from "../types";
 import { postOverride } from "../lib/api";
 import { useRationale, useRuleRationale } from "../lib/rationale";
-import { isoDate, musd, pct, signClass, signed } from "../lib/format";
+import { isoDate, musd, pct, shortDate, signClass, signed } from "../lib/format";
 import { evidenceLabel, familyLabel, FAMILY_LABEL, severityPhrase } from "../lib/labels";
 import { DispChip, Field, Modal, WriteButton } from "./ui";
 
 /** `a **b** c` -> a, <strong>b</strong>, c. Splits on pairs only; odd markers stay literal. */
 export function Rich({ text }: { text: string }) {
-  const parts = text.split("**");
+  // engine text carries ISO dates (2027-03-19); a reader sees "19 Mar 2027" like every other date on the page
+  const parts = text.replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (d) => shortDate(d)).split("**");
   if (parts.length % 2 === 0) return <>{text}</>; // unbalanced: show it as written
   return (
     <>
@@ -190,7 +191,13 @@ export function FlagDetailModal({ f, company, onClose }: { f: Flag; company: str
               <Fragment key={k}>
                 <span className="text-[11px] text-muted">{evidenceLabel(k)}</span>
                 <span className="num text-[11.5px] text-right">
-                  {v === null || v === undefined ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v)}
+                  {v === null || v === undefined
+                    ? "—"
+                    : Array.isArray(v)
+                      ? v.map((x) => (typeof x === "string" ? x.replace(/_/g, " ") : String(x))).join("; ")
+                      : typeof v === "object"
+                        ? Object.entries(v as Record<string, unknown>).map(([a, b]) => `${a.replace(/_/g, " ")}: ${String(b)}`).join("; ")
+                        : String(v)}
                 </span>
                 <span />
               </Fragment>

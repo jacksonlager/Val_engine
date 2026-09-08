@@ -1,14 +1,20 @@
 name: 27b_portfolio_unknown_status
 description: >
-  A Status the engine does not know ("Exited" — is that Acquired? Shut Down? still carrying
-  proceeds?) cannot be marked, so the reader refuses the whole file with a message that names
-  the row, the company and the value (SPEC §2.5: a hard failure must say what was found). Case
-  and whitespace variants ("active ", "SHUT DOWN") are folded and recorded (27); a new word is not.
+  A Status the engine does not know cannot be marked — but it is that row's problem, not the
+  workbook's. "Exited" reads as Acquired when the row carries no mark; Kilnbrook still carries a
+  $4.4M prior mark, so the word contradicts the row: it is held as Active, refused (X-925), and
+  Blocked with the fix on its card, while the other 99 companies value. (Before the pre-demo
+  gauntlet the reader refused the whole file.) Case and whitespace variants are folded (27).
 base: HC_Mock_Portfolio_Data.xlsx
 policy: 2026Q3
 portfolio_mutations:
   Kilnbrook: { Status: "Exited" }
 activity: []
 expect:
-  ingest_ok: false
-  error_contains: ["Exited"]
+  ingest_ok: true
+  validation_blocking: true
+  validation:
+    - { id: X-925, company: Kilnbrook, blocking: true }
+  companies:
+    Kilnbrook: { disposition: BLOCK, flags_must: [X-900], flags_must_not: [M-999], proposed: 4.4 }
+    Dovelane Systems: { rules: [M-000], disposition_in: [CLEAR, MONITOR, REVIEW] }

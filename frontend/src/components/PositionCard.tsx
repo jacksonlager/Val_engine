@@ -124,7 +124,7 @@ export function PositionCard({
           <div className="text-[11px] text-muted mt-0.5">
             {c.fund} · {c.sector} · {c.stage}
             {c.fv_level !== null && ` · Level ${c.fv_level}`}
-            {c.action !== "Carry" && <> · {actionPhrase(c.action)}</>}
+            {c.stage === "Acquired (stock)" ? <> · consideration received in shares this quarter</> : c.action !== "Carry" && <> · {actionPhrase(c.action)}</>}
           </div>
         </div>
         <Marks c={c} />

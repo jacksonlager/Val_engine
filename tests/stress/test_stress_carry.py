@@ -283,7 +283,7 @@ def test_one_percent_contraction_on_a_25_month_round_is_x405_review(build):
     c = only(run)
     f = _assert_needs_review(c, "X-405", "X-201", "X-301")
     assert f.evidence["screens"] == ["X-301"]
-    assert "revenue now shrinking" in f.message and "-1%" in f.message
+    assert "revenue now shrinking" in f.message and "shrinking 1%" in f.message
 
 
 def test_stale_round_with_tight_runway_stays_monitor(build):

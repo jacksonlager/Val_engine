@@ -20,10 +20,13 @@ export function humanize(k: string): string {
 }
 
 /** BLOCK / REVIEW / MONITOR / CLEAR as a reader would say them. */
+// Deliberately different words from readiness (Blocked / Needs Review / Ready): a disposition counts
+// findings — "Decision required" is one or more findings that stop approval, "Confirm" is a judgment
+// to ratify — while readiness says whether the engine had what it needed. The two are not the same axis.
 export const DISPOSITION_LABEL: Record<string, string> = {
-  BLOCK: "Blocking",
-  REVIEW: "Needs review",
-  MONITOR: "Monitor",
+  BLOCK: "Decision required",
+  REVIEW: "Confirm",
+  MONITOR: "Noted",
   CLEAR: "Clear",
 };
 
@@ -185,6 +188,7 @@ export const ALT_LABEL: Record<string, string> = {
   with_lockup_discount: "With a lock-up discount",
   probability_weighted: "Probability-weighted",
   as_proposed: "As proposed",
+  at_proceeds_price: "At the price the proceeds imply",
 };
 
 export function altLabel(k: string): string {
@@ -282,7 +286,7 @@ export function marketSourceLabel(s: string | null | undefined): string {
     .split("@")[0]
     .split("+")
     .map((n) => ({ edgar: "EDGAR", yahoo: "Yahoo", stooq: "Stooq", pitchbook: "PitchBook" })[n] ?? humanize(n))
-    .filter(Boolean);
+    .filter((n) => n && n !== "—");
   const from = names.length ? ` (${names.join(" + ")})` : "";
   if (kind === "live") return `Live${from}`;
   if (kind === "synthetic") return "Synthetic test data — invented, not observed";

@@ -20,7 +20,7 @@ export function whyDisposition(c: CompanyResult): string {
   if (terminal && families.length === 0 && !c.flags.some((f) => f.severity === "MONITOR"))
     return "The company no longer exists, so nothing is left to check.";
   if (families.length >= 2 && !c.override)
-    return `${families.length} unrelated concerns each need a review, so together they block: ${joinPhrases(families.map(familyPhrase))}.`;
+    return `${families.length} unrelated concerns each need a review, so together they need a decision before approval: ${joinPhrases(families.map(familyPhrase))}.`;
   if (families.length) return `One concern needs a review: ${familyPhrase(families[0])}.`;
   if (c.override) return "A decision is on file, and it stays visible here.";
   if (c.flags.some((f) => f.severity === "MONITOR")) return "Watch items only — nothing to decide.";

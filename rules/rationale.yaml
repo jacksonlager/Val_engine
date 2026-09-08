@@ -102,7 +102,7 @@ rules:
       weaker evidence than a primary round) but a reviewer may decide the secondary is the better
       price — "book the remainder at the secondary price" is offered as a priced option.
   - id: X-105
-    name: Note-language screen
+    name: The note carries terms the columns cannot hold
     family: notes
     severity: [REVIEW]
     source: policy
@@ -273,7 +273,7 @@ rules:
       evidence about the text, never a number, so it can add a question but never answer one.
   - id: X-131
     name: Note conflicts with a column
-    family: data
+    family: notes
     severity: [REVIEW]
     source: policy
     reads: a column on the row and the words in the row's text that state a different value or fact for it
@@ -282,8 +282,9 @@ rules:
       proceeds, ownership, a date. The engine booked the column. One of the two is wrong and the
       mark depends on which.
     why_severity: >-
-      Review, in the data family so that it escalates to Blocked alongside any other review
-      finding on the position; the reviewer corrects the row and reruns or decides by override.
+      Review, in the notes family with the reader's other findings, so one row's reading cannot on
+      its own turn a position into a decision; the reviewer corrects the row and reruns or decides
+      by override.
   - id: X-132
     name: Note not read
     family: notes
@@ -297,6 +298,31 @@ rules:
     why_severity: >-
       Review because a silent failure is the one outcome that could hide a material note; the
       finding clears on a rerun with the reader available, or when the note is read by hand.
+  - id: X-134
+    name: A figure on the row the rule does not use
+    family: data
+    severity: [REVIEW]
+    source: policy
+    reads: the row's filled columns against the columns its event type's rule reads
+    why_flag: >-
+      The row carries a number in a column its rule never reads — proceeds on a term sheet, HC's
+      cheque on a distribution, a stake on a dividend, a recovery estimate on a shutdown. The engine
+      applied the rule and the figure went nowhere; cash, cheques and stakes must not vanish silently.
+    why_severity: >-
+      Review because the figure may belong to a different event type (a tender filed as a dividend,
+      a secondary inside a round) or be a stray cell; a person says which and corrects the row.
+  - id: X-135
+    name: The row's label contradicts its price
+    family: data
+    severity: [REVIEW]
+    source: policy
+    reads: Event / Detail wording ("down round") against Post-Money vs the book's Latest Post-Money
+    why_flag: >-
+      The row calls the round a down round while the stated post-money is at or above the last
+      round. One of the two is wrong, and the mark rests on the figure.
+    why_severity: >-
+      Review because the price is booked as stated; the reviewer confirms the figure or the label
+      and the row is corrected.
   - id: X-110
     name: Ownership moved with no price event
     family: treatment

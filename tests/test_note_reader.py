@@ -126,7 +126,7 @@ def test_reading_adds_findings_and_never_moves_a_mark(tmp_path: Path, cfg):
     # X-105 already raised "preference" and "participating": the reader does not raise the same kind twice
     assert "X-105" in _flags(a) and "X-130" not in _flags(b)
     x131 = _flags(b)["X-131"]
-    assert x131.severity is Severity.REVIEW and x131.family == "data" and x131.evidence["column_value"] == 0.045
+    assert x131.severity is Severity.REVIEW and x131.family == "notes" and x131.evidence["column_value"] == 0.045
     assert "4.7%" in x131.points[0] and "HC Ownership After" in x131.points[0]
     assert {f.rule_id for f in a.flags} <= {f.rule_id for f in b.flags}          # only ever adds
     assert read.manifest.note_reader == "fake"
@@ -229,7 +229,7 @@ def test_claude_reader_caches_and_reports_failures(tmp_path: Path, cfg, monkeypa
 
 def test_make_reader_follows_flag_then_env_then_policy(cfg, tmp_path: Path, monkeypatch):
     env_off = make_reader(cfg, tmp_path)                                        # the suite pins HC_NOTE_READER=off
-    assert isinstance(env_off, OffReader) and "HC_NOTE_READER" in env_off.reason
+    assert isinstance(env_off, OffReader) and "for this run" in env_off.reason
     monkeypatch.delenv("HC_NOTE_READER", raising=False)
     assert isinstance(make_reader(cfg, tmp_path), ClaudeReader)                 # the policy says claude
     off = make_reader(cfg, tmp_path, "off")
@@ -298,3 +298,51 @@ def test_meaning_reaches_the_card_with_three_courses(tmp_path: Path, cfg):
     x2 = _flags(c2)["X-130"]
     assert x2.points[2].startswith("What it means:") and x2.evidence["meaning"].startswith("Insiders")
     assert [s.key for s in x2.suggestions] == ["as_proposed", "hold_prior", "at_cost"] and x2.suggestions[2].booked == pytest.approx(3.0)
+
+
+
+def test_live_reading_shapes_that_are_not_findings(tmp_path: Path, cfg):
+    """Shapes the live model produced on the second stress workbook that must not become spurious reviews:
+    a blank cell the text confirms is blank, a status the text confirms, an option pool on an ownership
+    adjustment, DIP financing on a Chapter 11, 'no recovery' on a shutdown, insiders on an HC-led round."""
+    book = [position(company="Fen", latest_post_money=285.1, ownership=0.038, invested=12.4, prior_mark=10.8),
+            position(company="Quin", latest_post_money=61.1, ownership=0.121, invested=6.0, prior_mark=7.4),
+            position(company="Stone", latest_post_money=18.1, ownership=0.094, invested=1.4, prior_mark=1.7),
+            position(company="Isle", latest_post_money=277.8, ownership=0.036, invested=10.0, prior_mark=10.0),
+            position(company="Will", latest_post_money=38.0, ownership=0.10, invested=6.0, prior_mark=4.7)]
+    rows = [event(EventType.ACQ_ANNOUNCED, date=date(2026, 7, 30), company="Fen", detail="Definitive agreement, all cash", value=340.0,
+                  notes="All-cash agreement signed, expected to close in Q4. No cash received at announcement."),
+            event(EventType.OWNERSHIP_ADJUSTMENT, date=date(2026, 7, 21), company="Quin", detail="Option pool expansion", ownership_after=0.109,
+                  notes="The board expanded the option pool by 200 basis points. The cap table was restated."),
+            event(EventType.BANKRUPTCY_CH11, date=date(2026, 9, 11), company="Stone", detail="Filed for reorganisation", ownership_after=0.094,
+                  notes="Operations continue under debtor-in-possession financing. Recovery to equity is unknown."),
+            event(EventType.SHUTDOWN, date=date(2026, 9, 22), company="Isle", detail="Ceased operations", notes="Board voted to wind down. No recovery expected."),
+            event(date=date(2026, 8, 6), company="Will", detail="Series B led by HC", value=72.0, hc_investment=1.7, ownership_after=0.124,
+                  notes="$12.0M round led by HC. No outside lead set the price; existing investors followed HC's terms.")]
+    wb = make_workbook(tmp_path, book, rows)
+    A = AspectKind
+    readings = {
+        2: RowReading(row_index=2, conflicts=({"column": "proceeds", "column_value": None, "note_says": "No cash received at announcement", "why": "consistent"},),
+                      aspects=({"kind": A.TIMING_OR_DATE, "quote": "expected to close in Q4", "note": "future close"},), source="fake"),
+        3: RowReading(row_index=3, aspects=({"kind": A.SHARE_STRUCTURE, "quote": "expanded the option pool by 200 basis points", "note": "pool"},
+                                            {"kind": A.OWNERSHIP_RESTATED, "quote": "The cap table was restated", "note": "restated"}), source="fake"),
+        4: RowReading(row_index=4, aspects=({"kind": A.DEBT, "quote": "debtor-in-possession financing", "note": "DIP"},
+                                            {"kind": A.VALUATION_ASSERTION, "quote": "Recovery to equity is unknown", "note": "unknown"}), source="fake"),
+        5: RowReading(row_index=5, aspects=({"kind": A.VALUATION_ASSERTION, "quote": "No recovery expected.", "note": "zero"},),
+                      supersedes=({"field": "status", "quote": "Board voted to wind down"},), source="fake"),
+        6: RowReading(row_index=6, aspects=({"kind": A.INSIDER_PRICED, "quote": "No outside lead set the price", "note": "insiders"},), source="fake"),
+    }
+    run = _run(wb, cfg, readings)
+    by = run.by_company()
+    assert "X-131" not in _flags(by["Fen"])                                   # blank cell confirmed blank: not a conflict
+    assert "X-130" in _flags(by["Fen"])                                       # the timing aspect still reaches a person (prompt tightened separately)
+    for name in ("Quin", "Stone", "Isle", "Will"):
+        assert "X-130" not in _flags(by[name]), (name, sorted(_flags(by[name])))
+    assert "X-117" in _flags(by["Will"]) and "X-116" in _flags(by["Stone"]) and "X-110" in _flags(by["Quin"])
+    # a status the text merely confirms is not a supersession
+    kol = position(company="Kol", status="Acquired", latest_post_money=50.0, ownership=0.071, invested=5.8, prior_mark=0.0, realized=15.9)
+    dist = event(EventType.DISTRIBUTION, date=date(2026, 8, 5), company="Kol", detail="Indemnity escrow released", proceeds=1.4,
+                 notes="The escrow was released in full. The position remains Acquired and the mark stays at zero.")
+    wb2 = make_workbook(tmp_path, [kol], [dist], name="b.xlsx")
+    r2 = _run(wb2, cfg, {2: RowReading(row_index=2, supersedes=({"field": "status", "quote": "The position remains Acquired"},), source="fake")})
+    assert "X-126" not in _flags(r2.by_company()["Kol"])

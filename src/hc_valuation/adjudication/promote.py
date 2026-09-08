@@ -24,6 +24,7 @@ Every decision lands in `data/precedent.yaml` (`decisions:` list plus a per-sign
 """
 from __future__ import annotations
 
+import math
 import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -202,6 +203,10 @@ def record_decision(paths, proposal_id: str, decision: Decision, approver: str, 
     if decision == "accept_once":
         if booked is None:
             raise ValueError("accept_once needs the booked mark the committee agreed (the engine will not compute one from a draft)")
+        # The API's OverrideIn bounds a booked mark at zero; this path did not, and a negative or
+        # non-finite figure would land on the ledger and be booked by every run after it.
+        if not math.isfinite(float(booked)) or float(booked) < 0:
+            raise ValueError(f"accept_once booked mark must be a non-negative number in $M (got {booked!r}); zero is a write-off")
         raw = _read_yaml(paths.overrides)
         records = list(raw.get("overrides") or [])
         records.append({

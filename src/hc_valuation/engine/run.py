@@ -71,6 +71,61 @@ def is_listed(p: Position) -> bool:
 CARRY_SIDE_FAMILIES = frozenset({"staleness", "growth", "liquidity", "valuation"})
 
 
+# The columns each built-in rule reads. A figure in any other column went nowhere when the rule ran:
+# cash, a cheque or a stake must not vanish silently, so X-134 puts it in front of a person.
+_E = EventType
+_COLUMNS_READ: dict[str, frozenset[str]] = {
+    _E.PRICED_ROUND.value: frozenset({"value", "hc_investment", "ownership_after"}),
+    _E.NEW_INVESTMENT.value: frozenset({"value", "hc_investment", "ownership_after"}),
+    _E.CONVERTIBLE_NOTE.value: frozenset({"hc_investment", "value", "ownership_after"}),
+    _E.NOTE_REPAID.value: frozenset({"proceeds", "ownership_after", "hc_investment"}),      # the principal, restated on repayment
+    _E.IPO.value: frozenset({"value", "ownership_after"}),
+    _E.DIRECT_LISTING.value: frozenset({"value", "ownership_after"}),
+    _E.LOCKUP_EXPIRY.value: frozenset({"ownership_after"}),
+    _E.ACQ_CLOSED.value: frozenset({"value", "proceeds", "ownership_after"}),
+    _E.ACQ_ANNOUNCED.value: frozenset({"value", "ownership_after"}),
+    _E.ACQ_TERMINATED.value: frozenset({"value", "proceeds", "ownership_after"}),         # the deal value that fell away
+    _E.SHUTDOWN.value: frozenset({"proceeds"}),
+    _E.BANKRUPTCY_CH11.value: frozenset({"ownership_after"}),
+    _E.SECONDARY.value: frozenset({"value", "ownership_after", "proceeds"}),
+    _E.SECONDARY_PURCHASE.value: frozenset({"value", "hc_investment", "ownership_after"}),
+    _E.DISTRIBUTION.value: frozenset({"proceeds"}),
+    _E.OWNERSHIP_ADJUSTMENT.value: frozenset({"ownership_after", "hc_investment"}),
+    _E.SHARE_RESTRUCTURE.value: frozenset({"ownership_after"}),
+    _E.TERM_SHEET.value: frozenset({"value"}),
+    _E.TERM_SHEET_WITHDRAWN.value: frozenset({"value"}),
+    _E.OPERATING_UPDATE.value: frozenset(),
+    _E.DEBT_FACILITY.value: frozenset({"value", "hc_investment"}),
+    _E.VALUATION_ADJUSTMENT.value: frozenset({"value"}),
+}
+_COLUMN_NAMES = {"value": "Post-Money / Deal Value", "hc_investment": "HC Investment", "ownership_after": "HC Ownership After",
+                 "proceeds": "Proceeds to HC"}
+
+
+def _unused_columns(w: Working, e: Event) -> None:
+    reads = _COLUMNS_READ.get(e.event_type)
+    if reads is None:
+        return                               # a promoted or unknown rule: its formula names what it reads
+    filled = {"value": e.value, "hc_investment": e.hc_investment, "ownership_after": e.ownership_after, "proceeds": e.proceeds}
+    stray = {k: v for k, v in filled.items() if v not in (None, "") and k not in reads and not (k == "ownership_after" and float(v) == 0.0 and e.event_type == _E.ACQ_CLOSED.value)}
+    if not stray:
+        return
+    what = "; ".join(f"{_COLUMN_NAMES[k]} = {v}" for k, v in stray.items())
+    w.flag("X-134", "data", Severity.REVIEW,
+           f"Row {e.row_index} carries {what}, which a {e.event_type} does not use. The rule applied the columns it reads and this "
+           "figure went nowhere: it may belong to a different event (a tender filed as a dividend, a secondary inside a round, "
+           "cash on a term sheet) or be a stray cell.",
+           points=(f"Row {e.row_index} carries **{what}**, which a **{e.event_type}** does not use.",
+                   "The figure **went nowhere** when the rule ran.",
+                   "Either the event type is wrong for this row, or the cell is stray."),
+           suggestions=(
+               Suggest("as_proposed", "Book as proposed; correct the row's event type or clear the stray cell and rerun.", ("The rule applied every column it reads.", "The unused figure is a data question, not a valuation one."), "proposed"),
+               Suggest("hold_prior", "Hold the prior mark until the row is corrected.", ("A row whose columns do not fit its event is not yet evidence.", "Rerun after the fix."), "prior"),
+           ),
+           action=f"Confirm why row {e.row_index} carries {what} on a {e.event_type}; refile the row or clear the cell, then rerun.",
+           row_index=e.row_index, unused={k: v for k, v in stray.items()}, event_type=e.event_type)
+
+
 def _dispatch(w: Working, e: Event, registry: Registry, config: RuleConfig, market: MarketData, md: date) -> None:
     found = registry.handler_for(e.event_type, md)
     if found is None:  # pragma: no cover - M-999 is always registered
@@ -78,6 +133,8 @@ def _dispatch(w: Working, e: Event, registry: Registry, config: RuleConfig, mark
     _meta, fn = found
     before = list(w.open_items)
     fn(w, e, config, market)
+    if getattr(_meta, "rule_id", "") != marking.UNKNOWN_RULE_ID:
+        _unused_columns(w, e)
     # An event resolves the open items its kind resolves (RESOLVES) whether they were carried in
     # from a prior quarter or opened by an earlier row this quarter: a term sheet signed in March
     # and closed as a round in March is not still pending in June. Items the event itself opened are
@@ -197,6 +254,8 @@ _FIX = {
     "X-906": "Delete one of the duplicate rows and rerun.",
     "X-907": "Remove the row, or correct the company's status on the Portfolio tab, and rerun.",
     "X-924": "Decide which record is right — delete the row, or remove the company's Portfolio row — and rerun.",
+    "X-925": "Correct the Portfolio row (a Status of Active, Acquired or Shut Down; a Latest Round date) and rerun.",
+    "X-927": "Delete the row that repeats the book's latest round, or correct its date, and rerun.",
 }
 
 
@@ -212,8 +271,8 @@ def _refuse(w: Working, e: Event, issues: list[ValidationIssue]) -> None:
     ids = sorted({v.rule_id for v in issues})
     w.step("M-000", marking.V, {"refused_event": e.event_type, "row_index": e.row_index, "validation": ids},
            w.proposed_mark, w.proposed_mark,
-           f"{e.event_type} on {e.date.isoformat()} recorded, not applied ({', '.join(ids)}): "
-           f"{_short('; '.join(v.message for v in issues))}. Mark carried unchanged.", e)
+           f"{e.event_type} on {e.date.isoformat()} recorded, not applied — {_short('; '.join(v.message for v in issues))} "
+           f"({', '.join(ids)}). The engine will not book from a row it could not apply; mark carried unchanged.", e)
     w.refused_rows.append((e, list(issues)))
 
 
@@ -226,7 +285,7 @@ def _refused_points(groups: dict[tuple[str, str], list[int]], fixes: list[str]) 
     """At most three lines: the refused rows (one line per reason, the third and later reasons
     folded into the second line), the fix, and the carry — the carry shares the fix's line when
     there is more than one reason."""
-    lines = [f"{_rows(sorted(r), bold=True).capitalize()} ({et}) could not be applied. {why}." for (et, why), r in groups.items()]
+    lines = [f"{_rows(sorted(r), bold=True).capitalize()}, {et}, could not be applied. {why}." for (et, why), r in groups.items()]
     if len(lines) > 2:
         rest = sorted(r for grp in list(groups.values())[1:] for r in grp)
         lines = [lines[0], f"{_rows(rest, bold=True).capitalize()} could not be applied either; the data checks list each reason."]
@@ -252,7 +311,7 @@ def _flag_refused(w: Working) -> None:
     if len(fixes) > 1:   # "Fill in the missing figure; correct the row's date, then rerun." — one sentence, one rerun
         cores = [re.sub(r",? and rerun\.$", "", f) for f in fixes]
         fixes = ["; ".join([cores[0]] + [c[0].lower() + c[1:] for c in cores[1:]]) + ", then rerun."]
-    lines = [f"{_rows(sorted(r)).capitalize()} ({et}) could not be applied. {why}." for (et, why), r in groups.items()]
+    lines = [f"{_rows(sorted(r)).capitalize()}, {et}, could not be applied. {why}." for (et, why), r in groups.items()]
     w.flag("X-900", "data", Severity.BLOCK,
            " ".join(lines) + " Nothing from " + ("the row" if len(rows) == 1 else "these rows") + " is booked; the prior mark is carried "
            "until the activity tab is corrected and the quarter rerun. " + " ".join(fixes),

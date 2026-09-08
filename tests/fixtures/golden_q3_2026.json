@@ -1252,7 +1252,7 @@
       "at_secondary_price": 8.772,
       "implied_from_ownership": 487.5,
       "implied_post_money": 516.0,
-      "implied_price_source": "row value (implied valuation for secondaries)",
+      "implied_price_source": "the row's implied valuation",
       "last_round_post_money": 516.0,
       "ownership_after": 0.017,
       "ownership_before": 0.025,
@@ -1262,7 +1262,7 @@
      },
      "new_value": 8.772,
      "prior_value": 12.9,
-     "rationale": "Sold 32% of the position for $3.9M at $516.0M post (row value (implied valuation for secondaries)) vs $516.0M last round, +0.0%; proceeds \u00f7 stake sold gives $487.5M (-5.5%), rounding of a 3-dp ownership figure. Remainder 1.7% marked at the last-round price.",
+     "rationale": "Sold 32% of the position for $3.9M at $516.0M post (the row's implied valuation) vs $516.0M last round, +0.0%; proceeds \u00f7 stake sold gives $487.5M (-5.5%, a gap to confirm). Remainder 1.7% marked at the last-round price.",
      "rule_id": "M-030",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -1927,9 +1927,9 @@
       "arr_growth": -0.16
      },
      "family": "growth",
-     "message": "Revenue is shrinking -16% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+     "message": "Revenue is shrinking 16% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
      "points": [
-      "Revenue is **shrinking -16%** year on year.",
+      "Revenue is **shrinking 16%** year on year.",
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
@@ -2713,9 +2713,9 @@
       "arr_growth": -0.21
      },
      "family": "growth",
-     "message": "Revenue is shrinking -21% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+     "message": "Revenue is shrinking 21% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
      "points": [
-      "Revenue is **shrinking -21%** year on year.",
+      "Revenue is **shrinking 21%** year on year.",
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
@@ -3033,7 +3033,7 @@
      },
      "new_value": 110.068,
      "prior_value": 80.3,
-     "rationale": "Listed (Listed on Nasdaq). Mark = 2.8% \u00d7 $3,931M market cap at measurement date (source: stub:seeded_to_ipo_print) with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security). Fair value hierarchy: Level 3 \u2192 Level 1.",
+     "rationale": "Listed on Nasdaq. Mark = 2.8% \u00d7 $3,931M market cap at measurement date (source: stub:seeded_to_ipo_print) with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security). Fair value hierarchy: Level 3 \u2192 Level 1.",
      "rule_id": "M-040",
      "rule_version": "2026Q3.1",
      "sequence": 1
@@ -3950,7 +3950,7 @@
       "arr_growth": -0.08
      },
      "family": "growth",
-     "message": "Revenue is down -8% year on year \u2014 mild, but the wrong direction.",
+     "message": "Revenue is down 8% year on year \u2014 mild, but the wrong direction.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-301",
@@ -4208,9 +4208,9 @@
       "arr_growth": -0.32
      },
      "family": "growth",
-     "message": "Revenue is shrinking -32% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+     "message": "Revenue is shrinking 32% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
      "points": [
-      "Revenue is **shrinking -32%** year on year.",
+      "Revenue is **shrinking 32%** year on year.",
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
@@ -4606,7 +4606,7 @@
       "arr_growth": -0.11
      },
      "family": "growth",
-     "message": "Revenue is down -11% year on year \u2014 mild, but the wrong direction.",
+     "message": "Revenue is down 11% year on year \u2014 mild, but the wrong direction.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-301",
@@ -5076,9 +5076,9 @@
       "arr_growth": -0.2
      },
      "family": "growth",
-     "message": "Revenue is shrinking -20% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+     "message": "Revenue is shrinking 20% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
      "points": [
-      "Revenue is **shrinking -20%** year on year.",
+      "Revenue is **shrinking 20%** year on year.",
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
@@ -6109,7 +6109,7 @@
       "arr_growth": -0.05
      },
      "family": "growth",
-     "message": "Revenue is down -5% year on year \u2014 mild, but the wrong direction.",
+     "message": "Revenue is down 5% year on year \u2014 mild, but the wrong direction.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-301",
@@ -6125,10 +6125,10 @@
       ]
      },
      "family": "valuation",
-     "message": "The price behind this mark is 34.7 months old, and the current numbers disagree with it: revenue now shrinking (5\u00d7 revenue, growing -5%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+     "message": "The price behind this mark is 34.7 months old, and the current numbers disagree with it: revenue now shrinking (5\u00d7 revenue, shrinking 5%). Neither fact alone would move the mark \u2014 an old price is not a wrong price, and a screen is not a valuation \u2014 but an old price that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
      "points": [
       "Price is **34.7 months old** \u2014 and today's numbers **argue with it**.",
-      "Screen: **revenue now shrinking** (5\u00d7 revenue, growing -5%).",
+      "Screen: **revenue now shrinking** (5\u00d7 revenue, shrinking 5%).",
       "Two independent signals point the same way: **affirm or reprice**."
      ],
      "recommendation": {
@@ -8510,9 +8510,9 @@
       "arr_growth": -0.3
      },
      "family": "growth",
-     "message": "Revenue is shrinking -30% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
+     "message": "Revenue is shrinking 30% year on year. The mark comes from a round priced on growth that is no longer happening, so the thesis behind it is materially broken.",
      "points": [
-      "Revenue is **shrinking -30%** year on year.",
+      "Revenue is **shrinking 30%** year on year.",
       "The mark comes from a round **priced on growth that is no longer happening**.",
       "The **thesis behind the price is materially broken**."
      ],
@@ -8552,7 +8552,7 @@
       "threshold": 30.0
      },
      "family": "valuation",
-     "message": "Carried at 32\u00d7 revenue (sector comp 11.3\u00d7), growing -30%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
+     "message": "Carried at 32\u00d7 revenue (sector comp 11.3\u00d7), shrinking 30%. On this screen the mark looks generous \u2014 a rough cross-check, not a valuation.",
      "points": [],
      "recommendation": null,
      "rule_id": "X-401",
@@ -9305,12 +9305,13 @@
   "input_sha256": "c4bca793c60864c4a647805a0f1cfd19b0432b5040a7b156669d19d35e1733dc",
   "market_data_source": "stub",
   "measurement_date": "2026-09-30",
-  "note_reader": "off: switched off by HC_NOTE_READER",
+  "note_reader": "off: switched off for this run",
   "note_reader_report": {
    "calls": 0,
+   "figures_withheld": 0,
    "model": "",
    "provider": "off",
-   "reason": "switched off by HC_NOTE_READER",
+   "reason": "switched off for this run",
    "rows_failed": 0,
    "rows_from_cache": 0,
    "rows_read": 0,
@@ -9322,7 +9323,7 @@
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
   "recommender": "claude:claude-sonnet-4-5",
-  "run_id": "48af30ce36b5"
+  "run_id": "7453c4197f5e"
  },
  "open_items": [
   {

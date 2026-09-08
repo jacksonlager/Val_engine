@@ -223,7 +223,7 @@ def test_priced_round_and_secondary_on_the_same_day(build, reverse):
     assert x104.evidence["spread"] == pytest.approx(1.0), "secondary priced against the pre-round $100M"
     x119 = _flag(c, "X-119", Severity.REVIEW)
     assert x119.evidence["implied_post_from_hc_cheque"] == pytest.approx(50.0) and x119.evidence["ownership_delta"] == pytest.approx(0.02)
-    assert c.alternative_marks == {"at_secondary_price": pytest.approx(14.0)}
+    assert c.alternative_marks["at_secondary_price"] == pytest.approx(14.0)   # (the proceeds-implied price is offered too: $4M for 3% is not $200M)
     assert c.readiness is Readiness.NEEDS_REVIEW and c.disposition is Disposition.REVIEW
     _assert_actionable(c)
 
@@ -364,7 +364,8 @@ def test_closed_acquisition_proceeds_vs_ownership_times_deal_value_tolerance(bui
     if flagged:
         assert flag_ids(c) == {"X-101"}
         x101 = _flag(c, "X-101", Severity.REVIEW)
-        assert x101.evidence == {"implied": pytest.approx(30.0), "proceeds": pytest.approx(proceeds)}
+        assert x101.evidence["implied"] == pytest.approx(30.0) and x101.evidence["proceeds"] == pytest.approx(proceeds)
+        assert ("excess" in x101.evidence) == (proceeds > 30.0)       # above pro rata is a preference question, not an escrow
         assert f"{abs(30.0 - proceeds):.2f}M" in x101.action
         assert c.readiness is Readiness.NEEDS_REVIEW and c.disposition is Disposition.REVIEW
         keys = [s.key for s in x101.suggestions]

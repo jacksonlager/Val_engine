@@ -28,6 +28,7 @@ _ISSUE_FOR: dict[str, tuple[str, Severity, bool]] = {
     "structure": ("X-917", Severity.MONITOR, False),
     "sheet": ("X-919", Severity.MONITOR, False),
     "currency": ("X-920", Severity.BLOCK, True),
+    "status": ("X-925", Severity.BLOCK, True),      # a Status word or a round date the engine cannot read: the row is held
     "unparseable": ("X-902", Severity.BLOCK, True),
     "percent_block": ("X-903", Severity.BLOCK, True),
 }
@@ -78,6 +79,29 @@ def _custom_rule_fields(config: RuleConfig) -> dict[str, set[str]]:
     return out
 
 
+def _required_field_issues(e: Event, et: EventType, feed: ActivityFeed) -> list[ValidationIssue]:
+    """X-902: the cells a row's rule reads must be there, whoever the company is. A rule that reads a
+    blank cell would raise inside the engine and take every other company down with it."""
+    out: list[ValidationIssue] = []
+
+    def missing(what: str) -> None:
+        out.append(ValidationIssue(rule_id="X-902", severity=Severity.BLOCK, sheet=feed.sheet_name,
+                                   row_index=e.row_index, company=e.company, message=f"{et.value} is missing {what}"))
+
+    if et in (EventType.PRICED_ROUND, EventType.NEW_INVESTMENT) and e.value is None:
+        missing("post-money")
+    if et in (EventType.PRICED_ROUND, EventType.NEW_INVESTMENT, EventType.IPO, EventType.DIRECT_LISTING, EventType.SECONDARY,
+              EventType.SECONDARY_PURCHASE) and e.ownership_after is None:
+        missing("HC ownership after")
+    if et in (EventType.NEW_INVESTMENT, EventType.SECONDARY_PURCHASE) and e.hc_investment is None:
+        missing("HC's investment (the cheque)")
+    if et in (EventType.ACQ_CLOSED, EventType.ACQ_ANNOUNCED, EventType.IPO, EventType.DIRECT_LISTING) and e.value is None:
+        missing("a deal value / market cap")
+    if et == EventType.DISTRIBUTION and e.proceeds is None:
+        missing("proceeds (the amount distributed)")
+    return out
+
+
 def _money_domain_issues(e: Event, label: str, feed: ActivityFeed, refused: set[tuple[int | None, str | None]],
                          positive_value: bool) -> list[ValidationIssue]:
     """X-903: money or a percentage outside its domain is a data error, never an input. A
@@ -99,6 +123,9 @@ def _money_domain_issues(e: Event, label: str, feed: ActivityFeed, refused: set[
     for name, amount in (("proceeds", e.proceeds), ("HC investment", e.hc_investment)):
         if amount is not None and amount < 0.0:
             issue(f"{label} {name} {amount} is negative")
+    if (e.hc_investment is not None and e.value is not None and e.value > 0 and e.hc_investment > e.value
+            and label in (EventType.PRICED_ROUND.value, EventType.NEW_INVESTMENT.value, EventType.SECONDARY_PURCHASE.value)):
+        issue(f"HC investment {e.hc_investment} is larger than the ${e.value}M post-money: a cheque cannot exceed the company's value (units?)")
     return out
 
 
@@ -114,6 +141,8 @@ def _message(c: Correction) -> str:
     if c.kind == "percent_block":
         return f"{where}: {c.detail}"
     if c.kind == "structure":
+        return c.detail
+    if c.kind == "status":
         return c.detail
     if c.kind == "sheet":
         return f"sheet {c.resolved!r} matched by {c.method} rule (policy expected {c.original!r})"
@@ -264,13 +293,17 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
                                               message=(f"new investment in {e.company}, not in the Portfolio tab: the engine "
                                                        f"creates the position (M-014) in fund {fund!r}")))
                 # The position will be created from this row, so the row's numbers are the whole position:
-                # they get the same domain checks as a book company's.
+                # they get the same required-field and domain checks as a book company's.
+                issues.extend(_required_field_issues(e, EventType.NEW_INVESTMENT, feed))
                 issues.extend(_money_domain_issues(e, EventType.NEW_INVESTMENT.value, feed, refused, positive_value=True))
             elif e.company in entering:
                 # A second row this quarter on a company the same tab brings into the book (a term sheet
                 # six weeks after the seed): the New Investment row creates the position and this row
                 # applies to it, in date order. Not an unknown company. (Found by a variant workbook with
                 # two events on a new holding, where the term sheet's X-901 refused the whole position.)
+                # It gets the same required-field checks as a book row, or the rule reads a blank cell.
+                if e.event_type in KNOWN_EVENT_TYPES:
+                    issues.extend(_required_field_issues(e, EventType(e.event_type), feed))
                 issues.extend(_money_domain_issues(e, e.event_type, feed, refused,
                                                    positive_value=(e.event_type in {t.value for t in _VALUE_MUST_BE_POSITIVE})))
             else:
@@ -345,7 +378,7 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
                 continue
             issues.append(ValidationIssue(rule_id="X-909", severity=Severity.BLOCK, sheet=feed.sheet_name,
                                           row_index=e.row_index, company=e.company,
-                                          message=f"unrecognised event type {e.event_type!r}; no registered handler (see M-999)"))
+                                          message=f"no marking rule covers the event type {e.event_type!r}; the position is held for a decision (M-999)"))
             continue
         if e.event_type not in KNOWN_EVENT_TYPES:
             # Handled by a declarative rule: its formula decides what it needs, and a row that lacks a
@@ -360,23 +393,18 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
             continue
 
         et = EventType(e.event_type)
-        if et == EventType.PRICED_ROUND:
-            if e.value is None:
-                issues.append(ValidationIssue(rule_id="X-902", severity=Severity.BLOCK, sheet=feed.sheet_name,
-                                              row_index=e.row_index, company=e.company,
-                                              message="priced round is missing post-money"))
-            if e.ownership_after is None:
-                issues.append(ValidationIssue(rule_id="X-902", severity=Severity.BLOCK, sheet=feed.sheet_name,
-                                              row_index=e.row_index, company=e.company,
-                                              message="priced round is missing HC ownership after"))
-        if et in (EventType.IPO, EventType.SECONDARY) and e.ownership_after is None:
-            issues.append(ValidationIssue(rule_id="X-902", severity=Severity.BLOCK, sheet=feed.sheet_name,
+        issues.extend(_required_field_issues(e, et, feed))
+        if (et == EventType.PRICED_ROUND and e.date == pos.latest_round and e.value is not None
+                and abs(float(e.value) - pos.latest_post_money) <= config.tolerances.prior_mark_reconciliation_musd
+                and (e.ownership_after is None or abs(float(e.ownership_after) - pos.ownership) <= 2 * config.exceptions.indications.ownership_rounding)):
+            # The Portfolio tab already carries this round as the position's latest: applying it again
+            # would add HC's cheque a second time. (A stress workbook: a round dated on the prior close.)
+            refused.add(e.row_index)
+            issues.append(ValidationIssue(rule_id="X-927", severity=Severity.BLOCK, sheet=feed.sheet_name,
                                           row_index=e.row_index, company=e.company,
-                                          message=f"{et.value} is missing HC ownership after"))
-        if et in (EventType.ACQ_CLOSED, EventType.ACQ_ANNOUNCED, EventType.IPO) and e.value is None:
-            issues.append(ValidationIssue(rule_id="X-902", severity=Severity.BLOCK, sheet=feed.sheet_name,
-                                          row_index=e.row_index, company=e.company,
-                                          message=f"{et.value} is missing a deal value / market cap"))
+                                          message=(f"the row repeats the book's latest round ({pos.latest_round.isoformat()} at "
+                                                   f"${pos.latest_post_money:.1f}M post); applying it again would count HC's cheque twice")))
+            continue
         issues.extend(_money_domain_issues(e, et.value, feed, refused, positive_value=et in _VALUE_MUST_BE_POSITIVE))
 
     if feed.unknown_columns:

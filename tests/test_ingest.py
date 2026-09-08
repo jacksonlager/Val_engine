@@ -185,10 +185,12 @@ def test_duplicate_company_row_is_x906(tmp_path, cfg):
     assert [i.rule_id for i in issues] == ["X-906", "X-906"] and all(i.blocking for i in issues)   # every copy blocks
 
 
-def test_unknown_status_raises(tmp_path, cfg):
-    path = make_workbook(tmp_path, [position(status="Zombie")], [])
-    with pytest.raises(IngestError, match="Zombie"):
-        read_workbook(path, cfg)
+def test_unknown_status_blocks_the_row_not_the_workbook(tmp_path, cfg):
+    path = make_workbook(tmp_path, [position(status="Zombie"), position(company="Beta")], [])
+    snapshot, feed = read_workbook(path, cfg)                      # no longer raises: the other rows still value
+    assert [p.status.value for p in snapshot.positions] == ["Active", "Active"]
+    corr = [c for c in snapshot.corrections if c.kind == "status"]
+    assert len(corr) == 1 and corr[0].original == "Zombie" and corr[0].row_index == 2
 
 
 # ---------------------------------------------------------------- X-9xx on the activity tab

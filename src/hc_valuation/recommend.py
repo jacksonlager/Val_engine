@@ -36,6 +36,7 @@ import json
 import logging
 import os
 import re
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -275,6 +276,14 @@ class ClaudeChooser:
         self.calls = 0
         self.cache_hits = 0
         self.fallbacks: list[str] = []
+        # `recommend_run` chooses for six companies at once; `+=` on an attribute is not atomic,
+        # so the call and cache-hit counts are taken under a lock.
+        self._lock = threading.Lock()
+
+    def _tally(self, **deltas: int) -> None:
+        with self._lock:
+            for name, n in deltas.items():
+                setattr(self, name, getattr(self, name) + n)
 
     @property
     def unavailable_reason(self) -> str | None:
@@ -304,7 +313,6 @@ class ClaudeChooser:
     def _write(self, key: str, brief: dict[str, Any], answer: dict[str, Any]) -> None:
         if not self.use_cache:
             return
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
         record = {"key": key, "model": self.model, "prompt_sha256": self.prompt_sha,
                   "created_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
                   "company": brief["company"]["name"],
@@ -312,7 +320,13 @@ class ClaudeChooser:
                   "candidates": [x["key"] for x in brief.get("candidates", [])]
                                 or [f"{f['rule_id']}/{x['key']}" for f in brief.get("findings", []) for x in f["candidates"]],
                   "answer": answer}
-        self._path(key).write_text(json.dumps(record, indent=2, sort_keys=True))
+        try:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            self._path(key).write_text(json.dumps(record, indent=2, sort_keys=True))
+        except OSError as ex:
+            # A validated answer is already in hand; a cache that cannot be written costs one repeat
+            # call next run, never the run (the write used to sit outside the never-raises contract).
+            log.warning("could not cache the recommendation for %s (%s)", brief["company"]["name"], ex)
 
     # -- the call
     def _call(self, brief: dict[str, Any], system: str | None = None) -> str:
@@ -322,7 +336,7 @@ class ClaudeChooser:
             model=self.model, max_tokens=self.max_tokens, system=system or SYSTEM_PROMPT,
             messages=[{"role": "user", "content": "CASE BRIEF (JSON):\n" + json.dumps(brief, default=str)}],
         )
-        self.calls += 1
+        self._tally(calls=1)
         return "".join(getattr(block, "text", "") for block in msg.content)
 
     @staticmethod
@@ -398,7 +412,7 @@ class ClaudeChooser:
         if cached is not None:
             try:
                 answer = self.parse_position(json.dumps(cached["answer"]), c)
-                self.cache_hits += 1
+                self._tally(cache_hits=1)
                 return self._to_position(answer, c)
             except Exception as ex:  # noqa: BLE001
                 log.warning("position recommendation cache %s no longer fits %s (%s); refetching", key, c.company, ex)
@@ -429,7 +443,7 @@ class ClaudeChooser:
         if cached is not None:
             try:
                 answer = self.parse(json.dumps(cached["answer"]), f)   # re-validated against today's candidates
-                self.cache_hits += 1
+                self._tally(cache_hits=1)
                 return self._to_recommendation(answer, f)
             except Exception as ex:  # noqa: BLE001
                 log.warning("recommendation cache %s no longer fits the flag (%s); refetching", key, ex)

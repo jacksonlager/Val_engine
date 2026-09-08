@@ -26,6 +26,7 @@ class AspectKind(str, Enum):
     NON_BINDING = "non_binding"
     WITHDRAWN_OR_TERMINATED = "withdrawn_or_terminated"
     DOWN_ROUND_OR_RECAP = "down_round_or_recap"
+    INSIDER_PRICED = "insider_priced"
     LIQUIDATION_PREFERENCE = "liquidation_preference"
     ANTI_DILUTION_OR_RATCHET = "anti_dilution_or_ratchet"
     OWNERSHIP_RESTATED = "ownership_restated"
@@ -92,6 +93,11 @@ ASPECTS: tuple[AspectSpec, ...] = (
                ("down round", "down-round", "recap", "recapitalization", "recapitalisation", "pay-to-play", "cram", "cram-down", "washout", "wash-out"),
                (),
                "M-010 when the columns show it (X-102), M-012 for a recap; otherwise the reader"),
+    AspectSpec(AspectKind.INSIDER_PRICED, "Priced by insiders",
+               "A round priced only by existing investors, led by HC, or with no new outside investor setting the price.",
+               ("insider", "internal round", "existing holders", "existing investors", "led by hc", "no new investor", "no outside", "inside round"),
+               (),
+               "M-010 (X-117 HC-led, X-118 insider-led, X-122 step-up with no outside investor)"),
     AspectSpec(AspectKind.LIQUIDATION_PREFERENCE, "Liquidation preference or waterfall",
                "Liquidation preference, participation, seniority, pari passu or waterfall terms that change what HC's shares receive.",
                ("preference", "participating", "liquidation preference", "waterfall", "seniority", "pari passu", "senior to"),
@@ -108,14 +114,14 @@ ASPECTS: tuple[AspectSpec, ...] = (
                (_E.OWNERSHIP_ADJUSTMENT.value, _E.SHARE_RESTRUCTURE.value),
                "M-013 (X-110); M-015 (X-133)"),
     AspectSpec(AspectKind.SHARE_STRUCTURE, "Share structure change",
-               "A split, reverse split, reclassification, conversion of preferred to common or other share class change.",
-               ("split", "reclassif", "reclassification", "share class", "converted to common", "common stock"),
-               (_E.SHARE_RESTRUCTURE.value,),
+               "A split, reverse split, reclassification, conversion of preferred to common, option pool change or other share-count change.",
+               ("split", "reclassif", "reclassification", "share class", "converted to common", "common stock", "option pool", "pool"),
+               (_E.SHARE_RESTRUCTURE.value, _E.OWNERSHIP_ADJUSTMENT.value),
                "M-015 (X-133)"),
     AspectSpec(AspectKind.DEBT, "Debt, loans and covenants",
                "Debt, a loan, a credit facility, covenants, a default, a guarantee, a lender's rights; venture debt ahead of the equity.",
-               ("debt", "loan", "facility", "covenant", "default", "guarantee", "lender", "mezzanine", "revolver"),
-               (_E.DEBT_FACILITY.value, _E.NOTE_REPAID.value),
+               ("debt", "loan", "facility", "covenant", "default", "guarantee", "lender", "mezzanine", "revolver", "debtor-in-possession", "dip"),
+               (_E.DEBT_FACILITY.value, _E.NOTE_REPAID.value, _E.BANKRUPTCY_CH11.value),
                "M-062 (X-127)"),
     AspectSpec(AspectKind.INITIAL_INVESTMENT, "Initial investment",
                "HC's first investment in a company, or a company being added to the portfolio.",
@@ -123,8 +129,9 @@ ASPECTS: tuple[AspectSpec, ...] = (
                (_E.NEW_INVESTMENT.value,),
                "M-014 (X-918 / X-120)"),
     AspectSpec(AspectKind.ESCROW_OR_HOLDBACK, "Escrow, holdback or deferred consideration",
-               "Part of the exit consideration held back: escrow, holdback, indemnity reserve, deferred or delayed payment, subject to claims.",
-               ("escrow", "holdback", "indemnification", "indemnity", "indemnities", "deferred", "delayed payment"),
+               "Part of an exit's consideration actually held back or deferred: escrow, holdback, indemnity reserve, a delayed payment subject "
+               "to claims. Not an announced deal that simply has not closed yet.",
+               ("escrow", "holdback", "indemnification", "indemnity", "indemnities", "deferred", "delayed payment", "clawback"),
                (_E.DISTRIBUTION.value,),
                "M-020 when proceeds fall short of the implied entitlement (X-101 gap, exit-consideration item); M-022 for the release"),
     AspectSpec(AspectKind.EARN_OUT_OR_CONTINGENT, "Earn-out or contingent consideration",
@@ -138,12 +145,14 @@ ASPECTS: tuple[AspectSpec, ...] = (
                (),
                "M-024 when the columns show it (acquirer-shares item); otherwise the reader"),
     AspectSpec(AspectKind.FEES_OR_EXPENSES, "Fees, expenses or taxes",
-               "Transaction fees, expenses, taxes or other amounts netted from proceeds or from the value.",
+               "Transaction fees, expenses, taxes, break fees or other amounts netted from or added to proceeds. Not a price discount or premium "
+               "on a sale, which the columns already carry.",
                ("fees", "expenses", "net of", "transaction costs", "withholding"),
                (),
                "M-020 gap (X-101); otherwise the reader"),
     AspectSpec(AspectKind.PARTIAL_EXIT, "Partial sale or purchase",
-               "Only part of the position sold or bought; shares retained; a tender offer HC took part in.",
+               "HC sold or bought part of its position; shares retained; a tender offer HC took part in; a secondary in which no new capital "
+               "reached the company. Not HC declining to participate in a round (that is dilution, which the columns carry).",
                ("partial", "retained", "remaining shares", "tender", "secondary"),
                (_E.SECONDARY.value, _E.SECONDARY_PURCHASE.value),
                "M-030 / M-031 (X-104)"),
@@ -153,8 +162,8 @@ ASPECTS: tuple[AspectSpec, ...] = (
                (_E.IPO.value, _E.DIRECT_LISTING.value, _E.LOCKUP_EXPIRY.value),
                "M-040 (lock-up item); M-042"),
     AspectSpec(AspectKind.TIMING_OR_DATE, "Timing differs from the row",
-               "A signing, closing or effective date in the text that differs from the row's date; something that closed earlier or later "
-               "than expected; an event that straddles the quarter end.",
+               "A signing, closing or effective date stated in the text that differs from the row's date, or an event that closed earlier "
+               "or later than the row implies. Not an expected future closing ('expected to close Q4'), not a reference to an older event's date.",
                ("closed earlier", "closed later", "expected to close", "effective", "closing date", "signed on", "after quarter end", "post quarter"),
                (),
                "no rule: always a person"),
@@ -170,7 +179,10 @@ ASPECTS: tuple[AspectSpec, ...] = (
                "the reader (X-126 / X-130)"),
     AspectSpec(AspectKind.DISTRESS_OR_GOING_CONCERN, "Distress or going concern",
                "Going-concern doubt, insolvency risk, missed payroll, layoffs, a wind-down being planned, a covenant breach, a bridge to survive.",
-               ("going concern", "insolvency", "insolvent", "distress", "layoffs", "wind down", "wind-down", "ceased", "missed payroll", "breach"),
+               # "bankruptcy" and "receivership" are on the keyword screen's list (X-105); without them here
+               # the screen and the reader raised the same sentence twice, as X-105 and X-130.
+               ("going concern", "insolvency", "insolvent", "distress", "layoffs", "wind down", "wind-down", "ceased", "missed payroll", "breach",
+                "bankruptcy", "receivership"),
                (_E.SHUTDOWN.value, _E.BANKRUPTCY_CH11.value),
                "M-021 / M-025 when filed as such; otherwise the reader"),
     AspectSpec(AspectKind.LITIGATION_OR_DISPUTE, "Litigation, dispute or investigation",
@@ -189,9 +201,10 @@ ASPECTS: tuple[AspectSpec, ...] = (
                (),
                "no rule: always a person"),
     AspectSpec(AspectKind.VALUATION_ASSERTION, "Valuation asserted in the text",
-               "The text says what the mark, value or treatment should be: a write-down, impairment, hold, 'value at', 'mark to'.",
-               ("impairment", "impaired", "write-down", "writedown", "write-off", "written off", "mark to", "should be valued", "fair value of", "carry at"),
-               (_E.VALUATION_ADJUSTMENT.value,),
+               "The text says what the mark, value or treatment should be: a write-down, impairment, hold, 'value at', 'mark to', 'the headline "
+               "post-money overstates'. On a shutdown, a Chapter 11 or a terminated deal the rule already does what the text says.",
+               ("impairment", "impaired", "write-down", "writedown", "write-off", "written off", "mark to", "should be valued", "fair value of", "carry at", "no recovery", "overstates"),
+               (_E.VALUATION_ADJUSTMENT.value, _E.SHUTDOWN.value, _E.BANKRUPTCY_CH11.value, _E.ACQ_TERMINATED.value),
                "M-091 (X-128) when filed as a valuation adjustment; otherwise the reader"),
     AspectSpec(AspectKind.INSTRUCTION_TO_VALUER, "Instruction about the treatment",
                "An explicit instruction about how to treat the row: do not double count, remove a position, record as realised, assess separately.",
@@ -204,7 +217,8 @@ ASPECTS: tuple[AspectSpec, ...] = (
                (),
                "X-920 for a currency cell; the reader for prose"),
     AspectSpec(AspectKind.OTHER, "Something else",
-               "Anything material that fits none of the kinds above. Say what it is in the note.",
+               "Anything material that fits none of the kinds above. Say what it is in the note. Ordinary note terms (interest, cap, "
+               "discount, conversion trigger) are bridge_financing, not other; a secondary's 'no new capital reached the company' is partial_exit.",
                (),
                (),
                "always a person"),

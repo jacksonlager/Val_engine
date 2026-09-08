@@ -34,12 +34,12 @@ def test_duplicate_rows_are_one_finding_with_the_fix(tmp_path: Path, cfg):
     assert ids.count("X-900") == 1 and "X-105" not in ids, ids       # one finding; the note waits for the corrected row
     f = next(f for f in c.flags if f.rule_id == "X-900")
     assert f.evidence["rows"] == [2, 3] and f.evidence["validation"] == ["X-906"]
-    assert f.points[0].startswith("Rows **2** and **3** (Acquisition (Closed)) could not be applied.")
+    assert f.points[0].startswith("Rows **2** and **3**, Acquisition (Closed), could not be applied.")
     assert "(company, event" not in f.points[0]                        # the column list is for the data checks, not the card
     assert "Delete one of the duplicate rows and rerun" in f.points[1] and "Delete one of the duplicate rows" in f.action
     assert "X-906" in f.message and len(f.message) < 400
     assert [s.rule_id for s in c.steps] == ["M-000", "M-000", "M-000"]   # each copy recorded, then the carry
-    assert all("not applied (X-906)" in s.rationale for s in c.steps[:2])
+    assert all("not applied" in s.rationale and "(X-906)" in s.rationale for s in c.steps[:2])
 
 
 def test_rows_refused_for_different_reasons_are_one_finding_with_one_line_each(tmp_path: Path, cfg):
