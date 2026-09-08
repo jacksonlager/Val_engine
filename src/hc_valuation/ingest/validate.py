@@ -241,6 +241,15 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
                                                    f"{q.measurement_date.isoformat()}: the book carries a round that has not "
                                                    "happened — fix the date, or move the round to the activity tab of its quarter")))
 
+        # X-926: the first cheque cannot post-date the latest round. One of the two dates is wrong, and the
+        # staleness clock — every screen that asks how old the price is — runs from the second.
+        if p.status == Status.ACTIVE and p.first_investment > p.latest_round:   # an exited company's clock no longer matters
+            issues.append(ValidationIssue(rule_id="X-926", severity=Severity.REVIEW, blocking=False, sheet=snapshot.sheet_name,
+                                          row_index=p.row_index, company=p.company,
+                                          message=(f"First Investment {p.first_investment.isoformat()} is after Latest Round "
+                                                   f"{p.latest_round.isoformat()}: one of the two dates is wrong, and the age of "
+                                                   "the price behind the mark depends on which")))
+
         # An Active holding with neither a last-round price nor a carrying value is a row nobody has
         # filled in, not a position worth nothing. X-904 cannot catch it: its identity is satisfied
         # by 0 x 0 = 0, so the pair used to reconcile and the company dropped out of the book at $0.

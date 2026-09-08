@@ -851,7 +851,7 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
                       f"(${cap:,.0f}M market cap), so the proposed mark is the listing-day market cap of ${float(e.value):,.0f}M "
                       f"and stands in for the close until the actual {md.strftime('%d %b')} price is confirmed.")
         quote_point = (f"Now **listed**: the mark should be the **{md.isoformat()} close**; no quote is on file, so the "
-                       f"**${float(e.value):,.0f}M listing-day market cap** stands in ({price_source_words(source)}).")
+                       f"**${float(e.value):,.0f}M listing-day market cap** stands in ({price_source_words(source, short=True)}).")
     else:
         quote_line = (f"The mark should be the closing price on {md.isoformat()} (${cap:,.0f}M market cap, {source}) — not the "
                       f"${float(e.value):,.0f}M market cap the shares priced at on listing day.")
@@ -1581,13 +1581,14 @@ def is_standin_price(source: object) -> bool:
     return src.startswith(STANDIN_PRICE_SOURCES) or "seeded" in src
 
 
-def price_source_words(source: object) -> str:
-    """The quote's provenance in words a reviewer reads; the machine label stays in the step inputs."""
+def price_source_words(source: object, short: bool = False) -> str:
+    """The quote's provenance in words a reviewer reads; the machine label stays in the step inputs.
+    `short` is for a bullet that already says what stands in."""
     src = str(source or "")
     if src == "stub:seeded_to_ipo_print":
-        return "a stand-in seeded to the listing price, not an exchange close"
+        return "a stand-in, not a close" if short else "a stand-in seeded to the listing price, not an exchange close"
     if src.startswith("stub:seeded_to_ipo_print"):
-        return "a stand-in drifted from the listing price, not an exchange close"
+        return "a drifted stand-in, not a close" if short else "a stand-in drifted from the listing price, not an exchange close"
     if src == "ipo_print":
         return "the listing price"
     if src.startswith("live:"):

@@ -30,7 +30,7 @@ Two things about the shape. The ledger feeds back into the calculation: a decisi
 
 **What it does:** finds the tabs by name pattern, reads the columns by header (not by position), and tolerates the kind of drift a real workbook has — a typo in an event type, a header renamed, `$28.2M` typed as text, a percentage entered as `5.5` instead of `0.055`. Every correction is recorded as an X-91x finding so you can see what it assumed. Then the integrity checks: a row it cannot read, an event dated outside the quarter, a duplicate, activity on a company already shut down, a prior mark that does not reconcile to last quarter's booked mark.
 
-**Rules used:** X-900 to X-923. Tolerances live under `normalization:` and `tolerances:` in the policy file.
+**Rules used:** X-900 to X-926. Tolerances live under `normalization:` and `tolerances:` in the policy file.
 
 **AI:** none. A row that cannot be read *blocks that position* (X-900) and the prior mark is carried; it never guesses. A row it could read only by correcting it — `5.5` taken as 5.5%, a row dated a week before the window — is applied, and the position carries a finding saying so (X-923) until a person confirms the reading. A row that contradicts the position's own history — a financing on a company already acquired, a round dated after this quarter's shutdown — is recorded, not applied, and blocks.
 

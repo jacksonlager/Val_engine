@@ -271,6 +271,7 @@ _FIX = {
     "X-907": "Remove the row, or correct the company's status on the Portfolio tab, and rerun.",
     "X-924": "Decide which record is right — delete the row, or remove the company's Portfolio row — and rerun.",
     "X-925": "Correct the Portfolio row (a Status of Active, Acquired or Shut Down; a Latest Round date) and rerun.",
+    "X-926": "Confirm which date is right — First Investment or Latest Round — correct the cell and rerun.",
     "X-927": "Delete the row that repeats the book's latest round, or correct its date, and rerun.",
 }
 

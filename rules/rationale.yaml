@@ -706,6 +706,19 @@ rules:
     why_severity: >-
       Blocks approval, on the row: nothing from it is applied, the prior mark is carried, and the position
       stays Blocked until one of the two records is removed and the quarter rerun.
+  - id: X-926
+    name: Dates out of order on a position
+    family: data
+    severity: [REVIEW]
+    source: policy
+    reads: First Investment, Latest Round
+    why_flag: >-
+      The first cheque into a company cannot post-date its latest round. One of the two dates is
+      a typo, and nothing in the row says which.
+    why_severity: >-
+      Because the mark itself does not rest on either date, but the staleness clock does: every
+      screen that asks how old the price behind the mark is runs from Latest Round. A person
+      confirms which date is right before that clock is trusted.
   - id: X-923
     name: Row applied on a corrected reading
     family: data

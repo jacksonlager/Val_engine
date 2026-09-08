@@ -29,6 +29,12 @@ class QuarterCfg(_Strict):
 class MetricsCfg(_Strict):
     reporting_lag_months: int = 0
 
+    @model_validator(mode="after")
+    def _sane(self) -> "MetricsCfg":
+        if self.reporting_lag_months < 0:
+            raise ValueError("metrics.reporting_lag_months cannot be negative")
+        return self
+
 
 class HistoryCfg(_Strict):
     """What the per-company archive is allowed to show for quarters the engine did not run.
@@ -50,10 +56,22 @@ class IpoCfg(_Strict):
     price_source: Literal["market_close", "ipo_print"] = "market_close"
     lockup_discount_pct: float = 0.0
 
+    @model_validator(mode="after")
+    def _sane(self) -> "IpoCfg":
+        if not 0.0 <= self.lockup_discount_pct < 1.0:
+            raise ValueError("marking.ipo.lockup_discount_pct must be in [0, 1)")
+        return self
+
 
 class AnnouncedCfg(_Strict):
     treatment: Literal["probability_weighted", "full_deal_value", "hold_prior"] = "probability_weighted"
     close_probability: float = 0.90
+
+    @model_validator(mode="after")
+    def _sane(self) -> "AnnouncedCfg":
+        if not 0.0 <= self.close_probability <= 1.0:
+            raise ValueError("marking.announced.close_probability must be in [0, 1]")
+        return self
 
 
 class ConvertibleCfg(_Strict):
@@ -67,6 +85,14 @@ class CalibrationCfg(_Strict):
     require_live_history: bool = True   # calibrate only from an observed comps history (live:*), never the fixture
     round_month_tolerance: int = 3      # months either side of the round month the history may be read at
 
+    @model_validator(mode="after")
+    def _sane(self) -> "CalibrationCfg":
+        if self.min_age_months < 0 or self.round_month_tolerance < 0:
+            raise ValueError("marking.calibration months cannot be negative")
+        if not 0.0 < self.bound_pct <= 1.0:
+            raise ValueError("marking.calibration.bound_pct must be in (0, 1]")
+        return self
+
 
 class DownRoundCfg(_Strict):
     """M-012: ownership × post-money on a down round or recap is a ceiling — the preference
@@ -74,6 +100,12 @@ class DownRoundCfg(_Strict):
     placeholder for that structure, offered as a priced option beside the ceiling; the round
     documents replace it with a waterfall when they are read."""
     structure_haircut_pct: float = 0.25
+
+    @model_validator(mode="after")
+    def _sane(self) -> "DownRoundCfg":
+        if not 0.0 <= self.structure_haircut_pct < 1.0:
+            raise ValueError("marking.down_round.structure_haircut_pct must be in [0, 1)")
+        return self
 
 
 class MarkingCfg(_Strict):
@@ -89,23 +121,53 @@ class StalenessCfg(_Strict):
     monitor_months: int
     review_months: int
 
+    @model_validator(mode="after")
+    def _sane(self) -> "StalenessCfg":
+        if self.monitor_months < 0 or self.review_months < self.monitor_months:
+            raise ValueError("exceptions.staleness: months cannot be negative and review_months must be at least monitor_months")
+        return self
+
 
 class ArrGrowthCfg(_Strict):
     monitor_below: float
     review_below: float
+
+    @model_validator(mode="after")
+    def _sane(self) -> "ArrGrowthCfg":
+        if self.review_below > self.monitor_below:
+            raise ValueError("exceptions.arr_growth: review_below must be at or below monitor_below")
+        return self
 
 
 class RunwayCfg(_Strict):
     monitor_below_mo: float
     review_below_mo: float
 
+    @model_validator(mode="after")
+    def _sane(self) -> "RunwayCfg":
+        if self.review_below_mo < 0 or self.monitor_below_mo < self.review_below_mo:
+            raise ValueError("exceptions.runway: months cannot be negative and monitor_below_mo must be at least review_below_mo")
+        return self
+
 
 class DilutionCfg(_Strict):
     monitor_relative_drop: float
 
+    @model_validator(mode="after")
+    def _sane(self) -> "DilutionCfg":
+        if self.monitor_relative_drop < 0:
+            raise ValueError("exceptions.dilution.monitor_relative_drop cannot be negative")
+        return self
+
 
 class SecondaryXCfg(_Strict):
     spread_tolerance_pct: float
+
+    @model_validator(mode="after")
+    def _sane(self) -> "SecondaryXCfg":
+        if self.spread_tolerance_pct < 0:
+            raise ValueError("exceptions.secondary.spread_tolerance_pct cannot be negative")
+        return self
 
 
 class MultipleCfg(_Strict):
@@ -119,9 +181,21 @@ class MultipleCfg(_Strict):
     # (source live:*); a sector whose comps are the fixture, or has none, falls back to the absolute bounds
     require_live_comps: bool = True
 
+    @model_validator(mode="after")
+    def _sane(self) -> "MultipleCfg":
+        if not (self.absolute_high > self.absolute_low > 0) or not (self.high_x_comp > self.low_x_comp > 0) or self.min_arr < 0:
+            raise ValueError("exceptions.multiple: high bounds must exceed low bounds, both positive; min_arr cannot be negative")
+        return self
+
 
 class MoicCfg(_Strict):
     monitor_above: float
+
+    @model_validator(mode="after")
+    def _sane(self) -> "MoicCfg":
+        if self.monitor_above <= 0:
+            raise ValueError("exceptions.moic.monitor_above must be positive")
+        return self
 
 
 class PerformanceGapCfg(_Strict):
@@ -132,6 +206,12 @@ class PerformanceGapCfg(_Strict):
 
 class EscalationCfg(_Strict):
     review_rules_to_block: int = 2
+
+    @model_validator(mode="after")
+    def _sane(self) -> "EscalationCfg":
+        if self.review_rules_to_block < 1:
+            raise ValueError("exceptions.escalation.review_rules_to_block must be at least 1")
+        return self
 
 
 class IndicationsCfg(_Strict):
@@ -148,6 +228,16 @@ class IndicationsCfg(_Strict):
     cheque_ownership_tolerance: float = 0.015        # with a round size on the row: the stake may differ from the round arithmetic by this much
                                                      # (an option-pool top-up or a small note conversion) before X-119 asks about it
     restructure_ownership_tolerance: float = 0.0005  # a Share Restructure row whose ownership moves more than this -> X-133 REVIEW
+
+    @model_validator(mode="after")
+    def _sane(self) -> "IndicationsCfg":
+        if not (0.0 < self.term_sheet_review_below <= 1.0 and 0.0 < self.note_cap_review_below <= 1.0):
+            raise ValueError("exceptions.indications: *_review_below must be in (0, 1]")
+        if self.insider_round_review_step_up < 1.0 or self.step_up_review_at < 1.0:
+            raise ValueError("exceptions.indications: step-up thresholds must be at least 1x")
+        if min(self.cheque_price_tolerance, self.cheque_check_min_ownership_delta, self.ownership_rounding, self.cheque_ownership_tolerance, self.restructure_ownership_tolerance) < 0:
+            raise ValueError("exceptions.indications: tolerances cannot be negative")
+        return self
 
 
 class ExceptionsCfg(_Strict):
