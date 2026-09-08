@@ -18,7 +18,7 @@ import type { CompanyResult, Flag, PositionRecommendation, Readiness, Recommenda
 import { postOverride } from "../lib/api";
 import { useRationale, useRuleRationale } from "../lib/rationale";
 import { isoDate, musd, pct, shortDate, signClass, signed } from "../lib/format";
-import { evidenceLabel, evidenceValue, familyLabel, FAMILY_LABEL, marketSourceLabel, plainSystemPhrase, severityPhrase } from "../lib/labels";
+import { evidenceLabel, evidenceValue, familyLabel, FAMILY_LABEL, marketSourceLabel, plainSystemPhrase, severityPhrase, severityShort } from "../lib/labels";
 import { DispChip, Field, Modal, WriteButton } from "./ui";
 
 /** `a **b** c` -> a, <strong>b</strong>, c. Splits on pairs only; odd markers stay literal. */
@@ -1200,8 +1200,8 @@ export function FlagActionList({
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span className="text-[12.5px] font-semibold leading-snug">{flagName(f, names)}</span>
                 {f.severity === "BLOCK" && (
-                  <span className="chip disp-BLOCK no-dot" style={{ fontSize: 10 }}>
-                    Blocks approval
+                  <span className="chip disp-BLOCK no-dot" style={{ fontSize: 10 }} title="A decision is required before the quarter can be published">
+                    {severityShort("BLOCK")}
                   </span>
                 )}
                 {flags.length > 1 && covered?.includes(f.rule_id) && (

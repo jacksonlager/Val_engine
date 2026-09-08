@@ -33,8 +33,8 @@ export function humanize(k: string): string {
 // to ratify — while readiness says whether the engine had what it needed. The two are not the same axis.
 // Used only on individual findings now: a position carries a readiness word instead.
 export const DISPOSITION_LABEL: Record<string, string> = {
-  BLOCK: "Blocks approval",
-  REVIEW: "Needs a review",
+  BLOCK: "Decision required",
+  REVIEW: "Check to confirm",
   MONITOR: "Noted",
   CLEAR: "Clear",
 };
