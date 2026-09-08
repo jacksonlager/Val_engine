@@ -117,6 +117,14 @@ def _live_factory(req: CompsRequest) -> CompsAnswer:
         live = PublicCompsProvider(baskets, req.fallback, cache, priced_as_of, refresh=req.refresh,
                                    price_source=resolve_price_source(req.price_source),
                                    valuation_date=req.measurement_date)
+        if req.refresh and not live.fetched_any and meta.get("fetched_at"):
+            # nothing could be fetched: the saved feed serves, priced as of the day it was fetched,
+            # and the report says the refetch did not happen
+            saved = _date.fromisoformat(str(meta["fetched_at"])[:10])
+            live = PublicCompsProvider(baskets, req.fallback, cache, saved, refresh=False,
+                                       price_source=resolve_price_source(req.price_source),
+                                       valuation_date=req.measurement_date)
+            live.errors.insert(0, f"the live feed could not be reached, so nothing was refetched; showing the feed saved on {saved.isoformat()}")
         # honest: never a live label over fixture numbers
         return CompsAnswer(comps=live, label=live.source if live.reached_live else "stub",
                            report=live.report(positions=req.positions, used_by=req.used_by, provider="live"),

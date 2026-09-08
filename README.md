@@ -267,8 +267,8 @@ quarter's file can `inherits: 2026Q3` and override only what moved; rules carry 
 ## Tests
 
 ```bash
-pip install -e ".[dev]"             # adds pytest and httpx to the install above
-pytest                              # 1,000+ tests (1,034 at the time of writing), ~90 s, no network; tests/stress/ is the adversarial suite
+pip install -e ".[dev]"             # adds pytest, httpx and the anthropic SDK (the AI-layer tests fake its calls)
+pytest                              # 1,300+ tests, ~90 s, no network; tests/stress/ is the adversarial suite
 python training/run_gauntlet.py     # 44 dirty-workbook scenarios, 1,785 checks -> training/report.md
 ```
 

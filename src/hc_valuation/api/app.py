@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import os
 import logging
+
+from ..connectors.fetch import live_extra_installed
 import threading
 import time
 import uuid
@@ -254,6 +256,10 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         # A forced refetch applies to the first run only; reruns read the cache. The dashboard also refetches
         # once a day on its own when the cache was fetched before today, so the screen shows today's data.
         first_refresh = refresh_market or (auto_refresh_market and provider == "live" and market_cache_is_stale_today(paths.root, paths.policy))
+        if first_refresh and not live_extra_installed():
+            log.warning("the saved market feed is from an earlier day but the `live` extra is not installed "
+                        "(pip install -e \".[live]\"); serving the saved feed without a refetch")
+            first_refresh = False
         recompute(refresh=first_refresh)
 
     def result() -> PipelineResult:
@@ -436,7 +442,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
                 app.state.paths, app.state.provider = new_paths, new_provider
                 try:
                     app.state.result = execute(new_paths, provider=new_provider, recommender=recommender, note_reader=note_reader,
-                                               refresh_market=(auto_refresh_market and new_provider == "live"
+                                               refresh_market=(auto_refresh_market and new_provider == "live" and live_extra_installed()
                                                                and market_cache_is_stale_today(root, pol)),
                                                progress=lambda i, name: step(offset + i, name))
                 except Exception:

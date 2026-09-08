@@ -329,7 +329,11 @@ re-derives from `edgar_raw/` without a network call and without touching prices;
 keep-list is versioned too (`SLIM_VERSION`), so a new concept refetches only the EDGAR half.
 
 Rules: with a cache present for `as_of`, the live provider reads it and makes **no network
-call** (a re-run is deterministic and works offline); `--refresh` refetches and overwrites;
+call** (a re-run is deterministic and works offline); `--refresh` refetches every name *over* the
+saved feed and overwrites what it fetches — a name whose fetch fails keeps its saved facts and
+closes, with a note, and a refetch that reaches nothing leaves the folder untouched, priced as of
+the saved day, and says so (the dashboard's once-a-day refetch is not attempted at all without the
+`live` extra);
 a partial cache (a ticker missing) fetches only what is missing; a ticker SEC does not know
 is recorded in `company_tickers.json` as `cik: null`, reported as an error on every run,
 and never refetched (nothing can be priced without fundamentals). The price half is keyed by

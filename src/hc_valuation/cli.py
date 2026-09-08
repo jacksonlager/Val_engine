@@ -367,9 +367,11 @@ def market(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = Polic
     from .connectors import assemble_market_data
     from .ingest.reader import read_workbook
 
+    from .workbooks import provider_for
     paths = _paths(input_path, policy, overrides, ledger_dir)
     cfg = load_config(paths.policy)
     snapshot, feed = read_workbook(paths.workbook, cfg)
+    provider = provider or provider_for(paths.root, paths.policy)      # the rule `run` and `build` use: a saved live feed serves
     rep = assemble_market_data(cfg, paths.root, snapshot, feed, provider=provider, refresh=refresh,
                                price_source=price_source).report
     if as_json:

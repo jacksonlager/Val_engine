@@ -75,6 +75,15 @@ def fetch_text(url: str, headers: Mapping[str, str] | None = None, timeout_s: fl
     return text
 
 
+def live_extra_installed() -> bool:
+    """Whether `httpx` — the `live` extra — is importable. A refetch is not attempted without it."""
+    try:
+        import httpx  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
 def _no_constant(name: str) -> Any:
     raise ValueError(f"payload carries {name}")
 

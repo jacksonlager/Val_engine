@@ -861,15 +861,18 @@ def test_static_report_inlines_the_market_report(tmp_path: Path):
 
 def test_cli_market_json_parses_and_text_lists_sectors():
     runner = CliRunner()
+    # no flag: the same rule as `run` and `build` — the saved live feed when the checkout has one, else the fixture
+    from hc_valuation.workbooks import provider_for
+    expected = provider_for(ROOT, ROOT / "rules" / "2026Q3.yaml") or "stub"
     r = runner.invoke(cli_app, ["market", "--json"])
     assert r.exit_code == 0, r.output
     rep = json.loads(r.output)
-    assert rep["provider"] == "stub" and len(rep["sectors"]) == 12
-    r = runner.invoke(cli_app, ["market"])
+    assert rep["provider"] == expected and len(rep["sectors"]) == 12
+    r = runner.invoke(cli_app, ["market", "--provider", "stub"])
     assert r.exit_code == 0 and "AI/ML" in r.output and "fixture:pitchbook@2026-09" in r.output and "provider stub" in r.output
     r = runner.invoke(cli_app, ["market", "--provider", "pitchbook"])
     assert r.exit_code == 0 and "PITCHBOOK_API_KEY" in r.output
-    r = runner.invoke(cli_app, ["market", "--price-source", "stooq"])           # accepted; irrelevant to the stub
+    r = runner.invoke(cli_app, ["market", "--provider", "stub", "--price-source", "stooq"])   # accepted; irrelevant to the stub
     assert r.exit_code == 0 and "provider stub" in r.output
 
 
@@ -970,6 +973,8 @@ def test_committed_cache_carries_convertible_notes_for_the_names_that_issue_them
         assert rows[-1]["value"] == pytest.approx(want, abs=tol), f"{t} at {end}"
     # and the slim beside it was cut with the current keep-list, so a re-derive cannot lose them
     raw = cache.read_edgar_raw("OKTA")
+    if raw is None:
+        return                                     # the slim is git-ignored; a clean checkout has none to check
     assert raw is not None and raw.get("slim_version") == SLIM_VERSION
 
 
@@ -1144,3 +1149,42 @@ def test_revenue_concepts_that_measure_different_things_are_not_merged():
     concepts, periods = revenue_periods(facts_)
     assert set(concepts) == {"RevenuesNetOfInterestExpense", "RevenueFromContractWithCustomerExcludingAssessedTax"}
     assert {r["end"]: r["value"] for r in periods}["2019-12-31"] == 300.0
+
+
+def test_a_refetch_that_cannot_reach_the_feed_keeps_and_serves_the_saved_one(tmp_path: Path):
+    """The once-a-day refetch used to clear the cache folder before fetching, so on a machine with no
+    network the committed feed was wiped and the fixture shown. A refetch is fetched over the saved
+    feed: every name is asked for again, and a name whose fetch fails keeps its saved facts and closes."""
+    make_provider(tmp_path)
+    cache = MarketCache(tmp_path, AS_OF)
+    before = {p.name: p.read_bytes() for p in cache.dir.rglob("*.json")}
+    meta = cache.read_meta()
+    p, f = make_provider(tmp_path, FakeFetch(fail_all=True), refresh=True)
+    assert f.calls, "the refetch was attempted"
+    assert p.reached_live and p.is_live("AI/ML") and not p.fetched_any
+    assert {t: c.status for t, c in p._constituents.items() if t in ("AAA", "BBB")} == {"AAA": "ok", "BBB": "ok"}
+    assert {q.name: q.read_bytes() for q in cache.dir.rglob("*.json")} == before, "nothing on disk was touched"
+    assert cache.read_meta() == meta and any("saved feed serves instead" in e for e in p.errors)
+    # a refetch that reaches the feed replaces everything, as before
+    p2, f2 = make_provider(tmp_path, refresh=True)
+    assert p2.fetched_any and not p2.cache_hit and cache.read_meta()["fetched_at"] >= meta["fetched_at"]
+
+
+def test_assembled_refresh_without_network_is_priced_as_of_the_saved_day(tmp_path: Path, monkeypatch):
+    from hc_valuation.connectors import assemble_market_data
+    from hc_valuation.config import load_config
+    from hc_valuation.ingest.reader import read_workbook
+    root = tmp_path / "root"
+    root.mkdir()
+    make_provider(root)
+    saved = MarketCache(root, AS_OF).read_meta()["fetched_at"][:10]
+
+    def boom(url, headers=None, timeout_s=8.0):
+        raise FetchError("ConnectError: no route to host")
+    monkeypatch.setattr(fetch_mod, "fetch_text", boom)
+    cfg = load_config(ROOT / "rules" / "2026Q3.yaml")
+    snapshot, feed = read_workbook(ROOT / "data" / "HC_Mock_Portfolio_Data.xlsx", cfg)
+    ans = assemble_market_data(cfg, root, snapshot, feed, provider="live", refresh=True)
+    rep = ans.report
+    assert ans.label == LIVE_LABEL and rep["reached_live"] and rep["priced_as_of"] == saved
+    assert rep["errors"] and "could not be reached" in rep["errors"][0] and saved in rep["errors"][0]

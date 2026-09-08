@@ -216,9 +216,13 @@ class PublicCompsProvider:
 
     def _load(self, refresh: bool) -> None:
         cache, baskets = self._cache, self.baskets
-        if refresh:
-            cache.clear()
-        self._names = cache.read_tickers()
+        # A refetch is fetched *over* the saved feed, never instead of it: every name is asked for
+        # again, and a name whose fetch fails keeps its saved facts and closes with a note. The
+        # earlier version cleared the folder first, so a refetch on a machine with no network (or
+        # without the `live` extra) wiped the committed feed and left the fixture.
+        saved_names = cache.read_tickers()
+        self._names = {} if refresh else dict(saved_names)
+        self.refreshing = refresh
         fetched = False
 
         # Resolve CIKs first: a ticker SEC does not know (cached as `cik: null`) is skipped on both
@@ -242,6 +246,8 @@ class PublicCompsProvider:
                     if ov is not None and ov.cik is not None:
                         self._forget_other_filers({t: {"cik": ov.cik}})
                         self._names[t] = {"cik": ov.cik, "title": ov.name}
+                    elif refresh and t in saved_names:      # the saved resolution stands
+                        self._names[t] = saved_names[t]
         for t in baskets.tickers:
             row = self._names.get(t)
             if row is None:
@@ -251,6 +257,8 @@ class PublicCompsProvider:
         fetchable = [t for t in baskets.tickers if t not in self._ticker_errors]
 
         missing_edgar, missing_prices = cache.missing(fetchable)
+        if refresh:
+            missing_edgar, missing_prices = list(fetchable), list(fetchable)
         if not cache.exists():
             # per-ticker files with no provenance record (when fetched, by which price source) are
             # not a cache: everything is fetched again rather than served as live from nowhere
@@ -261,8 +269,9 @@ class PublicCompsProvider:
                         cache.rel_dir, cache.price_source(), self.price_source)
             missing_prices = list(fetchable)
         self.cache_hit = cache.exists() and not unresolved and not missing_edgar and not missing_prices
+        kept: list[str] = []                               # names whose refetch failed and whose saved feed serves instead
         for t in missing_edgar:
-            raw = cache.read_edgar_raw(t)
+            raw = None if refresh else cache.read_edgar_raw(t)
             if raw is not None:                            # the slim companyfacts is still here: re-derive, no call
                 try:
                     cache.write_edgar(t, extract(raw))
@@ -273,6 +282,9 @@ class PublicCompsProvider:
                 facts = self._edgar.company_facts(int(self._names[t]["cik"]))
                 fetched = True
             except FetchError as ex:
+                if refresh and cache.read_edgar(t) is not None:
+                    kept.append(t)
+                    continue
                 self._record(t, f"EDGAR fetch failed: {ex}")
                 continue
             # A payload that parses as JSON but is not shaped like companyfacts (a list where the
@@ -297,6 +309,9 @@ class PublicCompsProvider:
                 fetched = True
                 priced_now.add(t)
             except LiveFeedError as ex:
+                if refresh and cache.read_prices(t) is not None:
+                    kept.append(t)
+                    continue
                 # the line already starts with the ticker: drop the provider's symbol prefix so a
                 # source-wide failure reads identically on every ticker and collapses to one finding
                 msg, sym = str(ex), self._prices.symbol_for(t)
@@ -315,6 +330,11 @@ class PublicCompsProvider:
                 cache.prune_prices(priced_now)
             else:                                           # it answered for nobody: the old half stays as it was
                 price_source_written = cache.price_source() or self.price_source
+        self.fetched_any = fetched
+        if kept:
+            names = sorted(set(kept))
+            self.errors.append(f"{len(names)} of {len(fetchable)} names could not be refetched; their saved feed serves instead "
+                               f"[{', '.join(names)}]")
         if fetched:
             meta = cache.write_meta(user_agent=self._edgar.user_agent, baskets_sha256=baskets.sha256,
                                     price_source=price_source_written)

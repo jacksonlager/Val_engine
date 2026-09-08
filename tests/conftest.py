@@ -13,6 +13,7 @@ Two ways to exercise the engine live here:
 from __future__ import annotations
 
 import copy
+import importlib.util
 import json
 from datetime import date, datetime
 from pathlib import Path
@@ -307,3 +308,25 @@ def next_quarter_cfg(cfg):
     quarter's policy, so tests that read a next-quarter workbook must use this."""
     from hc_valuation.config import QuarterCfg, next_quarter_window
     return cfg.model_copy(update={"quarter": QuarterCfg(**next_quarter_window(cfg.quarter))})
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _model_sdk_shim():
+    """The AI-layer tests replace the network call on the three model clients, so they need the
+    clients to consider themselves available with a fake key even when the `anthropic` package is
+    not installed (a bare `pip install -e .`). With the package present nothing is changed."""
+    if importlib.util.find_spec("anthropic") is not None:
+        yield
+        return
+    from hc_valuation import recommend
+    from hc_valuation.adjudication import proposer
+    from hc_valuation.notes import reader
+    restore = []
+    for cls in (recommend.ClaudeChooser, reader.ClaudeReader, proposer.ClaudeProposer):
+        orig = cls.unavailable_reason
+        cls._real_unavailable_reason = orig          # a test that wants the real check restores this
+        cls.unavailable_reason = property(lambda self, _o=orig.fget: None if self.api_key else _o(self))
+        restore.append((cls, orig))
+    yield
+    for cls, orig in restore:
+        cls.unavailable_reason = orig
