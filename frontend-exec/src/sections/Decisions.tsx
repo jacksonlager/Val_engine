@@ -71,7 +71,7 @@ function DecisionCard({ d, index }: { d: Decision; index: number }) {
             </div>
           </div>
         </div>
-        <div className="text-[12px] text-ink2">{d.event}{d.overridden ? " · overridden by committee" : ""}</div>
+        <div className="text-[12px] text-ink2">{d.event}{d.overridden ? " · overridden by a reviewer" : ""}</div>
         <ol className="flex flex-col gap-3">
           {d.actions.map((a, i) => (
             <li key={i} className="flex flex-col gap-1">
@@ -112,16 +112,16 @@ export function Decisions({ view }: { view: ExecView }) {
     <Section
       id="decisions"
       eyebrow="Exception queue"
-      title={view.decisions.length ? `${plural(view.decisions.length, "position")} awaiting a committee decision` : "No positions await a committee decision"}
+      title={view.decisions.length ? `${plural(view.decisions.length, "position")} awaiting a reviewer decision` : "No positions await a reviewer decision"}
       aside={
         <>
-          Ordered by size of movement. Each card states what the committee must decide, with the engine's reasoning beneath.
+          Ordered by size of movement. Each card states what the reviewer must decide, with the engine's reasoning beneath.
           A further {plural(view.reviews.length, "position")} are flagged for review and {monitor} are on monitor.
         </>
       }
     >
       {view.decisions.length === 0 ? (
-        <Empty>Every mark has been confirmed by the back office and no committee decision is open.</Empty>
+        <Empty>Every mark has been confirmed by the back office and no reviewer decision is open.</Empty>
       ) : (
         <div className="grid grid-cols-2 gap-3 max-[1180px]:grid-cols-1">
           {view.decisions.map((d, i) => (
@@ -135,7 +135,7 @@ export function Decisions({ view }: { view: ExecView }) {
           <div className="text-[13px] font-medium text-ink flex items-center gap-2">
             <Chip d="REVIEW" label="Flagged for review" />
           </div>
-          <div className="text-[11px] text-muted">{plural(view.reviews.length, "position")} · booked marks stand unless the committee acts · <Chip d="MONITOR" label={`${monitor} monitored`} /></div>
+          <div className="text-[11px] text-muted">{plural(view.reviews.length, "position")} · booked marks stand unless a reviewer acts · <Chip d="MONITOR" label={`${monitor} monitored`} /></div>
         </div>
         {view.reviews.length === 0 ? (
           <Empty>Nothing is flagged for review.</Empty>

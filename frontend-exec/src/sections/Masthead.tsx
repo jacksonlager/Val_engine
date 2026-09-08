@@ -46,7 +46,7 @@ function StatusBadge({ view, compact = false }: { view: ExecView; compact?: bool
       {proposed ? "Proposed" : "Final"}
       {proposed && !compact && n > 0 && (
         <span className="normal-case tracking-normal font-medium text-ink2">
-          · {plural(n, "position")} await a committee decision
+          · {plural(n, "position")} await a reviewer decision
         </span>
       )}
     </span>
@@ -92,7 +92,7 @@ export function Masthead({ view }: { view: ExecView }) {
           </h1>
           <div className="mt-3 text-[15px] text-ink2">
             {proposed ? "Proposed" : "Final"} marks as at <span className="text-ink font-medium">{longDate(m.measurement_date)}</span>, moved from the{" "}
-            {longDate(m.prior_close)} close, shown after any committee override.
+            {longDate(m.prior_close)} close, shown after any reviewer override.
           </div>
           {proposed && (
             <div className="mt-2 text-[12.5px] text-muted max-w-[68ch]">

@@ -127,7 +127,7 @@ export function MarkHistoryCard({ company }: { company: string }) {
                         </div>
                         <div className="num mt-1">
                           <strong>{musd(p.mark)}</strong> <span className="text-muted">$M booked mark</span>
-                          {p.overridden && <span className="chip disp-REVIEW ml-1">committee decision</span>}
+                          {p.overridden && <span className="chip disp-REVIEW ml-1">reviewer decision</span>}
                         </div>
                         <div className="text-[11.5px] text-ink2 num">
                           {p.invested !== null && <>invested {musd(p.invested)} · </>}

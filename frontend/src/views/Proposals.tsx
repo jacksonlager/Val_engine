@@ -102,7 +102,7 @@ export function ProposalsView({
                   </div>
                 ))}
                 <div className="md:col-span-2 text-[11px] text-muted">
-                  A draft for a person to weigh, not a decision: the mark is unchanged until the committee accepts, promotes or rejects it below.
+                  A draft for a person to weigh, not a decision: the mark is unchanged until a reviewer accepts, promotes or rejects it below.
                 </div>
               </div>
             )}

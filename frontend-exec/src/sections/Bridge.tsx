@@ -18,7 +18,7 @@ export function Bridge({ view }: { view: ExecView }) {
       aside={
         <>
           Net {signedMoney(h.net_movement, 1)} ({signedPct(h.net_movement_pct)}). Engine drivers {signedMoney(engine, 1)}
-          {Math.abs(h.override_adjustment) > 0.005 ? <>, committee overrides {signedMoney(h.override_adjustment, 1)}</> : ", no committee overrides"}.
+          {Math.abs(h.override_adjustment) > 0.005 ? <>, reviewer overrides {signedMoney(h.override_adjustment, 1)}</> : ", no reviewer overrides"}.
         </>
       }
     >

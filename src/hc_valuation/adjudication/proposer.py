@@ -150,7 +150,7 @@ HEURISTICS: tuple[_Heuristic, ...] = (
     _Heuristic(("spac", "listing", "direct listing", "de-spac", "reverse merger"), "M-040", "ownership_after * deal_value",
                Severity.BLOCK, "reuse", {"ownership_after": "HC Ownership After (FD %)", "deal_value": "Post-Money / Deal Value ($M)"},
                "A SPAC merger or direct listing produces a listed security, the same outcome as an IPO: mark at post-combination "
-               "ownership × market capitalisation, move to Level 1, and hold the position for committee ratification as M-040 does. "
+               "ownership × market capitalisation, move to Level 1, and hold the position for a reviewer's ratification as M-040 does. "
                "Until a measurement-date close exists the deal value stands in for market cap.",
                ("measurement-date closing market cap (not the announced pro-forma value)", "redemption rate and resulting post-combination share count",
                 "lock-up terms and any earn-out/sponsor promote that dilutes HC", "whether the combination has actually closed"),
@@ -166,7 +166,7 @@ HEURISTICS: tuple[_Heuristic, ...] = (
                Severity.REVIEW, "reuse", {"proceeds": "Proceeds to HC ($M)"},
                "Contingent or deferred consideration on an exit: cash received is realized under M-020; the contingent portion is a "
                "receivable whose value depends on facts the schema cannot see. Carry only the amount actually received until the "
-               "committee sets a probability-weighted receivable.",
+               "a reviewer sets a probability-weighted receivable.",
                ("face value and conditions of the escrow / earn-out", "probability of release and expected date", "any indemnity claims against the escrow"),
                0.6),
     _Heuristic(("warrant", "option", "rights offering", "side letter"), "M-060", "prior_mark + hc_investment",
@@ -190,7 +190,7 @@ HEURISTICS: tuple[_Heuristic, ...] = (
 )
 
 UNKNOWN = _Heuristic((), "M-999", "prior_mark", Severity.BLOCK, "new_rule", {"prior_mark": "prior equity mark"},
-                     "No existing rule is a close analogue. Hold the mark unchanged and keep the position blocked until the committee "
+                     "No existing rule is a close analogue. Hold the mark unchanged and keep the position blocked until a reviewer "
                      "defines the treatment; do not absorb a genuinely new instrument into a rule it superficially resembles.",
                      ("what instrument or transaction this actually is", "whether it changes HC's ownership, liquidity or seniority",
                       "the facts a marking rule would need (price, ownership after, proceeds)"),
@@ -237,7 +237,7 @@ def _stub_briefing(ev: dict[str, Any], h: _Heuristic) -> dict[str, str]:
             "what_happened": what,
             "why_no_rule": "No marking rule is written for this event type and none of the built-in analogues matched the wording.",
             "what_it_means": "The engine has not changed the mark; whether this event changes what a market participant would pay for HC's position is undetermined until a person reads it.",
-            "suggested_course": "Hold the mark and keep the position blocked; decide the treatment as a committee override, or define a rule if the case will recur.",
+            "suggested_course": "Hold the mark and keep the position blocked; decide the treatment as a reviewer override, or define a rule if the case will recur.",
             "what_to_check": "; ".join(h.missing_facts) + ".",
         }
     return {

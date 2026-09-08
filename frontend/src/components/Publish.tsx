@@ -215,7 +215,7 @@ function PublishModal({ run, onClose, onDone }: { run: ValuationRun; onClose: ()
           <input className="input w-full" value={note} onChange={(e) => setNote(e.target.value)} />
         </Field>
         <div className="text-[12px] text-[var(--clear-text)] mb-3">
-          Every blocked position, and every one that needed review, has been decided or confirmed ({decided} committee{" "}
+          Every blocked position, and every one that needed review, has been decided or confirmed ({decided} reviewer{" "}
           {decided === 1 ? "decision" : "decisions"} on the ledger). This will publish as <span className="font-semibold">final</span>.
         </div>
         {err && <div className="text-[12px] down mb-2">{err}</div>}
@@ -288,7 +288,7 @@ function GateModal({
         ))}
       </ul>
       <p className="text-[11px] text-muted mt-2 mb-3">
-        Choosing a resolution on a flag, or confirming the mark as proposed, records a committee override under your name and clears
+        Choosing a resolution on a flag, or confirming the mark as proposed, records a reviewer override under your name and clears
         that row. The button unlocks on its own once the list is empty.
       </p>
       <div className="flex justify-end">

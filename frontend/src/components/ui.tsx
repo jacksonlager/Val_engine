@@ -163,7 +163,7 @@ export function MarkTriple({
         className={overridden ? "font-semibold underline decoration-dotted underline-offset-2" : "text-ink2"}
         title={
           overridden
-            ? "The booked mark differs from the proposal: a committee override is on record (ledger reference E-01)."
+            ? "The booked mark differs from the proposal: a reviewer override is on record (ledger reference E-01)."
             : "The booked mark is the proposal, unchanged."
         }
       >

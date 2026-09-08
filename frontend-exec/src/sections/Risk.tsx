@@ -71,7 +71,7 @@ export function Risk({ view }: { view: ExecView }) {
       id="risk"
       eyebrow="Risk watch"
       title="Positions the engine is watching"
-      aside={<>Raised from the operating data in the workbook; each item is already on the review queue. Marks stand until the committee acts.</>}
+      aside={<>Raised from the operating data in the workbook; each item is already on the review queue. Marks stand until a reviewer acts.</>}
     >
       <div className="grid grid-cols-3 gap-3 max-[1180px]:grid-cols-1 items-start">
         <RiskList

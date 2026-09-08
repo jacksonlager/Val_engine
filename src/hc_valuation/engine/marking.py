@@ -858,7 +858,7 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
         quote_point = (f"Now **listed**: the mark is the **{md.isoformat()} close** (${cap:,.0f}M), not the "
                        f"${float(e.value):,.0f}M listing-day market cap.")
     lockup_line = (f"HC also cannot sell until {lockup_end.isoformat()}. Under ASU 2022-03 a contractual sale restriction is "
-                   f"not a characteristic of the security and takes no discount, so policy applies {disc:.0%}; the committee ratifies that."
+                   f"not a characteristic of the security and takes no discount, so policy applies {disc:.0%}; a reviewer ratifies that."
                    if has_lockup else "There is no lock-up: HC's shares are freely tradable" + (" (per the row)." if said_no_lockup else " (a direct listing)."))
     lockup_points = ((f"HC **cannot sell until {lockup_end.isoformat()}**.",
                       f"Policy applies a **{disc:.0%}** lock-up discount (ASU 2022-03: a contractual restriction takes no discount) — ratified by the committee.")
@@ -1253,27 +1253,27 @@ def debt_facility(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> 
 @rule(rule_id="M-091", version=V, applies_to=(EventType.VALUATION_ADJUSTMENT.value,), severity=Severity.REVIEW,
       effective_from=EFFECTIVE, tier=7,
       description="Valuation adjustment asserted on an activity row (write-down, impairment, write-up): not a transaction, so the "
-                  "engine books nothing from it. The figure is offered as a priced option; the decision is the committee's (E-01).")
+                  "engine books nothing from it. The figure is offered as a priced option; the decision is the reviewer's (E-01).")
 def valuation_adjustment(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
     stated = w.ownership * float(e.value) if e.value else None
     w.step("M-091", V, {"stated_company_value": e.value, "ownership": w.ownership, "stated_mark": stated, "detail": e.detail},
            w.proposed_mark, w.proposed_mark,
            f"Valuation adjustment on the row ({e.detail}). No transaction: the engine proposes the evidence-based mark unchanged at "
            f"${w.proposed_mark:.2f}M" + (f"; the row's ${float(e.value):.1f}M would put HC at ${stated:.2f}M, offered as an option." if stated is not None else
-                                        "; the row states no value.") + " A mark change without a transaction is a committee decision.", e)
+                                        "; the row states no value.") + " A mark change without a transaction is a reviewer decision.", e)
     w.handled(e, "impairment", "write-down", "writedown", "write-off", "restated", "markdown")
-    sugg = [Suggest("as_proposed", "Keep the evidence-based mark; record the adjustment as a committee decision if it stands.", ("The engine books transactions and observable inputs, not assertions.", "An override with a reason is the audit trail an adjustment needs."), "proposed")]
+    sugg = [Suggest("as_proposed", "Keep the evidence-based mark; record the adjustment as a reviewer decision if it stands.", ("The engine books transactions and observable inputs, not assertions.", "An override with a reason is the audit trail an adjustment needs."), "proposed")]
     if stated is not None:
-        sugg.append(Suggest("at_stated", f"Book the row's stated valuation (${stated:.2f}M).", ("Right if the committee already decided this and the row records it.", "Recorded as an override addressed to this finding."), "value", value=round(stated, 6)))
+        sugg.append(Suggest("at_stated", f"Book the row's stated valuation (${stated:.2f}M).", ("Right if a reviewer already decided this and the row records it.", "Recorded as an override addressed to this finding."), "value", value=round(stated, 6)))
     w.flag("X-128", "treatment", Severity.REVIEW,
            f"An activity row asserts a valuation adjustment ({e.detail})" + (f" to ${float(e.value):.1f}M company value, ${stated:.2f}M for HC" if stated is not None else "")
            + f". The engine does not book a mark from an assertion: the proposal stays at ${w.proposed_mark:.2f}M and the adjustment is "
-           "a decision for the committee to record, with its reason.",
+           "a decision for a reviewer to record, with its reason.",
            points=(f"The row **asserts an adjustment** ({e.detail})" + (f" to **${stated:.2f}M**" if stated is not None else "") + ".",
                    "Not a transaction: the engine **books nothing from it**.",
-                   "A mark change is a **committee decision**, recorded with a reason."),
+                   "A mark change is a **reviewer decision**, recorded with a reason."),
            suggestions=tuple(sugg),
-           action="Decide the adjustment as a committee override, or supply the transaction that supports it.",
+           action="Decide the adjustment as a reviewer override, or supply the transaction that supports it.",
            stated_company_value=e.value, stated_mark=stated, detail=e.detail)
 
 

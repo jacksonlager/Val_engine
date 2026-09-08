@@ -119,7 +119,7 @@ export function Marks({ view }: { view: ExecView }) {
                 const cls = deltaClass(r);
                 return (
                   <tr key={r.company}>
-                    <td className="text-ink font-medium">{r.company}{r.overridden ? <span className="text-muted" title="Overridden by committee"> *</span> : null}</td>
+                    <td className="text-ink font-medium">{r.company}{r.overridden ? <span className="text-muted" title="Overridden by a reviewer"> *</span> : null}</td>
                     <td className="text-ink2">{r.fund}</td>
                     <td className="text-ink2">{r.sector}</td>
                     <td className="text-ink2">{r.stage}</td>
@@ -141,7 +141,7 @@ export function Marks({ view }: { view: ExecView }) {
               <tr>
                 <td className="text-ink font-semibold" colSpan={6} style={{ borderTop: "1px solid var(--border)" }}>
                   Total · {plural(rows.length, "position")}
-                  {rows.some((r) => r.overridden) && <span className="text-muted font-normal"> · * overridden by committee</span>}
+                  {rows.some((r) => r.overridden) && <span className="text-muted font-normal"> · * overridden by a reviewer</span>}
                 </td>
                 <td className="r text-ink2 font-semibold" style={{ borderTop: "1px solid var(--border)" }}>{num(totals.prior)}</td>
                 <td className="r text-ink2 font-semibold" style={{ borderTop: "1px solid var(--border)" }}>{num(totals.proposed)}</td>

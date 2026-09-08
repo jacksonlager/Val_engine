@@ -102,7 +102,7 @@ def _post_money(c: CompanyResult, tol: float) -> tuple[float, str | None]:
     if c.note_at_cost:
         why.append(f"note leg ${c.note_at_cost:.2f}M carried at cost (M-060)")
     if c.override is not None:
-        why.append(f"committee override booked ${c.booked_mark:.2f}M vs proposed ${c.proposed_mark:.2f}M (E-01)")
+        why.append(f"reviewer override booked ${c.booked_mark:.2f}M vs proposed ${c.proposed_mark:.2f}M (E-01)")
     marking_rules = [s.rule_id for s in c.steps if s.rule_id.startswith("M-") and s.rule_id not in ("M-000", "M-060", "M-080")]
     if abs(c.equity_mark - c.ownership_after * post) > tol and marking_rules:
         why.append(f"equity mark ${c.equity_mark:.2f}M set by {marking_rules[-1]}, not ownership × last round")
@@ -125,7 +125,7 @@ def _portfolio_row(c: CompanyResult, src: Position, r: int, tol: float) -> tuple
     post, note = _post_money(c, tol)
     if _carried_open(c):
         note = (f"Exit recorded as {c.status_after.value} in {c.steps[-1].evidence.date.isoformat() if c.steps[-1].evidence else 'the quarter'} "
-                f"with no cash received; the committee held ${c.booked_mark:.2f}M rather than writing the position off, so it rolls "
+                f"with no cash received; a reviewer held ${c.booked_mark:.2f}M rather than writing the position off, so it rolls "
                 "forward as Active at that value with an 'unconfirmed exit' open item. Record the closing with its proceeds when the "
                 "cash arrives, or write it to zero.") + (f" {note}" if note else "")
     values: dict[str, Any] = {

@@ -48,7 +48,7 @@ export function Headline({ view }: { view: ExecView }) {
           foot={<>of {h.positions} held · {plural(h.events, "event")} this quarter</>}
         />
         <Tile
-          label="Awaiting committee decision"
+          label="Awaiting reviewer decision"
           value={String(d.BLOCK ?? 0)}
           valueClass={(d.BLOCK ?? 0) > 0 ? "!text-[var(--block-text)]" : ""}
           foot={<>{d.REVIEW ?? 0} to review · {d.MONITOR ?? 0} monitored · {d.CLEAR ?? 0} clear</>}

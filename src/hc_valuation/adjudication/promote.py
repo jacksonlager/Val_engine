@@ -202,7 +202,7 @@ def record_decision(paths, proposal_id: str, decision: Decision, approver: str, 
 
     if decision == "accept_once":
         if booked is None:
-            raise ValueError("accept_once needs the booked mark the committee agreed (the engine will not compute one from a draft)")
+            raise ValueError("accept_once needs the booked mark the reviewer agreed (the engine will not compute one from a draft)")
         # The API's OverrideIn bounds a booked mark at zero; this path did not, and a negative or
         # non-finite figure would land on the ledger and be booked by every run after it.
         if not math.isfinite(float(booked)) or float(booked) < 0:
@@ -213,7 +213,7 @@ def record_decision(paths, proposal_id: str, decision: Decision, approver: str, 
             "company": proposal.company, "quarter": proposal.quarter_label,
             "proposed": float(proposal.proposed_mark_at_proposal), "booked": float(booked),
             "reason": (f"E-09 accept-once of proposal {proposal_id} (analogue {proposal.analogue_rule_id}, formula "
-                       f"'{proposal.formula}'): {proposal.rationale} Committee: {reason}"),
+                       f"'{proposal.formula}'): {proposal.rationale} Reviewer: {reason}"),
             "approver": approver, "created_at": when.date().isoformat(),
             "rule_ids_addressed": ["M-999"], "source_proposal": proposal_id,
         })

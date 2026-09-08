@@ -26,7 +26,7 @@ def apply_override(w: Working, ledger: OverrideLedger, quarter: str, tolerance: 
                        f"The engine **now proposes ${proposed:.2f}M** — inputs or policy have moved since.",
                        "The **booked figure stands**: a human decision is not overwritten by a re-run."),
                suggestions=(
-                   Suggest("reconfirm", f"Re-confirm the booked ${rec.booked:.2f}M.", ("The committee decision stands; only the proposal it was measured against moved.", "Re-confirming refreshes the record against the current proposal."), "value", value=rec.booked),
+                   Suggest("reconfirm", f"Re-confirm the booked ${rec.booked:.2f}M.", ("The reviewer's decision stands; only the proposal it was measured against moved.", "Re-confirming refreshes the record against the current proposal."), "value", value=rec.booked),
                    Suggest("adopt_proposed", f"Adopt the revised proposal of ${proposed:.2f}M.", ("Inputs or policy moved; the new proposal reflects them.", "Removes the drift and the override in one step."), "proposed"),
                ),
                action=f"Ask {rec.approver} to re-confirm ${rec.booked:.2f}M against the revised proposal.",
@@ -39,7 +39,7 @@ def apply_override(w: Working, ledger: OverrideLedger, quarter: str, tolerance: 
                          "source_suggestion": rec.source_suggestion,
                          "evidence": dict(rec.evidence) if rec.evidence else None},
            proposed, proposed,   # the chain records the decision; proposed_mark itself is not altered
-           f"Committee override by {rec.approver} ({rec.created_at.isoformat()}): booked ${rec.booked:.2f}M against proposed "
+           f"Reviewer override by {rec.approver} ({rec.created_at.isoformat()}): booked ${rec.booked:.2f}M against proposed "
            f"${proposed:.2f}M ({route}{evidence_clause(rec.evidence)}). Reason: {rec.reason}")
     return rec.booked, rec
 
