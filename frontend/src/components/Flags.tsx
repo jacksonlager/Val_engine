@@ -466,12 +466,12 @@ function ClosingPriceModal({ c, f, onClose, onContinue }: { c: CompanyResult; f:
         </button>
       </div>
       {mode === "cap" ? (
-        <Field label={`Market cap at ${asOf} ($M)`}>
+        <Field label={`Market cap at ${shortDate(asOf)} ($M)`}>
           <input className="input w-full num" inputMode="decimal" value={cap} onChange={(e) => setCap(e.target.value)} autoFocus placeholder="e.g. 3,712" />
         </Field>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          <Field label={`Closing price at ${asOf}`}>
+          <Field label={`Closing price at ${shortDate(asOf)}`}>
             <input className="input w-full num" inputMode="decimal" value={px} onChange={(e) => setPx(e.target.value)} autoFocus placeholder="e.g. 41.20" />
           </Field>
           <Field label="Shares outstanding (M)">
@@ -620,10 +620,10 @@ export function PositionStep({
       <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
         <p className="step-label m-0">
           {price
-            ? `Add the ${asOf} closing price and recalculate; until it is on file the listing-day stand-in holds.`
+            ? `Add the ${shortDate(asOf)} closing price and recalculate; until it is on file the listing-day stand-in holds.`
             : rec
-              ? rec.label
-              : chosen.label}
+              ? <Rich text={rec.label} />
+              : <Rich text={chosen.label} />}
         </p>
         {rec ? <StepSource rec={rec} /> : null}
       </div>
@@ -658,15 +658,15 @@ export function PositionStep({
         </summary>
         <ul className="suggest-why mt-1">
           {(price
-            ? [`A listed security is worth its ${asOf} close (Level 1, ASC 820); no quote is on file, so the number shown is the listing-day cap standing in.`, ...(rec ? rec.reasons : chosen.reasons)]
+            ? [`A listed security is worth its ${shortDate(asOf)} close (Level 1, ASC 820); no quote is on file, so the number shown is the listing-day cap standing in.`, ...(rec ? rec.reasons : chosen.reasons)]
             : rec
               ? rec.reasons
               : chosen.reasons
           ).map((x, i) => (
-            <li key={i}>{x}</li>
+            <li key={i}><Rich text={x} /></li>
           ))}
         </ul>
-        {rec?.rationale && <p className="suggest-rationale m-0 mt-1">{rec.rationale}</p>}
+        {rec?.rationale && <p className="suggest-rationale m-0 mt-1"><Rich text={rec.rationale} /></p>}
         {rec?.note && <p className="suggest-rationale m-0 mt-1">{rec.note}</p>}
         {others.length > 0 && (
           <div className="mt-2 flex flex-col gap-1">
