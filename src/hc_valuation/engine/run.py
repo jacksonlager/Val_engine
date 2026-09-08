@@ -47,7 +47,7 @@ from .models import (OpenItemKind,
 from .open_items import RESOLVES, carry_prior_items
 from .overrides import apply_override
 from .registry import BUILTIN, Registry
-from .rollup import comps_move, fund_rollups, is_multiple_exposed, portfolio_totals, sensitivity
+from .rollup import comps_move, fund_rollups, is_multiple_exposed, portfolio_totals, sensitivity, sensitivity_by_sector
 from .state import Suggest, Working
 
 ENGINE_VERSION = "0.1.0"
@@ -60,11 +60,27 @@ def build_registry(config: RuleConfig) -> Registry:
 
 
 LISTED_STAGE = "public"
+# One bare string equality used to decide Level 1 vs Level 3, the market close vs the last round,
+# and whether a missing quote could ever block. "Public (NASDAQ)", "Listed" and "Publicly traded"
+# all fell through to Level 3 and were carried at a private round price, Ready and unflagged —
+# while the engine was holding the quote it needed. Every other resolution in this codebase folds,
+# accepts synonyms and refuses what it cannot place; this one now does too.
+_LISTED_STAGES = frozenset({
+    "public", "publicly traded", "public equity", "listed", "listed equity", "quoted",
+    "public company", "nasdaq", "nyse", "lse", "public market", "post-ipo", "post ipo",
+})
+
+
+# Folded here rather than through `ingest.normalize`: the engine is a pure function of its inputs
+# and must not import the reader (tests/test_coverage.py enforces it). This is the small subset
+# that matters for one enum-like cell — case, spacing, and a trailing "(NASDAQ)" qualifier.
+_QUALIFIER_RX = re.compile(r"\s*\([^()]*\)\s*$")
 
 
 def is_listed(p: Position) -> bool:
     """A position the book already carries as a public security (M-041 applies on the carry side)."""
-    return p.stage.strip().lower() == LISTED_STAGE
+    folded = re.sub(r"\s+", " ", (p.stage or "").strip().lower())
+    return folded in _LISTED_STAGES or _QUALIFIER_RX.sub("", folded) in _LISTED_STAGES
 
 
 # Screens that only mean something for a going concern; dropped from a terminal position.
@@ -381,7 +397,18 @@ def _provisional(w, measurement_date) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _reader_wanted_but_absent(report: Mapping[str, Any] | None) -> str | None:
+    """The reader was asked for and could not run — no key, no SDK, the service down. Distinct from
+    a reader deliberately switched off (the test suite, a machine that must not call out), which
+    reports `provider: off` and is not a finding: nobody expected a reading. Returns the reason."""
+    r = dict(report or {})
+    if r.get("provider") == "claude" and r.get("status") != "on":
+        return str(r.get("reason") or "unavailable")
+    return None
+
+
 def run_valuation(
+
     portfolio: PortfolioSnapshot,
     activity: ActivityFeed,
     market: MarketData,
@@ -408,6 +435,7 @@ def run_valuation(
     blocked_book = _blocked_rows(validation, portfolio.sheet_name) if portfolio.sheet_name != activity.sheet_name else {}
     review_rows = _review_rows(validation, activity.sheet_name)
     review_book = _review_rows(validation, portfolio.sheet_name) if portfolio.sheet_name != activity.sheet_name else {}
+    reader_absent = _reader_wanted_but_absent(note_reader_report)
     results: list[CompanyResult] = []
 
     for p in _positions_to_roll(portfolio, activity):
@@ -503,6 +531,28 @@ def run_valuation(
         else:
             marking.apply_carry(w)
 
+        # The note reader was wanted and could not run: every row with free text is unread, so the
+        # position carries a question nobody has looked at. A banner in the header is not a control —
+        # this makes it gate the quarter the way any other open question does.
+        if reader_absent:
+            unread = [e for e in events_by.get(p.company, []) if (e.notes or "").strip() or (e.detail or "").strip()]
+            if unread:
+                rows = sorted({e.row_index for e in unread})
+                w.flag("X-132", "notes", Severity.REVIEW,
+                       f"The note reader was asked for and could not run ({reader_absent}), so the text on "
+                       f"{_rows(rows)} was never read. Only the keyword screen ran on it; anything the note says "
+                       "beyond the columns is unaccounted for.",
+                       points=(f"The note reader **could not run** ({reader_absent}).",
+                               f"The text on {_rows(rows, bold=True)} was **read only by the keyword screen**.",
+                               "Read the note, or rerun with the reader available."),
+                       suggestions=(
+                           Suggest("as_proposed", "Book as proposed once the note has been read by hand.",
+                                   ("The columns were applied; the note may add nothing.",
+                                    "Rerun with the reader available to have it read."), "proposed"),
+                       ),
+                       action=f"Read the note on {_rows(rows)} by hand, or rerun once the note reader is available.",
+                       row_index=rows[0], rows=rows, reason=reader_absent, reader_unavailable=True)
+
         carry_prior_items(w, list(prior_open_items), config, resolved)
         assess_carry_side(w, config, market)
         marking.calibrate_stale(w, config, market)
@@ -562,6 +612,7 @@ def run_valuation(
     rollups = fund_rollups(results)
     totals = portfolio_totals(results)
     sens = sensitivity(results, config)
+    sens_sectors = sensitivity_by_sector(results, config)
     sens_meta = {"shock_pct": list(config.sensitivity.multiple_shock_pct), "min_arr": config.exceptions.multiple.min_arr,
                  "software_sectors": list(config.sensitivity.software_sectors)}
     moved = comps_move(results, config, market)
@@ -592,4 +643,4 @@ def run_valuation(
     )
     return ValuationRun(manifest=manifest, companies=tuple(results), rollups=tuple(rollups),
                         validation=tuple(validation), totals=totals, open_items=all_open, sensitivity=sens,
-                        sensitivity_meta=sens_meta, comps_move=moved)
+                        sensitivity_meta=sens_meta, sensitivity_sectors=sens_sectors, comps_move=moved)

@@ -9323,7 +9323,7 @@
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
   "recommender": "policy",
-  "run_id": "7453c4197f5e"
+  "run_id": "982718b0232b"
  },
  "open_items": [
   {
@@ -9517,6 +9517,104 @@
    "Infrastructure"
   ]
  },
+ "sensitivity_sectors": [
+  {
+   "exposed_nav": 206.2388,
+   "exposed_positions": 14,
+   "nav": 213.698,
+   "positions": 18,
+   "sector": "AI/ML",
+   "software": true
+  },
+  {
+   "exposed_nav": 155.3,
+   "exposed_positions": 8,
+   "nav": 155.3,
+   "positions": 8,
+   "sector": "Cybersecurity",
+   "software": true
+  },
+  {
+   "exposed_nav": 133.6396,
+   "exposed_positions": 10,
+   "nav": 133.6396,
+   "positions": 12,
+   "sector": "Developer Tools",
+   "software": true
+  },
+  {
+   "exposed_nav": 100.9,
+   "exposed_positions": 5,
+   "nav": 103.4,
+   "positions": 6,
+   "sector": "Robotics",
+   "software": false
+  },
+  {
+   "exposed_nav": 100.216,
+   "exposed_positions": 6,
+   "nav": 100.216,
+   "positions": 7,
+   "sector": "Infrastructure",
+   "software": true
+  },
+  {
+   "exposed_nav": 88.909,
+   "exposed_positions": 11,
+   "nav": 88.909,
+   "positions": 12,
+   "sector": "Enterprise SaaS",
+   "software": true
+  },
+  {
+   "exposed_nav": 77.109,
+   "exposed_positions": 9,
+   "nav": 77.109,
+   "positions": 10,
+   "sector": "Fintech",
+   "software": true
+  },
+  {
+   "exposed_nav": 69.8057,
+   "exposed_positions": 5,
+   "nav": 69.8057,
+   "positions": 5,
+   "sector": "Climate & Energy",
+   "software": false
+  },
+  {
+   "exposed_nav": 64.8,
+   "exposed_positions": 3,
+   "nav": 174.868,
+   "positions": 4,
+   "sector": "Space & Defense",
+   "software": false
+  },
+  {
+   "exposed_nav": 40.3,
+   "exposed_positions": 8,
+   "nav": 40.8,
+   "positions": 8,
+   "sector": "Data & Analytics",
+   "software": true
+  },
+  {
+   "exposed_nav": 18.431,
+   "exposed_positions": 6,
+   "nav": 19.431,
+   "positions": 7,
+   "sector": "Healthcare",
+   "software": false
+  },
+  {
+   "exposed_nav": 7.1,
+   "exposed_positions": 2,
+   "nav": 7.1,
+   "positions": 3,
+   "sector": "Consumer",
+   "software": false
+  }
+ ],
  "totals": {
   "active_after": 93,
   "booked_nav": 1184.2763,

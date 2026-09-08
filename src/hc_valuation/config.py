@@ -138,6 +138,8 @@ class IndicationsCfg(_Strict):
     """Non-binding or related-party prices that are context (MONITOR) until they move far enough
     from the carried price that a reviewer could change the number (REVIEW)."""
     term_sheet_review_below: float = 0.80      # indicated post ≤ this × last round -> X-109 REVIEW
+    note_cap_review_below: float = 0.80        # bridge cap ≤ this × last round -> X-107/X-108 REVIEW: a company
+                                               # bridging below its own last round is evidence the mark is high
     insider_round_review_step_up: float = 2.0  # insider-led round post ≥ this × prior post -> X-118 REVIEW
     step_up_review_at: float = 3.0             # any round ≥ this × prior post: X-122 REVIEW unless an outside investor is named
     cheque_price_tolerance: float = 0.10       # hc_investment ÷ Δownership vs the stated post beyond this -> X-119 REVIEW

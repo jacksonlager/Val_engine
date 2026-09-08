@@ -141,14 +141,18 @@ rules:
   - id: X-108
     name: Bridge note HC did not fund
     family: treatment
-    severity: [MONITOR]
+    severity: [MONITOR, REVIEW]
     source: policy
     reads: Event = Convertible Note, HC Investment empty
     why_flag: >-
       The company raised a note from others. Worth knowing; the cap says where the next round
       may price.
     why_severity: >-
-      Because nothing about HC's position changed and a cap is not evidence of value.
+      Because it depends where the cap sits. Above the last round the company is bridging on its way up:
+      HC's position did not change, a cap is not a price, and there is nothing for a person to decide, so it
+      is a watch item. At or below 80% of the last round it is the same evidence a low term sheet is — the
+      next round would convert under the mark the book still carries, and HC declining to fund it says so a
+      second time — and a reviewer could defensibly move the number, so it needs a review.
   - id: X-109
     name: Term sheet disclosed
     family: treatment
@@ -338,14 +342,17 @@ rules:
   - id: X-111
     name: Cash distribution received
     family: treatment
-    severity: [MONITOR]
+    severity: [MONITOR, REVIEW]
     source: policy
     reads: Event = Distribution, Proceeds to HC
     why_flag: >-
       Cash came back with the stake unchanged (an escrow release, a dividend). Realized moves up.
     why_severity: >-
-      Because it is information, not a valuation question — but it stays visible even on an exited
-      company so post-exit cash never disappears from the queue.
+      Because it depends on the size of the cheque. Cash arriving against an unchanged stake is
+      information: realized proceeds rise, the mark does not move, and there is nothing for a person
+      to decide, so it is a watch item. But a distribution larger than the carrying value — or than
+      everything HC ever invested — is evidence the mark was wrong rather than a routine receipt, and
+      a reviewer could defensibly change the number, so that case needs a review.
   - id: X-112
     name: Consideration was shares
     family: treatment

@@ -306,6 +306,14 @@ def _read_portfolio(ws, config: RuleConfig, corrections: list[Correction]) -> Po
         get = sheet.getter(row)
         company, corr = nz.clean_company(get("Company"))
         if not company:
+            # A row that carries a position but no name — a merged Company cell, a grouped layout —
+            # used to be dropped without a word, taking its mark, cost and open items out of the
+            # book silently. The activity tab already refuses this (X-914); the book must too.
+            if any(get(col) not in (None, "") for col in ("Prior Mark ($M)", "Latest Post-Money ($M)", "Invested ($M)", "Ownership (FD %)")):
+                corrections.append(Correction(kind="ambiguous", original="", resolved="", method="company", sheet=ws.title,
+                                              row_index=r, column="Company",
+                                              detail=f"row {r} of the Portfolio tab carries a position but no company name; "
+                                                     "it cannot be read as a holding"))
             continue
         cells = _Cells(sheet, r, get, ncfg, company)
         if corr is not None:

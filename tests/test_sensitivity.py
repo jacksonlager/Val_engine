@@ -126,3 +126,91 @@ def test_comps_move_on_the_real_book_is_the_fixture_and_reconciles():
     assert m.delta == pytest.approx(sum(x.delta for x in m.sectors), abs=1e-6)
     assert m.nav_if_marked_with_comps == pytest.approx(m.base_nav + m.delta, abs=1e-6)
     assert comps_move(list(run.companies), r.config, r.market) == m
+
+
+# ---------------------------------------------------------------- per-sector shock
+
+def test_sector_sensitivity_splits_the_same_exposure_and_never_exceeds_the_sector(build, cfg):
+    """Each sector carries its own exposure so the review tool can shock one at a time. Two
+    invariants hold whatever the book: the sector exposures sum to the portfolio's, and no sector's
+    exposed part is larger than the sector itself."""
+    soft = with_policy(cfg, **{"sensitivity.software_sectors": ["SaaS"]})
+    run, _ = build([position(), position(company="Beta", sector="Robotics"),
+                    position(company="Gamma", arr=0.2)], [], cfg_=soft)
+    rows = {s.sector: s for s in run.sensitivity_sectors}
+    assert set(rows) == {"SaaS", "Robotics"}
+    # Gamma sits below the ARR floor, so it counts in the sector's value but not its exposure
+    assert rows["SaaS"].positions == 2 and rows["SaaS"].exposed_positions == 1
+    assert rows["SaaS"].nav == pytest.approx(20.0) and rows["SaaS"].exposed_nav == pytest.approx(10.0)
+    assert rows["SaaS"].software is True and rows["Robotics"].software is False
+    assert sum(s.exposed_nav for s in run.sensitivity_sectors) == pytest.approx(run.sensitivity["multiple_exposed_nav"])
+    assert all(s.exposed_nav <= s.nav + 1e-9 for s in run.sensitivity_sectors)
+
+
+def test_sector_sensitivity_on_the_real_book_ties_out_and_is_ordered():
+    """On the shipped book: every sector present, exposure summing to the portfolio's, largest
+    first — the order the review tool relies on to put the sectors worth arguing about at the top."""
+    run = execute(RunPaths.default(), adjudicate=False).run
+    rows = run.sensitivity_sectors
+    assert {s.sector for s in rows} == {c.sector for c in run.companies}
+    assert sum(s.exposed_nav for s in rows) == pytest.approx(run.sensitivity["multiple_exposed_nav"])
+    assert sum(s.nav for s in rows) == pytest.approx(run.totals.booked_nav)
+    assert sum(s.positions for s in rows) == run.totals.positions
+    assert [s.exposed_nav for s in rows] == sorted((s.exposed_nav for s in rows), reverse=True)
+    # a sector holding a listed position carries value the multiple shock must not move
+    space = next(s for s in rows if s.sector == "Space & Defense")
+    assert space.exposed_nav < space.nav and space.exposed_positions < space.positions
+    # shocking every sector at one rate must equal the portfolio shock at that rate
+    for pct_ in (-0.2, 0.2):
+        assert run.totals.booked_nav + sum(s.exposed_nav * pct_ for s in rows) == pytest.approx(
+            run.sensitivity[f"nav_if_multiples_{pct_:+.0%}".replace("%", "pct")])
+
+
+# ---------------------------------------------------------------- the per-position drill-down
+
+def _moves_with_multiples(c) -> float:
+    """The formula the review tool's sector drill-down uses, transcribed from
+    `frontend/src/views/Sensitivity.tsx::movesWithMultiples`. It must stay identical to
+    `rollup.exposed_amount`, or the positions listed under a sector would not add up to the
+    sector's own impact — the one thing a reviewer checks by eye."""
+    return (c.booked_mark - c.note_at_cost) if c.multiple_exposed else 0.0
+
+
+def test_positions_inside_a_sector_add_up_to_that_sectors_impact():
+    """Open a sector in the review tool and it lists every position with its own impact. Those
+    impacts must sum to the sector row above them, at any shock, or the screen contradicts itself."""
+    run = execute(RunPaths.default(), adjudicate=False).run
+    by: dict[str, list] = {}
+    for c in run.companies:
+        by.setdefault(c.sector, []).append(c)
+
+    for s in run.sensitivity_sectors:
+        cs = by[s.sector]
+        assert sum(_moves_with_multiples(c) for c in cs) == pytest.approx(s.exposed_nav)
+        assert sum(1 for c in cs if _moves_with_multiples(c) > 0) == s.exposed_positions
+        assert len(cs) == s.positions
+        assert sum(c.booked_mark for c in cs) == pytest.approx(s.nav)
+        for shock in (-0.2, -0.07, 0.0, 0.09, 0.2):
+            assert sum(_moves_with_multiples(c) * shock for c in cs) == pytest.approx(s.exposed_nav * shock)
+
+    # and a different shock per sector still sums to the same portfolio effect either way round
+    mixed = {s.sector: v / 100 for s, v in zip(run.sensitivity_sectors, [-2, -13, -9, -4, 9, 20, 20, 20, 20, 20, 20, 20])}
+    assert sum(s.exposed_nav * mixed[s.sector] for s in run.sensitivity_sectors) == pytest.approx(
+        sum(_moves_with_multiples(c) * mixed[c.sector] for c in run.companies))
+
+
+def test_a_position_held_flat_is_held_flat_for_a_reason_the_card_can_name():
+    """Every position the shock does not move must fall into one of the buckets the drill-down
+    names, so "held flat" is never unexplained."""
+    run = execute(RunPaths.default(), adjudicate=False).run
+    flat = [c for c in run.companies if _moves_with_multiples(c) == 0]
+    assert flat, "the shipped book has positions a multiple regime does not drive"
+    for c in flat:
+        named = (c.status_after.value != "Active"          # no longer held
+                 or c.fv_level in (1, 2)                    # priced at market, or from an observable input
+                 or (c.arr or 0) < run.sensitivity_meta["min_arr"]   # below the screening floor
+                 or not c.multiple_exposed)                 # priced by a transaction (a signed deal)
+        assert named, f"{c.company} is held flat for a reason the drill-down cannot name"
+    # the ones that do move never move more than their whole equity leg
+    for c in run.companies:
+        assert _moves_with_multiples(c) <= c.booked_mark + 1e-9

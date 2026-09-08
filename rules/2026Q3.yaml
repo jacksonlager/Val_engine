@@ -63,6 +63,7 @@ exceptions:
     enabled: true                    # X-405: stale price + a live performance screen against it -> REVIEW
   indications:                       # X-109 / X-118: context until the price moves far enough to matter
     term_sheet_review_below: 0.80    # a term sheet at ≤ 80% of the last round is evidence the mark is high
+    note_cap_review_below: 0.80      # X-108: a bridge capped at ≤ 80% of the last round says the same thing
     insider_round_review_step_up: 2.0  # insiders re-pricing their own position ≥ 2× is not a market test
     step_up_review_at: 3.0             # X-122: a ≥ 3× step-up with no outside investor named on the row
     cheque_price_tolerance: 0.10       # X-119: HC's cheque ÷ stake bought vs the stated post, beyond ±10%

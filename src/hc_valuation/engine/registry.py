@@ -60,7 +60,11 @@ class Registry:
             if event_type in m.applies_to and m.effective_from <= as_of
         ]
         if candidates:
-            candidates.sort(key=lambda mf: (0 if mf[0].source == "declarative" else 1, mf[0].rule_id))
+            # Declarative precedent over builtin; then the *newest* in-force rule — a correction
+            # promoted in Q4 must outrank the Q3 draft it supersedes, which an id sort (M-100 before
+            # M-101) got exactly backwards; the id only breaks a genuine tie, for determinism.
+            candidates.sort(key=lambda mf: (0 if mf[0].source == "declarative" else 1,
+                                            -mf[0].effective_from.toordinal(), mf[0].rule_id))
             return candidates[0]
         fallback = [(m, f) for m, f in self._rules.values() if "*" in m.applies_to and m.effective_from <= as_of]
         return fallback[0] if fallback else None

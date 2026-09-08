@@ -88,8 +88,11 @@ def check_analogue(rule_id: str) -> str:
     return rule_id
 
 
-def make_proposal_id(event_signature: str, catalogue_version: str) -> str:
-    return hashlib.sha256(f"{event_signature}|{catalogue_version}".encode()).hexdigest()[:16]
+def make_proposal_id(event_signature: str, catalogue_version: str, company: str = "") -> str:
+    """Keyed on the company too. The signature is deliberately coarse (event type plus a few tags,
+    no amounts, no names), so two companies with the same unrecognised event used to share one
+    cache file: the first got a duplicate draft, the second got none and no notice of it."""
+    return hashlib.sha256(f"{company}|{event_signature}|{catalogue_version}".encode()).hexdigest()[:16]
 
 
 def catalogue_version_for(policy_version: str, registry: Registry) -> str:
@@ -141,7 +144,7 @@ class TreatmentProposal(BaseModel):
             check_analogue(str(data["analogue_rule_id"]))
         prov = data.get("provenance")
         cat = prov.get("catalogue_version", "") if isinstance(prov, dict) else getattr(prov, "catalogue_version", "")
-        expected = make_proposal_id(str(data.get("event_signature", "")), str(cat))
+        expected = make_proposal_id(str(data.get("event_signature", "")), str(cat), str(data.get("company", "")))
         if data.get("proposal_id") and data["proposal_id"] != expected:
             raise ValueError(f"proposal_id {data['proposal_id']} does not match sha(signature|catalogue_version) {expected}")
         data.setdefault("proposal_id", expected)

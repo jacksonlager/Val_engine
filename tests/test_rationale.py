@@ -88,3 +88,53 @@ def test_a_malformed_entry_is_refused(tmp_path):
         "    reads: r\n    why_flag: why\n    why_severity: REVIEW because\n", encoding="utf-8")
     with pytest.raises(ValueError, match="brief_text"):
         load_rationale(tmp_path)
+
+
+# ---------------------------------------------------------------- the catalogue must match the code
+
+def _raised_in_the_engine() -> dict[str, set[tuple[str, str]]]:
+    """Every `w.flag("X-nnn", "family", Severity.X, ...)` the engine can raise, read out of the
+    source. The alternative — running a book and looking at what came out — only ever sees the 19
+    of 50 rules the shipped quarter happens to raise, which is how a rule raised in a family the
+    catalogue does not declare, and one raised at a severity it does not declare, both survived."""
+    import re
+    out: dict[str, set[tuple[str, str]]] = {}
+    rx = re.compile(r"""\.flag\(\s*["'](?P<id>[A-Z]-\d{3})["']\s*,\s*["'](?P<family>\w+)["']\s*,\s*Severity\.(?P<sev>\w+)""")
+    for path in (Path(ROOT) / "src" / "hc_valuation" / "engine").glob("*.py"):
+        for m in rx.finditer(path.read_text()):
+            out.setdefault(m.group("id"), set()).add((m.group("family"), m.group("sev")))
+    assert len(out) > 30, "the scan found too few flag sites to be trusted"
+    return out
+
+
+def test_every_severity_the_engine_raises_is_declared_in_the_catalogue():
+    """A rule card that says "worth watching" beside a finding that gates the quarter is a lie to
+    the reviewer, and nothing compared the two until this test."""
+    by = rationale_by_id(Path(ROOT))
+    wrong = []
+    for rule_id, sites in sorted(_raised_in_the_engine().items()):
+        entry = by.get(rule_id)
+        if entry is None:
+            continue                      # covered by test_every_raisable_rule_has_its_two_bullets
+        declared = set(entry["severity"])
+        raised = {sev for _, sev in sites}
+        if not raised <= declared:
+            wrong.append(f"{rule_id}: raised {sorted(raised)}, catalogue declares {sorted(declared)}")
+    assert not wrong, "the catalogue disagrees with the code:\n  " + "\n  ".join(wrong)
+
+
+def test_every_family_the_engine_raises_is_a_declared_group():
+    """`family` is not cosmetic: `exceptions.disposition()` counts *distinct families* for the
+    two-family escalation, so a rule raised in an undeclared family changes when a position blocks
+    and renders as a group the review tool has no label for."""
+    doc = load_rationale(Path(ROOT))
+    groups = {g["key"] for g in doc["groups"]}
+    by = rationale_by_id(Path(ROOT))
+    wrong = []
+    for rule_id, sites in sorted(_raised_in_the_engine().items()):
+        for family, _ in sites:
+            if family not in groups:
+                wrong.append(f"{rule_id}: raised in family {family!r}, which is not one of {sorted(groups)}")
+            elif rule_id in by and by[rule_id]["family"] != family:
+                wrong.append(f"{rule_id}: raised in {family!r}, catalogue says {by[rule_id]['family']!r}")
+    assert not wrong, "the catalogue disagrees with the code:\n  " + "\n  ".join(wrong)

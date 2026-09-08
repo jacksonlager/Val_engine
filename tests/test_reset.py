@@ -43,7 +43,12 @@ def root(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def _wait(client: TestClient, job_id: str, timeout: float = 60.0) -> dict:
+# These are the slowest tests in the suite — two full engine runs each, driven over HTTP. The
+# assertion is that the upload *completes*, not that it completes quickly, so the ceiling is set
+# well clear of the work: on a loaded machine (a parallel suite, a concurrent build) a single
+# upload has been seen to take over a minute, and failing then would report a timing accident as
+# a broken reset.
+def _wait(client: TestClient, job_id: str, timeout: float = 240.0) -> dict:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         job = client.get(f"/api/upload/{job_id}").json()

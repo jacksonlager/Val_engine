@@ -285,6 +285,20 @@ def normalize_event_type(raw: object, cfg: NormalizationCfg) -> tuple[str, Corre
 
 # ---------------------------------------------------------------- headers (SPEC §2.2)
 
+# A unit is not a typo. `Invested ($K)` sits one edit from `Invested ($M)`, so typo tolerance was
+# happy to read a thousands column as a millions one — and because ownership x post-money scales
+# together, the prior-mark reconciliation (X-904) still tied out and the whole book came back a
+# thousand times too large, reading Ready. A wrong number, quietly, is the worst failure this
+# codebase can have, so a header whose unit differs from its candidate is refused outright.
+_UNIT_RX = re.compile(r"\(\s*\$?\s*(?:k|m|mm|bn?|%|x|mo|months?)\b[^)]*\)|(?<![\w$])(?:\$k|\$m|\$b|bps)(?![\w])")
+
+
+def header_units(text: str) -> frozenset[str]:
+    """The unit tokens a header carries, bare: `($M)` and `$M` are the same unit written two ways,
+    so both reduce to `m`. Compared, never guessed — only a genuine difference (`k` vs `m`) refuses."""
+    return frozenset(m.group(0).strip("()$ ").strip() for m in _UNIT_RX.finditer(fold(text)))
+
+
 def normalize_header(raw: object, known: Sequence[str], aliases: Mapping[str, str], cfg: NormalizationCfg,
                      ) -> tuple[str | None, Correction | None]:
     """Map a header cell onto one of `known`. Exact -> folded -> alias -> typo (<= header
@@ -307,6 +321,11 @@ def normalize_header(raw: object, known: Sequence[str], aliases: Mapping[str, st
     candidates = {**by_fold, **{fold(a): k for a, k in aliases.items()}}
     canon, d, ambiguous = _fuzzy(folded, candidates, cfg.header_max_distance, cfg.min_length_for_fuzzy)
     if canon is not None:
+        if header_units(text) != header_units(canon):
+            # refused, not resolved: the required-column check then names it, and the run stops
+            return None, Correction(kind="ambiguous", original=text, resolved="", method="unit",
+                                    detail=f"{text!r} and {canon!r} are one edit apart but state different units; "
+                                           "a unit is not a typo, so the column is not read")
         return canon, Correction(kind="header", original=text, resolved=canon, method=f"distance={d}")
     if ambiguous:
         why = "too short for typo tolerance" if len(folded) < cfg.min_length_for_fuzzy else f"tie at distance {d}"
@@ -694,6 +713,15 @@ def coerce_date(raw: object) -> tuple[date | None, Correction | None]:
 # ---------------------------------------------------------------- structure (SPEC §2.4)
 
 _TOTAL_WORDS: frozenset[str] = frozenset({"total", "totals", "sum", "grand total", "subtotal", "sub-total", "sub total"})
+# ... and the same words as a whole word inside a longer label. An exact match missed every real
+# summary row a person actually types — "Portfolio Total", "TOTAL PORTFOLIO", "Fund I Total",
+# "Total (2 companies)" — and the row was then read as a company, double-counting the whole book.
+# Whole-word only, so a company called "Totally Ltd" or "Summit" is still a company.
+_TOTAL_RX = re.compile(r"\b(?:totals?|subtotals?|grand\s+total|sub[-\s]?total)\b")
+# ... unless the label ends in a corporate suffix, which no summary row has and every company
+# called "Total Recall Inc" does. A skipped row is recorded (X-917) either way, so a wrong call
+# here is visible in the data checks rather than silent.
+_CORPORATE_TAIL = re.compile(r"\b(?:inc|inc\.|ltd|ltd\.|llc|l\.l\.c|corp|corp\.|corporation|co|co\.|plc|sa|s\.a|nv|n\.v|bv|b\.v|gmbh|ag|ab|oy|as|pte|pty|limited|holdings|group|labs|technologies|bio)\s*$")
 
 
 def row_is_blank(row: Sequence[object]) -> bool:
@@ -701,11 +729,14 @@ def row_is_blank(row: Sequence[object]) -> bool:
 
 
 def row_is_total(row: Sequence[object]) -> bool:
-    """The first non-empty cell folds to a totals word."""
+    """The first non-empty cell is, or contains as a whole word, a totals word."""
     for v in row:
         if v is None or (isinstance(v, str) and v.strip() == ""):
             continue
-        return isinstance(v, str) and fold(v) in _TOTAL_WORDS
+        if not isinstance(v, str):
+            return False
+        f = fold(v)
+        return f in _TOTAL_WORDS or (_TOTAL_RX.search(f) is not None and not _CORPORATE_TAIL.search(f))
     return False
 
 

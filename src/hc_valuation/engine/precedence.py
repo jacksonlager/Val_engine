@@ -49,7 +49,10 @@ TIER: dict[str, int] = {
     EventType.SHARE_RESTRUCTURE.value: 4,
     EventType.LOCKUP_EXPIRY.value: 4,
     EventType.DEBT_FACILITY.value: 6,
-    EventType.VALUATION_ADJUSTMENT.value: 7,   # after any transaction on the same day: a judgment about the result
+    # `ordered` sorts on -TIER, so the *highest* tier applies first. A judgment about the result of
+    # the day's transactions has to run last, which is tier 0 — at 7 it ran first and priced the
+    # committee's option on the stake HC held before the round rather than after it.
+    EventType.VALUATION_ADJUSTMENT.value: 0,   # after any transaction on the same day: a judgment about the result
 }
 TERMINAL: frozenset[str] = frozenset({EventType.SHUTDOWN.value, EventType.ACQ_CLOSED.value})
 

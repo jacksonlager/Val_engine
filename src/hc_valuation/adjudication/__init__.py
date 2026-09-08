@@ -98,7 +98,7 @@ def adjudicate_run(run: ValuationRun, feed: ActivityFeed, cfg: RuleConfig, paths
 
     with validation_scope(cfg, registry):
         for company, signature, row_index in novel_events(run, feed):
-            pid = make_proposal_id(signature, catalogue_version)
+            pid = make_proposal_id(signature, catalogue_version, company)
             path = proposal_path(paths.proposals_dir, pid)
             if cfg.adjudication.cache_proposals and path.exists():
                 try:

@@ -44,6 +44,7 @@ from typing import Any, Protocol
 
 from .config import RuleConfig
 from .engine.models import CompanyResult, Flag, PositionRecommendation, Recommendation, Severity, ValuationRun
+from .notes.schema import _figures, figures_carried
 from .engine.readiness import MISSING_INPUT_RULES
 
 log = logging.getLogger(__name__)
@@ -239,15 +240,39 @@ def _clip(text: str, limit: int) -> str:
     return cut + "…"
 
 
-def _fit_card(data: dict[str, Any]) -> tuple[str, list[str]]:
+_WITHHELD = "A sentence naming a figure the engine did not compute was withheld; see the priced options."
+
+
+def _allowed_figures(flags: list[Flag], c: CompanyResult | None = None) -> set[float]:
+    """Every number the model was legitimately shown: the candidates' priced values, the figures in
+    each finding's evidence, and the position's own marks. Anything else in its prose is invented."""
+    out: set[float] = set()
+    for f in flags:
+        out |= {float(s_.booked) for s_ in f.suggestions}
+        out |= _figures(json.dumps(f.evidence, default=str))
+        out |= _figures(f.message)
+    if c is not None:
+        out |= {float(c.prior_mark), float(c.proposed_mark), float(c.booked_mark), float(c.equity_mark),
+                float(c.note_at_cost), float(c.invested_after), float(c.realized_quarter)}
+    return {round(x, 6) for x in out} | {round(x * 1e6, 6) for x in out} | {round(x / 1e6, 6) for x in out}
+
+
+def _fit_card(data: dict[str, Any], allowed: set[float] | None = None) -> tuple[str, list[str]]:
     """The card shows one sentence and two short reasons. A model that writes long is clipped at a
     word, not rejected: the choice (validated separately against the candidates) is the substance,
-    the wording is presentation. Empty is still a rejection."""
+    the wording is presentation. Empty is still a rejection. A sentence that brings its own figure —
+    "book this at $88M" — is withheld, as the note reader withholds it: the number a reviewer books
+    comes from the priced candidate, and the prose beside it must not quote one the engine never
+    produced. This was the one AI layer without that fence."""
     label = _clip(data.get("label", ""), 140)
     raw = data.get("reasons") or []
     if isinstance(raw, str):
         raw = [raw]
     reasons = [_clip(r, 140) for r in raw if str(r).strip()][:2]
+    if allowed is not None:
+        if label and not figures_carried(label, allowed):
+            label = _WITHHELD
+        reasons = [r if figures_carried(r, allowed) else _WITHHELD for r in reasons]
     if not label or not reasons:
         raise ValueError("label/reasons are empty")
     if len(reasons) == 1:
@@ -354,7 +379,7 @@ class ClaudeChooser:
         keys = {s.key for s in f.suggestions}
         if data["choice"] not in keys:
             raise ValueError(f"choice {data['choice']!r} is not a candidate ({sorted(keys)})")
-        label, reasons = _fit_card(data)
+        label, reasons = _fit_card(data, _allowed_figures([f]))
         conf = float(data["confidence"])
         if not 0.0 <= conf <= 1.0:
             raise ValueError("confidence outside [0, 1]")
@@ -388,7 +413,7 @@ class ClaudeChooser:
             raise ValueError(f"covers names {unknown}, which are not actionable findings on this position")
         if rid not in covers:
             covers = [rid] + covers
-        label, reasons = _fit_card(data)
+        label, reasons = _fit_card(data, _allowed_figures(list(by_id.values()), c))
         conf = float(data["confidence"])
         if not 0.0 <= conf <= 1.0:
             raise ValueError("confidence outside [0, 1]")
@@ -479,7 +504,15 @@ def make_chooser(cfg: RuleConfig, root: Path, provider: str | None = None, *, re
 
 
 def recommender_label(chooser: Chooser) -> str:
-    return f"claude:{chooser.model}" if isinstance(chooser, ClaudeChooser) else "policy"
+    """What actually chose, not what was asked for. A ClaudeChooser that could not connect falls
+    back to the policy default on every card and says so there — so labelling the whole run
+    `claude:<model>` told the dashboard footer to claim a model chose when none was reached."""
+    if isinstance(chooser, ClaudeChooser):
+        if getattr(chooser, "available", True):
+            return f"claude:{chooser.model}"
+        why = getattr(chooser, "unavailable_reason", None) or "not connected"
+        return f"policy (Claude unavailable: {why})"
+    return "policy"
 
 
 def recommend_run(run: ValuationRun, chooser: Chooser, signals: dict[str, Any] | None = None) -> ValuationRun:

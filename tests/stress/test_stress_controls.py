@@ -612,14 +612,25 @@ def test_D2_the_reply_cannot_price(run_real, tmp_path: Path):
     ch = _Fake(tmp_path / "a", _reply(other.key, booked=other.booked * 10, booked_musd=1e9))
     rec = ch.choose(brief, f)
     assert rec.source == "policy" and rec.booked == f.suggestions[0].booked and "reply keys" in (rec.note or "")
-    # a valid choice whose wording claims a different number books the CANDIDATE's number
+    # a valid choice whose wording claims a different number books the CANDIDATE's number — and
+    # the sentence that invented the figure is withheld, as the note reader and the adjudicator
+    # withhold theirs: the choice is the substance and still counts, but prose quoting a number
+    # the engine never produced does not reach a reviewer beside the engine's own figure.
+    from hc_valuation.recommend import _WITHHELD
     ch = _Fake(tmp_path / "b", json.dumps({"choice": other.key, "label": "Book this at $999,999.00M today.",
                                            "reasons": ["Worth $999,999M.", "Trust me."],
                                            "rationale": "book 999999", "confidence": 0.99}))
     rec = ch.choose(brief, f)
     assert rec.source == "claude" and rec.key == other.key and rec.confidence == 0.99
     assert rec.booked == other.booked and rec.booked != 999999.0
-    assert "999,999" in rec.label                      # the words are the model's, the number is the engine's
+    assert "999,999" not in rec.label and rec.label == _WITHHELD
+    assert rec.reasons[0] == _WITHHELD and rec.reasons[1] == "Trust me."   # no figure, so the words stand
+    # a sentence quoting a figure the model was actually shown — the candidate's own value — survives
+    ch = _Fake(tmp_path / "c", json.dumps({"choice": other.key, "label": f"Book the ${other.booked:.2f}M option.",
+                                           "reasons": [f"It is priced at ${other.booked:.2f}M.", "The engine computed it."],
+                                           "rationale": "ok", "confidence": 0.9}))
+    rec = ch.choose(brief, f)
+    assert rec.label == f"Book the ${other.booked:.2f}M option." and rec.reasons[0].startswith("It is priced at $")
 
 
 def test_D3_malformed_reply_or_exception_falls_back_without_raising(run_real, tmp_path: Path):

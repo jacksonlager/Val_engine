@@ -122,12 +122,23 @@ def package_version() -> str:
 def user_agent(contact: str | None = None) -> str:
     """`hc-valuation/<version> (<contact>)` — the form SEC asks for. The contact comes from
     `HC_SEC_CONTACT`; SEC wants a real, monitored address behind it."""
-    who = (contact or os.environ.get(CONTACT_ENV) or "").strip()
-    if not who:
-        log.warning("%s is not set; identifying to SEC as %s. Set it to a real address before relying on live data.",
-                    CONTACT_ENV, DEFAULT_CONTACT)
-        who = DEFAULT_CONTACT
+    who = (contact or os.environ.get(CONTACT_ENV) or "").strip() or DEFAULT_CONTACT
     return f"hc-valuation/{package_version()} ({who})"
+
+
+_told_about_contact = False
+
+
+def _note_placeholder_contact(agent: str) -> None:
+    """Said once, and only before a request actually leaves for SEC. Building a client to read the
+    cache sends nothing, so the placeholder contact is irrelevant there — warning on every start
+    made a normal cached run look like it had failed."""
+    global _told_about_contact
+    if _told_about_contact or f"({DEFAULT_CONTACT})" not in agent:
+        return
+    _told_about_contact = True
+    log.info("Identifying to SEC as %s. Set %s to a real address if you fetch from SEC regularly.",
+             DEFAULT_CONTACT, CONTACT_ENV)
 
 
 class EdgarClient:
@@ -145,6 +156,7 @@ class EdgarClient:
         return {"User-Agent": self.user_agent, "Accept-Encoding": "gzip, deflate", "Accept": "application/json"}
 
     def _get_json(self, url: str) -> Any:
+        _note_placeholder_contact(self.user_agent)
         self._limiter.wait()
         return fetch_json(url, self.headers, self.timeout_s, fetch=self._fetch)
 

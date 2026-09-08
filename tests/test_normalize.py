@@ -436,3 +436,28 @@ def test_row_classifiers():
     assert nz.row_is_note(("Source: CFO pack, unaudited.", None, None))
     assert not nz.row_is_note(("Alpha", "SaaS", None))
     assert not nz.row_is_note((datetime(2026, 1, 1), None))
+
+
+# ---------------------------------------------------------------- a unit is not a typo
+
+@pytest.mark.parametrize("header, canon", [
+    ("Invested ($K)", "Invested ($M)"),
+    ("Latest Post-Money ($K)", "Latest Post-Money ($M)"),
+    ("Prior Mark ($B)", "Prior Mark ($M)"),
+])
+def test_a_unit_difference_refuses_the_header_rather_than_reading_it_as_a_typo(header, canon, ncfg):
+    """`Invested ($K)` sits one edit from `Invested ($M)`, so typo tolerance used to resolve it —
+    and because ownership x post-money scales together, X-904 still reconciled and the whole book
+    came back a thousand times too large, reading Ready. A wrong number, quietly, is the failure
+    this codebase least tolerates, so a differing unit refuses the column instead."""
+    got, corr = nz.normalize_header(header, [canon], {}, ncfg)
+    assert got is None, f"{header} must not resolve to {canon}"
+    assert corr is not None and corr.kind == "ambiguous" and corr.method == "unit"
+
+
+def test_the_same_unit_written_two_ways_still_resolves(ncfg):
+    """The guard compares units, it does not demand identical punctuation: `$M` and `($M)` are one
+    unit, and a real typo alongside a matching unit still corrects as before."""
+    assert nz.normalize_header("Prior Mark $M", ["Prior Mark ($M)"], {}, ncfg)[0] == "Prior Mark ($M)"
+    assert nz.normalize_header("Invsted ($M)", ["Invested ($M)"], {}, ncfg)[0] == "Invested ($M)"
+    assert nz.normalize_header("Runway (mo)", ["Runway (mo)"], {}, ncfg)[0] == "Runway (mo)"

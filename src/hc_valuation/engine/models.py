@@ -381,6 +381,19 @@ class RunManifest(_Frozen):
     note_reader_report: dict[str, Any] = Field(default_factory=dict)   # notes/schema.py ReadingReport, for the footer
 
 
+class SectorSensitivity(_Frozen):
+    """One sector's exposure to a change in revenue multiples, so a reviewer can shock a sector on
+    its own rather than the whole book at one rate. `exposed_nav` is the part of the sector's NAV a
+    multiple regime drives (the same definition the portfolio shock uses); the rest of the sector's
+    NAV does not move with multiples at all, which is exactly what a per-sector view is for."""
+    sector: str
+    positions: int                 # positions in the sector, whatever their exposure
+    exposed_positions: int         # ... of which a multiple regime drives
+    nav: float                     # booked marks, the whole sector
+    exposed_nav: float             # the part a multiple regime drives
+    software: bool                 # in the policy's software list, so it moves with the software shock
+
+
 class SectorMove(_Frozen):
     """One sector's public-comps move over the quarter, applied to the marks it would drive."""
     sector: str
@@ -421,6 +434,8 @@ class ValuationRun(_Frozen):
     sensitivity: dict[str, float] = Field(default_factory=dict)
     # what the sensitivity was computed with: shock_pct (list), min_arr (the exposure floor), software_sectors (list)
     sensitivity_meta: dict[str, Any] = Field(default_factory=dict)
+    # the same exposure, split by sector, so each can be shocked at its own rate
+    sensitivity_sectors: tuple[SectorSensitivity, ...] = ()
     comps_move: CompsMove | None = None
 
     def by_company(self) -> dict[str, CompanyResult]:

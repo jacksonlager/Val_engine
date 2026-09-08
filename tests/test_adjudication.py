@@ -94,7 +94,7 @@ def test_spac_blocks_with_m999_and_yields_m040_proposal(paths):
     # the policy asks for Claude; with no key visible the built-in heuristics answer, and say so
     assert p.provenance.model.startswith("stub") and p.provenance.catalogue_version.startswith(r.config.policy_version)
     assert set(p.briefing) == {"what_happened", "why_no_rule", "what_it_means", "suggested_course", "what_to_check"}
-    assert p.proposal_id == make_proposal_id(p.event_signature, p.provenance.catalogue_version)
+    assert p.proposal_id == make_proposal_id(p.event_signature, p.provenance.catalogue_version, p.company)
     assert proposal_path(paths.proposals_dir, p.proposal_id).exists()
     # the proposal sits beside the run; the run itself is untouched
     assert r.run.manifest.adjudication_enabled and _company(r).proposed_mark == 6.0

@@ -264,7 +264,10 @@ def disposition(flags: list[Flag], terminal: bool, cfg: RuleConfig,
     review_families = {f.family for f in flags if f.severity == Severity.REVIEW and f.rule_id not in addressed}
     if terminal and not review_families and not any(f.severity == Severity.MONITOR for f in flags):
         return Disposition.CLEAR          # realized or written off, nothing left to check (post-exit cash stays a watch item)
-    if len(review_families) >= cfg.exceptions.escalation.review_rules_to_block and not overridden:
+    # `review_families` is already filtered by what the decision addressed, so an extra
+    # "and not overridden" switched the escalation off wholesale — two untouched families from
+    # different corners of the book stopped compounding the moment any override existed.
+    if len(review_families) >= cfg.exceptions.escalation.review_rules_to_block:
         return Disposition.BLOCK
     if review_families:
         return Disposition.REVIEW

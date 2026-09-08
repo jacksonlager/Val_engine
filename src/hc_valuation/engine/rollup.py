@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from ..config import RuleConfig
 from .inputs import Status
-from .models import Readiness, CompanyResult, CompsMove, Disposition, FundRollup, MarketData, PortfolioTotals, SectorMove
+from .models import (Readiness, CompanyResult, CompsMove, Disposition, FundRollup, MarketData, PortfolioTotals,
+                     SectorMove, SectorSensitivity)
 
 
 def _safe_div(a: float, b: float) -> float:
@@ -91,6 +92,29 @@ def sensitivity(results: list[CompanyResult], cfg: RuleConfig) -> dict[str, floa
         out[f"nav_if_multiples_{tag}"] = round(base + exposed * s, 6)
         out[f"nav_if_software_multiples_{tag}"] = round(base + soft * s, 6)
     return out
+
+
+def sensitivity_by_sector(results: list[CompanyResult], cfg: RuleConfig) -> tuple[SectorSensitivity, ...]:
+    """The multiple exposure of each sector on its own. A firm rarely believes every sector re-rates
+    by the same amount — AI multiples and fintech multiples move for different reasons — so the
+    review tool shocks each one separately and sums the effect. Sorted by exposure, largest first:
+    the sectors a re-rating actually moves are the ones worth arguing about."""
+    software = set(cfg.sensitivity.software_sectors)
+    by: dict[str, list[CompanyResult]] = {}
+    for c in results:
+        by.setdefault(c.sector, []).append(c)
+    out = [
+        SectorSensitivity(
+            sector=sector,
+            positions=len(cs),
+            exposed_positions=sum(1 for c in cs if exposed_amount(c) > 0),
+            nav=round(sum(c.booked_mark for c in cs), 6),
+            exposed_nav=round(sum(exposed_amount(c) for c in cs), 6),
+            software=sector in software,
+        )
+        for sector, cs in by.items()
+    ]
+    return tuple(sorted(out, key=lambda s: (-s.exposed_nav, s.sector)))
 
 
 def _shift_month(key: str, delta: int) -> str:

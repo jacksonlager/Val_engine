@@ -12,7 +12,7 @@ import pytest
 
 from conftest import event, flag_ids, only, position, rule_ids, with_policy
 from hc_valuation.engine.inputs import EventType, Status
-from hc_valuation.engine.models import Disposition, MarketData, MarketQuote, OpenItemKind, Severity
+from hc_valuation.engine.models import Disposition, MarketData, MarketQuote, OpenItemKind, Readiness, Severity
 
 MD = date(2026, 9, 30)
 
@@ -331,6 +331,34 @@ def test_m060_unfunded_note(build):
     assert f.severity == Severity.MONITOR and "X-107" not in flag_ids(c)
     assert c.disposition == Disposition.MONITOR
     assert c.open_items[0].amount_musd is None and "did not participate" in c.open_items[0].detail
+
+
+def test_m060_unfunded_note_capped_below_the_last_round_needs_a_review(build):
+    """A cap above the last round is a company bridging on its way up — a watch item, nothing to
+    decide. A cap at or below 80% of it is the same evidence a low term sheet is: the next round
+    would convert under the mark the book still carries, and HC did not take its share. The rule
+    computed `cap_vs_last_round` all along; it just did not act on it."""
+    # the standing position is priced at $100M post, so a $70M cap is 70% of it
+    run, _ = build([position()], [event(EventType.CONVERTIBLE_NOTE, detail="$3.0M bridge note, $70.0M valuation cap")])
+    c = only(run)
+    f = _flag(c, "X-108")
+    assert f.severity == Severity.REVIEW, "a bridge capped under the last round is not a watch item"
+    assert c.readiness is Readiness.NEEDS_REVIEW and c.disposition == Disposition.REVIEW
+    assert f.evidence["cap_vs_last_round"] == pytest.approx(-0.30)
+    # the mark itself still does not move: a cap is a ceiling, not a price
+    assert c.proposed_mark == pytest.approx(10.0) and c.note_at_cost == 0.0
+    # and the reviewer is offered the cap as a priced alternative, not just told about it
+    assert {s_.key for s_ in f.suggestions} == {"as_proposed", "at_cap"}
+    at_cap = next(s_ for s_ in f.suggestions if s_.key == "at_cap")
+    assert at_cap.booked == pytest.approx(0.10 * 70.0), "10% of a $70M cap"
+
+
+def test_m060_unfunded_note_at_the_threshold_is_still_only_watched(build):
+    """A figure exactly on the policy line is *at* it, not beyond it (tests/test_threshold_boundaries)."""
+    run, _ = build([position()], [event(EventType.CONVERTIBLE_NOTE, detail="$3.0M bridge note, $81.0M valuation cap")])
+    assert _flag(only(run), "X-108").severity == Severity.MONITOR
+    run, _ = build([position()], [event(EventType.CONVERTIBLE_NOTE, detail="$3.0M bridge note, $80.0M valuation cap")])
+    assert _flag(only(run), "X-108").severity == Severity.REVIEW, "80% is at the line, so it fires"
 
 
 def test_m060_note_without_parsable_cap_must_not_crash(build):

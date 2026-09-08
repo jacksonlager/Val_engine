@@ -87,7 +87,14 @@ _HC_LED_TERMS = ("led by hc", "hc led", "hc-led", "human capital led", "human ca
 _INSIDER_TERMS = ("insider-led", "insider led", "insider round")
 
 # M-024: an exit whose consideration is the buyer's shares rather than cash.
-_STOCK_TERMS = ("all-stock", "stock-for-stock", "equity consideration", "stock", "shares")
+# Phrases that say the consideration was equity. The bare words "stock" and "shares" were on this
+# list and matched as substrings, so "all-cash deal; stockholders approved" and "HC's shares were
+# cancelled for cash" both routed a cash exit to the stock-consideration rule and kept a sold
+# position on the book at the deal price. Whole-word phrases only, via the negation-aware screen.
+_STOCK_TERMS = ("all-stock", "all stock", "stock-for-stock", "stock for stock", "equity consideration",
+                "stock consideration", "share consideration", "consideration in shares", "consideration in stock",
+                "paid in shares", "paid in stock", "settled in shares", "settled in stock", "in acquirer stock",
+                "in acquirer shares", "shares of the acquirer", "shares in the acquirer", "rolled into")
 
 _FUND_RE = re.compile(r"\bFund\s+(III|II|I)\b", flags=re.I)
 _STAGE_RE = re.compile(r"\b(Pre-Seed|Seed|Series\s+[A-H](?:\+)?)\b", flags=re.I)
@@ -463,7 +470,7 @@ def _m012_doc(w, e, cfg, market):  # pragma: no cover
       effective_from=EFFECTIVE, terminal=True, tier=1,
       description="Closed exit: mark to zero, proceeds to realized, status Acquired.")
 def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
-    if not e.proceeds and any(t in _text(e) for t in _STOCK_TERMS):
+    if not e.proceeds and any_term_in(_STOCK_TERMS, _text(e)):
         return stock_exit(w, e, cfg, market)
     proceeds = float(e.proceeds or 0.0)
     implied = w.ownership * float(e.value) if e.value else None
@@ -530,6 +537,26 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
     w.realized_quarter += proceeds
     w.flags = [f for f in w.flags if f.rule_id != "X-116"]      # a Chapter 11 question is moot once the position has closed
     retained = float(e.ownership_after) if e.ownership_after else 0.0
+    # A non-zero ownership cell on a closed deal used to be read, unconditionally, as "HC rolled
+    # its stake into the buyer" — and the cash-vs-stake reconciliation was deleted on that path. A
+    # cell simply copied forward from last quarter then produced $20M of cash *plus* a $20M carried
+    # stake for a $20M position. If the cash already accounts for the whole stake at the deal
+    # value, nothing was rolled: the cell is stale, and that is the finding, not a rollover.
+    cash_covers_stake = (e.value and abs(proceeds - w.ownership * float(e.value))
+                         <= cfg.tolerances.prior_mark_reconciliation_musd * 10)
+    if retained > 0 and e.value and cash_covers_stake:
+        w.flag("X-134", "data", Severity.REVIEW,
+               f"Row {e.row_index} carries HC Ownership After = {retained:.1%} on a closed acquisition whose ${proceeds:.2f}M of "
+               f"cash already equals the whole {w.ownership:.1%} stake at the ${float(e.value):.1f}M deal value. Nothing was rolled "
+               "into the buyer; the ownership cell reads as copied forward from the prior quarter and went nowhere.",
+               points=(f"Ownership after = **{retained:.1%}** on a closed deal whose cash **covers the whole stake**.",
+                       "**Nothing rolled** into the buyer — the cell reads as copied forward.",
+                       "Clear the cell (or record the rollover terms) and rerun."),
+               suggestions=(Suggest("as_proposed", "Book the exit as an all-cash sale; clear the stray ownership cell.",
+                                    ("The proceeds tie to the whole stake at the deal value.", "A cell that went nowhere is a data question."), "proposed"),),
+               action=f"Confirm row {e.row_index}'s ownership-after cell is stale; clear it and rerun, or record the rollover.",
+               row_index=e.row_index, ownership_after=retained, proceeds=proceeds, deal_value=float(e.value))
+        retained = 0.0
     if retained > 0 and e.value:
         # HC rolled part of its stake into the buyer: the cash is realized, the rest is a new holding in
         # another company, priced at the deal like a stock-consideration exit (M-024), and blocked the same way.
@@ -975,10 +1002,30 @@ def convertible_note(w: Working, e: Event, cfg: RuleConfig, market: MarketData) 
                action=f"Confirm the ${inv:.2f}M is carried at cost, and whether the bridge signals distress.",
                hc_investment=inv, valuation_cap=cap, cap_vs_last_round=cap_vs_last)
     else:
-        w.flag("X-108", "treatment", Severity.MONITOR,
-               f"The company raised a bridge note that HC did not fund ({cap_txt}). A cap is not a price, so the mark is unchanged "
-               "and there is nothing to decide.",
-               valuation_cap=cap, cap_vs_last_round=cap_vs_last)
+        # A cap above the last round is a company bridging on its way up: nothing to decide. A cap
+        # materially *below* it is the same evidence a low term sheet is (X-109) — the market is
+        # pricing the next round under the mark the book still carries — and HC declining to fund
+        # it says so twice. Severity follows the cap, on the same policy line as the term sheet.
+        low = cap is not None and w.latest_post and ratio(cap, w.latest_post) <= cfg.exceptions.indications.note_cap_review_below
+        if low:
+            w.flag("X-108", "treatment", Severity.REVIEW,
+                   f"The company raised a bridge note HC did not fund, capped below its own last round ({cap_txt}). A cap is not a "
+                   "price, so nothing is booked from it — but the next round converting at that ceiling would land under the mark "
+                   "the book still carries, and HC did not take its share.",
+                   points=(f"Bridge note **HC did not fund**, {cap_txt}.",
+                           "A conversion at that ceiling would price **below the carried mark**.",
+                           "**Nothing is booked** from a cap; a reviewer decides whether the mark still holds."),
+                   suggestions=(
+                       Suggest("as_proposed", "Keep the mark on the last round as proposed.", ("A cap is a ceiling on a future conversion, not a price.", "Right while the company is still expected to raise above it."), "proposed"),
+                       Suggest("at_cap", f"Mark at the cap: {w.ownership:.1%} × ${cap:.1f}M.", ("Treats the cap as the best available forward price.", "Conservative, and reverses if the next round prices above it."), "value", value=w.ownership * cap),
+                   ),
+                   action=f"Decide whether a mark set at ${w.latest_post:.1f}M still holds against a bridge capped at ${cap:.1f}M.",
+                   valuation_cap=cap, cap_vs_last_round=cap_vs_last, threshold=cfg.exceptions.indications.note_cap_review_below)
+        else:
+            w.flag("X-108", "treatment", Severity.MONITOR,
+                   f"The company raised a bridge note that HC did not fund ({cap_txt}). A cap is not a price, so the mark is unchanged "
+                   "and there is nothing to decide.",
+                   valuation_cap=cap, cap_vs_last_round=cap_vs_last)
     if cap is None:
         w.flag("X-101", "treatment", Severity.REVIEW,
                f"The engine could not read a valuation cap out of the Detail text ({e.detail!r}), so it cannot tell how this note "
@@ -1316,7 +1363,7 @@ def new_investment(w: Working, e: Event, cfg: RuleConfig, market: MarketData) ->
            "the entry price is the mark.",
            post_money=post, ownership_after=after, hc_investment=inv)
     if created:
-        w.flag("X-918", "integrity", Severity.REVIEW,
+        w.flag("X-918", "data", Severity.REVIEW,
                f"{w.pos.company} is not in the Portfolio tab. The engine created the position from the activity row "
                f"(fund {w.pos.fund!r}, sector {w.pos.sector!r}, stage {w.pos.stage!r}); anything the row does not say is a placeholder.",
                points=(f"{w.pos.company} is **not in the Portfolio tab**.",

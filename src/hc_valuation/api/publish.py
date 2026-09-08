@@ -40,6 +40,15 @@ def outstanding(run: ValuationRun) -> list[dict[str, Any]]:
     Keyed on readiness rather than disposition: a Blocked position is missing an input and a
     Needs Review one is waiting on judgment, and the release note should say which."""
     out = []
+    # A blocking check that anchors to no company — the activity tab labelled for the wrong quarter
+    # (X-922), a row whose company cell is unreadable (X-914) — never reaches a position, so keying
+    # only on readiness left the gate open on a book with a known integrity failure.
+    for v in run.validation:
+        if v.blocking and v.severity is Severity.BLOCK and not v.company:
+            out.append({"company": v.company or "(the workbook)", "readiness": Readiness.BLOCKED.value,
+                        "disposition": Disposition.BLOCK.value,
+                        "why": f"{v.message} (data check {v.rule_id})",
+                        "flags": [{"rule_id": v.rule_id, "severity": v.severity.value, "message": v.message}]})
     for c in run.companies:
         if c.readiness is Readiness.READY:
             continue

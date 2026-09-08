@@ -97,6 +97,12 @@ def _required_field_issues(e: Event, et: EventType, feed: ActivityFeed) -> list[
         missing("HC's investment (the cheque)")
     if et in (EventType.ACQ_CLOSED, EventType.ACQ_ANNOUNCED, EventType.IPO, EventType.DIRECT_LISTING) and e.value is None:
         missing("a deal value / market cap")
+    # A secondary that reduces the stake but records no cash is a missing input, not a $0 sale:
+    # `float(e.proceeds or 0)` cannot tell "nothing happened" from "zero happened", and the mark
+    # was silently written down (or to zero) with the position still reading Ready. The closed
+    # acquisition already refuses this; a sale is the same event with a smaller stake.
+    if et == EventType.SECONDARY and e.proceeds is None:
+        missing("the cash it raised (Proceeds to HC); a transfer for no consideration is an Ownership Adjustment")
     if et == EventType.DISTRIBUTION and e.proceeds is None:
         missing("proceeds (the amount distributed)")
     return out
@@ -235,6 +241,18 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
                                                    f"{q.measurement_date.isoformat()}: the book carries a round that has not "
                                                    "happened — fix the date, or move the round to the activity tab of its quarter")))
 
+        # An Active holding with neither a last-round price nor a carrying value is a row nobody has
+        # filled in, not a position worth nothing. X-904 cannot catch it: its identity is satisfied
+        # by 0 x 0 = 0, so the pair used to reconcile and the company dropped out of the book at $0.
+        # ... unless the activity tab prices it this quarter. A placeholder row deliberately left
+        # empty for a first cheque (M-014) is not a gap: the event supplies the value, and if it
+        # cannot, its own checks say so.
+        priced_this_quarter = any(e.company == p.company for e in feed.events)
+        if p.status == Status.ACTIVE and not p.latest_post_money and not p.prior_mark and not priced_this_quarter:
+            issues.append(ValidationIssue(rule_id="X-903", severity=Severity.BLOCK, sheet=snapshot.sheet_name,
+                                          row_index=p.row_index, company=p.company,
+                                          message=("neither a latest post-money nor a prior mark is on the row, so the position "
+                                                   "would be carried at zero; an active holding needs a value to roll forward")))
         # X-904 prior-mark reconciliation: ownership × post-money must tie to the carrying value
         if p.status == Status.ACTIVE:
             expected = p.ownership * p.latest_post_money
