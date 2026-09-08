@@ -1013,7 +1013,7 @@ export function DecisionBar({
         {!decided && (
           <WriteButton
             disabledReason={writeDisabled}
-            className={`btn ${overriding ? "" : "btn-ghost"}`}
+            className={`btn btn-override${overriding ? " active" : ""}`}
             onClick={() => setOverriding((v) => !v)}
             title="Record a different number under your name; the reason is required and the ledger says the input was still missing"
           >
@@ -1099,7 +1099,7 @@ export function ReadyOverrideBar({
         </span>
         <WriteButton
           disabledReason={writeDisabled}
-          className={`btn ${overriding ? "" : "btn-ghost"}`}
+          className={`btn btn-override${overriding ? " active" : ""}`}
           onClick={() => setOverriding((v) => !v)}
           title="Record a different mark under your name; the reason is required"
         >

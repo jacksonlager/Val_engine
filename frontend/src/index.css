@@ -553,6 +553,9 @@ a.btn[aria-disabled="true"] { pointer-events: none; }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
 .btn-ghost:hover:not(:disabled) { background: var(--hairline); border-color: transparent; }
 .btn-danger { color: var(--block-text); }
+/* the Override route on every card: a grey box, so the second way to decide is seen, not found */
+.btn-override { background: var(--hairline); border-color: var(--border); color: var(--ink); }
+.btn-override:hover:not(:disabled) { background: var(--raised); border-color: var(--muted); }
 
 .input, .select, .textarea {
   background: var(--raised); color: var(--ink); border: 1px solid var(--border);
