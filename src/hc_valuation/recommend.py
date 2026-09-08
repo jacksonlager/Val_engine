@@ -466,7 +466,10 @@ class ClaudeChooser:
 # ---------------------------------------------------------------- applying to a run
 
 def make_chooser(cfg: RuleConfig, root: Path, provider: str | None = None, *, refresh: bool = False) -> Chooser:
-    name = (provider or cfg.recommendation.provider).strip().lower()
+    """Flag > HC_RECOMMENDER > policy. The environment variable lets the test suite and the golden
+    fixture pin the policy default, so a cached model answer under data/recommendations/ can never
+    leak into a run that must be a pure function of workbook, policy and engine."""
+    name = (provider or os.environ.get("HC_RECOMMENDER") or cfg.recommendation.provider).strip().lower()
     if name == "claude":
         return ClaudeChooser(Path(root) / CACHE_DIR, model=cfg.recommendation.model,
                              use_cache=cfg.recommendation.cache, refresh=refresh)

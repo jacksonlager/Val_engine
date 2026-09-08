@@ -94,7 +94,8 @@ ASPECTS: tuple[AspectSpec, ...] = (
                (),
                "M-010 when the columns show it (X-102), M-012 for a recap; otherwise the reader"),
     AspectSpec(AspectKind.INSIDER_PRICED, "Priced by insiders",
-               "A round priced only by existing investors, led by HC, or with no new outside investor setting the price.",
+               "A round priced only by existing investors, led by HC, or with no new outside investor setting the price. Not HC "
+               "declining to take part in a round that a new investor led.",
                ("insider", "internal round", "existing holders", "existing investors", "led by hc", "no new investor", "no outside", "inside round"),
                (),
                "M-010 (X-117 HC-led, X-118 insider-led, X-122 step-up with no outside investor)"),
@@ -151,8 +152,8 @@ ASPECTS: tuple[AspectSpec, ...] = (
                (),
                "M-020 gap (X-101); otherwise the reader"),
     AspectSpec(AspectKind.PARTIAL_EXIT, "Partial sale or purchase",
-               "HC sold or bought part of its position; shares retained; a tender offer HC took part in; a secondary in which no new capital "
-               "reached the company. Not HC declining to participate in a round (that is dilution, which the columns carry).",
+               "HC sold or bought part of its position for cash; shares retained; a tender offer HC took part in. Not HC declining to "
+               "participate in a round (that is dilution, which the columns carry), and not a listing that raised no new capital.",
                ("partial", "retained", "remaining shares", "tender", "secondary"),
                (_E.SECONDARY.value, _E.SECONDARY_PURCHASE.value),
                "M-030 / M-031 (X-104)"),

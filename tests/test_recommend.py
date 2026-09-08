@@ -151,7 +151,8 @@ def test_recommend_run_with_claude_labels_the_manifest(base, tmp_path: Path):
     assert run.by_company()[c.company].flags[[g.rule_id for g in c.flags].index(f.rule_id)].recommendation.source == "claude"
 
 
-def test_make_chooser_follows_policy_then_override():
+def test_make_chooser_follows_policy_then_override(monkeypatch):
+    monkeypatch.delenv("HC_RECOMMENDER", raising=False)      # the suite pins the policy default; this test reads the policy itself
     cfg = load_config(RunPaths.default().policy)
     # the shipped policy asks for claude; an explicit argument still wins in either direction
     assert cfg.recommendation.provider == "claude"

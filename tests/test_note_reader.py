@@ -335,7 +335,7 @@ def test_live_reading_shapes_that_are_not_findings(tmp_path: Path, cfg):
     run = _run(wb, cfg, readings)
     by = run.by_company()
     assert "X-131" not in _flags(by["Fen"])                                   # blank cell confirmed blank: not a conflict
-    assert "X-130" in _flags(by["Fen"])                                       # the timing aspect still reaches a person (prompt tightened separately)
+    assert "X-130" not in _flags(by["Fen"])                                   # "expected to close in Q4" is not a date discrepancy
     for name in ("Quin", "Stone", "Isle", "Will"):
         assert "X-130" not in _flags(by[name]), (name, sorted(_flags(by[name])))
     assert "X-117" in _flags(by["Will"]) and "X-116" in _flags(by["Stone"]) and "X-110" in _flags(by["Quin"])
@@ -346,3 +346,47 @@ def test_live_reading_shapes_that_are_not_findings(tmp_path: Path, cfg):
     wb2 = make_workbook(tmp_path, [kol], [dist], name="b.xlsx")
     r2 = _run(wb2, cfg, {2: RowReading(row_index=2, supersedes=({"field": "status", "quote": "The position remains Acquired"},), source="fake")})
     assert "X-126" not in _flags(r2.by_company()["Kol"])
+
+
+
+def test_shapes_the_rule_already_settled_do_not_become_a_second_finding(tmp_path: Path, cfg):
+    """From the first key-enabled run on the second stress workbook: ten cards carried a reader finding
+    that repeated what the row's own rule had done. Each shape is now settled by the rule."""
+    A = AspectKind
+    book = [position(company="Kol", status="Acquired", latest_post_money=50.0, ownership=0.071, invested=5.8, prior_mark=0.0, realized=15.9),
+            position(company="Nim", stage="Seed", latest_post_money=18.1, ownership=0.065, invested=0.8, prior_mark=1.2),
+            position(company="Tarn", latest_post_money=23.9, ownership=0.08, invested=1.0, prior_mark=2.0),
+            position(company="Orch", latest_post_money=119.9, ownership=0.081, invested=4.0, prior_mark=7.3),
+            position(company="Fen", latest_post_money=285.1, ownership=0.038, invested=12.4, prior_mark=10.8),
+            position(company="Mard", stage="Series D+", latest_post_money=5699.4, ownership=0.012, invested=10.9, prior_mark=68.4)]
+    rows = [event(EventType.DISTRIBUTION, date=date(2026, 8, 5), company="Kol", detail="Escrow released", proceeds=1.4,
+                  notes="The position remains Acquired and the mark stays at zero."),
+            event(EventType.NOTE_REPAID, date=date(2026, 8, 31), company="Nim", detail="Bridge note repaid at par", ownership_after=0.065, proceeds=0.6,
+                  notes="Equity is unchanged; remove the note leg carried at cost."),
+            event(date=date(2026, 9, 6), company="Tarn", detail="Series A (recap)", value=14.2, hc_investment=0.3, ownership_after=0.08,
+                  notes="$4.1M insider-led round. HC participated."),
+            event(date=date(2026, 9, 30), company="Orch", detail="Series C down round, pay-to-play", value=62.0, hc_investment=0.5, ownership_after=0.081,
+                  notes="Priced at roughly half the prior post-money. Dated on the measurement date itself."),
+            event(EventType.ACQ_ANNOUNCED, date=date(2026, 7, 30), company="Fen", detail="Definitive agreement, all cash", value=340.0,
+                  notes="All-cash agreement signed, expected to close in Q4 subject to antitrust clearance."),
+            event(EventType.DIRECT_LISTING, date=date(2026, 9, 15), company="Mard", detail="Direct listing on the NYSE", value=6400.0, ownership_after=0.012,
+                  notes="Direct listing; no new capital raised and no underwriter.")]
+    wb = make_workbook(tmp_path, book, rows)
+    readings = {
+        2: RowReading(row_index=2, aspects=({"kind": A.VALUATION_ASSERTION, "quote": "the mark stays at zero", "note": "zero"},), source="fake"),
+        3: RowReading(row_index=3, aspects=({"kind": A.INSTRUCTION_TO_VALUER, "quote": "remove the note leg carried at cost", "note": "remove"},), source="fake"),
+        4: RowReading(row_index=4, aspects=({"kind": A.DOWN_ROUND_OR_RECAP, "quote": "Series A (recap)", "note": "recap"},), source="fake"),
+        5: RowReading(row_index=5, aspects=({"kind": A.TIMING_OR_DATE, "quote": "Dated on the measurement date itself.", "note": "quarter end"},), source="fake"),
+        6: RowReading(row_index=6, aspects=({"kind": A.TIMING_OR_DATE, "quote": "expected to close in Q4 subject to antitrust clearance", "note": "future close"},), source="fake"),
+        7: RowReading(row_index=7, aspects=({"kind": A.PARTIAL_EXIT, "quote": "no new capital raised", "note": "no capital"},), source="fake"),
+    }
+    by = _run(wb, cfg, readings).by_company()
+    for name in ("Kol", "Nim", "Tarn", "Orch", "Fen", "Mard"):
+        assert "X-130" not in _flags(by[name]), (name, sorted(_flags(by[name])))
+    # ... and an unrecognised event's reading rides on the adjudication draft, not a second finding
+    spac = event("SPAC Merger", date=date(2026, 9, 17), company="Mard", detail="Combination with a listed acquisition vehicle", value=240.0, ownership_after=0.031,
+                 notes="Business combination with a special-purpose acquisition company, alongside a $60.0M PIPE.")
+    wb2 = make_workbook(tmp_path, [book[5]], [spac], name="b.xlsx")
+    r2 = _run(wb2, cfg, {2: RowReading(row_index=2, aspects=({"kind": A.LOCK_UP, "quote": "special-purpose acquisition company", "note": "spac"},),
+                                       novel="A SPAC combination.", source="fake")})
+    assert "M-999" in _flags(r2.by_company()["Mard"]) and "X-130" not in _flags(r2.by_company()["Mard"])

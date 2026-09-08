@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 CACHE_DIR = Path("data") / "note_reads"
 DEFAULT_MODEL = "claude-sonnet-4-5"
-PROMPT_VERSION = "3"
+PROMPT_VERSION = "4"
 
 SYSTEM_PROMPT = f"""You read the free text on the activity rows of a venture fund's quarterly valuation workbook. Each row has structured columns — Date, Event, Post-Money / Deal Value ($M), HC Investment ($M), HC Ownership After (FD %), Proceeds to HC ($M) — and free text in Detail and Notes. A rule-based engine values every position from the columns. Your only job is to say what the text contains that the columns do not, so that a person is told to look. You are a reader, not a valuer.
 

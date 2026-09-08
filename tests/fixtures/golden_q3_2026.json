@@ -142,7 +142,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -206,7 +206,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "Cash on hand does not change the last-round price.",
@@ -614,7 +614,7 @@
       "key": "as_proposed",
       "label": "Ratify the 0.90-weighted mark of $4.66M.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "Reflects a signed agreement with a real chance of not closing.",
@@ -714,7 +714,7 @@
     "key": "as_proposed",
     "label": "Ratify the 0.90-weighted mark of $4.66M.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "Reflects a signed agreement with a real chance of not closing.",
@@ -806,7 +806,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -873,7 +873,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction or metric in the file says the value moved.",
@@ -1384,7 +1384,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -1439,7 +1439,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction or metric in the file says the value moved.",
@@ -1502,7 +1502,7 @@
       "key": "as_proposed",
       "label": "Keep the mark on the extension price as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "New money came in at that price, even without a new lead.",
@@ -1543,7 +1543,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -1598,7 +1598,7 @@
     "key": "as_proposed",
     "label": "Keep the mark on the extension price as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "New money came in at that price, even without a new lead.",
@@ -1866,7 +1866,7 @@
       "key": "as_proposed",
       "label": "Book the recap figure as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "It is the only priced transaction and reflects the new capital structure.",
@@ -1939,7 +1939,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -1994,7 +1994,7 @@
     "key": "as_proposed",
     "label": "Book the recap figure as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "It is the only priced transaction and reflects the new capital structure.",
@@ -2081,7 +2081,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -2145,7 +2145,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "Cash on hand does not change the last-round price.",
@@ -2594,7 +2594,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -2649,7 +2649,7 @@
     "key": "as_proposed",
     "label": "Affirm the last-round mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction has repriced the company; the round is still the last real price.",
@@ -2725,7 +2725,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -2789,7 +2789,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "The last round is still the latest priced transaction.",
@@ -2932,7 +2932,7 @@
       "key": "as_proposed",
       "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "Level 1: the quoted price is fair value under ASC 820.",
@@ -2999,7 +2999,7 @@
     "key": "as_proposed",
     "label": "Book the $3,931M listing-day stand-in with the 0% lock-up discount, as proposed, pending the 30 Sep close.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "Level 1: the quoted price is fair value under ASC 820.",
@@ -3456,7 +3456,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -3520,7 +3520,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "Cash on hand does not change the last-round price.",
@@ -3874,7 +3874,7 @@
       "key": "as_proposed",
       "label": "Book the recap figure as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "It is the only priced transaction and reflects the new capital structure.",
@@ -3990,7 +3990,7 @@
     "key": "as_proposed",
     "label": "Book the recap figure as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "It is the only priced transaction and reflects the new capital structure.",
@@ -4094,7 +4094,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -4158,7 +4158,7 @@
     "key": "as_proposed",
     "label": "Affirm the last-round mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction has repriced the company; the round is still the last real price.",
@@ -4220,7 +4220,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -4275,7 +4275,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "The last round is still the latest priced transaction.",
@@ -4797,7 +4797,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -4852,7 +4852,7 @@
     "key": "as_proposed",
     "label": "Affirm the last-round mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction has repriced the company; the round is still the last real price.",
@@ -5048,7 +5048,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -5088,7 +5088,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -5152,7 +5152,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction or metric in the file says the value moved.",
@@ -5275,7 +5275,7 @@
       "key": "as_proposed",
       "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "A cap is not a price; cost is the only observable value for the note.",
@@ -5345,7 +5345,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -5421,7 +5421,7 @@
     "key": "as_proposed",
     "label": "Carry the note at cost beside the unchanged equity mark, as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "A cap is not a price; cost is the only observable value for the note.",
@@ -5613,7 +5613,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -5677,7 +5677,7 @@
     "key": "as_proposed",
     "label": "Affirm the last-round mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction has repriced the company; the round is still the last real price.",
@@ -6137,7 +6137,7 @@
       "key": "as_proposed",
       "label": "Affirm the last-round mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction has repriced the company; the round is still the last real price.",
@@ -6201,7 +6201,7 @@
     "key": "as_proposed",
     "label": "Affirm the last-round mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction has repriced the company; the round is still the last real price.",
@@ -6264,7 +6264,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -6319,7 +6319,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction or metric in the file says the value moved.",
@@ -6382,7 +6382,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -6446,7 +6446,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "Cash on hand does not change the last-round price.",
@@ -6715,7 +6715,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "Cash on hand does not change the last-round price.",
@@ -6779,7 +6779,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "Cash on hand does not change the last-round price.",
@@ -7934,7 +7934,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -8004,7 +8004,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction or metric in the file says the value moved.",
@@ -8067,7 +8067,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -8122,7 +8122,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction or metric in the file says the value moved.",
@@ -8244,7 +8244,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -8313,7 +8313,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction or metric in the file says the value moved.",
@@ -8522,7 +8522,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "The last round is still the latest priced transaction.",
@@ -8592,7 +8592,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "The last round is still the latest priced transaction.",
@@ -8848,7 +8848,7 @@
       "key": "as_proposed",
       "label": "Keep the mark as proposed.",
       "model": null,
-      "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+      "note": null,
       "rationale": null,
       "reasons": [
        "No transaction or metric in the file says the value moved.",
@@ -8903,7 +8903,7 @@
     "key": "as_proposed",
     "label": "Keep the mark as proposed.",
     "model": null,
-    "note": "Claude is not connected on this machine, so this is the rule's own default rather than a choice made for this company's facts.",
+    "note": null,
     "rationale": null,
     "reasons": [
      "No transaction or metric in the file says the value moved.",
@@ -9322,7 +9322,7 @@
   "policy_version": "2026Q3-0.2",
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
-  "recommender": "claude:claude-sonnet-4-5",
+  "recommender": "policy",
   "run_id": "7453c4197f5e"
  },
  "open_items": [

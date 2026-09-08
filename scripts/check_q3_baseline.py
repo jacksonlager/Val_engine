@@ -8,7 +8,11 @@ three figures moved. Also prints the same run with the stub fixture for referenc
 """
 from __future__ import annotations
 
+import os
 import sys
+
+os.environ.setdefault("HC_NOTE_READER", "off")        # the baseline never depends on a model, a key or a cached answer
+os.environ.setdefault("HC_RECOMMENDER", "policy")
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

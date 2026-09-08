@@ -362,6 +362,7 @@ def priced_round(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
                f"{after:.1%} × ${post:.1f}M, which assumes every class shares the post-money pro rata. The allocation is "
                "unknown: the preference stack and pay-to-play the schema cannot see move HC's share down if HC's class is "
                "junior to the new money and up if HC funded the senior class." + conv_txt, e)
+        w.handled(e, "recap", "recapitalization", "recapitalisation", "down round", "down-round", "pay-to-play", "cram", "cram-down", "washout")
         w.flag("X-102", "treatment", Severity.BLOCK,
                f"{'Recap' if is_recap else 'Down round'}: the round priced at ${post:.1f}M against ${prior_post:.1f}M last time. "
                "Ownership × post-money assumes every class shares pro rata; rounds like this almost always carry a "

@@ -49,6 +49,28 @@ def _covered_kinds(w: Working, e: Event, cfg: RuleConfig) -> set[AspectKind]:
     return covered
 
 
+_EXPECTED_CLOSE = re.compile(r"\b(expected|anticipated|due|scheduled)\b.{0,30}\b(close|closing|complete)\b|\bsubject to\b", re.I)
+
+
+def _settled_by_the_rule(w: Working, e: Event, a: Aspect, cfg: RuleConfig) -> bool:
+    """Shapes the live model produces that the row's own rule has already dealt with (found on the
+    second stress workbook): an assertion that a closed position stays at zero; an instruction the
+    rule's finding already asks about; 'expected to close' read as a date discrepancy; a row dated
+    on the measurement date; 'no new capital' on a listing read as a partial sale."""
+    k = a.kind
+    if k is AspectKind.VALUATION_ASSERTION and w.terminal:
+        return True
+    if k is AspectKind.INSTRUCTION_TO_VALUER:
+        rule_findings = [f for f in w.flags if f.severity in (Severity.REVIEW, Severity.BLOCK)
+                         and f.rule_id not in ("X-105", "X-126", "X-130", "X-131", "X-132")]
+        return bool(rule_findings)
+    if k is AspectKind.TIMING_OR_DATE:
+        return e.date == cfg.quarter.measurement_date or bool(_EXPECTED_CLOSE.search(a.quote or ""))
+    if k is AspectKind.PARTIAL_EXIT:
+        return not e.proceeds
+    return False
+
+
 def _fmt(v: object) -> str:
     if v is None or v == "":
         return "blank"
@@ -75,9 +97,13 @@ def apply_readings(w: Working, events: list[Event], readings: Mapping[int, RowRe
                    row_index=e.row_index, reason=r.failed)
             continue
         covered = _covered_kinds(w, e, cfg)
-        open_aspects = [a for a in r.aspects if a.kind not in covered]
+        open_aspects = [a for a in r.aspects if a.kind not in covered and not _settled_by_the_rule(w, e, a, cfg)]
         if r.novel:
             open_aspects.append(Aspect(kind=AspectKind.OTHER, quote="", note=r.novel, verified=True))
+        if any(f.rule_id == "M-999" for f in w.flags):
+            open_aspects = []            # an unrecognised event: the adjudication draft carries the reading, not a second finding
+        elif open_aspects and all(a.kind is AspectKind.OTHER for a in open_aspects) and any(f.severity is Severity.BLOCK for f in w.flags):
+            open_aspects = []            # "something else" on a position a person already has to decide: the block carries it
         if open_aspects:
             labels = list(dict.fromkeys(BY_KIND[a.kind].label for a in open_aspects))
             quotes = [a.quote for a in open_aspects if a.quote and a.verified][:2]
