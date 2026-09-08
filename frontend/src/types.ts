@@ -189,6 +189,13 @@ export interface CompanyResult {
   runway_months_aged: number | null;
   implied_multiple: number | null;
   moic_after: number | null;
+  // the workbook's own columns, carried through for the Portfolio tab (absent from older runs)
+  first_investment?: string | null;
+  latest_round?: string | null;
+  gross_margin?: number | null;
+  net_burn?: number | null;
+  cash?: number | null;
+  headcount?: number | null;
   /** Readiness bucket, what happened to the position, and whether a person has signed. */
   readiness: Readiness;
   action: ValuationAction;

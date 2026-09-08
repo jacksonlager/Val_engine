@@ -40,7 +40,7 @@ function noteReaderLabel(m: RunManifest): string {
 // #activity, the former New Activity tab, lands on the Queue.
 const VIEWS: { id: View; label: string }[] = [
   { id: "queue", label: "Activity" },   // the review queue: what the quarter brought in, then the rest of the book
-  { id: "companies", label: "Companies" },
+  { id: "companies", label: "Portfolio" },
   { id: "movement", label: "Movement" },
   { id: "market", label: "Market" },
   { id: "rules", label: "Rules" },

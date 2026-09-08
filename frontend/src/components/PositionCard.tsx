@@ -350,7 +350,7 @@ function Disclosures({
         {open ? "Hide sources & calculation" : "Sources & calculation"}
       </button>
       <button className="btn btn-ghost" onClick={() => gotoCompany(c.company)}>
-        Open in Companies
+        Open in Portfolio
       </button>
     </>
   );

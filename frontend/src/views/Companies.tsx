@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-table";
 import type { CompanyResult, ValuationRun } from "../types";
 import { READINESSES, READINESS_ORDER } from "../types";
-import { deltaPct, months, mult, musd, pct, signed, signClass } from "../lib/format";
+import { deltaPct, months, mult, musd, pct, shortDate, signed, signClass } from "../lib/format";
 import { readinessClass } from "../lib/labels";
 import { CompanyDetail } from "../components/CompanyDetail";
 import { EscalatedChip, escalatedReviewFamilies, FlagChip, ReadinessChip } from "../components/ui";
@@ -110,7 +110,7 @@ export function CompaniesView({
           <span className="font-medium">
             {i.getValue()}
             {i.row.original.override && (
-              <span className="chip no-dot disp-REVIEW ml-1" title="A committee decision set the booked mark on this position (E-01).">
+              <span className="chip no-dot disp-REVIEW ml-1" title="A reviewer decision set the booked mark on this position (E-01).">
                 Decision recorded
               </span>
             )}
@@ -190,6 +190,30 @@ export function CompaniesView({
         meta: { r: true },
         cell: (i) => <span className={`num ${i.getValue() ? "" : "text-muted"}`}>{i.getValue() ? musd(i.getValue()) : "—"}</span>,
       }),
+      col.accessor("realized_cumulative", {
+        header: "Realized",
+        meta: { r: true },
+        cell: (i) => <span className={`num ${i.getValue() ? "" : "text-muted"}`}>{i.getValue() ? musd(i.getValue()) : "—"}</span>,
+      }),
+      col.accessor("moic_after", {
+        header: "MOIC",
+        meta: { r: true },
+        sortUndefined: "last",
+        cell: (i) => <span className="num">{mult(i.getValue())}</span>,
+      }),
+      col.accessor("latest_post_money", { header: "Post-money", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} /> }),
+      col.accessor((r) => r.first_investment ?? null, {
+        id: "first_investment",
+        header: "First inv.",
+        sortUndefined: "last",
+        cell: (i) => <span className="mono text-[11px]">{i.getValue() ? shortDate(i.getValue()) : "—"}</span>,
+      }),
+      col.accessor((r) => r.latest_round ?? null, {
+        id: "latest_round",
+        header: "Last round",
+        sortUndefined: "last",
+        cell: (i) => <span className="mono text-[11px]">{i.getValue() ? shortDate(i.getValue()) : "—"}</span>,
+      }),
       col.accessor("arr", { header: "ARR", meta: { r: true }, sortUndefined: "last", cell: (i) => <Num v={i.getValue()} d={1} /> }),
       col.accessor("arr_growth", {
         header: "ARR Δ",
@@ -197,11 +221,39 @@ export function CompaniesView({
         sortUndefined: "last",
         cell: (i) => <span className={`num ${signClass(i.getValue())}`}>{pct(i.getValue(), 0, true)}</span>,
       }),
+      col.accessor((r) => r.gross_margin ?? null, {
+        id: "gross_margin",
+        header: "GM",
+        meta: { r: true },
+        sortUndefined: "last",
+        cell: (i) => <span className="num">{i.getValue() === null ? "—" : pct(i.getValue(), 0)}</span>,
+      }),
+      col.accessor((r) => r.net_burn ?? null, {
+        id: "net_burn",
+        header: "Burn/mo",
+        meta: { r: true },
+        sortUndefined: "last",
+        cell: (i) => <span className="num">{i.getValue() === null ? "—" : musd(i.getValue(), 2)}</span>,
+      }),
+      col.accessor((r) => r.cash ?? null, {
+        id: "cash",
+        header: "Cash",
+        meta: { r: true },
+        sortUndefined: "last",
+        cell: (i) => <span className="num">{i.getValue() === null ? "—" : musd(i.getValue(), 1)}</span>,
+      }),
       col.accessor("runway_months_aged", {
         header: "Runway",
         meta: { r: true },
         sortUndefined: "last",
         cell: (i) => <span className="num">{months(i.getValue())}</span>,
+      }),
+      col.accessor((r) => r.headcount ?? null, {
+        id: "headcount",
+        header: "Heads",
+        meta: { r: true },
+        sortUndefined: "last",
+        cell: (i) => <span className="num">{i.getValue() === null ? "—" : i.getValue()}</span>,
       }),
       col.accessor("implied_multiple", {
         header: "Implied ×",
@@ -332,7 +384,7 @@ export function CompaniesView({
                     <tr className="expanded">
                       <td colSpan={columns.length} className="p-0 whitespace-normal">
                         <div style={{ position: "sticky", left: 0, width: visibleWidth }}>
-                          <CompanyDetail c={c} writeDisabled={writeDisabled} onChanged={onChanged} />
+                          <CompanyDetail c={c} writeDisabled={writeDisabled} onChanged={onChanged} compact />
                         </div>
                       </td>
                     </tr>

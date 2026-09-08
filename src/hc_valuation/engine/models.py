@@ -298,6 +298,14 @@ class CompanyResult(_Frozen):
     recommendation: PositionRecommendation | None = None
     provisional: bool = False               # the mark rests on a stand-in for an input that is not on file
     provisional_reason: str | None = None   # what is missing, in the reviewer's words
+    # the workbook's own columns, carried through unchanged so the Portfolio tab shows the book as
+    # it was given plus what the engine added; none of these is an input to a mark
+    first_investment: date | None = None
+    latest_round: date | None = None
+    gross_margin: float | None = None
+    net_burn: float | None = None
+    cash: float | None = None
+    headcount: int | None = None
 
     steps: tuple[MarkStep, ...]
     flags: tuple[Flag, ...] = ()

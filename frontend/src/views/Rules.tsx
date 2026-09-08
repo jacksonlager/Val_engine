@@ -67,7 +67,7 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
 const STEPS: { q: string; a: string; d: Disposition }[] = [
   { q: "Any blocking flag no override has addressed?", a: "The engine has a number but will not book it until a named person decides.", d: "BLOCK" },
   { q: "Terminal (exited, written off), with nothing left to review or watch?", a: "Nothing left to check on a company that no longer exists.", d: "CLEAR" },
-  { q: "Flags needing review from two or more different families?", a: "Two independent reasons to doubt one number compound to a committee decision (escalation).", d: "BLOCK" },
+  { q: "Flags needing review from two or more different families?", a: "Two independent reasons to doubt one number compound to a reviewer decision (escalation).", d: "BLOCK" },
   { q: "Any flag needing review?", a: "The number stands; a human confirms it.", d: "REVIEW" },
   { q: "Any watch-only flag, or an override on file?", a: "Booked. Visible on the queue, nothing to decide.", d: "MONITOR" },
   { q: "Otherwise", a: "Booked, no flags.", d: "CLEAR" },
@@ -193,7 +193,7 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
               {flagged.map((c) => {
                 const n = escalatedReviewFamilies(c);
                 return (
-                  <tr key={c.company} className="row" onClick={() => gotoCompany(c.company)} title="Open in Companies">
+                  <tr key={c.company} className="row" onClick={() => gotoCompany(c.company)} title="Open in Portfolio">
                     <td className="align-top">
                       <div className="font-medium">{c.company}</div>
                       <div className="mono text-[10.5px] text-muted">

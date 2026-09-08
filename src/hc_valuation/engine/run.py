@@ -598,6 +598,8 @@ def run_valuation(
             multiple_exposed=is_multiple_exposed(w.fv_level, p.arr, config,
                                                  deal_priced=any(i.kind == OpenItemKind.PENDING_ACQUISITION for i in w.open_items)),
             arr=p.arr, arr_growth=p.arr_growth,
+            first_investment=p.first_investment, latest_round=p.latest_round, gross_margin=p.gross_margin,
+            net_burn=p.net_burn, cash=p.cash, headcount=p.headcount,
             runway_months_aged=(round(aged_runway, 2) if aged_runway is not None else None),
             implied_multiple=(round(implied_mult, 2) if implied_mult else None),
             moic_after=(round((booked + realized_cum) / invested_after, 4) if invested_after else None),
