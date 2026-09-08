@@ -413,10 +413,6 @@ function ConfirmModal({
           </div>
         )}
       </div>
-      <p className="text-[11.5px] text-muted leading-snug mb-3">
-        {f ? <>Records your decision on “{finding}” under your name.</> : <>Records your decision under your name; the position had nothing open to decide, and the ledger says so.</>}{" "}
-        The recorded mark changes; the proposed mark stays on file beside it. Nothing is final until the quarter is published.
-      </p>
       {gap && (
         <label className="ack">
           <input type="checkbox" checked={acknowledged} onChange={(e) => setAcknowledged(e.target.checked)} />

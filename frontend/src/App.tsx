@@ -276,7 +276,6 @@ export default function App() {
               filter up here only competed with them. */}
           <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
             {mode === "served" && <MarketStatusButton refreshKey={reloads} compact />}
-            {mode === "served" && <UploadButton onLoaded={reload} />}
             <WorkbookSwitcher served={mode === "served"} refreshKey={reloads} onSwitched={reload} onBusy={setSwitching} />
             <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} onGoto={gotoCompany} />
             <span

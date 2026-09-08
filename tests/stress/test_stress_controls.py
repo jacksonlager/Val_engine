@@ -616,15 +616,15 @@ def test_D2_the_reply_cannot_price(run_real, tmp_path: Path):
     # the sentence that invented the figure is withheld, as the note reader and the adjudicator
     # withhold theirs: the choice is the substance and still counts, but prose quoting a number
     # the engine never produced does not reach a reviewer beside the engine's own figure.
-    from hc_valuation.recommend import _WITHHELD
     ch = _Fake(tmp_path / "b", json.dumps({"choice": other.key, "label": "Book this at $999,999.00M today.",
                                            "reasons": ["Worth $999,999M.", "Trust me."],
                                            "rationale": "book 999999", "confidence": 0.99}))
     rec = ch.choose(brief, f)
     assert rec.source == "claude" and rec.key == other.key and rec.confidence == 0.99
     assert rec.booked == other.booked and rec.booked != 999999.0
-    assert "999,999" not in rec.label and rec.label == _WITHHELD
-    assert rec.reasons[0] == _WITHHELD and rec.reasons[1] == "Trust me."   # no figure, so the words stand
+    # what the reviewer reads instead is the candidate's own sentence, never a placeholder
+    assert "999,999" not in rec.label and rec.label == other.label
+    assert all("999,999" not in r for r in rec.reasons) and rec.reasons == ("Trust me.", other.reasons[0])
     # a sentence quoting a figure the model was actually shown — the candidate's own value — survives
     ch = _Fake(tmp_path / "c", json.dumps({"choice": other.key, "label": f"Book the ${other.booked:.2f}M option.",
                                            "reasons": [f"It is priced at ${other.booked:.2f}M.", "The engine computed it."],

@@ -160,3 +160,37 @@ def test_make_chooser_follows_policy_then_override(monkeypatch):
     assert isinstance(make_chooser(cfg, Path("/tmp"), "policy"), PolicyChooser)
     ch = make_chooser(cfg, Path("/tmp"), "claude")
     assert isinstance(ch, ClaudeChooser) and ch.cache_dir == Path("/tmp") / CACHE_DIR and ch.model == cfg.recommendation.model
+
+
+def test_a_decided_position_asks_no_model(base, tmp_path: Path):
+    """Recording a decision re-runs the book. A position with a decision on record takes the rule's
+    own default and no model call — the seconds a fresh call costs were the whole of that wait."""
+    from datetime import date
+    from hc_valuation.engine.models import OverrideRecord
+    from hc_valuation.recommend import recommend_run
+
+    class _Any(_Fake):
+        """Answers every brief with its own first candidate, so every position could be model-chosen."""
+        def _call(self, brief, *rest):                 # the position call passes its own prompt too
+            self.calls += 1
+            if "candidates" in brief:
+                return _reply(brief["candidates"][0]["key"])
+            lead = brief["findings"][0]
+            return json.dumps({"rule_id": lead["rule_id"], "choice": lead["candidates"][0]["key"], "label": "Take the lead finding first.",
+                               "reasons": ["It blocks.", "The rest follow."], "covers": [lead["rule_id"]], "rationale": "lead", "confidence": 0.7})
+
+    c, f = _first_actionable(base.run)
+    rec = OverrideRecord(company=c.company, quarter=base.run.manifest.quarter_label, proposed=c.proposed_mark, booked=c.proposed_mark,
+                         reason="decided", approver="T", created_at=date(2026, 9, 8), rule_ids_addressed=(f.rule_id,))
+    companies = tuple(x.model_copy(update={"override": rec}) if x.company == c.company else x for x in base.run.companies)
+    run = base.run.model_copy(update={"companies": companies})
+    ch = _Any(tmp_path / "rec", "")
+    out = recommend_run(run, ch)
+    decided = next(x for x in out.companies if x.company == c.company)
+    assert all(g.recommendation is None or g.recommendation.source == "policy" for g in decided.flags)
+    assert decided.recommendation is not None and decided.recommendation.source == "policy"
+    others = [x for x in out.companies if x.company != c.company and x.recommendation is not None]
+    assert others and all(x.recommendation.source == "claude" for x in others), "everyone else still gets the model"
+    expected = sum(1 for x in run.companies if x.company != c.company for g in x.flags
+                   if g.severity is not Severity.MONITOR and g.suggestions) + len(others)
+    assert ch.calls == expected, "not one call for the decided position"

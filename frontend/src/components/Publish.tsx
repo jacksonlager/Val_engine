@@ -291,7 +291,10 @@ function GateModal({
         Choosing a resolution on a flag, or confirming the mark as proposed, records a reviewer override under your name and clears
         that row. The button unlocks on its own once the list is empty.
       </p>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <a className="btn" href="/exec/" target="_blank" rel="noopener" title="Open the executive dashboard in a new tab; it shows the last release">
+          Exec dashboard
+        </a>
         <button type="button" className="btn btn-primary" onClick={onClose} autoFocus>
           Close
         </button>

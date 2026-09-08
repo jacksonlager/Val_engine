@@ -43,7 +43,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from .config import RuleConfig
-from .engine.models import CompanyResult, Flag, PositionRecommendation, Recommendation, Severity, ValuationRun
+from .engine.models import CompanyResult, Flag, PositionRecommendation, Recommendation, Severity, Suggestion, ValuationRun
 from .notes.schema import _figures, figures_carried
 from .engine.readiness import MISSING_INPUT_RULES
 
@@ -257,13 +257,14 @@ def _allowed_figures(flags: list[Flag], c: CompanyResult | None = None) -> set[f
     return {round(x, 6) for x in out} | {round(x * 1e6, 6) for x in out} | {round(x / 1e6, 6) for x in out}
 
 
-def _fit_card(data: dict[str, Any], allowed: set[float] | None = None) -> tuple[str, list[str]]:
+def _fit_card(data: dict[str, Any], allowed: set[float] | None = None, chosen: Suggestion | None = None) -> tuple[str, list[str]]:
     """The card shows one sentence and two short reasons. A model that writes long is clipped at a
     word, not rejected: the choice (validated separately against the candidates) is the substance,
     the wording is presentation. Empty is still a rejection. A sentence that brings its own figure —
     "book this at $88M" — is withheld, as the note reader withholds it: the number a reviewer books
     comes from the priced candidate, and the prose beside it must not quote one the engine never
-    produced. This was the one AI layer without that fence."""
+    produced. This was the one AI layer without that fence. What a reviewer then reads is the
+    candidate's own wording — the rule's sentence for the option chosen — never a placeholder."""
     label = _clip(data.get("label", ""), 140)
     raw = data.get("reasons") or []
     if isinstance(raw, str):
@@ -271,12 +272,16 @@ def _fit_card(data: dict[str, Any], allowed: set[float] | None = None) -> tuple[
     reasons = [_clip(r, 140) for r in raw if str(r).strip()][:2]
     if allowed is not None:
         if label and not figures_carried(label, allowed):
-            label = _WITHHELD
-        reasons = [r if figures_carried(r, allowed) else _WITHHELD for r in reasons]
+            label = _clip(chosen.label, 140) if chosen is not None else _WITHHELD
+        kept = [r for r in reasons if figures_carried(r, allowed)]
+        if reasons and not kept and chosen is not None:   # every reason was withheld: the rule's own stand in
+            kept = [_clip(r, 140) for r in chosen.reasons[:2]]
+        reasons = kept
     if not label or not reasons:
         raise ValueError("label/reasons are empty")
     if len(reasons) == 1:
-        reasons.append("See the finding's evidence.")
+        reasons.append(_clip(chosen.reasons[0], 140) if chosen is not None and chosen.reasons and chosen.reasons[0] != reasons[0]
+                       else "See the finding's evidence.")
     if not label.endswith((".", "…")):
         label += "."
     return label, reasons
@@ -379,7 +384,8 @@ class ClaudeChooser:
         keys = {s.key for s in f.suggestions}
         if data["choice"] not in keys:
             raise ValueError(f"choice {data['choice']!r} is not a candidate ({sorted(keys)})")
-        label, reasons = _fit_card(data, _allowed_figures([f]))
+        chosen = next(s for s in f.suggestions if s.key == data["choice"])
+        label, reasons = _fit_card(data, _allowed_figures([f]), chosen)
         conf = float(data["confidence"])
         if not 0.0 <= conf <= 1.0:
             raise ValueError("confidence outside [0, 1]")
@@ -413,7 +419,8 @@ class ClaudeChooser:
             raise ValueError(f"covers names {unknown}, which are not actionable findings on this position")
         if rid not in covers:
             covers = [rid] + covers
-        label, reasons = _fit_card(data, _allowed_figures(list(by_id.values()), c))
+        chosen = next(s for s in by_id[rid].suggestions if s.key == data["choice"])
+        label, reasons = _fit_card(data, _allowed_figures(list(by_id.values()), c), chosen)
         conf = float(data["confidence"])
         if not 0.0 <= conf <= 1.0:
             raise ValueError("confidence outside [0, 1]")
@@ -520,18 +527,24 @@ def recommend_run(run: ValuationRun, chooser: Chooser, signals: dict[str, Any] |
     `recommendation` on every position with something actionable — the single next step,
     chosen across its findings. Marks, flags, dispositions, readiness and totals are
     untouched: only the two recommendation fields are filled in."""
+    policy = PolicyChooser()
+
     def one(c: CompanyResult) -> CompanyResult:
+        # A position with a decision on record is not waiting for a suggestion: the rule's own
+        # default fills the fields and no model is asked. Recording a decision re-runs the book,
+        # and the seconds a fresh model call costs were the whole of that wait.
+        ch = policy if c.override is not None else chooser
         flags: list[Flag] = []
         changed = False
         for f in c.flags:
             if f.severity is Severity.MONITOR or not f.suggestions:
                 flags.append(f)
                 continue
-            rec = chooser.choose(build_brief(c, f, run, signals), f)
+            rec = ch.choose(build_brief(c, f, run, signals), f)
             flags.append(f.model_copy(update={"recommendation": rec}))
             changed = True
         c2 = c.model_copy(update={"flags": tuple(flags)}) if changed else c
-        step = chooser.choose_position(build_position_brief(c2, run, signals), c2)
+        step = ch.choose_position(build_position_brief(c2, run, signals), c2)
         return c2.model_copy(update={"recommendation": step}) if step is not None else c2
 
     # Positions are independent, and a model call takes seconds: run them side by side. The policy
