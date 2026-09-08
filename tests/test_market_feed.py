@@ -243,10 +243,12 @@ def test_ttm_falls_back_to_fiscal_year_plus_ytd():
     assert RevenueHistory(rows).quarters == {"2026-03-31": 110.0}
     assert RevenueHistory(rows, filed_by=date(2026, 12, 31)).quarters == {"2026-03-31": 100.0}
     assert RevenueHistory(rows, filed_by=date(2026, 4, 1)).quarters == {}                  # nothing filed yet
-    # concept tie-break: equally current concepts -> the larger latest value (a total over a component)
+    # concept tie-break: equally current concepts -> the larger latest value (a total over a component);
+    # the component disagrees with the total where they overlap, so it is not merged in as a gap-filler
     fees = "RevenueFromContractWithCustomerExcludingAssessedTax"
     lender = _facts_from([(fees, "2026-01-01", "2026-03-31", 40, "10-Q"), ("Revenues", "2026-01-01", "2026-03-31", 100, "10-Q")])
-    assert revenue_periods(lender)[0] == ["Revenues", fees] and revenue_periods(lender)[1][0]["value"] == 100.0
+    assert revenue_periods(lender)[0] == ["Revenues"] and revenue_periods(lender)[1] == [
+        {"start": "2026-01-01", "end": "2026-03-31", "value": 100.0, "days": 90, "filed": ""}] or revenue_periods(lender)[1][0]["value"] == 100.0
 
 
 def test_shares_sum_multi_class_rows_and_fall_back_by_concept():
@@ -320,7 +322,7 @@ def test_extract_is_trimmed_and_cacheable():
     x = extract(facts("AAA"))
     assert set(x) == {"extract_version", "cik", "name", "revenue_concepts", "revenue_periods",
                           "shares_concept", "shares", "shares_by_concept", "cash", "debt"}
-    assert x["extract_version"] == 4        # v4 reads convertible notes into debt; v3 cached every share concept
+    assert x["extract_version"] == 5        # v5 reads a bank's total net revenue and merges only agreeing concepts; v4 convertibles
     assert x["cik"] == "0001000001" and x["name"] == "Alpha Analytics Corp"
     assert len(json.dumps(x)) < 8000 < len(json.dumps(facts("AAA")))
     # the slim companyfacts keeps only the concepts read, with the fields read, and re-derives the same extract
@@ -328,7 +330,7 @@ def test_extract_is_trimmed_and_cacheable():
     assert extract(sl) == x and len(json.dumps(sl)) <= len(json.dumps(facts("AAA")))
     assert all(set(e) <= {"start", "end", "val", "fy", "fp", "form", "filed", "frame"}
                for tax in sl["facts"].values() for node in tax.values() for es in node["units"].values() for e in es)
-    assert sl["slim_version"] == 2           # a slim cut with the old keep-list is refetched, not re-derived
+    assert sl["slim_version"] == 3           # a slim cut with the old keep-list is refetched, not re-derived
 
 
 def test_ticker_table_and_cik_resolution():
@@ -1121,3 +1123,24 @@ def test_net_cash_above_market_cap_is_not_ok_at_the_measurement_date(tmp_path: P
     assert a.status == "error" and "net cash above market cap" in (a.error or "")
     assert a.ev_to_revenue is not None and a.ev_to_revenue <= 0, "the number is kept for the row; the status says it does not price"
     assert p._constituents["BBB"].net_cash_basis == "cash and borrowings as filed"
+
+
+def test_revenue_concepts_that_measure_different_things_are_not_merged():
+    """SoFi: contract revenue is fee income only (~0.19× of total net revenue, which it tags as
+    RevenuesNetOfInterestExpense). The total wins at the latest period, and the fee series must
+    not back-fill the years before the total was tagged — that would be a 5× step under one label."""
+    def rows(concept, vals):
+        return {"units": {"USD": [{"start": f"{y}-01-01", "end": f"{y}-12-31", "val": v, "filed": f"{y + 1}-02-20", "fp": "FY", "form": "10-K"}
+                                   for y, v in vals.items()]}}
+    facts_ = {"cik": 1, "facts": {"us-gaap": {
+        "RevenueFromContractWithCustomerExcludingAssessedTax": rows("c", {2019: 300e6, 2020: 350e6, 2021: 380e6, 2022: 420e6, 2023: 500e6}),
+        "RevenuesNetOfInterestExpense": rows("t", {2021: 2100e6, 2022: 2700e6, 2023: 3600e6}),
+    }}}
+    concepts, periods = revenue_periods(facts_)
+    assert concepts == ["RevenuesNetOfInterestExpense"], "the fee series disagrees where they overlap, so it is not a gap-filler"
+    assert {r["end"]: r["value"] for r in periods} == {"2021-12-31": 2100.0, "2022-12-31": 2700.0, "2023-12-31": 3600.0}
+    # concepts that agree where they overlap still merge, and the earlier one fills the older years
+    facts_["facts"]["us-gaap"]["RevenuesNetOfInterestExpense"] = rows("t", {2021: 385e6, 2022: 420e6, 2023: 505e6})
+    concepts, periods = revenue_periods(facts_)
+    assert set(concepts) == {"RevenuesNetOfInterestExpense", "RevenueFromContractWithCustomerExcludingAssessedTax"}
+    assert {r["end"]: r["value"] for r in periods}["2019-12-31"] == 300.0

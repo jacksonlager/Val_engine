@@ -619,7 +619,7 @@
    "value": 10105.261
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Tesla, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

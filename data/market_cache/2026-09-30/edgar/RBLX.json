@@ -159,11 +159,10 @@
    "value": 1174.37
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Roblox Corporation",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",
-  "RevenueFromContractWithCustomerIncludingAssessedTax",
   "Revenues"
  ],
  "revenue_periods": [

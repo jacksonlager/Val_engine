@@ -194,7 +194,7 @@
    "value": 2283.985
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "SNOWFLAKE INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

@@ -133,7 +133,7 @@
  ],
  "cik": "0001837240",
  "debt": [],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "SYMBOTIC INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

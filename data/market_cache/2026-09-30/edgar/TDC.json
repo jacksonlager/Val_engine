@@ -684,12 +684,11 @@
    "value": 0.0
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "TERADATA CORPORATION",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",
-  "Revenues",
-  "SalesRevenueNet"
+  "Revenues"
  ],
  "revenue_periods": [
   {

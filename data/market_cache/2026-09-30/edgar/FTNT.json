@@ -379,7 +379,7 @@
    "value": 987.5
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "FORTINET, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

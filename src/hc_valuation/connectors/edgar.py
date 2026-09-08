@@ -31,6 +31,7 @@ import logging
 import math
 import os
 import re
+import statistics
 from dataclasses import dataclass
 from datetime import date
 from typing import Any, Mapping
@@ -48,9 +49,16 @@ MAX_REQUESTS_PER_S = 8.0          # SEC's limit is 10/s; stay politely under it
 REVENUE_CONCEPTS = (
     "RevenueFromContractWithCustomerExcludingAssessedTax",
     "Revenues",
+    "RevenuesNetOfInterestExpense",     # a bank holding company's total net revenue (SoFi): its contract
+                                        # revenue is fee income only, a fifth of what it earns
     "SalesRevenueNet",
     "RevenueFromContractWithCustomerIncludingAssessedTax",
 )
+# Two revenue concepts are merged only when they measure the same thing: where their periods overlap
+# the values must agree within this share. SoFi's fee income is 0.19× its total net revenue, and
+# filling the years before it tagged the total with the fee series would put a 5× step into the
+# history under a single label.
+REVENUE_MERGE_TOL = 0.10
 # (taxonomy, concept, kind): `instant` rows are summed per end (multi-class); `duration` rows
 # are read by quarterly frame only (a 10-Q reports 3- and 9-month averages at the same end).
 # Preference order, best evidence first. `basis` is what the number actually counts, which the
@@ -98,8 +106,8 @@ CONVERTIBLE_PART_PAIRS = (("ConvertibleDebtNoncurrent", "ConvertibleDebtCurrent"
 _SAME_INSTRUMENT_TOL = 0.01      # two families within 1% at one date are one instrument tagged twice
 
 MILLION = 1_000_000.0
-EXTRACT_VERSION = 4               # bump when the extract's shape or derivation changes; the cache re-derives older ones
-SLIM_VERSION = 2                  # bump when SLIM_CONCEPTS grows: an older slim lacks the new concepts, so it is refetched
+EXTRACT_VERSION = 5               # bump when the extract's shape or derivation changes; the cache re-derives older ones
+SLIM_VERSION = 3                  # bump when SLIM_CONCEPTS grows: an older slim lacks the new concepts, so it is refetched
 _QUARTER_FRAME = re.compile(r"^CY(\d{4})Q([1-4])$")
 
 # Period lengths in days. Fiscal quarters are 13 weeks (91 days) or calendar quarters (89–92);
@@ -292,13 +300,21 @@ def revenue_periods(facts: Mapping[str, Any]) -> tuple[list[str], list[dict[str,
         return latest, max(_latest_value(v) for (s, e), v in per_concept[c].items() if e == latest)
     order = sorted(per_concept, key=_rank, reverse=True)
     merged: dict[tuple[str, str], dict[float, str]] = {}
+    used: list[str] = []
     for concept in order:
+        overlap = [(_latest_value(per_concept[concept][k]), _latest_value(merged[k]))
+                   for k in per_concept[concept] if k in merged and _latest_value(merged[k])]
+        if overlap:
+            ratio = statistics.median(a / b for a, b in overlap)
+            if abs(ratio - 1) > REVENUE_MERGE_TOL:
+                continue                                   # a different measure, not a gap-filler
+        used.append(concept)
         for key, vals in per_concept[concept].items():
             merged.setdefault(key, vals)
     out = [{"start": s, "end": e, "value": musd(v), "days": _days(s, e), "filed": filed}
            for (s, e), vals in merged.items() for v, filed in vals.items()]
     out.sort(key=lambda r: (r["end"], r["start"], r["filed"]))
-    return order, out
+    return used, out
 
 
 def as_of_filing(rows: list[Mapping[str, Any]], filed_by: date | None) -> list[dict[str, Any]]:

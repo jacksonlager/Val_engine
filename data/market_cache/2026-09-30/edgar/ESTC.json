@@ -289,7 +289,7 @@
    "value": 571.195
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "ELASTIC N.V.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

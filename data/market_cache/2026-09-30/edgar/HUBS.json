@@ -319,7 +319,7 @@
    "value": 368.883
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "HubSpot, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

@@ -159,7 +159,7 @@
    "value": 0.0
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Toast, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

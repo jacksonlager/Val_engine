@@ -184,7 +184,7 @@
    "value": 921.053
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "DigitalOcean Holdings, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

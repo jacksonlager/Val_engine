@@ -589,7 +589,7 @@
    "value": 593.71
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Enphase Energy, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

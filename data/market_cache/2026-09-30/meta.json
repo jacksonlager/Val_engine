@@ -1,7 +1,7 @@
 {
  "as_of": "2026-09-30",
  "baskets_sha256": "03d49b879e0ce3c047b341069da81139d4e768cc7f10cf35e8bb573265ea111f",
- "fetched_at": "2026-09-08T17:13:55Z",
+ "fetched_at": "2026-09-08T19:16:52Z",
  "price_source": "yahoo",
  "user_agent": "hc-valuation/0.1.0 (valuation@example.com)"
 }

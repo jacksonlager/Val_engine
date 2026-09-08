@@ -449,7 +449,7 @@
    "value": 747.5
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "AEROVIRONMENT, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

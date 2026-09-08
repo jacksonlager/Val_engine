@@ -95,9 +95,15 @@ a CIK for EDGAR, but no price source answers for a ticker that no longer trades.
 ### 2.2 Fundamentals extraction (`edgar.py`, pure functions, fully unit-tested on recorded JSON)
 
 * **Revenue periods** (`revenue_periods`): every `units.USD` entry of **every** revenue concept —
-  `RevenueFromContractWithCustomerExcludingAssessedTax`, `Revenues`, `SalesRevenueNet`,
-  `RevenueFromContractWithCustomerIncludingAssessedTax` — read by its own `start`/`end`, never
-  by SEC's calendar `frame`. Two things the first version got wrong and this one does not:
+  `RevenueFromContractWithCustomerExcludingAssessedTax`, `Revenues`, `RevenuesNetOfInterestExpense`,
+  `SalesRevenueNet`, `RevenueFromContractWithCustomerIncludingAssessedTax` — read by its own
+  `start`/`end`, never by SEC's calendar `frame`. Concepts are merged only where they measure the
+  same thing: the most current concept with the largest latest value leads, and another concept
+  fills its gaps only if the two agree within `REVENUE_MERGE_TOL` (10%) where their periods
+  overlap. SoFi is why: a bank holding company's contract revenue is fee income, a fifth of the
+  total net revenue it tags as `RevenuesNetOfInterestExpense`, and before this rule its row sat at
+  42× revenue (6× on the total) — the Fintech median never moved, because the row was the top of a
+  five-name basket either way, but a constituent row must be right on its own. Two things the first version got wrong and this one does not:
   (1) filers switch concepts (NVIDIA and SoundHound moved from `Revenues` to the ASC 606 tag
   in 2018–2020), so reading one concept left a history that stopped in 2019 and a 505× multiple;
   the concepts are merged, the one whose history runs latest winning any period both report;
@@ -126,7 +132,7 @@ a CIK for EDGAR, but no price source answers for a ticker that no longer trades.
   without it the dead 3.5M balance-sheet tag was the only count on file for a year). A cache
   fetched before this concept was read lacks it in `edgar_raw/`, so those months stay as they
   were until `market --provider live --refresh`. The extract keeps the whole
-  series of every concept the filer has ever tagged (`shares_by_concept`; `EXTRACT_VERSION` 4,
+  series of every concept the filer has ever tagged (`shares_by_concept`; `EXTRACT_VERSION` 5,
   an older extract is re-derived from the slim facts when the slim was cut with the current
   keep-list, `SLIM_VERSION`, and refetched from SEC otherwise), and the choice is made at read time
   for the date being valued: the first concept whose latest fact filed on or before that date
@@ -301,7 +307,7 @@ git-ignored, the slim companyfacts each extract was derived from:
 ```
 meta.json                        {"fetched_at": iso, "as_of": "...", "user_agent": "...", "baskets_sha256": "...", "price_source": "yahoo"}
 company_tickers.json             ticker -> {cik, title}, only the tickers in the baskets
-edgar/<TICKER>.json              {"extract_version": 4, "cik", "name", "revenue_concepts": [...], "revenue_periods": [{"start", "end", "value", "days", "filed"}],
+edgar/<TICKER>.json              {"extract_version": 5, "cik", "name", "revenue_concepts": [...], "revenue_periods": [{"start", "end", "value", "days", "filed"}],
                                   "shares_by_concept": {"dei:EntityCommonStockSharesOutstanding": [{"end", "value", "filed"}], ...}, "cash": [...], "debt": [...]}
                                  (`shares_concept` / `shares` — the v2 single-series fields — are still written so an older reader works)
 edgar_raw/<TICKER>.json          `edgar.slim(companyfacts)`: only the concepts read, only the fields read (~100–400 KB; git-ignored),

@@ -144,7 +144,7 @@
    "value": 2476.0
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Airbnb, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

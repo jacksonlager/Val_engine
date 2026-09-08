@@ -113,7 +113,7 @@
  ],
  "cik": "0001516513",
  "debt": [],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Doximity, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

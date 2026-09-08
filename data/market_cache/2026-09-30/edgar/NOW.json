@@ -489,7 +489,7 @@
    "value": 6129.981
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "ServiceNow, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

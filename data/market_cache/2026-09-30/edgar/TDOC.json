@@ -384,7 +384,7 @@
    "value": 1037.359
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "TELADOC HEALTH, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

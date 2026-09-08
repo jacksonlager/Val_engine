@@ -269,7 +269,7 @@
    "value": 15632.678
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Sunrun Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

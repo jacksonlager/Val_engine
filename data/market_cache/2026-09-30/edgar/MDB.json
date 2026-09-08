@@ -349,7 +349,7 @@
    "value": 216.858
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "MONGODB, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

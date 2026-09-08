@@ -309,11 +309,10 @@
    "value": 1148.881
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Zscaler Inc",
  "revenue_concepts": [
-  "RevenueFromContractWithCustomerExcludingAssessedTax",
-  "Revenues"
+  "RevenueFromContractWithCustomerExcludingAssessedTax"
  ],
  "revenue_periods": [
   {

@@ -138,7 +138,7 @@
  ],
  "cik": "0001577526",
  "debt": [],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "C3.ai, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

@@ -234,7 +234,7 @@
    "value": 5.0
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "NUTANIX, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

@@ -239,11 +239,10 @@
    "value": 10923.639
   }
  ],
- "extract_version": 4,
+ "extract_version": 5,
  "name": "Affirm Holdings, Inc.",
  "revenue_concepts": [
-  "Revenues",
-  "RevenueFromContractWithCustomerExcludingAssessedTax"
+  "Revenues"
  ],
  "revenue_periods": [
   {

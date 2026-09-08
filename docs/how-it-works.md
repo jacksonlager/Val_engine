@@ -148,7 +148,7 @@ All three are real positions in the current run.
 
 *Fund II · AI/ML · Series B.* Prior mark $24.1M at 8.6%, last priced October 2023 at $279.8M post. No rows on the Activity tab.
 
-**Calculation.** M-000: carry $24.1M. Then M-080 runs, because the round is 35.7 months old and the AI/ML basket has a live history: the sector multiple has gone from 7.6× to 13.6× since the round month (+79%), capped by policy at +35%, so a **calibrated alternative of $32.54M** is recorded beside the mark. The mark itself does not move.
+**Calculation.** M-000: carry $24.1M. Then M-080 runs, because the round is 35.7 months old and the AI/ML basket has a live history: the sector multiple has gone from 7.7× to 13.8× since the round month (+79%), capped by policy at +35%, so a **calibrated alternative of $32.54M** is recorded beside the mark. The mark itself does not move.
 
 **Checks.** X-201 MONITOR: the round is older than 24 months. X-304 REVIEW: **3.1 months of cash** — $5.6M on hand against $1.36M a month, aged one month for the reporting lag. The engine's summary: *the company must raise before the next close; the round that saves it may be priced below this mark.*
 
@@ -221,7 +221,7 @@ Marks sheet → the company's **Portfolio Row** → Audit Trail rows for that co
 
 **Optional, off by default.** The AI recommender (`recommendation.provider: claude`) and the novel-event adjudicator (`adjudication.provider: claude`). Both need `ANTHROPIC_API_KEY`; both cache every answer so reruns are offline and deterministic; both fall back to the policy default and say so.
 
-**Planned, not built.** A live quote feed; deeper comps baskets (five names is thin — the ±35% M-080 cap binds on 23 of 42 indications for that reason); a CSV export that preserves the Companies view's current filter; the Companies detail panel and the executive dashboard still use the older "booked" vocabulary rather than readiness.
+**Planned, not built.** A live quote feed; deeper comps baskets (five names is thin — the ±35% M-080 cap binds on 24 of 42 indications for that reason); a CSV export that preserves the Companies view's current filter; the Companies detail panel and the executive dashboard still use the older "booked" vocabulary rather than readiness.
 
 ## 7. Where to change things
 
