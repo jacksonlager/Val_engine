@@ -161,3 +161,38 @@ def test_watch_mode_recomputes_when_an_input_changes(paths: RunPaths, tmp_path: 
     after = client.get("/api/health").json()["generated_at"]
     assert after != before
     assert client.get("/api/companies/Aravine").json()["booked_mark"] == pytest.approx(12.0)
+
+
+def test_output_workbook_route_names_the_file_the_close_will_write(client: TestClient, paths: RunPaths):
+    """The executive dashboard asks "where is the file?". The route answers before the close has
+    written it too, so the dialog can say where it *will* appear rather than showing nothing."""
+    r = client.get("/api/output-workbook")
+    assert r.status_code == 200
+    d = r.json()
+    assert d["quarter"] == "Q3 2026" and d["next_quarter"] == "Q4 2026"
+    assert d["filename"] == "Q4 2026 HC Mock Portfolio Data.xlsx"
+    assert d["folder"] == str(paths.workbook.parent)
+    assert d["path"] == str(paths.workbook.parent / d["filename"])
+    assert d["source_workbook"] == paths.workbook.name
+    # nothing has been published in this scratch ledger, so the file does not exist yet
+    assert d["exists"] is False and d["download_url"] is None and d["written_at"] is None
+
+
+def test_output_workbook_download_is_offered_only_once_the_file_exists(client: TestClient, paths: RunPaths):
+    """A download link that 404s is worse than no link, so the dialog is told whether to show one."""
+    assert client.get("/api/output-workbook/download").status_code == 404
+
+    out = paths.workbook.parent / "Q4 2026 HC Mock Portfolio Data.xlsx"
+    shutil.copyfile(paths.workbook, out)                      # stand in for what the close writes
+    d = client.get("/api/output-workbook").json()
+    assert d["exists"] is True and d["download_url"] == "/api/output-workbook/download"
+    assert d["size_bytes"] == out.stat().st_size and d["written_at"]
+
+    got = client.get("/api/output-workbook/download")
+    assert got.status_code == 200
+    assert got.headers["content-type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # FastAPI percent-encodes the spaces in the filename, so compare the decoded header
+    from urllib.parse import unquote
+    cd = unquote(got.headers.get("content-disposition", ""))
+    assert cd.startswith("attachment") and d["filename"] in cd
+    assert got.content[:2] == b"PK" and len(got.content) == out.stat().st_size   # a real xlsx zip container

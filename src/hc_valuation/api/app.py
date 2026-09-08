@@ -12,14 +12,14 @@ import logging
 import threading
 import time
 import uuid
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import yaml
 from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -452,6 +452,11 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
                                "events": sum(1 for c in r.run.companies for s_ in c.steps if s_.evidence),
                                "blocking_issues": sum(1 for v in r.run.validation if v.blocking),
                                "market_data_source": m.market_data_source, "synthetic": synthetic,
+                               # the upload dialog says whether the notes were actually read, so a
+                               # missing key is seen at the moment the file lands, not at publish
+                               "note_reader": m.note_reader,
+                               "notes_read": (m.note_reader_report or {}).get("rows_read", 0),
+                               "notes_with_text": (m.note_reader_report or {}).get("rows_with_text", 0),
                                "ledger": str(new_paths.ledger_dir.relative_to(root)) if str(new_paths.ledger_dir).startswith(str(root)) else str(new_paths.ledger_dir)})
         except Exception as exc:  # noqa: BLE001 — the dialog shows the reason; the previous run keeps serving
             job.update(done=True, error=f"{type(exc).__name__}: {exc}", message="Failed")
@@ -520,6 +525,55 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         if view is None:
             raise HTTPException(404, "nothing has been published yet — release a run from the review dashboard first")
         return JSONResponse(view)
+
+    def _output_workbook() -> Path | None:
+        """Next quarter's starting workbook, where the close writes it: beside the workbook that was
+        just closed, named for the quarter it opens. Returns None until a final publish has written
+        it — the file is produced by the close, not by opening the dashboard."""
+        from ..export.snapshot import next_quarter_label
+        from ..pipeline import next_quarter_input_name
+        r = app.state.result
+        if r is None:
+            return None
+        src = Path(r.paths.workbook)
+        out = src.parent / next_quarter_input_name(src, next_quarter_label(r.config.quarter.label))
+        return out if out.is_file() else None
+
+    @app.get("/api/output-workbook")
+    def get_output_workbook() -> dict[str, Any]:
+        """Where the quarter's output workbook is on disk, for the executive dashboard to show and
+        to offer as a download. The folder is reported whether or not the file exists yet, so the
+        dialog can say where it *will* be written."""
+        r = app.state.result
+        if r is None:
+            raise HTTPException(503, "no run is loaded")
+        from ..export.snapshot import next_quarter_label
+        from ..pipeline import next_quarter_input_name
+        src = Path(r.paths.workbook)
+        nxt = next_quarter_label(r.config.quarter.label)
+        expected = src.parent / next_quarter_input_name(src, nxt)
+        f = _output_workbook()
+        st = f.stat() if f else None
+        return {
+            "quarter": r.config.quarter.label,
+            "next_quarter": nxt,
+            "folder": str(src.parent),
+            "filename": expected.name,
+            "path": str(expected),
+            "exists": f is not None,
+            "size_bytes": (st.st_size if st else None),
+            "written_at": (datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat() if st else None),
+            "download_url": "/api/output-workbook/download" if f else None,
+            "source_workbook": src.name,
+        }
+
+    @app.get("/api/output-workbook/download")
+    def download_output_workbook() -> FileResponse:
+        f = _output_workbook()
+        if f is None:
+            raise HTTPException(404, "next quarter's workbook has not been written yet; publish the quarter first")
+        return FileResponse(f, filename=f.name,
+                            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     @app.get("/api/exec/{slug}")
     def get_exec_quarter(slug: str) -> JSONResponse:
