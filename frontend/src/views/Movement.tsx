@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { CompsMove, ValuationRun } from "../types";
+import type { ValuationRun } from "../types";
 import { musd, pct, signed, signClass } from "../lib/format";
 import { useChartTheme } from "../lib/theme";
 import { SectionTitle } from "../components/ui";
@@ -20,12 +20,6 @@ import { SensitivityView } from "./Sensitivity";
 const TAIL_AFTER = 12;
 
 /** "2026-09" -> "September 2026". Kept local: Market.tsx has its own copy. */
-function monthLabel(ym: string): string {
-  const t = Date.parse(`${ym}-01T00:00:00Z`);
-  if (!Number.isFinite(t)) return ym;
-  return new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(t));
-}
-
 interface Bridge {
   name: string;
   kind: "total" | "up" | "down";
@@ -112,7 +106,7 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
   return (
     <div className="space-y-3">
     {switcher}
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,3fr)_minmax(0,1fr)] gap-4">
+    <div className="grid grid-cols-1 gap-4">
       <div className="card p-4">
         <SectionTitle
           right={
@@ -123,11 +117,9 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
         >
           Quarter-over-quarter bridge · {run.manifest.prior_close} → {run.manifest.measurement_date}
         </SectionTitle>
-        <p className="text-[11px] text-muted mb-2 num">
+        <p className="text-[13px] text-ink2 mb-2 num">
           Prior NAV {musd(run.totals.prior_nav, 1)} → updated NAV {musd(run.totals.proposed_nav, 1)} ({signed(run.totals.net_movement, 1)},{" "}
-          {pct(run.totals.net_movement / run.totals.prior_nav, 1, true)}). The {TAIL_AFTER} largest moves, up or down; the rest fold into Other. Axis
-          starts at{" "}
-          {musd(floor, 0)} so single-company steps stay legible. $M.
+          {pct(run.totals.net_movement / run.totals.prior_nav, 1, true)}). The {TAIL_AFTER} largest moves; the rest fold into Other. $M.
         </p>
         {showTable ? (
           <BridgeTable data={data} />
@@ -200,78 +192,7 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
         </div>
       </div>
 
-      {run.comps_move && (
-        <div className="card p-4">
-          <CompsMoveCard m={run.comps_move} />
-        </div>
-      )}
     </div>
-    </div>
-  );
-}
-
-/** The observed sensitivity: what the same multiple-exposed marks would have done had they moved
-    with their sector's public comps over the quarter. Alternative arithmetic, like M-080 — it
-    changes nothing; it says how far the carried book sits from the public market's quarter. */
-function CompsMoveCard({ m }: { m: CompsMove }) {
-  const share = m.exposed_nav ? m.covered_nav / m.exposed_nav : 0;
-  return (
-    <div>
-      <SectionTitle
-        right={
-          m.all_live ? (
-            <span className="chip disp-CLEAR no-dot" title="Multiples observed from the live market data provider">
-              Live market data
-            </span>
-          ) : (
-            <span
-              className="chip disp-MONITOR no-dot"
-              title="Stand-in multiples shipped with the app, shaped like the provider's. Connect a live market data provider for an observed history."
-            >
-              Sample market data
-            </span>
-          )
-        }
-      >
-        Observed · public comparables, {monthLabel(m.prior_month)} → {monthLabel(m.now_month)}
-      </SectionTitle>
-      <p className="text-[11px] text-muted mb-2 num">
-        Each sector's basket EV/revenue move this quarter applied to that sector's multiple-exposed marks. Had the book re-rated with its
-        comps: <span className="text-ink2">{musd(m.nav_if_marked_with_comps, 1)}</span> (
-        <span className={signClass(m.delta)}>{signed(m.delta, 1)}</span>, {pct(m.delta / m.base_nav, 2, true)}). Covers {pct(share)} of the
-        exposed fair value. Nothing here moves a mark — it is the gap between the carried book and the public market's quarter.
-      </p>
-      <div className="overflow-x-auto">
-        <table className="dtable text-[11.5px] w-full">
-          <thead>
-            <tr>
-              <th>Sector</th>
-              <th className="r" title="The sector basket's EV/revenue multiple this quarter against last">Multiple move</th>
-              <th className="r" title="The marks in this sector that a multiple regime drives">Exposed marks</th>
-              <th className="r" title="What those marks would have done had they moved with the basket">Change</th>
-            </tr>
-          </thead>
-          <tbody>
-            {m.sectors.map((x) => (
-              <tr key={x.sector} title={`${x.sector}: ${x.multiple_prior.toFixed(1)}× → ${x.multiple_now.toFixed(1)}× · ${x.positions} positions · ${x.source}`}>
-                <td className="whitespace-nowrap">
-                  {x.sector} <span className="text-muted">· {x.positions}</span>
-                </td>
-                <td className={`r num ${signClass(x.qoq_pct)}`}>{pct(x.qoq_pct, 1, true)}</td>
-                <td className="r num">{musd(x.exposed_nav, 1)}</td>
-                <td className={`r num ${signClass(x.delta)}`}>{signed(x.delta, 1)}</td>
-              </tr>
-            ))}
-            <tr className="font-semibold">
-              <td>Total</td>
-              <td className={`r num ${signClass(m.delta)}`}>{m.covered_nav ? pct(m.delta / m.covered_nav, 1, true) : "—"}</td>
-              <td className="r num">{musd(m.covered_nav, 1)}</td>
-              <td className={`r num ${signClass(m.delta)}`}>{signed(m.delta, 1)}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p className="text-[10.5px] text-muted mt-1">Hover a row for the basket multiples then → now and the source.</p>
     </div>
   );
 }
