@@ -632,7 +632,11 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         # would resolve a notes question and a growth question with one click on a recap; the caller
         # (the suggestion buttons and the custom-override form both do) lists the rule ids.
         known = {f.rule_id for f in c.flags}
-        if known and not body.rule_ids_addressed:
+        # A position with nothing to decide (no finding, or watch items only) can still be
+        # overridden: a reviewer who does not accept the proposed mark records their own number
+        # under their name, and the ledger says no finding was addressed.
+        actionable = {f.rule_id for f in c.flags if getattr(f.severity, "value", f.severity) != "MONITOR"}
+        if actionable and not body.rule_ids_addressed:
             raise HTTPException(422, {"message": "rule_ids_addressed must name the flag(s) this decision resolves",
                                       "flags": sorted(known)})
         unknown = sorted(set(body.rule_ids_addressed) - known)

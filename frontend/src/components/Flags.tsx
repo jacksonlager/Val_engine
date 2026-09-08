@@ -211,6 +211,11 @@ export function optionVerb(s: Suggestion): string {
   return OPTION_VERB[s.key] ?? "Apply suggested step";
 }
 
+/** The one verb on every card's primary button. The figure it books is the headline directly
+    above it and is repeated in the confirmation, so the button carries the verb alone and reads
+    the same on every position. */
+export const ACCEPT_LABEL = "Accept recommended mark";
+
 /** The long form: what the engine wrote in full, plus the inputs it recorded. */
 export function FlagDetailModal({ f, company, onClose }: { f: Flag; company: string; onClose: () => void }) {
   const ev = Object.entries(f.evidence);
@@ -324,22 +329,23 @@ function ConfirmModal({
   onDone,
 }: {
   c: CompanyResult;
-  f: Flag;
+  f: Flag | null;                       // null: a Ready position, nothing to decide — the reviewer simply disagrees
   choice: Choice;
   onClose: () => void;
   onDone: () => void;
 }) {
   const [approver, setApprover] = useState("");
   const names = useFlagNames();
-  const finding = flagName(f, names);
+  const finding = f ? flagName(f, names) : "the proposed mark";
+  const ref = f ? f.rule_id : "ready";
   const s = choice.kind === "option" || choice.kind === "step" ? choice.s : null;
   const step = choice.kind === "step" ? choice.rec : null;
   const acts = orderedActionable(c);
   // What this decision closes. The chooser proposes it; the reviewer signs it, and can untick.
   const [settles, setSettles] = useState<string[]>(
-    step ? acts.filter((x) => step.covers.includes(x.rule_id)).map((x) => x.rule_id) : [f.rule_id],
+    step ? acts.filter((x) => step.covers.includes(x.rule_id)).map((x) => x.rule_id) : f ? [f.rule_id] : [],
   );
-  const rec = !step && s && f.recommendation && f.recommendation.key === s.key ? f.recommendation : null;
+  const rec = !step && s && f && f.recommendation && f.recommendation.key === s.key ? f.recommendation : null;
   // Reads inside the ledger sentence, so it is a phrase and not a label: "… (Suggested by
   // Claude (claude-sonnet-4-5); ledger reference X-106.)"
   const who = rec
@@ -348,13 +354,13 @@ function ConfirmModal({
       : "The policy default"
     : "An option the engine offered";
   const booked = choiceBooked(c, choice);
-  const gap = missingInput(c, f) && choice.kind !== "price";
+  const gap = f !== null && missingInput(c, f) && choice.kind !== "price";
   const [acknowledged, setAcknowledged] = useState(false);
   // An engine option arrives with its reasoning; the proposal with the engine's; a typed number
   // with nothing — the person who chose it is the only one who knows why, and must say so.
   const [reason, setReason] = useState(
-    s ? `${[s.label, ...s.reasons].map(fullStop).filter(Boolean).join(" ")} (${who}; ledger reference ${f.rule_id}.)`
-      : choice.kind === "proposed" ? `Accepted the engine's proposed mark of $${musd(c.proposed_mark)}M on "${finding}" (ledger reference ${f.rule_id}); no adjustment.`
+    s ? `${[s.label, ...s.reasons].map(fullStop).filter(Boolean).join(" ")} (${who}; ledger reference ${ref}.)`
+      : choice.kind === "proposed" ? `Accepted the engine's proposed mark of $${musd(c.proposed_mark)}M on "${finding}" (ledger reference ${ref}); no adjustment.`
       : choice.kind === "price"
         ? `Quarter-end market cap of $${choice.evidence.market_cap_musd.toLocaleString(undefined, { maximumFractionDigits: 1 })}M at ${choice.evidence.as_of} from ${choice.evidence.source}` +
           (choice.evidence.price && choice.evidence.shares_m ? ` (${choice.evidence.price} × ${choice.evidence.shares_m}M shares)` : "") +
@@ -365,8 +371,8 @@ function ConfirmModal({
   const [err, setErr] = useState<string | null>(null);
   const delta = booked - c.proposed_mark;
   const replaces = c.override && Math.abs(c.override.booked - booked) > 1e-6;
-  const valid = approver.trim().length > 0 && reason.trim().length > 0 && settles.length > 0 && (!gap || acknowledged);
-  const source = s ? `${f.rule_id}/${s.key}` : `${f.rule_id}/${choice.kind}`;
+  const valid = approver.trim().length > 0 && reason.trim().length > 0 && (settles.length > 0 || !f) && (!gap || acknowledged);
+  const source = s ? `${ref}/${s.key}` : `${ref}/${choice.kind}`;
   const title = step ? step.label : s ? (rec ? rec.label : s.label)
     : choice.kind === "proposed" ? `Accept the proposed mark of $${musd(c.proposed_mark)}M.`
     : choice.kind === "price" ? `Book $${musd(booked)}M from the quarter-end price you supplied.`
@@ -408,8 +414,8 @@ function ConfirmModal({
         )}
       </div>
       <p className="text-[11.5px] text-muted leading-snug mb-3">
-        Records your decision on “{finding}” under your name. The recorded mark changes; the proposed mark stays on file
-        beside it. Nothing is final until the quarter is published.
+        {f ? <>Records your decision on “{finding}” under your name.</> : <>Records your decision under your name; the position had nothing open to decide, and the ledger says so.</>}{" "}
+        The recorded mark changes; the proposed mark stays on file beside it. Nothing is final until the quarter is published.
       </p>
       {gap && (
         <label className="ack">
@@ -1001,9 +1007,7 @@ export function DecisionBar({
             onClick={() => setPick(rec ? { kind: "step", s: chosen, rec } : { kind: "option", s: chosen })}
             title={rec ? rec.label : chosen.label}
           >
-            {/* one text node: .btn is a flex row with a gap, so a nested <span> around the
-                number would space it out as "$ 13.93 M" */}
-            {`${optionVerb(chosen)} · $${musd(chosen.booked)}M`}
+            {ACCEPT_LABEL}
           </WriteButton>
         ) : null}
         {!decided && (
@@ -1057,6 +1061,87 @@ export function DecisionBar({
             setOverriding(false);
           }}
           onDone={done}
+        />
+      )}
+    </div>
+  );
+}
+
+/** The bar on a position with nothing to decide. A Ready mark is still a proposal: a reviewer who
+    does not accept it records their own number under their name, through the same confirmation
+    and onto the same ledger as every other decision. */
+export function ReadyOverrideBar({
+  c,
+  writeDisabled,
+  onChanged,
+  children,
+}: {
+  c: CompanyResult;
+  writeDisabled: string | null;
+  onChanged: () => void;
+  children?: ReactNode;
+}) {
+  const [pick, setPick] = useState<Choice | null>(null);
+  const [overriding, setOverriding] = useState(false);
+  const [text, setText] = useState("");
+  const value = Number(text.replace(/,/g, ""));
+  const ok = text.trim() !== "" && Number.isFinite(value) && value >= 0;
+  const decided = c.override !== null && c.override !== undefined;
+  return (
+    <div className="decision-bar">
+      <div className="decision-actions">
+        <span className="text-[11.5px] text-muted">
+          {decided
+            ? `${c.override!.approver} recorded $${musd(c.override!.booked)}M on ${isoDate(c.override!.created_at)}.`
+            : c.readiness === "Ready"
+              ? "Ready for approval — nothing for a person to decide."
+              : "Nothing to decide."}
+        </span>
+        <WriteButton
+          disabledReason={writeDisabled}
+          className={`btn ${overriding ? "" : "btn-ghost"}`}
+          onClick={() => setOverriding((v) => !v)}
+          title="Record a different mark under your name; the reason is required"
+        >
+          {decided ? "Change decision" : "Override"}
+        </WriteButton>
+        {overriding && (
+          <form
+            className="override-entry"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (ok) setPick({ kind: "manual", booked: Math.round(value * 1e6) / 1e6 });
+            }}
+          >
+            <span className="text-[11px] text-muted">$M</span>
+            <input className="input decide-input num" inputMode="decimal" placeholder={musd(c.proposed_mark)} value={text} onChange={(e) => setText(e.target.value)} autoFocus aria-label="Mark to record, in $M" />
+            <button type="submit" className="btn decide-confirm" disabled={!ok}>
+              Confirm
+            </button>
+            {decided && (
+              <button type="button" className="btn btn-ghost text-[11px]" onClick={() => setPick({ kind: "proposed" })} title={`Record the proposal of $${musd(c.proposed_mark)}M as it stands`}>
+                Accept the proposed mark instead
+              </button>
+            )}
+          </form>
+        )}
+      </div>
+      <div className="decision-more">{children}</div>
+      {pick && (
+        <ConfirmModal
+          c={c}
+          f={null}
+          choice={pick}
+          onClose={() => {
+            setPick(null);
+            setOverriding(false);
+          }}
+          onDone={() => {
+            setPick(null);
+            setOverriding(false);
+            setText("");
+            onChanged();
+          }}
         />
       )}
     </div>

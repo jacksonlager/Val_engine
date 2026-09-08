@@ -15,6 +15,7 @@ import {
   FlagActionList,
   FlagNoteList,
   PositionStep,
+  ReadyOverrideBar,
   orderedActionable,
   plainPoint,
   rdClass,
@@ -244,18 +245,20 @@ export function PositionCard({
 
       {/* 4 — the verbs, in one place; the disclosures ride on the right of the same bar */}
       <div className="px-3.5 pl-4 pt-2 pb-2.5 border-t border-hair">
-        <div className="decision-bar">
-          <div className="decision-actions text-[11.5px] text-muted">
-            {lead
-              ? "A recorded decision is not an approval — the quarter is approved when it is published."
-              : c.readiness === "Ready"
-                ? "Ready for approval — nothing for a person to decide."
-                : "Nothing to decide."}
+        {lead ? (
+          <div className="decision-bar">
+            <div className="decision-actions text-[11.5px] text-muted">
+              A recorded decision is not an approval — the quarter is approved when it is published.
+            </div>
+            <div className="decision-more">
+              <Disclosures c={c} evidence={evidence} setEvidence={setEvidence} open={open} toggle={toggle} gotoCompany={gotoCompany} />
+            </div>
           </div>
-          <div className="decision-more">
+        ) : (
+          <ReadyOverrideBar c={c} writeDisabled={writeDisabled} onChanged={onChanged}>
             <Disclosures c={c} evidence={evidence} setEvidence={setEvidence} open={open} toggle={toggle} gotoCompany={gotoCompany} />
-          </div>
-        </div>
+          </ReadyOverrideBar>
+        )}
       </div>
 
       {/* 5 — Evidence & history: rule codes, sources, last quarter, the decision on record */}

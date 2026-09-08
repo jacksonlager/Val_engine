@@ -196,3 +196,18 @@ def test_output_workbook_download_is_offered_only_once_the_file_exists(client: T
     cd = unquote(got.headers.get("content-disposition", ""))
     assert cd.startswith("attachment") and d["filename"] in cd
     assert got.content[:2] == b"PK" and len(got.content) == out.stat().st_size   # a real xlsx zip container
+
+
+def test_override_on_a_ready_position_needs_no_finding(client: TestClient):
+    """A reviewer who does not accept a Ready mark records their own: the API takes an override that
+    names no finding when the position has none to decide (no flag, or watch items only)."""
+    for name in ("Rivenmark", "Lumetra"):                      # no flag at all; a MONITOR watch item only
+        before = client.get(f"/api/companies/{name}").json()
+        assert before["readiness"] == "Ready" and all(f["severity"] == "MONITOR" for f in before["flags"]), name
+        r = client.post("/api/overrides", json={"company": name, "booked": 1.25, "reason": "reviewer disagrees with the carry",
+                                                "approver": "committee-test", "source_suggestion": "ready/manual"})
+        assert r.status_code == 200, r.text
+        after = r.json()
+        assert after["booked_mark"] == 1.25 and after["proposed_mark"] == before["proposed_mark"]
+        assert after["readiness"] == "Ready" and after["override"]["rule_ids_addressed"] == []
+        assert any(s["rule_id"] == "E-01" for s in after["steps"]) and after["approval"] != "Pending"
