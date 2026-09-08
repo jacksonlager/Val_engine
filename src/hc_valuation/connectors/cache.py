@@ -21,10 +21,13 @@ to be committed after a real run so a reviewer sees live-shaped data without a n
 from __future__ import annotations
 
 import json
+import math
 import shutil
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from .fetch import loads_strict
 
 CACHE_DIR = Path("data") / "market_cache"
 
@@ -38,9 +41,13 @@ def _read_json(path: Path) -> Any | None:
     if not path.is_file():
         return None
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return loads_strict(path.read_text(encoding="utf-8"))
     except ValueError:
-        return None   # a corrupt file is treated as missing and refetched
+        return None   # a corrupt file — or one carrying NaN — is treated as missing and refetched
+
+
+def _finite_positive(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0
 
 
 class MarketCache:
@@ -55,7 +62,7 @@ class MarketCache:
         return (CACHE_DIR / self.as_of.isoformat()).as_posix()
 
     def exists(self) -> bool:
-        return (self.dir / "meta.json").is_file()
+        return self.read_meta() is not None
 
     def clear(self) -> None:
         if self.dir.exists():
@@ -63,7 +70,16 @@ class MarketCache:
 
     # ---------------------------------------------------------------- meta
     def read_meta(self) -> dict[str, Any] | None:
-        return _read_json(self.dir / "meta.json")
+        """None unless the record says when the cache was fetched, as a date: per-ticker files
+        without that provenance are not a cache, and are refetched rather than served as live."""
+        meta = _read_json(self.dir / "meta.json")
+        if not isinstance(meta, dict):
+            return None
+        try:
+            date.fromisoformat(str(meta.get("fetched_at") or "")[:10])
+        except ValueError:
+            return None
+        return meta
 
     def write_meta(self, *, user_agent: str, baskets_sha256: str, price_source: str,
                    fetched_at: datetime | None = None) -> dict[str, Any]:
@@ -142,8 +158,12 @@ class MarketCache:
         _write_json(self.edgar_path(ticker), extract)
 
     def read_prices(self, ticker: str) -> dict[str, float] | None:
+        """None when the file is not `{YYYY-MM: positive close}` with at least one row — an empty or
+        malformed file is a miss to refetch, not a constituent with no price."""
         raw = _read_json(self.prices_path(ticker))
-        return {k: float(v) for k, v in raw.items()} if isinstance(raw, dict) else None
+        if not isinstance(raw, dict) or not raw or not all(isinstance(k, str) and _finite_positive(v) for k, v in raw.items()):
+            return None
+        return {k: float(v) for k, v in raw.items()}
 
     def write_prices(self, ticker: str, closes: dict[str, float]) -> None:
         _write_json(self.prices_path(ticker), closes)
@@ -155,7 +175,9 @@ class MarketCache:
         """`{YYYY-MM-DD: ratio}`, or None when the cache predates split capture — which is not
         the same as "this company never split", and the caller must treat it that way."""
         raw = _read_json(self.splits_path(ticker))
-        return {k: float(v) for k, v in raw.items()} if isinstance(raw, dict) else None
+        if not isinstance(raw, dict):
+            return None
+        return {k: float(v) for k, v in raw.items() if _finite_positive(v)}   # a ratio of 0 is not a split
 
     def write_splits(self, ticker: str, splits: dict[str, float]) -> None:
         _write_json(self.splits_path(ticker), splits)
@@ -163,4 +185,11 @@ class MarketCache:
     def missing(self, tickers: list[str]) -> tuple[list[str], list[str]]:
         """(tickers with no EDGAR extract, tickers with no cached closes)."""
         return ([t for t in tickers if not self._extract_current(_read_json(self.edgar_path(t)))],
-                [t for t in tickers if not self.prices_path(t).is_file()])
+                [t for t in tickers if self.read_prices(t) is None])
+
+    def drop_edgar(self, ticker: str) -> None:
+        """Forget one filer's facts (the extract and the slim) — used when the ticker now resolves
+        to a different CIK, so what is cached is another company's filings."""
+        for path in (self.edgar_path(ticker), self.edgar_raw_path(ticker)):
+            if path.is_file():
+                path.unlink()

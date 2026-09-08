@@ -20,6 +20,7 @@ from __future__ import annotations
 import calendar
 import logging
 import re
+import math
 import statistics
 from dataclasses import asdict, dataclass, field
 from datetime import date
@@ -35,6 +36,14 @@ from .edgar import (
 from .fetch import DEFAULT_TIMEOUT_S, FetchError, FetchText, LiveFeedError
 from .prices import PriceProvider, cumulative_split_factor, month_end_closes, price_provider
 from .stubs import StubCompsProvider, latest_at_or_before
+
+# what a JSON payload can raise on its way through `slim`/`extract`/`_value_one` when it is not
+# shaped like companyfacts or a closes file
+_UNREADABLE = (ExtractionError, ValueError, TypeError, KeyError, AttributeError)
+
+
+def _positive(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0
 
 log = logging.getLogger(__name__)
 
@@ -140,6 +149,7 @@ class Constituent:
     market_cap_musd: float | None = None
     net_cash_musd: float | None = None
     ttm_revenue_musd: float | None = None
+    net_cash_basis: str | None = None      # says so when the balance sheet was not read, rather than a silent 0
     revenue_through: str | None = None
     ev_to_revenue: float | None = None
     error: str | None = None
@@ -213,12 +223,15 @@ class PublicCompsProvider:
 
         # Resolve CIKs first: a ticker SEC does not know (cached as `cik: null`) is skipped on both
         # sides — it cannot be priced without fundamentals — and does not count as missing.
-        unresolved = [t for t in baskets.tickers if t not in self._names]
+        # A ticker the cached table does not know, or whose baskets override now names a different
+        # CIK than the row was resolved to, is resolved again — the policy file wins over the cache.
+        unresolved = [t for t in baskets.tickers if t not in self._names or self._override_moved(t)]
         if unresolved:
             try:
                 table = self._edgar.company_tickers()
                 fetched = True
                 resolved = resolve_ciks(unresolved, table, baskets.overrides)
+                self._forget_other_filers(resolved)
                 cache.write_tickers(resolved)
                 self._names.update(resolved)
             except FetchError as ex:
@@ -227,6 +240,7 @@ class PublicCompsProvider:
                 for t in unresolved:                      # an override still resolves without the table
                     ov = baskets.overrides.get(t)
                     if ov is not None and ov.cik is not None:
+                        self._forget_other_filers({t: {"cik": ov.cik}})
                         self._names[t] = {"cik": ov.cik, "title": ov.name}
         for t in baskets.tickers:
             row = self._names.get(t)
@@ -237,6 +251,10 @@ class PublicCompsProvider:
         fetchable = [t for t in baskets.tickers if t not in self._ticker_errors]
 
         missing_edgar, missing_prices = cache.missing(fetchable)
+        if not cache.exists():
+            # per-ticker files with no provenance record (when fetched, by which price source) are
+            # not a cache: everything is fetched again rather than served as live from nowhere
+            missing_edgar, missing_prices = list(fetchable), list(fetchable)
         stale_prices = not cache.prices_match(self.price_source)
         if stale_prices:                                   # closes written by another provider: the price half is a miss
             log.warning("market cache %s holds %s closes; refetching prices from %s",
@@ -246,15 +264,27 @@ class PublicCompsProvider:
         for t in missing_edgar:
             raw = cache.read_edgar_raw(t)
             if raw is not None:                            # the slim companyfacts is still here: re-derive, no call
-                cache.write_edgar(t, extract(raw))
+                try:
+                    cache.write_edgar(t, extract(raw))
+                except _UNREADABLE as ex:
+                    self._record(t, f"cached EDGAR facts unreadable: {ex!r}")
                 continue
             try:
                 facts = self._edgar.company_facts(int(self._names[t]["cik"]))
-                cache.write_edgar_raw(t, slim(facts))
-                cache.write_edgar(t, extract(facts))
                 fetched = True
             except FetchError as ex:
                 self._record(t, f"EDGAR fetch failed: {ex}")
+                continue
+            # A payload that parses as JSON but is not shaped like companyfacts (a list where the
+            # units go, a string for a value) is this ticker's failure, not the run's: it is
+            # recorded, nothing is written, and the ticker is refetched next time.
+            try:
+                slimmed, extracted = slim(facts), extract(facts)
+            except _UNREADABLE as ex:
+                self._record(t, f"EDGAR companyfacts unreadable: {ex!r}")
+                continue
+            cache.write_edgar_raw(t, slimmed)
+            cache.write_edgar(t, extracted)
 
         priced_now: set[str] = set()
         for t in missing_prices:
@@ -293,10 +323,25 @@ class PublicCompsProvider:
             meta = cache.read_meta()
             self.fetched_at = meta.get("fetched_at") if meta else None
 
+    def _override_moved(self, t: str) -> bool:
+        ov = self.baskets.overrides.get(t)
+        return ov is not None and ov.cik is not None and (self._names.get(t) or {}).get("cik") != ov.cik
+
+    def _forget_other_filers(self, resolved: Mapping[str, Mapping[str, Any]]) -> None:
+        """Drop the cached facts of a ticker whose CIK changed: they are another company's."""
+        for t, row in resolved.items():
+            ext = self._cache.read_edgar(t)
+            cik = row.get("cik")
+            if ext is not None and cik is not None and ext.get("cik") != f"{int(cik):010d}":
+                self._cache.drop_edgar(t)
+
     # ---------------------------------------------------------------- per constituent
     def _value_constituents(self) -> None:
         for t in self.baskets.tickers:
-            self._constituents[t] = self._value_one(t)
+            try:
+                self._constituents[t] = self._value_one(t)
+            except _UNREADABLE as ex:                       # a cache file of the wrong shape fails one name
+                self._constituents[t] = self._fail(Constituent(ticker=t), f"cached market data unreadable: {ex!r}")
 
     def _value_one(self, t: str) -> Constituent:
         ext = self._cache.read_edgar(t)
@@ -344,7 +389,7 @@ class PublicCompsProvider:
             # divides by — and a thin historical median is what produced 17x calibration factors.
             monthly_pick = shares_at(by_concept, on)
             px, sh = closes.get(m), monthly_pick.value
-            if px is None or not sh:
+            if px is None or not sh or not _positive(px) or not _positive(sh):
                 continue
             # Closes are split-adjusted to today; the share count is on the basis of the day it
             # was *filed*. Put them on one basis before multiplying — every split after the
@@ -370,6 +415,8 @@ class PublicCompsProvider:
             # rejected as an input — but a negative EV/revenue is not a *comparable multiple*, so
             # it cannot sit in a median used to price a private company's revenue. The month is
             # dropped for that constituent and counted, rather than dragging the basket to zero.
+            if not math.isfinite(mult):
+                continue
             if mult <= 0:
                 c.months_negative_ev = getattr(c, "months_negative_ev", 0) + 1
                 continue
@@ -379,6 +426,10 @@ class PublicCompsProvider:
         px = closes.get(m0)
         if px is None:
             return self._fail(c, f"no close in {m0} ({self.price_source})")
+        if not _positive(px):
+            # a close of 0 is not a price: market cap 0 and any net debt make a small positive
+            # multiple that would sit in the median looking real
+            return self._fail(c, f"close in {m0} is not a positive price ({px})")
         sh = pick.value
         # The measurement month is not exempt: a count filed before a split that fell earlier in
         # the quarter is still pre-split. With no split history on file it is used as filed and
@@ -392,6 +443,8 @@ class PublicCompsProvider:
         if ttm <= 0:
             return self._fail(c, f"TTM revenue through {through} is not positive ({ttm})")
         nc = net_cash_at(cash, debt, self.as_of, filed_by=self.as_of)
+        c.net_cash_basis = ("cash and borrowings as filed" if (cash or debt)
+                            else "no cash or borrowings under the concepts read: net cash taken as 0")
         c.status, c.error = "ok", None
         c.splits_known = splits is not None
         c.price, c.price_month, c.shares_m = px, m0, sh
@@ -399,6 +452,13 @@ class PublicCompsProvider:
         c.net_cash_musd, c.ttm_revenue_musd = nc, ttm
         c.revenue_through = through
         c.ev_to_revenue = round((c.market_cap_musd - nc) / ttm, 2)
+        if not all(math.isfinite(v) for v in (sh, nc, ttm, c.ev_to_revenue)):
+            # a cache written before values were screened can still hold NaN; it never prices
+            return self._fail(c, "market cap, net cash or revenue is not a finite number")
+        if c.ev_to_revenue <= 0:
+            # net cash above market cap is a real state, but not a comparable multiple: the name
+            # keeps its earlier months in the history and is not `ok` at the measurement date
+            return self._fail(c, f"EV/revenue at {m0} is not positive ({c.ev_to_revenue}): net cash above market cap")
         return c
 
     def _fail(self, c: Constituent, message: str) -> Constituent:
@@ -420,7 +480,7 @@ class PublicCompsProvider:
             history: dict[str, float] = {}
             counts: dict[str, int] = {}
             for m in self._months:
-                vals = [c.monthly[m] for c in cons if m in c.monthly]
+                vals = [c.monthly[m] for c in cons if m in c.monthly and math.isfinite(c.monthly[m])]
                 if len(vals) >= min_c:
                     history[m] = round(statistics.median(vals), 2)
                     counts[m] = len(vals)

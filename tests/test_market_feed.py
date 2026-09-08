@@ -6,9 +6,10 @@ an injected failure."""
 from __future__ import annotations
 
 import json
+import math
 import re
 import shutil
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -76,6 +77,7 @@ BASELINE = {"BLOCK": 7, "REVIEW": 20, "MONITOR": 39, "CLEAR": 34}
 
 CONSTITUENT_KEYS = {"ticker", "name", "cik", "status", "price", "price_month", "shares_m", "market_cap_musd",
                     "net_cash_musd", "ttm_revenue_musd", "revenue_through", "ev_to_revenue", "error",
+                    "net_cash_basis",              # says when the balance sheet was not read, rather than a silent 0
                      # input provenance and quality, added when the share-count and split defects
                      # were found in the committed cache (tests/test_market_inputs.py)
                      "shares_basis", "shares_as_of", "shares_age_days", "shares_rejected",
@@ -967,3 +969,155 @@ def test_committed_cache_carries_convertible_notes_for_the_names_that_issue_them
     # and the slim beside it was cut with the current keep-list, so a re-derive cannot lose them
     raw = cache.read_edgar_raw("OKTA")
     assert raw is not None and raw.get("slim_version") == SLIM_VERSION
+
+
+# ---------------------------------------------------------------- hostile payloads at the seam
+# A seam-injection audit (72 probes) found the inputs below producing a `live:`-labelled number
+# with no error, or taking every sector down for one bad name. Each is pinned here.
+
+class Router(FakeFetch):
+    """FakeFetch with per-URL overrides: a dict/list body is JSON-dumped, a str is sent as is."""
+
+    def __init__(self, **kw) -> None:
+        super().__init__(**kw)
+        self.override: dict[str, object] = {}
+
+    def __call__(self, url: str, headers, timeout_s: float) -> str:
+        if url in self.override:
+            self.calls.append(url)
+            v = self.override[url]
+            return json.dumps(v) if isinstance(v, (dict, list)) else str(v)
+        return super().__call__(url, headers, timeout_s)
+
+
+def _ok_multiples(p: PublicCompsProvider) -> list[float]:
+    return [c.ev_to_revenue for c in p._constituents.values() if c.status == "ok"]
+
+
+def test_nan_in_either_feed_is_refused_not_medianed(tmp_path: Path):
+    from hc_valuation.connectors.fetch import fetch_json, loads_strict
+    with pytest.raises(ValueError, match="NaN"):
+        loads_strict('{"val": NaN}')
+    with pytest.raises(FetchError, match="Infinity"):
+        fetch_json("u", fetch=lambda u, h, t: '{"val": Infinity}')
+    # a NaN revenue row: the companyfacts body is refused whole, the name errors, the sector keeps the fixture
+    r = Router()
+    f = facts("AAA")
+    f["facts"]["us-gaap"]["RevenueFromContractWithCustomerExcludingAssessedTax"]["units"]["USD"][-1]["val"] = float("nan")
+    r.override[COMPANY_FACTS_URL.format(cik=CIKS["AAA"])] = f
+    p, _ = make_provider(tmp_path / "edgar", r)
+    a = p._constituents["AAA"]
+    assert a.status == "error" and "NaN" in (a.error or "") and all(math.isfinite(v) for v in _ok_multiples(p))
+    assert not p.is_live("AI/ML") and not (MarketCache(tmp_path / "edgar", AS_OF).dir / "edgar" / "AAA.json").exists()
+    # a NaN close: the chart is refused the same way
+    r = Router()
+    y = yahoo("BBB")
+    y["chart"]["result"][0]["indicators"]["quote"][0]["close"][-1] = float("nan")
+    r.override[YAHOO["BBB"]] = y
+    p, _ = make_provider(tmp_path / "yahoo", r)
+    b = p._constituents["BBB"]
+    assert b.status == "error" and "NaN" in (b.error or "") and all(math.isfinite(v) for v in _ok_multiples(p))
+    # values that parse but are not numbers are skipped row by row, never coerced
+    from hc_valuation.connectors.edgar import instant_series, revenue_periods
+    rows = [{"end": "2026-06-30", "val": v, "filed": "2026-07-05"} for v in ("N/A", True, None, 1e400, 5e8)]
+    assert [r_["value"] for r_ in instant_series(rows)] == [500.0]
+    f = facts("AAA")
+    f["facts"]["us-gaap"]["RevenueFromContractWithCustomerExcludingAssessedTax"]["units"]["USD"][-1]["val"] = "many"
+    _concepts, periods = revenue_periods(f)
+    assert all(math.isfinite(row["value"]) for row in periods)
+
+
+def test_a_zero_or_negative_close_is_not_a_price(tmp_path: Path):
+    y = yahoo("BBB")
+    closes = y["chart"]["result"][0]["indicators"]["quote"][0]["close"]
+    closes[-1] = 0.0
+    zeroed = datetime.fromtimestamp(y["chart"]["result"][0]["timestamp"][-1], tz=timezone.utc).date().isoformat()
+    parsed = parse_yahoo_chart(y, "BBB")
+    assert all(v > 0 for v in parsed.values()) and zeroed not in parsed
+    y["chart"]["result"][0]["indicators"]["quote"][0]["close"] = [0.0] * len(closes)
+    with pytest.raises(LiveFeedError, match="no closes"):
+        parse_yahoo_chart(y, "BBB")
+    # a cached closes file that is empty, non-positive or not numeric is a miss to refetch, not a price
+    make_provider(tmp_path)
+    cache = MarketCache(tmp_path, AS_OF)
+    for bad in ({}, {"2026-09": 0}, {"2026-09": -5.0}, {"2026-09": "fifty"}, [1, 2]):
+        cache.prices_path("BBB").write_text(json.dumps(bad))
+        assert cache.read_prices("BBB") is None and "BBB" in cache.missing(["BBB"])[1], bad
+        p, f = make_provider(tmp_path)
+        assert f.calls == [YAHOO["BBB"]] and p._constituents["BBB"].status == "ok", bad
+    # a split ratio of 0 is not a split
+    cache.write_splits("BBB", {"2025-01-01": 0, "2025-06-01": 2.0})
+    assert cache.read_splits("BBB") == {"2025-06-01": 2.0}
+
+
+def test_yahoo_answer_for_another_symbol_or_currency_is_refused():
+    y = yahoo("AAA")
+    y["chart"]["result"][0]["meta"]["symbol"] = "ZZZ.DE"
+    with pytest.raises(LiveFeedError, match="answered for ZZZ.DE"):
+        parse_yahoo_chart(y, "AAA")
+    y = yahoo("AAA")
+    y["chart"]["result"][0]["meta"]["currency"] = "EUR"
+    with pytest.raises(LiveFeedError, match="EUR"):
+        parse_yahoo_chart(y, "AAA")
+    y = yahoo("AAA")
+    del y["chart"]["result"][0]["meta"]
+    assert parse_yahoo_chart(y, "AAA")                     # no meta: nothing to check, closes still read
+
+
+def test_one_unreadable_companyfacts_fails_one_name_and_is_not_cached(tmp_path: Path):
+    r = Router()
+    r.override[COMPANY_FACTS_URL.format(cik=CIKS["AAA"])] = {"cik": 1000001, "entityName": "Alpha",
+                                                             "facts": {"us-gaap": {"Revenues": {"units": "oops"}}}}
+    p, f = make_provider(tmp_path, r)
+    a = p._constituents["AAA"]
+    assert a.status == "error" and "unreadable" in (a.error or "")
+    assert p._constituents["BBB"].status == "ok", "the loop went on to the next name"
+    cache = MarketCache(tmp_path, AS_OF)
+    assert cache.read_edgar_raw("AAA") is None and cache.read_edgar("AAA") is None, "nothing of it is cached"
+    p, f = make_provider(tmp_path)                            # SEC healthy again: only AAA is asked for
+    assert f.calls == [COMPANY_FACTS_URL.format(cik=CIKS["AAA"])] and p._constituents["AAA"].status == "ok"
+    # a cached extract of the wrong shape fails that name only
+    cache.edgar_path("AAA").write_text(json.dumps({"extract_version": EXTRACT_VERSION, "cik": "0001000001",
+                                                   "revenue_periods": "not a list", "shares_by_concept": {"x": 1}}))
+    p, _ = make_provider(tmp_path)
+    assert p._constituents["AAA"].status == "error" and p._constituents["AAA"].error, "one name, one stated reason"
+    assert p._constituents["BBB"].status == "ok"
+
+
+def test_override_cik_change_applies_without_a_refresh(tmp_path: Path):
+    make_provider(tmp_path)
+    raw = dict(TEST_BASKETS, overrides={"AAA": {"cik": CIKS["BBB"], "name": "Moved Corp"}})
+    fetch = FakeFetch()
+    p = PublicCompsProvider(load_baskets(write_baskets(tmp_path, raw)), StubCompsProvider(ROOT), MarketCache(tmp_path, AS_OF),
+                            AS_OF, fetch_text=fetch, max_per_s=0, price_max_per_s=0)
+    a = p._constituents["AAA"]
+    assert a.cik == "0001000002" and a.status == "ok", "the policy file wins over the cached resolution"
+    assert COMPANY_FACTS_URL.format(cik=CIKS["BBB"]) in fetch.calls and not any("finance.yahoo" in u for u in fetch.calls)
+    assert MarketCache(tmp_path, AS_OF).read_tickers()["AAA"]["cik"] == CIKS["BBB"]
+
+
+def test_cache_without_provenance_is_refetched_not_served(tmp_path: Path):
+    make_provider(tmp_path)
+    cache = MarketCache(tmp_path, AS_OF)
+    (cache.dir / "meta.json").unlink()
+    assert not cache.exists() and cache.read_meta() is None
+    p, f = make_provider(tmp_path)
+    # the slim SEC facts on disk are filings and re-derive without a call; the closes are fetched again
+    assert sum("companyfacts" in u for u in f.calls) == 0 and sum("finance.yahoo" in u for u in f.calls) == 3
+    assert p.fetched_at and cache.exists()
+    (cache.dir / "meta.json").write_text(json.dumps({"fetched_at": "yesterday", "price_source": "yahoo"}))
+    assert cache.read_meta() is None, "a provenance record without a date is no record"
+    p, f = make_provider(tmp_path)
+    assert f.calls and p.fetched_at and p.fetched_at != "yesterday"
+
+
+def test_net_cash_above_market_cap_is_not_ok_at_the_measurement_date(tmp_path: Path):
+    r = Router()
+    f = facts("AAA")
+    f["facts"]["us-gaap"]["CashAndCashEquivalentsAtCarryingValue"]["units"]["USD"][-1]["val"] = 1e13
+    r.override[COMPANY_FACTS_URL.format(cik=CIKS["AAA"])] = f
+    p, _ = make_provider(tmp_path, r)
+    a = p._constituents["AAA"]
+    assert a.status == "error" and "net cash above market cap" in (a.error or "")
+    assert a.ev_to_revenue is not None and a.ev_to_revenue <= 0, "the number is kept for the row; the status says it does not price"
+    assert p._constituents["BBB"].net_cash_basis == "cash and borrowings as filed"

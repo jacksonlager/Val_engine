@@ -425,13 +425,14 @@ the measurement date (`market --provider live --refresh`) replaces it, and the m
           "splits_known": true,                            // split events on file; false ⇒ no history before price_month
           "market_cap_musd": 93524.0,
           "net_cash_musd": 4100.0, "ttm_revenue_musd": 3350.0, "revenue_through": "2026-06-30",
+          "net_cash_basis": "cash and borrowings as filed",  // or: no cash or borrowings under the concepts read: net cash taken as 0
           "ev_to_revenue": 26.69, "error": null },
         { "ticker": "TEAM", "name": "Atlassian Corp", "cik": "0001650372", "status": "error",
           "price": null, "price_month": null, "shares_m": null,
           "shares_basis": null, "shares_as_of": null, "shares_age_days": null, "shares_rejected": [],
           "months_negative_ev": 0, "months_unverified_splits": 0, "splits_known": false,
           "market_cap_musd": null,
-          "net_cash_musd": null, "ttm_revenue_musd": null, "revenue_through": null,
+          "net_cash_musd": null, "net_cash_basis": null, "ttm_revenue_musd": null, "revenue_through": null,
           "ev_to_revenue": null, "error": "EDGAR has no revenue periods under any known concept (foreign private issuer?)" }
       ]
     }
@@ -475,6 +476,40 @@ that shape with credentials and hand it to the same parser. Registered names are
 The report (§3) is provider-agnostic: `constituents[]` may be empty and `source` says
 who answered. The engine, the policy file, the golden test and the review tool do not
 change.
+
+One convention binds a vendor: **`SectorComp.source` must start with `live:`** for the
+engine to treat the multiple as observed. That prefix is what turns on the relative
+X-401/X-402 screens (`engine/exceptions.py`), lets M-080 calibrate against the history
+(`marking.py`, `require_live_history`) and marks the sector live in the roll-up and the
+Market tab; a source labelled any other way is handled as a fixture, whatever its numbers.
+`live:pitchbook@2026-09` is therefore the right label for a real PitchBook feed, and
+`fixture:pitchbook@2026-09` the right one for the recorded export.
+
+### What the feed refuses
+
+A seam-injection audit (72 hostile payloads through `fetch_text`) fixed the list below. Each is
+a stated, per-name refusal — never a number:
+
+* `NaN` / `Infinity` anywhere in a SEC or Yahoo body: the body is rejected as not JSON
+  (`fetch.loads_strict`); a cached file carrying one is treated as corrupt and refetched. A fact
+  whose `val` is a string, a bool or out of range is skipped row by row (`edgar._num`).
+* A close of 0 or below is not a price (dropped at the parser; the measurement month then errors
+  with the reason); a split ratio of 0 is not a split.
+* A Yahoo chart whose `meta.symbol` is not the symbol asked for, or whose `meta.currency` is not
+  USD, is refused — a renamed or colliding symbol, or a non-USD listing, cannot be multiplied
+  against USD share counts and USD revenue.
+* A companyfacts body that parses as JSON but is not shaped like companyfacts fails that one
+  ticker (`EDGAR companyfacts unreadable: …`), nothing of it is cached, and the other names in the
+  loop are still fetched; the same holds for a cached file of the wrong shape.
+* Per-ticker files with no `meta.json`, or one without a real `fetched_at` date, are not a cache:
+  the closes are refetched and the slim facts re-derived rather than served as live from nowhere.
+  An empty or malformed closes file is a miss to refetch, not a constituent with no price.
+* A baskets override that names a different CIK than the cached resolution is applied on the
+  next run without `--refresh`; the other company's cached facts are dropped.
+* A constituent whose net cash exceeds its market cap at the measurement date is `status: error`
+  with the reason (its earlier months still stand in the history); one whose balance sheet has no
+  cash or borrowings under the concepts read says so in `net_cash_basis` rather than carrying a
+  silent 0.
 
 **Price source is pluggable.** Inside the live provider the price half is its own seam:
 `PriceProvider` in `prices.py` (`name`, `symbol_for`, `daily_closes`), chosen by

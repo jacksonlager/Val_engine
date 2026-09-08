@@ -24,12 +24,13 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from datetime import date, datetime, timezone
 from collections.abc import Mapping
 from typing import Any, Protocol, runtime_checkable
 
 from . import fetch as _fetch
-from .fetch import DEFAULT_TIMEOUT_S, FetchError, FetchText, LiveFeedError, RateLimiter
+from .fetch import DEFAULT_TIMEOUT_S, FetchError, FetchText, LiveFeedError, RateLimiter, loads_strict
 
 log = logging.getLogger(__name__)
 
@@ -168,6 +169,15 @@ def parse_yahoo_chart(payload: Any, symbol: str = "") -> dict[str, float]:
     if not results or not isinstance(results[0], dict):
         raise LiveFeedError(f"{symbol}: Yahoo chart carried no result")
     res = results[0]
+    # The payload names what it quotes. A renamed or colliding symbol, or a non-USD listing,
+    # multiplied against USD share counts and USD revenue is a wrong number with no error.
+    meta = res.get("meta") if isinstance(res.get("meta"), dict) else {}
+    got = str(meta.get("symbol") or "").upper()
+    if symbol and got and got != symbol.upper():
+        raise LiveFeedError(f"{symbol}: Yahoo answered for {got}, not {symbol}")
+    currency = str(meta.get("currency") or "").upper()
+    if currency and currency != "USD":
+        raise LiveFeedError(f"{symbol}: Yahoo quotes it in {currency}; only a USD listing can be priced against SEC filings")
     stamps = res.get("timestamp") or []
     quotes = ((res.get("indicators") or {}).get("quote") or [{}])
     closes = (quotes[0] or {}).get("close") or []
@@ -177,7 +187,10 @@ def parse_yahoo_chart(payload: Any, symbol: str = "") -> dict[str, float]:
             continue
         try:
             day = datetime.fromtimestamp(int(ts), tz=timezone.utc).date().isoformat()
-            out[day] = float(px)
+            v = float(px)
+            if not math.isfinite(v) or v <= 0:             # a close of 0 is not a price
+                continue
+            out[day] = v
         except (ValueError, OverflowError, OSError):
             continue
     if not out:
@@ -202,9 +215,9 @@ class YahooPrices(_Base):
         symbol = self.symbol_for(ticker)
         text = self._payload_text(ticker)
         try:
-            payload = json.loads(text)
+            payload = loads_strict(text)
         except ValueError as ex:
-            raise LiveFeedError(f"{symbol}: response is not JSON ({text[:60]!r})") from ex
+            raise LiveFeedError(f"{symbol}: response is not JSON ({text[:60]!r}): {ex}") from ex
         return parse_yahoo_chart(payload, symbol)
 
     def splits(self, ticker: str) -> dict[str, float]:
@@ -212,7 +225,7 @@ class YahooPrices(_Base):
         costs no extra request when the response is fetched once per ticker."""
         symbol = self.symbol_for(ticker)
         try:
-            return parse_yahoo_splits(json.loads(self._payload_text(ticker)), symbol)
+            return parse_yahoo_splits(loads_strict(self._payload_text(ticker)), symbol)
         except ValueError:
             return {}
 
@@ -233,7 +246,10 @@ def parse_daily_csv(text: str, symbol: str = "") -> dict[str, float]:
             continue
         try:
             date.fromisoformat(parts[0])
-            out[parts[0]] = float(parts[4])
+            v = float(parts[4])
+            if not math.isfinite(v) or v <= 0:
+                continue
+            out[parts[0]] = v
         except ValueError:
             continue
     if not out:

@@ -28,6 +28,7 @@ Conventions of the payload that matter here:
 from __future__ import annotations
 
 import logging
+import math
 import os
 import re
 from dataclasses import dataclass
@@ -118,6 +119,19 @@ class ExtractionError(ValueError):
 
 def musd(raw: float) -> float:
     return round(float(raw) / MILLION, 3)
+
+
+def _num(val: Any) -> float | None:
+    """A finite number, or None. SEC facts are numbers, but a feed can hand back NaN, Infinity,
+    a string or a bool — and a NaN that reaches a sector median comes out labelled `live:` with
+    no error, which is the one failure this module must never produce."""
+    if val is None or isinstance(val, bool):
+        return None
+    try:
+        v = float(val)
+    except (TypeError, ValueError):
+        return None
+    return v if math.isfinite(v) else None
 
 
 # ---------------------------------------------------------------- user agent / client
@@ -262,7 +276,9 @@ def revenue_periods(facts: Mapping[str, Any]) -> tuple[list[str], list[dict[str,
                 continue
             filed = str(e.get("filed") or "")
             vals = rows.setdefault((str(start), str(end)), {})
-            v = float(val)
+            v = _num(val)
+            if v is None:
+                continue
             if v not in vals or filed < vals[v]:
                 vals[v] = filed
         if rows:
@@ -458,8 +474,11 @@ def summed_instant_series(entries: list[Mapping[str, Any]], scale: float = MILLI
         end, val = e.get("end"), e.get("val")
         if not end or val is None:
             continue
+        v = _num(val)
+        if v is None:
+            continue
         key = (str(end), e.get("fy"), e.get("fp"), str(e.get("filed") or ""))
-        rows.setdefault(key, []).append(float(val))
+        rows.setdefault(key, []).append(v)
     groups = {key: _class_total(vals) for key, vals in rows.items()}
     per_end: dict[str, dict[float, str]] = {}
     for (end, _fy, _fp, filed), total in groups.items():
@@ -485,7 +504,9 @@ def instant_series(entries: list[Mapping[str, Any]], scale: float = MILLION) -> 
             continue
         filed = str(e.get("filed") or "")
         vals = per_end.setdefault(str(end), {})
-        v = float(val)
+        v = _num(val)
+        if v is None:
+            continue
         if v not in vals or filed < vals[v]:
             vals[v] = filed
     return _series_rows(per_end, scale)
@@ -506,7 +527,9 @@ def duration_series(entries: list[Mapping[str, Any]], scale: float = MILLION) ->
             continue
         filed = str(e.get("filed") or "")
         vals = per_end.setdefault(str(end), {})
-        v = float(val)
+        v = _num(val)
+        if v is None:
+            continue
         if v not in vals or filed < vals[v]:
             vals[v] = filed
     return _series_rows(per_end, scale)

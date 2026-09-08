@@ -95,6 +95,8 @@ def test_provider_rule_is_explicit_then_synthetic_then_cache_then_fixture(root: 
     assert provider_for(root, pol) is None                      # scratch root: no cache, no synthetic file
     (root / "data" / "market_cache" / "2026-09-30").mkdir(parents=True)
     (root / "data" / "market_cache" / "2026-09-30" / "meta.json").write_text("{}")
+    assert provider_for(root, pol) is None                      # files with no fetch date are not a cache
+    (root / "data" / "market_cache" / "2026-09-30" / "meta.json").write_text('{"fetched_at": "2026-09-08T12:00:00Z"}')
     assert provider_for(root, pol) == "live"
     (root / "data" / "synthetic_market").mkdir()
     (root / "data" / "synthetic_market" / "2026-09-30.yaml").write_text("synthetic: true\nsectors: {}\n")

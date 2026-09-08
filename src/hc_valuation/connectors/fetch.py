@@ -75,14 +75,24 @@ def fetch_text(url: str, headers: Mapping[str, str] | None = None, timeout_s: fl
     return text
 
 
+def _no_constant(name: str) -> Any:
+    raise ValueError(f"payload carries {name}")
+
+
+def loads_strict(text: str) -> Any:
+    """`json.loads` that refuses the `NaN` / `Infinity` tokens Python's parser otherwise accepts:
+    a non-finite value that gets into a series comes out of a median labelled live, with no error."""
+    return json.loads(text, parse_constant=_no_constant)
+
+
 def fetch_json(url: str, headers: Mapping[str, str] | None = None, timeout_s: float = DEFAULT_TIMEOUT_S,
                fetch: FetchText | None = None) -> Any:
     """`fetch_text` then `json.loads`; a body that is not JSON (an HTML error page) is a FetchError."""
     text = (fetch or fetch_text)(url, headers, timeout_s)
     try:
-        return json.loads(text)
+        return loads_strict(text)
     except ValueError as ex:
-        raise FetchError(f"response is not JSON ({text[:60]!r})") from ex
+        raise FetchError(f"response is not JSON ({text[:60]!r}): {ex}") from ex
 
 
 class RateLimiter:
