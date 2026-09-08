@@ -50,8 +50,8 @@ export function dispositionLabel(d: string): string {
 
 /** Completes "Why it …" in the finding dialog. */
 export const SEVERITY_PHRASE: Record<string, string> = {
-  BLOCK: "blocks approval",
-  REVIEW: "needs a review",
+  BLOCK: "requires a decision",
+  REVIEW: "needs a check to confirm",
   MONITOR: "is noted only",
   CLEAR: "is clear",
 };
@@ -60,10 +60,10 @@ export function severityPhrase(s: string): string {
   return SEVERITY_PHRASE[s] ?? humanize(s).toLowerCase();
 }
 
-/** Same four values where the sentence wants an adjective: "· blocks approval · Cash runway is short". */
+/** Same four values where the sentence wants an adjective: "· decision required · Cash runway is short". */
 export const SEVERITY_SHORT: Record<string, string> = {
-  BLOCK: "blocks approval",
-  REVIEW: "needs review",
+  BLOCK: "decision required",
+  REVIEW: "check to confirm",
   MONITOR: "noted only",
   CLEAR: "clear",
 };

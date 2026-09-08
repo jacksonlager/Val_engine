@@ -861,7 +861,7 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
                    f"not a characteristic of the security and takes no discount, so policy applies {disc:.0%}; a reviewer ratifies that."
                    if has_lockup else "There is no lock-up: HC's shares are freely tradable" + (" (per the row)." if said_no_lockup else " (a direct listing)."))
     lockup_points = ((f"HC **cannot sell until {lockup_end.isoformat()}**.",
-                      f"Policy applies a **{disc:.0%}** lock-up discount (ASU 2022-03: a contractual restriction takes no discount) — ratified by the committee.")
+                      f"Policy applies a **{disc:.0%}** lock-up discount (ASU 2022-03: a contractual restriction takes no discount) — ratified by a reviewer.")
                      if has_lockup else ("**No lock-up**: the shares are freely tradable" + (" (per the row)." if said_no_lockup else " (a direct listing)."),
                                          "Level 1 from here: the mark is the **market close**, with no discount."))
     w.flag("X-101", "treatment", Severity.BLOCK,
