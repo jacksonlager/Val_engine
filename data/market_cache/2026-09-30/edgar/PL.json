@@ -102,8 +102,34 @@
   }
  ],
  "cik": "0001836833",
- "debt": [],
- "extract_version": 3,
+ "debt": [
+  {
+   "end": "2025-01-31",
+   "filed": "2025-12-10",
+   "value": 0.0
+  },
+  {
+   "end": "2025-10-31",
+   "filed": "2025-12-10",
+   "value": 446.201
+  },
+  {
+   "end": "2026-01-31",
+   "filed": "2026-03-23",
+   "value": 446.884
+  },
+  {
+   "end": "2026-04-30",
+   "filed": "2026-06-05",
+   "value": 447.569
+  },
+  {
+   "end": "2026-07-31",
+   "filed": "2026-09-03",
+   "value": 448.255
+  }
+ ],
+ "extract_version": 4,
  "name": "Planet Labs PBC",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

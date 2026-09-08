@@ -28,9 +28,30 @@ from hc_valuation.connectors.baskets import load_baskets
 from hc_valuation.connectors.base import CompsProvider
 from hc_valuation.connectors.cache import MarketCache
 from hc_valuation.connectors.edgar import (
-    COMPANY_FACTS_URL, COMPANY_TICKERS_URL, CONTACT_ENV, DEFAULT_CONTACT, EdgarClient, ExtractionError, RevenueHistory,
-    cash_series, combine_series, debt_series, extract, net_cash_at, parse_company_tickers, quarters_from_periods,
-    resolve_ciks, revenue_periods, shares_series, slim, summed_instant_series, ttm_at, user_agent, value_at,
+    cash_series,
+    combine_series,
+    COMPANY_FACTS_URL,
+    COMPANY_TICKERS_URL,
+    CONTACT_ENV,
+    debt_series,
+    DEFAULT_CONTACT,
+    EdgarClient,
+    extract,
+    EXTRACT_VERSION,
+    ExtractionError,
+    net_cash_at,
+    parse_company_tickers,
+    quarters_from_periods,
+    resolve_ciks,
+    revenue_periods,
+    RevenueHistory,
+    shares_series,
+    slim,
+    SLIM_VERSION,
+    summed_instant_series,
+    ttm_at,
+    user_agent,
+    value_at,
 )
 from hc_valuation.connectors.fetch import FetchError, browser_challenge_message, fetch_text, is_browser_challenge
 from hc_valuation.connectors.live import (
@@ -270,6 +291,25 @@ def test_net_cash_fallbacks():
     c = facts("CCC")
     assert debt_series(c) == [] and net_cash_at(cash_series(c), debt_series(c), AS_OF) == 120.0
     assert net_cash_at([], [], AS_OF) == 0.0
+
+    def inst(concept, val, end="2026-06-30"):
+        return {concept: {"units": {"USD": [{"end": end, "val": val * 1e6, "filed": "2026-08-01", "form": "10-Q"}]}}}
+    def mk(*nodes):
+        f = {}
+        for n in nodes: f.update(n)
+        return {"facts": {"us-gaap": f}}
+    # a filer with only convertible notes (Okta, Snowflake, Hims, Planet, Nutanix): read, not zero
+    only_conv = mk(inst("ConvertibleDebtNoncurrent", 1751.3))
+    assert value_at(debt_series(only_conv), AS_OF) == pytest.approx(1751.3)
+    # the same notes tagged under both families at one date: one instrument, counted once
+    twice = mk(inst("LongTermDebtNoncurrent", 1751.3), inst("ConvertibleDebtNoncurrent", 1751.3))
+    assert value_at(debt_series(twice), AS_OF) == pytest.approx(1751.3)
+    # distinct borrowings: a term loan and a convertible, summed
+    two = mk(inst("LongTermDebtNoncurrent", 500.0), inst("ConvertibleDebtNoncurrent", 1200.0))
+    assert value_at(debt_series(two), AS_OF) == pytest.approx(1700.0)
+    # a family is read first-present, never summed within itself
+    both_conv = mk(inst("ConvertibleDebt", 900.0), inst("ConvertibleDebtNoncurrent", 900.0))
+    assert value_at(debt_series(both_conv), AS_OF) == pytest.approx(900.0)
     assert combine_series([[{"end": "2026-03-31", "value": 1.0}], [{"end": "2026-06-30", "value": 2.0}]]) == [
         {"end": "2026-03-31", "value": 1.0, "filed": ""}, {"end": "2026-06-30", "value": 3.0, "filed": ""}]
 
@@ -278,7 +318,7 @@ def test_extract_is_trimmed_and_cacheable():
     x = extract(facts("AAA"))
     assert set(x) == {"extract_version", "cik", "name", "revenue_concepts", "revenue_periods",
                           "shares_concept", "shares", "shares_by_concept", "cash", "debt"}
-    assert x["extract_version"] == 3        # v3 caches every share concept; the pick happens at read time
+    assert x["extract_version"] == 4        # v4 reads convertible notes into debt; v3 cached every share concept
     assert x["cik"] == "0001000001" and x["name"] == "Alpha Analytics Corp"
     assert len(json.dumps(x)) < 8000 < len(json.dumps(facts("AAA")))
     # the slim companyfacts keeps only the concepts read, with the fields read, and re-derives the same extract
@@ -286,6 +326,7 @@ def test_extract_is_trimmed_and_cacheable():
     assert extract(sl) == x and len(json.dumps(sl)) <= len(json.dumps(facts("AAA")))
     assert all(set(e) <= {"start", "end", "val", "fy", "fp", "form", "filed", "frame"}
                for tax in sl["facts"].values() for node in tax.values() for es in node["units"].values() for e in es)
+    assert sl["slim_version"] == 2           # a slim cut with the old keep-list is refetched, not re-derived
 
 
 def test_ticker_table_and_cik_resolution():
@@ -898,3 +939,31 @@ def test_real_edgar_shape_palantir_revenue_ttm():
     assert h.quarters["2025-12-31"] == 1406.802             # 4475.446 - 883.855 - 1003.697 - 1181.092 (FY − 9M)
     assert h.ttm_at(date(2026, 9, 30)) == (6155.941, "2026-06-30")
     assert h.ttm_at(date(2025, 12, 31)) == (4475.446, "2025-12-31")
+
+
+def test_committed_cache_carries_convertible_notes_for_the_names_that_issue_them():
+    """A regression pin on the cache in git, no network. The extractor once read only LongTermDebt*
+    and left 15 of 54 constituents with no debt series at all; five of them carry convertibles
+    (confirmed against SEC's companyconcept endpoint), so net cash was overstated and their
+    multiples understated — Okta *was* the May-2021 Cybersecurity median, at 29.5x instead of 31.4x.
+    If a future extractor change drops the convertible concepts, this is what fails."""
+    from hc_valuation.config import repo_root
+    from hc_valuation.connectors.cache import MarketCache
+    cache = MarketCache(repo_root(), date(2026, 9, 30))
+    if not cache.exists():
+        pytest.skip("no committed live cache on this checkout")
+    expect = {  # ticker: (a date SEC reports, the carrying value in $M, tolerance)
+        "OKTA": ("2021-04-30", 1772.1, 1.0),   # 1,751.3 non-current + 20.8 current, filed 2021-05-27
+        "SNOW": ("2026-07-31", 2284.0, 5.0),
+        "HIMS": ("2026-06-30", 1365.0, 5.0),
+        "PL":   ("2026-07-31", 448.0, 5.0),
+    }
+    for t, (end, want, tol) in expect.items():
+        ext = cache.read_edgar(t)
+        assert ext is not None, f"{t}: no current extract in the cache (extract_version {EXTRACT_VERSION} expected)"
+        rows = [r for r in ext["debt"] if r["end"] == end]
+        assert rows, f"{t}: no debt row at {end} — the convertible concepts are not being read"
+        assert rows[-1]["value"] == pytest.approx(want, abs=tol), f"{t} at {end}"
+    # and the slim beside it was cut with the current keep-list, so a re-derive cannot lose them
+    raw = cache.read_edgar_raw("OKTA")
+    assert raw is not None and raw.get("slim_version") == SLIM_VERSION

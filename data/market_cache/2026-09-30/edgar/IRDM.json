@@ -459,7 +459,7 @@
    "value": 1757.124
   }
  ],
- "extract_version": 3,
+ "extract_version": 4,
  "name": "Iridium Communications Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

@@ -403,7 +403,7 @@
  ],
  "cik": "0001035267",
  "debt": [],
- "extract_version": 3,
+ "extract_version": 4,
  "name": "Intuitive Surgical, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

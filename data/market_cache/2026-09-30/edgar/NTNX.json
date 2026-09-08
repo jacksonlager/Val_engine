@@ -227,8 +227,14 @@
   }
  ],
  "cik": "0001618732",
- "debt": [],
- "extract_version": 3,
+ "debt": [
+  {
+   "end": "2023-05-31",
+   "filed": "2023-09-21",
+   "value": 5.0
+  }
+ ],
+ "extract_version": 4,
  "name": "NUTANIX, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

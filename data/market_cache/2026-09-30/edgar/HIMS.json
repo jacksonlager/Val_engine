@@ -162,8 +162,39 @@
   }
  ],
  "cik": "0001773751",
- "debt": [],
- "extract_version": 3,
+ "debt": [
+  {
+   "end": "2024-12-31",
+   "filed": "2025-08-04",
+   "value": 0.0
+  },
+  {
+   "end": "2025-06-30",
+   "filed": "2025-08-04",
+   "value": 969.467
+  },
+  {
+   "end": "2025-09-30",
+   "filed": "2025-11-03",
+   "value": 971.023
+  },
+  {
+   "end": "2025-12-31",
+   "filed": "2026-02-23",
+   "value": 972.58
+  },
+  {
+   "end": "2026-03-31",
+   "filed": "2026-05-11",
+   "value": 974.106
+  },
+  {
+   "end": "2026-06-30",
+   "filed": "2026-08-10",
+   "value": 1365.299
+  }
+ ],
+ "extract_version": 4,
  "name": "HIMS & HERS HEALTH, INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

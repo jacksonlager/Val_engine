@@ -184,7 +184,7 @@
    "value": 989.56
   }
  ],
- "extract_version": 3,
+ "extract_version": 4,
  "name": "Atlassian Corporation",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

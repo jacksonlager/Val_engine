@@ -267,8 +267,59 @@
   }
  ],
  "cik": "0001404655",
- "debt": [],
- "extract_version": 3,
+ "debt": [
+  {
+   "end": "2020-12-31",
+   "filed": "2021-02-16",
+   "value": 7.837
+  },
+  {
+   "end": "2021-03-31",
+   "filed": "2021-05-05",
+   "value": 11.81
+  },
+  {
+   "end": "2021-06-30",
+   "filed": "2021-08-04",
+   "value": 64.762
+  },
+  {
+   "end": "2021-09-30",
+   "filed": "2021-11-03",
+   "value": 21.269
+  },
+  {
+   "end": "2021-12-31",
+   "filed": "2022-02-14",
+   "value": 19.63
+  },
+  {
+   "end": "2022-03-31",
+   "filed": "2022-05-05",
+   "value": 19.367
+  },
+  {
+   "end": "2024-06-30",
+   "filed": "2024-08-07",
+   "value": 457.196
+  },
+  {
+   "end": "2024-09-30",
+   "filed": "2024-11-06",
+   "value": 457.674
+  },
+  {
+   "end": "2024-12-31",
+   "filed": "2025-02-12",
+   "value": 458.184
+  },
+  {
+   "end": "2025-03-31",
+   "filed": "2025-05-08",
+   "value": 368.883
+  }
+ ],
+ "extract_version": 4,
  "name": "HubSpot, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

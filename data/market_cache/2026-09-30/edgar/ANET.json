@@ -291,15 +291,25 @@
   {
    "end": "2013-12-31",
    "filed": "2014-08-08",
-   "value": 98.793
+   "value": 172.843
   },
   {
    "end": "2014-06-30",
    "filed": "2014-08-08",
    "value": 0.0
+  },
+  {
+   "end": "2014-09-30",
+   "filed": "2014-11-07",
+   "value": 0.0
+  },
+  {
+   "end": "2014-12-31",
+   "filed": "2015-03-12",
+   "value": 0.0
   }
  ],
- "extract_version": 3,
+ "extract_version": 4,
  "name": "Arista Networks,\u00a0Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

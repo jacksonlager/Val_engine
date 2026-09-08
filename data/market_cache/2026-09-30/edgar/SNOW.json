@@ -147,8 +147,54 @@
   }
  ],
  "cik": "0001640147",
- "debt": [],
- "extract_version": 3,
+ "debt": [
+  {
+   "end": "2024-01-31",
+   "filed": "2024-11-27",
+   "value": 0.0
+  },
+  {
+   "end": "2024-10-31",
+   "filed": "2024-11-27",
+   "value": 2269.459
+  },
+  {
+   "end": "2025-01-31",
+   "filed": "2025-03-21",
+   "value": 2271.529
+  },
+  {
+   "end": "2025-04-30",
+   "filed": "2025-05-30",
+   "value": 2273.6
+  },
+  {
+   "end": "2025-07-31",
+   "filed": "2025-09-05",
+   "value": 2275.674
+  },
+  {
+   "end": "2025-10-31",
+   "filed": "2025-12-05",
+   "value": 2277.749
+  },
+  {
+   "end": "2026-01-31",
+   "filed": "2026-03-20",
+   "value": 2279.827
+  },
+  {
+   "end": "2026-04-30",
+   "filed": "2026-05-29",
+   "value": 2281.903
+  },
+  {
+   "end": "2026-07-31",
+   "filed": "2026-09-04",
+   "value": 2283.985
+  }
+ ],
+ "extract_version": 4,
  "name": "SNOWFLAKE INC.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"

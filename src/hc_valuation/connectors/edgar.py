@@ -85,9 +85,20 @@ CASH_CONCEPT = "CashAndCashEquivalentsAtCarryingValue"
 INVESTMENT_CONCEPTS = ("ShortTermInvestments", "MarketableSecuritiesCurrent")   # first present
 DEBT_TOTAL_CONCEPT = "LongTermDebt"
 DEBT_PART_CONCEPTS = ("LongTermDebtNoncurrent", "LongTermDebtCurrent")
+# Convertible notes are the financing instrument of choice for exactly the software names in the
+# baskets, and filers tag them under their own concepts, not LongTermDebt*. Reading only the three
+# concepts above left 15 of 54 constituents with no debt at all; five of them (Okta $1.75bn,
+# Snowflake $2.28bn, Hims $1.37bn, Planet $0.45bn, Nutanix $0.48bn, confirmed against SEC) carry
+# convertibles, so their net cash was overstated and their multiples understated. A family is read
+# "first present" like INVESTMENT_CONCEPTS, never summed within itself.
+CONVERTIBLE_TOTAL_CONCEPTS = ("ConvertibleDebt", "ConvertibleNotesPayable")
+CONVERTIBLE_PART_PAIRS = (("ConvertibleDebtNoncurrent", "ConvertibleDebtCurrent"),
+                          ("ConvertibleNotesPayableNoncurrent", "ConvertibleNotesPayableCurrent"))
+_SAME_INSTRUMENT_TOL = 0.01      # two families within 1% at one date are one instrument tagged twice
 
 MILLION = 1_000_000.0
-EXTRACT_VERSION = 3               # bump when the extract's shape or derivation changes; the cache re-derives older ones
+EXTRACT_VERSION = 4               # bump when the extract's shape or derivation changes; the cache re-derives older ones
+SLIM_VERSION = 2                  # bump when SLIM_CONCEPTS grows: an older slim lacks the new concepts, so it is refetched
 _QUARTER_FRAME = re.compile(r"^CY(\d{4})Q([1-4])$")
 
 # Period lengths in days. Fiscal quarters are 13 weeks (91 days) or calendar quarters (89–92);
@@ -660,18 +671,47 @@ def cash_series(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
     return combine_series(parts)
 
 
+def convertible_series(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Convertible notes: the first total concept a filer reports, else the first (noncurrent,
+    current) pair with data. First present, so a filer tagging the same notes two ways is read once."""
+    for concept in CONVERTIBLE_TOTAL_CONCEPTS:
+        total = instant_series(_entries(facts, "us-gaap", concept, "USD"))
+        if total:
+            return total
+    for pair in CONVERTIBLE_PART_PAIRS:
+        parts = [instant_series(_entries(facts, "us-gaap", c, "USD")) for c in pair]
+        if any(parts):
+            return combine_series(parts)
+    return []
+
+
 def debt_series(facts: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """`LongTermDebt` if reported, else the non-current and current pieces (each 0 when absent)."""
+    """Borrowings at carrying value: `LongTermDebt` if reported, else its non-current and current
+    pieces; plus convertible notes. When a filer reports both families and they agree within 1%
+    at a date they are one instrument tagged twice and counted once; otherwise they are distinct
+    borrowings and summed. Leases, preferred and minority interest are not debt here, as the
+    net-cash docstring says."""
     total = instant_series(_entries(facts, "us-gaap", DEBT_TOTAL_CONCEPT, "USD"))
-    if total:
-        return total
-    return combine_series([instant_series(_entries(facts, "us-gaap", c, "USD")) for c in DEBT_PART_CONCEPTS])
+    traditional = total or combine_series([instant_series(_entries(facts, "us-gaap", c, "USD")) for c in DEBT_PART_CONCEPTS])
+    conv = convertible_series(facts)
+    if not conv:
+        return traditional
+    if not traditional:
+        return conv
+    merged = combine_series([traditional, conv])
+    for row in merged:
+        on = date.fromisoformat(row["end"])
+        a, b = value_at(traditional, on) or 0.0, value_at(conv, on) or 0.0
+        if a and b and abs(a - b) <= _SAME_INSTRUMENT_TOL * max(a, b):
+            row["value"] = round(max(a, b), 3)
+    return merged
 
 
 def net_cash_at(cash: list[Mapping[str, Any]], debt: list[Mapping[str, Any]], on: date, *,
                 filed_by: date | None = None) -> float:
-    """Latest cash minus latest long-term debt at or before `on`; each 0 when nothing is reported.
-    An approximation (no leases, no preferred, no minority interest) and labelled as such."""
+    """Latest cash minus latest borrowings (long-term debt and convertible notes) at or before
+    `on`; each 0 when nothing is reported. An approximation (no leases, no preferred, no minority
+    interest) and labelled as such."""
     return round((value_at(cash, on, filed_by=filed_by) or 0.0) - (value_at(debt, on, filed_by=filed_by) or 0.0), 3)
 
 
@@ -699,6 +739,7 @@ SLIM_CONCEPTS = (
     [("us-gaap", c) for c in REVENUE_CONCEPTS] + [(t, c) for t, c, _k, _b in SHARES_CONCEPTS]
     + [("us-gaap", CASH_CONCEPT)] + [("us-gaap", c) for c in INVESTMENT_CONCEPTS]
     + [("us-gaap", DEBT_TOTAL_CONCEPT)] + [("us-gaap", c) for c in DEBT_PART_CONCEPTS]
+    + [("us-gaap", c) for c in CONVERTIBLE_TOTAL_CONCEPTS] + [("us-gaap", c) for pair in CONVERTIBLE_PART_PAIRS for c in pair]
 )
 _SLIM_FIELDS = ("start", "end", "val", "fy", "fp", "form", "filed", "frame")
 
@@ -715,7 +756,7 @@ def slim(facts: Mapping[str, Any]) -> dict[str, Any]:
         units = {u: [{k: e[k] for k in _SLIM_FIELDS if k in e} for e in es]
                  for u, es in (node.get("units") or {}).items()}
         out.setdefault(taxonomy, {})[concept] = {"units": units}
-    return {"cik": facts.get("cik"), "entityName": facts.get("entityName"), "facts": out}
+    return {"cik": facts.get("cik"), "entityName": facts.get("entityName"), "facts": out, "slim_version": SLIM_VERSION}
 
 
 def fetch_extract(client: EdgarClient, cik: int) -> dict[str, Any]:

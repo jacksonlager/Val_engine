@@ -189,7 +189,7 @@
    "value": 13.129
   }
  ],
- "extract_version": 3,
+ "extract_version": 4,
  "name": "Rocket Lab Corp",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax",

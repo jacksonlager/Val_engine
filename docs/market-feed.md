@@ -126,8 +126,9 @@ a CIK for EDGAR, but no price source answers for a ticker that no longer trades.
   without it the dead 3.5M balance-sheet tag was the only count on file for a year). A cache
   fetched before this concept was read lacks it in `edgar_raw/`, so those months stay as they
   were until `market --provider live --refresh`. The extract keeps the whole
-  series of every concept the filer has ever tagged (`shares_by_concept`; `EXTRACT_VERSION` 3,
-  an older extract is re-derived from the slim facts), and the choice is made at read time
+  series of every concept the filer has ever tagged (`shares_by_concept`; `EXTRACT_VERSION` 4,
+  an older extract is re-derived from the slim facts when the slim was cut with the current
+  keep-list, `SLIM_VERSION`, and refetched from SEC otherwise), and the choice is made at read time
   for the date being valued: the first concept whose latest fact filed on or before that date
   is **positive** and **no more than `SHARES_MAX_AGE_DAYS` (450 days) old** wins.
 
@@ -171,9 +172,16 @@ a CIK for EDGAR, but no price source answers for a ticker that no longer trades.
   `filed` are summed (Alphabet-style), except that a row equal to the sum of the others is the
   filer's own total and is taken as such rather than double-counted.
 * **Net cash** = (`CashAndCashEquivalentsAtCarryingValue` + `ShortTermInvestments` if present,
-  else `MarketableSecuritiesCurrent` if present) − (`LongTermDebt` if present, else
-  `LongTermDebtNoncurrent` + `LongTermDebtCurrent`, each 0 when absent). Latest `end` ≤ month.
-  Approximation, labelled as such.
+  else `MarketableSecuritiesCurrent` if present) − borrowings. Borrowings = (`LongTermDebt` if
+  present, else `LongTermDebtNoncurrent` + `LongTermDebtCurrent`) + convertible notes
+  (`ConvertibleDebt` or `ConvertibleNotesPayable` if present, else the first (noncurrent, current)
+  pair of `ConvertibleDebt*` / `ConvertibleNotesPayable*` with data — first present, never summed
+  within the family). When the two families agree within 1% at a date they are one instrument
+  tagged twice and are counted once; otherwise they are distinct borrowings and summed. Latest
+  `end` ≤ month. Leases, preferred and minority interest are not debt here: an approximation,
+  labelled as such. Reading only `LongTermDebt*` had left 15 of 54 constituents with no debt at
+  all — five of them (Okta, Snowflake, Hims, Planet, Nutanix) carry convertibles, confirmed
+  against SEC — and 26 extracts gained rows when the concepts were added.
 * Everything is USD millions once extracted (EDGAR reports raw USD). Round to 3 dp.
 
 ### 2.3 Prices (`prices.py`)
@@ -293,12 +301,15 @@ git-ignored, the slim companyfacts each extract was derived from:
 ```
 meta.json                        {"fetched_at": iso, "as_of": "...", "user_agent": "...", "baskets_sha256": "...", "price_source": "yahoo"}
 company_tickers.json             ticker -> {cik, title}, only the tickers in the baskets
-edgar/<TICKER>.json              {"extract_version": 3, "cik", "name", "revenue_concepts": [...], "revenue_periods": [{"start", "end", "value", "days", "filed"}],
+edgar/<TICKER>.json              {"extract_version": 4, "cik", "name", "revenue_concepts": [...], "revenue_periods": [{"start", "end", "value", "days", "filed"}],
                                   "shares_by_concept": {"dei:EntityCommonStockSharesOutstanding": [{"end", "value", "filed"}], ...}, "cash": [...], "debt": [...]}
                                  (`shares_concept` / `shares` — the v2 single-series fields — are still written so an older reader works)
-edgar_raw/<TICKER>.json          `edgar.slim(companyfacts)`: only the concepts read, only the fields read (~100–400 KB; git-ignored).
-                                 A changed extraction re-derives edgar/ from here with no SEC call; an extract in the old
-                                 frame-keyed shape, or with an older `extract_version`, is treated as missing and re-derived.
+edgar_raw/<TICKER>.json          `edgar.slim(companyfacts)`: only the concepts read, only the fields read (~100–400 KB; git-ignored),
+                                 stamped `slim_version`. A changed extraction re-derives edgar/ from here with no SEC call; an
+                                 extract in the old frame-keyed shape, or with an older `extract_version`, is treated as missing
+                                 and re-derived — unless the slim itself carries an older `slim_version` (its keep-list lacks a
+                                 concept the extractor now reads), in which case that ticker's companyfacts is refetched. Closes
+                                 are never touched by either path.
 prices/<TICKER>.json             {"YYYY-MM": close}  (month-end closes only, ≤ as_of; written by meta.price_source)
 splits/<TICKER>.json             {"YYYY-MM-DD": ratio}  (split events from the same provider; {} when it reports none)
 ```
@@ -308,7 +319,8 @@ None for such a ticker — which is not the same as "this company never split" �
 provider withholds every historical month for it until `hc-valuation market --provider live
 --refresh` refetches closes and splits together; the measurement date still prices. The
 extract half is versioned separately (`EXTRACT_VERSION`), so a share-selection change
-re-derives from `edgar_raw/` without a network call and without touching prices.
+re-derives from `edgar_raw/` without a network call and without touching prices; the slim's
+keep-list is versioned too (`SLIM_VERSION`), so a new concept refetches only the EDGAR half.
 
 Rules: with a cache present for `as_of`, the live provider reads it and makes **no network
 call** (a re-run is deterministic and works offline); `--refresh` refetches and overwrites;
@@ -360,13 +372,13 @@ touch a mark: against the unfixed feed 20 of the 100 positions change dispositio
 the X-401/X-402 screens, and marks and NAV are unchanged.
 
 **Some excluded months are input errors the filter is masking, not real states.** The
-negative-EV exclusion is a guard on the median, not a diagnosis. Of the 14 constituent-months
+negative-EV exclusion is a guard on the median, not a diagnosis. Of the 16 constituent-months
 it removes from the committed cache, 13 are C3.ai from June 2021 to June 2022, priced on
 its dead 3.5M tag because the cache was fetched before the basic-and-diluted concept was
-read (above), and one is Teladoc in April 2025, where the extract carries no debt after
-2024 — its convertible notes are not under the debt concepts §2.4 reads — so "net cash"
-exceeds a $1.2B market cap by $7M. Neither is a company worth less than its cash. A refresh
-resolves the first; the second is a concept gap and is left visible.
+read (above), and, before the convertible concepts were read (§2.4), one was Teladoc in April 2025,
+where the extract carried no debt after 2024 so "net cash" exceeded a $1.2B market cap by
+$7M. Neither was a company worth less than its cash. A refresh resolves the first; reading
+the convertible notes resolved the second, and the refreshed cache excludes no Teladoc month.
 
 **Retrieval preceded the valuation date.** `fetched_at` is 2026-09-07 and the measurement
 date is 2026-09-30, so the 2026-09 value is the last close on file at retrieval, 23 days

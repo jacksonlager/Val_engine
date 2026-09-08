@@ -184,9 +184,14 @@
    "value": 5791.0
   },
   {
+   "end": "2020-03-31",
+   "filed": "2020-05-08",
+   "value": 6682.0
+  },
+  {
    "end": "2020-12-31",
    "filed": "2021-03-01",
-   "value": 7914.0
+   "value": 8262.0
   },
   {
    "end": "2021-12-31",
@@ -224,7 +229,7 @@
    "value": 12723.0
   }
  ],
- "extract_version": 3,
+ "extract_version": 4,
  "name": "UBER TECHNOLOGIES, INC.",
  "revenue_concepts": [
   "Revenues",

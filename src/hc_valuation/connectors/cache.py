@@ -111,8 +111,14 @@ class MarketCache:
         return self.dir / "edgar_raw" / f"{ticker.upper()}.json"
 
     def read_edgar_raw(self, ticker: str) -> dict[str, Any] | None:
+        """None when the slim was cut with an older keep-list: it cannot carry a concept the current
+        extractor reads, so re-deriving from it would silently reproduce the old gap. The ticker is
+        refetched from SEC instead — its closes are untouched, so nothing is re-priced."""
+        from .edgar import SLIM_VERSION
         raw = _read_json(self.edgar_raw_path(ticker))
-        return raw if isinstance(raw, dict) and "facts" in raw else None
+        if not (isinstance(raw, dict) and "facts" in raw):
+            return None
+        return raw if raw.get("slim_version") == SLIM_VERSION else None
 
     def write_edgar_raw(self, ticker: str, slim_facts: dict[str, Any]) -> None:
         _write_json(self.edgar_raw_path(ticker), slim_facts)

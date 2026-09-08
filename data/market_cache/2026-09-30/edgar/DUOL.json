@@ -113,7 +113,7 @@
  ],
  "cik": "0001562088",
  "debt": [],
- "extract_version": 3,
+ "extract_version": 4,
  "name": "Duolingo, Inc.",
  "revenue_concepts": [
   "RevenueFromContractWithCustomerExcludingAssessedTax"
