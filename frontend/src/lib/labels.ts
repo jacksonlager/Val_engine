@@ -12,9 +12,17 @@
  * belong in a headline, a button or a dialog title.
  */
 
-/** "days_since_price" -> "Days since price". The last resort, never the first choice. */
+/** "days_since_price" -> "Days since price"; "netRevenueRetention" -> "Net revenue retention".
+    The last resort, never the first choice — but a vendor key nobody mapped still has to arrive
+    as words rather than as an identifier. */
 export function humanize(k: string): string {
-  const s = k.replace(/_/g, " ").trim();
+  const s = k
+    .replace(/_/g, " ")
+    // camelCase and ALLCAPSWord boundaries, so a feed's own key names read as prose
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .replace(/\s{2,}/g, " ")
+    .trim();
   if (!s) return "—";
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -147,6 +155,56 @@ export const EVIDENCE_LABEL: Record<string, string> = {
   ipo_print_mark: "Mark at the listing-day price, $M",
   days_since_price: "Days since the last price",
   measurement_date: "Measured at",
+  // the workbook row a rule read, and the reader's own outcome on it
+  row_index: "Workbook row",
+  rows: "Workbook rows",
+  sheet: "Workbook tab",
+  event_type: "Event on the row",
+  date: "Date on the row",
+  detail: "Detail on the row",
+  reason: "Why it could not run",
+  reader_unavailable: "The note reader could not run",
+  // the comparables working behind a calibrated figure (M-080)
+  comps_source: "Comparables feed",
+  comp_multiple_at_round: "Comparable multiple at the round",
+  comp_multiple_now: "Comparable multiple now",
+  comp_month_used: "Comparables priced as of",
+  n_constituents_at_round: "Comparable companies at the round",
+  n_constituents_now: "Comparable companies now",
+  factor_raw: "Adjustment before the policy cap",
+  factor_bounded: "Adjustment after the policy cap",
+  bound_hit: "Held at the policy cap",
+  age_months: "Age of the price, months",
+  round_month: "Round priced in",
+  sector: "Sector basket",
+  // the figures a rule derived on the way to a mark
+  prior_mark: "Prior mark, $M",
+  latest_post_money: "Latest post-money valuation, $M",
+  last_round_post_money: "Last round's post-money valuation, $M",
+  implied_post_money: "Implied post-money valuation, $M",
+  implied_from_ownership: "Implied from the ownership sold, $M",
+  implied_from_deal_value: "Implied from the deal value, $M",
+  implied_post_from_hc_cheque: "Implied from HC's cheque, $M",
+  implied_price_source: "Where the implied price came from",
+  at_last_round: "At the last round's price, $M",
+  at_secondary_price: "At the secondary price, $M",
+  at_implied_price: "At the implied price, $M",
+  at_full_deal_value: "At the full deal value, $M",
+  hold_prior: "Holding the prior mark, $M",
+  probability_weighted: "Probability-weighted, $M",
+  structure_adjusted: "After the structure haircut, $M",
+  standalone_if_deal_breaks: "If the deal breaks, $M",
+  ipo_market_cap: "Market capitalisation at listing, $M",
+  measurement_date_market_cap: "Market capitalisation at the measurement date, $M",
+  lockup_discount_pct: "Lock-up discount",
+  new_money_basis: "New money carried at",
+  remainder_basis: "Remaining stake carried at",
+  non_binding: "Non-binding",
+  ownership: "Ownership",
+  ownership_sold: "Ownership sold",
+  proceeds: "Proceeds to HC, $M",
+  realized: "Realized this quarter, $M",
+  status: "Status",
 };
 
 export function evidenceLabel(k: string): string {
@@ -195,10 +253,62 @@ export const ALT_LABEL: Record<string, string> = {
   probability_weighted: "Probability-weighted",
   as_proposed: "As proposed",
   at_proceeds_price: "At the price the proceeds imply",
+  adopt_proposed: "Adopt the revised proposal",
+  structure_adjusted: "After the structure haircut",
+  term_sheet_indicated: "At the term sheet's indicated value",
+  at_last_round: "At the last round's price",
+  at_implied_price: "At the implied price",
+  at_cost: "At invested cost",
+  to_cost: "Down to invested cost",
+  write_to_zero: "Written to zero",
+  calibrate: "Calibrated to public comparables",
+  full_value: "At the full deal value",
+  impair_note: "Note impaired",
 };
 
 export function altLabel(k: string): string {
   return ALT_LABEL[k] ?? humanize(k);
+}
+
+/**
+ * The *value* side of an evidence or input row. The keys were always laundered; the values were
+ * not, so a rule that recorded `treatment: probability_weighted` printed the identifier straight
+ * onto the card. Numbers, dates and free text pass through untouched — only a machine token
+ * becomes words, and the raw token stays available in the row's tooltip.
+ */
+const EVIDENCE_VALUE_LABEL: Record<string, string> = {
+  cost: "Invested cost",
+  last_round: "The last round's price",
+  market_close: "The quarter-end market close",
+};
+
+export function evidenceValue(v: unknown): string {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+  if (typeof v !== "string") return String(v);
+  const t = v.trim();
+  if (!t) return "—";
+  const known = PRICE_SOURCE_LABEL[t] ?? EVIDENCE_VALUE_LABEL[t] ?? ALT_LABEL[t];
+  if (known) return known;
+  // a provider identifier ("live:edgar+yahoo@2026-09") is not a sentence
+  if (/^(live|fixture|stub|synthetic):/.test(t)) return marketSourceLabel(t);
+  // an identifier is a bare token: no spaces, machine-shaped, and not a rule id or a date
+  const isToken = !/\s/.test(t) && /_|[a-z][A-Z]/.test(t) && !/^\d/.test(t);
+  return isToken ? humanize(t) : plainSystemPhrase(t);
+}
+
+/**
+ * Engine prose that names a machine, not a fact about the book. The note reader's failure reason
+ * is the live case: "ANTHROPIC_API_KEY not set" is exactly right on a server log and exactly
+ * wrong on a card a CFO reads. The finding, the severity and the row it names are untouched —
+ * only the word for the missing thing changes.
+ */
+const SYSTEM_PHRASE: [RegExp, string][] = [
+  [/ANTHROPIC_API_KEY not set/g, "no Claude API key is set on this machine"],
+];
+
+export function plainSystemPhrase(text: string): string {
+  return SYSTEM_PHRASE.reduce((acc, [re, to]) => acc.replace(re, to), text);
 }
 
 /**

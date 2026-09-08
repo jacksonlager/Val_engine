@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { MarkHistoryPoint, MarkHistorySource } from "../types";
 import { isoDate, musd, mult, signClass } from "../lib/format";
+import { dispositionLabel } from "../lib/labels";
 import { useHistory } from "../lib/history";
 import { useChartTheme } from "../lib/theme";
 import { Label } from "./ui";
@@ -14,7 +15,7 @@ import { Label } from "./ui";
 const MONO = "IBM Plex Mono, ui-monospace, monospace";
 
 const SOURCE_LABEL: Record<MarkHistorySource, string> = {
-  backfill: "backfill file",
+  backfill: "HC records",
   published: "published",
   prior: "workbook prior mark",
   live: "this run · unpublished",
@@ -126,13 +127,13 @@ export function MarkHistoryCard({ company }: { company: string }) {
                         </div>
                         <div className="num mt-1">
                           <strong>{musd(p.mark)}</strong> <span className="text-muted">$M booked mark</span>
-                          {p.overridden && <span className="chip disp-REVIEW ml-1">override</span>}
+                          {p.overridden && <span className="chip disp-REVIEW ml-1">committee decision</span>}
                         </div>
                         <div className="text-[11.5px] text-ink2 num">
                           {p.invested !== null && <>invested {musd(p.invested)} · </>}
                           {p.moic !== null && <>{mult(p.moic, 2)} MOIC · </>}
                           {p.status ?? "—"}
-                          {p.disposition ? ` · ${p.disposition}` : ""}
+                          {p.disposition ? ` · ${dispositionLabel(p.disposition)}` : ""}
                         </div>
                         {p.published_at && <div className="text-[11px] text-muted mono">published {isoDate(p.published_at)}</div>}
                         {p.note && <div className="text-[11px] text-muted mt-1 leading-snug whitespace-normal">{p.note}</div>}

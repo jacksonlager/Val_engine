@@ -9,9 +9,9 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { CompanyResult, ConstituentStatus, MarketConstituent, MarketReport, MarketSector, ValuationRun } from "../types";
+import type { CompanyResult, MarketConstituent, MarketReport, MarketSector, ValuationRun } from "../types";
 import { loadMarket, type Mode } from "../lib/api";
-import { isoDateTime, mult, musd, pct, shortDate, signClass } from "../lib/format";
+import { isoDateTime, mmddyy, mult, musd, pct, shortDate, signClass } from "../lib/format";
 import { altLabel, humanize } from "../lib/labels";
 import { useChartTheme } from "../lib/theme";
 import { MarketStatusButton } from "../components/MarketStatus";
@@ -64,15 +64,6 @@ function SourceChip({ live, long = false, source }: { live: boolean; long?: bool
   );
 }
 
-/** A constituent the feed could not price is left out of the median — a gap to know about, not a
-    fault in the book — so it keeps the watch hue rather than an error one. */
-const STATUS_LABEL: Record<string, string> = { ok: "Priced", error: "Unpriced", fixture: "Illustrative" };
-
-function StatusChip({ s }: { s: ConstituentStatus }) {
-  const cls = s === "ok" ? "disp-CLEAR" : s === "error" ? "disp-MONITOR" : "disp-NONE";
-  return <span className={`chip ${cls}`}>{STATUS_LABEL[s] ?? humanize(s)}</span>;
-}
-
 // ---------------------------------------------------------------- header strip
 
 function Meta({ k, title, children }: { k: string; title?: string; children: React.ReactNode }) {
@@ -96,7 +87,7 @@ function policySentences(rep: MarketReport): string {
   return `${screens} ${cal}`;
 }
 
-function HeaderStrip({ rep, served, onRefreshed }: { rep: MarketReport; served: boolean; onRefreshed?: () => void }) {
+function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
   const [showErrors, setShowErrors] = useState(false);
   const n = rep.errors.length;
   const askedLive = rep.provider === "live";
@@ -124,7 +115,7 @@ function HeaderStrip({ rep, served, onRefreshed }: { rep: MarketReport; served: 
             {shortDate(rep.priced_as_of ?? rep.as_of)}
           </Meta>
         )}
-        {served && <MarketStatusButton refreshKey={rep.fetched_at ? rep.fetched_at.length : 0} onRefreshed={() => onRefreshed?.()} />}
+        {served && <MarketStatusButton refreshKey={rep.fetched_at ? rep.fetched_at.length : 0} />}
         <Meta k="Comparables" title={`Basket definitions: ${rep.baskets_file}`}>
           {rep.sectors.length} sectors, {names} public companies
         </Meta>
@@ -331,22 +322,6 @@ function qualityCaveats(rep: MarketReport): Caveat[] {
   return out;
 }
 
-/** The caveats behind one priced constituent, as short lines for a tooltip. */
-function constituentCaveats(c: MarketConstituent): string[] {
-  const out: string[] = [];
-  if (c.status !== "ok") return out;
-  for (const r of c.shares_rejected ?? []) out.push(`shares: passed over ${r}`);
-  if (isDilutedBasis(c)) out.push(`shares: ${c.shares_basis} used as the count outstanding`);
-  if ((c.ev_to_revenue ?? 1) < 0) out.push("negative EV at as-of: net cash above market cap, not in the median");
-  const neg = c.months_negative_ev ?? 0;
-  if (neg > 0) out.push(`${neg} month${neg === 1 ? "" : "s"} excluded: negative EV`);
-  if (c.splits_known === false) {
-    const w = c.months_unverified_splits ?? 0;
-    out.push(w > 0 ? `splits unverified: ${w} month${w === 1 ? "" : "s"} withheld` : "splits unverified");
-  }
-  return out;
-}
-
 function DataQuality({ rep }: { rep: MarketReport }) {
   const caveats = useMemo(() => qualityCaveats(rep), [rep]);
   if (!caveats.length) return null;
@@ -382,7 +357,17 @@ function okCount(s: MarketSector): { ok: number; total: number; sampled: boolean
   return { ok, total, sampled: total > 0 && s.constituents.every((c) => c.status === "fixture") };
 }
 
-function SectorTable({ sectors, selected, onSelect }: { sectors: MarketSector[]; selected: string | null; onSelect: (s: string) => void }) {
+function SectorTable({
+  sectors,
+  selected,
+  onSelect,
+  pricedAsOf,
+}: {
+  sectors: MarketSector[];
+  selected: string | null;
+  onSelect: (s: string) => void;
+  pricedAsOf: string;
+}) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "positions", desc: true }]);
   const columns = useMemo<ColumnDef<MarketSector, any>[]>(
     () => [
@@ -395,27 +380,14 @@ function SectorTable({ sectors, selected, onSelect }: { sectors: MarketSector[];
         sortUndefined: "last",
         cell: (i) => <span className={`num ${signClass(i.getValue())}`}>{pct(i.getValue(), 1, true)}</span>,
       }),
-      scol.accessor("as_of_month", { header: "Multiple as of", cell: (i) => <span>{monthLabel(i.getValue())}</span> }),
-      scol.accessor("live", { header: "Source", cell: (i) => <SourceChip live={i.getValue()} source={i.row.original.source} /> }),
-      scol.accessor((s) => okCount(s).ok, {
-        id: "ok",
-        header: "Constituents",
-        meta: { r: true },
-        cell: (i) => {
-          const { ok, total, sampled } = okCount(i.row.original);
-          return sampled ? (
-            <span className="num text-muted" title="An illustrative basket: the constituents are named, but none of them is priced.">
-              {total} named
-            </span>
-          ) : (
-            <span className="num" title={`${ok} of ${total} constituents priced`}>
-              {ok}/{total}
-            </span>
-          );
-        },
+      // The day the multiples are priced as of, not the month they fall in. It is the same day for
+      // every sector in one report, so it is passed in rather than read off the row.
+      scol.accessor("as_of_month", {
+        header: "Multiple as of",
+        cell: () => <span className="num">{mmddyy(pricedAsOf)}</span>,
       }),
     ],
-    [],
+    [pricedAsOf],
   );
   const table = useReactTable({
     data: sectors,
@@ -592,7 +564,27 @@ function Num({ v, d = 1, x = false }: { v: number | null; d?: number; x?: boolea
 function ConstituentsTable({ sector }: { sector: MarketSector }) {
   const columns = useMemo<ColumnDef<MarketConstituent, any>[]>(
     () => [
-      ccol.accessor("ticker", { header: "Ticker", cell: (i) => <span className="mono font-medium">{i.getValue()}</span> }),
+      ccol.accessor("ticker", {
+        header: "Ticker",
+        // The filer's own EDGAR page: every figure on this row is derived from facts filed there,
+        // so a reviewer can open the filing and see the number exists as of the date shown.
+        cell: (i) => {
+          const c = i.row.original;
+          return c.cik ? (
+            <a
+              className="mono font-medium srclink"
+              href={`https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${c.cik}&type=10-&dateb=&owner=include&count=40`}
+              target="_blank"
+              rel="noreferrer noopener"
+              title={`Open CIK ${c.cik} on EDGAR — the filings every figure on this row is built from`}
+            >
+              {i.getValue()}
+            </a>
+          ) : (
+            <span className="mono font-medium">{i.getValue()}</span>
+          );
+        },
+      }),
       ccol.accessor("name", {
         header: "Name",
         cell: (i) => {
@@ -607,8 +599,18 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
           );
         },
       }),
-      ccol.accessor("status", { header: "Status", cell: (i) => <StatusChip s={i.getValue()} /> }),
-      ccol.accessor("price", { header: "Price", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={2} /> }),
+      ccol.accessor("price", {
+        header: "Price",
+        meta: { r: true },
+        cell: (i) => {
+          const c = i.row.original;
+          return (
+            <span title={c.price_month ? `Month-end close, ${monthLabel(c.price_month)}, from ${sector.source.split(":").pop()}` : undefined}>
+              <Num v={i.getValue()} d={2} />
+            </span>
+          );
+        },
+      }),
       ccol.accessor("shares_m", {
         header: "Shares (M)",
         meta: { r: true },
@@ -616,7 +618,7 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
           const c = i.row.original;
           const basis = c.shares_basis ?? null;
           const tip = basis
-            ? `${humanize(basis)}${c.shares_as_of ? `, as filed on ${shortDate(c.shares_as_of)}` : ""}${
+            ? `${humanize(basis)}${c.shares_as_of ? `, as filed on ${mmddyy(c.shares_as_of)}` : ""}${
                 typeof c.shares_age_days === "number" ? ` (${c.shares_age_days} days before the valuation date)` : ""
               }`
             : undefined;
@@ -627,7 +629,7 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
                 /* the whole basis, not a fragment of it: "cover page" on its own names nothing */
                 <span className={`block text-[10.5px] whitespace-nowrap ${isDilutedBasis(c) ? "text-[var(--review-text)]" : "text-muted"}`}>
                   {humanize(basis)}
-                  {c.shares_as_of && <span> · {shortDate(c.shares_as_of)}</span>}
+                  {c.shares_as_of && <span> · {mmddyy(c.shares_as_of)}</span>}
                 </span>
               )}
             </span>
@@ -636,27 +638,29 @@ function ConstituentsTable({ sector }: { sector: MarketSector }) {
       }),
       ccol.accessor("market_cap_musd", { header: "Market cap ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
       ccol.accessor("net_cash_musd", { header: "Net cash ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
-      ccol.accessor("ttm_revenue_musd", { header: "TTM revenue ($M)", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={0} /> }),
-      ccol.accessor("revenue_through", { header: "Revenue through", cell: (i) => <span className="mono">{i.getValue() ?? "—"}</span> }),
-      ccol.accessor("ev_to_revenue", { header: "EV/Revenue", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} x /> }),
-      ccol.accessor((c) => constituentCaveats(c).length, {
-        id: "quality",
-        header: "Quality",
+      ccol.accessor("ttm_revenue_musd", {
+        header: "TTM revenue ($M)",
+        meta: { r: true },
         cell: (i) => {
           const c = i.row.original;
-          if (c.status !== "ok") return <span className="text-muted">—</span>;
-          const lines = constituentCaveats(c);
-          return lines.length ? (
-            <span className="chip disp-REVIEW no-dot" title={lines.join("\n")}>
-              {lines.length} caveat{lines.length === 1 ? "" : "s"}
-            </span>
-          ) : (
-            <span className="chip disp-CLEAR no-dot" title="Share count current and outstanding; split basis verified; no month excluded">
-              Clean
+          return (
+            <span
+              title={
+                c.revenue_through
+                  ? `Trailing twelve months to ${mmddyy(c.revenue_through)}, summed from the filer's own reported periods (SEC XBRL companyfacts)`
+                  : undefined
+              }
+            >
+              <Num v={i.getValue()} d={0} />
             </span>
           );
         },
       }),
+      ccol.accessor("revenue_through", {
+        header: "Revenue through",
+        cell: (i) => <span className="num" title="The last reported period end included in the trailing-twelve-month figure">{mmddyy(i.getValue())}</span>,
+      }),
+      ccol.accessor("ev_to_revenue", { header: "EV/Revenue", meta: { r: true }, cell: (i) => <Num v={i.getValue()} d={1} x /> }),
     ],
     [],
   );
@@ -725,6 +729,8 @@ type CalRow = {
   bounded: boolean;
   equity: number;
   calibrated: number;
+  nThen: number | null;   // constituents behind the round-month median
+  nNow: number | null;    // constituents behind the measurement-month median
 };
 
 function calibrationRows(run: ValuationRun): { rows: CalRow[]; stale: number } {
@@ -753,6 +759,8 @@ function calibrationRows(run: ValuationRun): { rows: CalRow[]; stale: number } {
       bounded: Boolean(i.bound_hit),
       equity: c.equity_mark,
       calibrated: alt,
+      nThen: typeof i.n_constituents_at_round === "number" ? i.n_constituents_at_round : null,
+      nNow: typeof i.n_constituents_now === "number" ? i.n_constituents_now : null,
     });
   }
   rows.sort((a, b) => Math.abs(b.calibrated - b.equity) - Math.abs(a.calibrated - a.equity));
@@ -763,6 +771,14 @@ function calibrationRows(run: ValuationRun): { rows: CalRow[]; stale: number } {
     movement in public comparable multiples since the round closed. Alternatives only. */
 function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketReport; onGoto?: (name: string) => void }) {
   const { rows, stale } = useMemo(() => calibrationRows(run), [run]);
+  // How many names the sector's basket holds, so "4 of 5" can be shown against the median's depth.
+  const basketSize = useMemo(() => new Map(rep.sectors.map((x) => [x.sector, x.constituents.length])), [rep]);
+  // A median taken over fewer names than the basket holds is a different statistic from the one it
+  // is divided by, so the rows where that happens are called out rather than left to be assumed.
+  const thin = rows.filter((r) => {
+    const n = basketSize.get(r.c.sector);
+    return n !== undefined && ((r.nThen !== null && r.nThen < n) || (r.nNow !== null && r.nNow < n));
+  }).length;
   const total = rows.reduce((a, r) => a + (r.calibrated - r.equity), 0);
   const base = rows.reduce((a, r) => a + r.equity, 0);
   const pinned = rows.filter((r) => r.bounded).length;
@@ -850,6 +866,25 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
                     <td className="r num">{r.age} mo</td>
                     <td className="r num">
                       {r.then.toFixed(1)}× → {r.now.toFixed(1)}×
+                      {(() => {
+                        const n = basketSize.get(r.c.sector);
+                        if (n === undefined || r.nThen === null || r.nNow === null) return null;
+                        const short = r.nThen < n || r.nNow < n;
+                        return (
+                          <span
+                            className={`block text-[10.5px] ${short ? "text-[var(--review-text)]" : "text-muted"}`}
+                            title={
+                              short
+                                ? `The two medians are taken over different baskets: ${r.nThen} of ${n} names had data in ${monthLabel(
+                                    r.monthUsed,
+                                  )}, ${r.nNow} of ${n} now. Part of the measured movement is a change in which companies are being measured.`
+                                : `Both medians are taken over all ${n} names in the basket.`
+                            }
+                          >
+                            {r.nThen}/{n} → {r.nNow}/{n} names
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="r num" title={r.bounded ? `Uncapped ratio ${r.raw.toFixed(3)}, held at the ±35% limit.` : undefined}>
                       {r.factor.toFixed(3)}
@@ -871,14 +906,21 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
               A capped factor moved further than the ±35% limit allows and was held at it. Hover the factor to see the uncapped ratio.
             </p>
           )}
+          {thin > 0 && (
+            <p className="text-[11px] mt-1" style={{ color: "var(--review-text)" }}>
+              {thin} of {rows.length} rows divide medians taken over different numbers of names — a company that had not yet listed cannot
+              be in its sector&rsquo;s older months. Part of the movement those rows measure is a change in the basket rather than in the
+              market. Hover the depth under each pair to see which.
+            </p>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-export function MarketView({ mode, run, onGoto, onRefreshed }: { mode: Mode; run?: ValuationRun; onGoto?: (name: string) => void; onRefreshed?: () => void }) {
-  const { data: rep, error, loading, refetch } = useAsync(() => loadMarket(mode), [mode]);
+export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationRun; onGoto?: (name: string) => void }) {
+  const { data: rep, error, loading } = useAsync(() => loadMarket(mode), [mode]);
   const [selected, setSelected] = useState<string | null>(null);
 
   // default to the sector with the most portfolio positions (the API's first row)
@@ -920,14 +962,7 @@ export function MarketView({ mode, run, onGoto, onRefreshed }: { mode: Mode; run
 
   return (
     <div className="space-y-4">
-      <HeaderStrip
-        rep={rep}
-        served={mode === "served"}
-        onRefreshed={() => {
-          refetch();
-          onRefreshed?.();
-        }}
-      />
+      <HeaderStrip rep={rep} served={mode === "served"} />
       <DataQuality rep={rep} />
 
       {rep.sectors.length === 0 ? (
@@ -944,7 +979,7 @@ export function MarketView({ mode, run, onGoto, onRefreshed }: { mode: Mode; run
             >
               Sector comps
             </SectionTitle>
-            <SectorTable sectors={rep.sectors} selected={sector?.sector ?? null} onSelect={setSelected} />
+            <SectorTable sectors={rep.sectors} selected={sector?.sector ?? null} onSelect={setSelected} pricedAsOf={rep.priced_as_of ?? rep.as_of} />
           </div>
 
           {sector && (

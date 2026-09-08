@@ -23,7 +23,7 @@
 import { useMemo, useState } from "react";
 import type { CompanyResult, Readiness, ValuationRun } from "../types";
 import { READINESS, READINESS_HINT } from "../types";
-import { deltaPct, musdTile, pct, signClass, signed } from "../lib/format";
+import { deltaPct, musdSigned, musdUnit, pct, shortDate, signClass } from "../lib/format";
 import { readinessPhrase } from "../lib/labels";
 import { rdClass } from "../components/Flags";
 import { activitySteps, hasActivity, PositionCard } from "../components/PositionCard";
@@ -72,9 +72,16 @@ export function QueueView({
     .filter((c) => !bucket || c.readiness === bucket)
     .sort((a, b) => RANK[a.readiness] - RANK[b.readiness] || firstRow(a) - firstRow(b));
   const rows = useMemo(() => touched.flatMap((c) => activitySteps(c)), [touched]);
-  const sheet = rows[0]?.evidence?.sheet ?? "activity";
+  const sheet = rows[0]?.evidence?.sheet ?? "Activity";
   const movement = touched.reduce((a, c) => a + (c.proposed_mark - c.prior_mark), 0);
   const activityOpen = touched.filter((c) => c.readiness !== "Ready").length;
+
+  // The number that answers "can this quarter be published?": how much of the proposed book sits in
+  // positions that are not Ready. The bucket tiles above give the counts; this gives what is at stake.
+  const uncleared = useMemo(
+    () => run.companies.filter((c) => c.readiness !== "Ready").reduce((a, c) => a + c.proposed_mark, 0),
+    [run],
+  );
 
   // Group 2: the rest of the book that still needs a person, blocked first, then by size of change.
   const rest = run.companies
@@ -123,20 +130,30 @@ export function QueueView({
 
       {/* headline strip */}
       <div className="card p-4 flex flex-wrap gap-x-8 gap-y-3 items-start">
-        <Headline label="Portfolio fair value, prior" value={musdTile(t.prior_nav)} sub={`at ${run.manifest.prior_close}`} />
+        <Headline label="Portfolio fair value, prior" value={musdUnit(t.prior_nav)} sub={`at ${shortDate(run.manifest.prior_close)}`} />
         <div className="text-muted text-[20px] pt-4">→</div>
-        <Headline label="Portfolio fair value, proposed" value={musdTile(t.proposed_nav)} sub={`${signed(t.net_movement, 1)}  (${pct(dPct, 1, true)})`} />
+        <Headline label="Portfolio fair value, proposed" value={musdUnit(t.proposed_nav)} sub={`${musdSigned(t.net_movement)}  (${pct(dPct, 1, true)})`} />
         {Math.abs(t.booked_nav - t.proposed_nav) > 1e-6 && (
-          <Headline label="After recorded decisions" value={musdTile(t.booked_nav)} sub="not approved until published" />
+          <Headline label="After recorded decisions" value={musdUnit(t.booked_nav)} sub="not approved until published" />
         )}
-        <Headline label="Realized in quarter" value={musdTile(t.realized_quarter)} sub={`cumulative ${musdTile(t.realized_cumulative)}`} />
+        {/* what moved it — these three tie the two fair values together */}
+        <div className="flex flex-wrap gap-x-5 gap-y-3 items-start pl-6 border-l border-hair">
+          <Headline label="New investment" value={musdUnit(t.new_investment)} sub="cash deployed this quarter" />
+          <div className="text-muted text-[20px] pt-4">+</div>
+          <Headline
+            label="Valuation change"
+            value={musdSigned(t.valuation_change)}
+            cls={signClass(t.valuation_change)}
+            sub={t.written_off > 0.05 ? `including ${musdUnit(t.written_off)} written off` : "the judgment half of the move"}
+          />
+          <div className="text-muted text-[20px] pt-4">−</div>
+          <Headline label="Realized in quarter" value={musdUnit(t.realized_quarter)} sub="cash returned to the funds" />
+        </div>
         <Headline
-          label="Written off"
-          value={musdTile(t.written_off)}
-          sub={`Shutdowns at their prior mark · exits took a further ${musdTile(t.exited_at_prior_mark)}`}
+          label="Fair value not yet cleared"
+          value={musdUnit(uncleared)}
+          sub={`${needsAPerson} position${needsAPerson === 1 ? "" : "s"} · ${pct(uncleared / (t.proposed_nav || 1))} of the proposed book`}
         />
-        <Headline label="Top-10 concentration" value={pct(t.top10_concentration)} sub="share of the proposed book" />
-        <div className="ml-auto text-[11px] text-muted">$M unless stated</div>
       </div>
 
       {/* group 1: what the quarter brought in — read these first */}
@@ -150,7 +167,7 @@ export function QueueView({
             </span>
             <span className="font-normal text-muted">
               · {activityOpen} need a person, {touched.length - activityOpen} ready · movement{" "}
-              <span className={`num ${signClass(movement)}`}>{signed(movement, 1)}</span> of {signed(t.net_movement, 1)} across the book
+              <span className={`num ${signClass(movement)}`}>{musdSigned(movement)}</span> of {musdSigned(t.net_movement)} across the book
             </span>
           </h2>
           <span className="text-[11px] text-muted">read these first · blocked first, then in the order the rows were entered</span>

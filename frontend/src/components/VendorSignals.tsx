@@ -6,6 +6,7 @@
 // so. Today both feeds are vendor-shaped stubs (the chip says which).
 import type { CompanySignals } from "../types";
 import { isoDate, musd, pct, signClass } from "../lib/format";
+import { humanize } from "../lib/labels";
 import { useHistory } from "../lib/history";
 import { Label } from "./ui";
 
@@ -15,6 +16,13 @@ function fmt(key: string, v: number | string | null): string {
   if (key === "arrGrowthYoY" || key === "grossMargin") return pct(v, 0);
   if (key === "headcount") return String(Math.round(v));
   return musd(v, key === "netBurn" ? 2 : 1);
+}
+
+/** A vendor provider names itself for engineers ("Foresight-shaped stub"). The reader needs the
+    firm and the fact that the feed is not live, in that order and in words. */
+function providerName(name: string | undefined, fallback: string): string {
+  if (!name) return fallback;
+  return name.replace(/-shaped stub$/i, " (sample data)").replace(/\bstub\b/gi, "sample data");
 }
 
 function SentimentChip({ s }: { s: number | null }) {
@@ -30,7 +38,7 @@ function MetricsBlock({ sig }: { sig: NonNullable<CompanySignals["metrics"]> }) 
     <div className="mt-1">
       <div className="text-[11px] text-muted mb-1">
         Operating metrics · {sig.reporting_period ?? "—"} · {sig.source_document ?? "—"}
-        {sig.confidence && <> · <span className="mono">{sig.confidence}</span></>}
+        {sig.confidence && <> · {humanize(sig.confidence)}</>}
         {material > 0 && <span className="chip disp-REVIEW ml-1.5">{material} gap{material === 1 ? "" : "s"} &gt;10% vs workbook</span>}
       </div>
       <table className="signals-tbl">
@@ -59,8 +67,8 @@ function MetricsBlock({ sig }: { sig: NonNullable<CompanySignals["metrics"]> }) 
         <div className="text-[11px] text-muted mt-1">
           Also reported:{" "}
           {Object.entries(sig.extra).map(([k, v]) => (
-            <span key={k} className="mono mr-2">
-              {k} {String(v)}
+            <span key={k} className="mr-2" title={k}>
+              {humanize(k)} <span className="num text-ink2">{String(v)}</span>
             </span>
           ))}
         </div>
@@ -78,7 +86,7 @@ function NewsBlock({ items }: { items: CompanySignals["news"] }) {
             <span className="mono text-[11px] text-muted">{isoDate(n.published_at)}</span>
             <span className="text-[11px] text-muted">
               {n.source ?? "—"}
-              {n.source_type ? ` · ${n.source_type}` : ""}
+              {n.source_type ? ` · ${humanize(n.source_type).toLowerCase()}` : ""}
             </span>
             <SentimentChip s={n.sentiment} />
             {n.topics.map((t) => (
@@ -105,20 +113,21 @@ export function VendorSignalsCard({ company }: { company: string }) {
       <div className="flex items-baseline justify-between gap-2">
         <Label>Vendor signals</Label>
         <span className="text-[10.5px] text-muted whitespace-nowrap">
-          {provM ? (provM.live ? "live" : "stub feeds") : "—"} · context only, never a mark input
+          {provM ? (provM.live ? "live feeds" : "sample data, not a live feed") : "—"} · context only, never a mark input
         </span>
       </div>
       {!signals && <p className="text-[12px] text-muted">No vendor feeds attached to this run.</p>}
       {signals && !sig && (
         <p className="text-[12px] text-muted leading-snug">
-          Nothing from {provM?.name ?? "the metrics feed"} or {provN?.name ?? "the news feed"} for this company this quarter.
+          Nothing from {providerName(provM?.name, "the metrics feed")} or {providerName(provN?.name, "the news feed")} for this company
+          this quarter.
         </p>
       )}
       {sig?.metrics && <MetricsBlock sig={sig.metrics} />}
       {sig && sig.news.length > 0 && (
         <>
           <div className="text-[11px] text-muted mt-2">
-            Signals since {isoDate(signals?.since)} · {provN?.name}
+            Signals since {isoDate(signals?.since)} · {providerName(provN?.name, "the news feed")}
           </div>
           <NewsBlock items={sig.news} />
         </>

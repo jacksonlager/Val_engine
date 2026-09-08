@@ -23,6 +23,26 @@ import {
 import { FlagHistoryCard, PriorFlagPill } from "./FlagHistory";
 import { FlagChip } from "./ui";
 
+/** The event in one line. The full working — the arithmetic, the standard it rests on — is
+    repeated verbatim by the findings and again by the suggestion, so the summary keeps only what
+    happened and leaves the method to Sources & calculation, where it is on file in full. The
+    mark move sits beside this line, so a short first sentence is not a thin one. */
+function eventSummary(rationale: string): string {
+  const text = plainPoint(rationale).trim();
+  // A sentence end, but never one inside a parenthetical: "(Expected to close in Q4 2026, subject
+  // to regulatory approval.)" would otherwise be cut open and left unbalanced.
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "(") depth++;
+    else if (ch === ")") depth = Math.max(0, depth - 1);
+    else if (ch === "." && depth === 0 && /\s/.test(text[i + 1] ?? "") && /[A-Z(]/.test(text[i + 2] ?? "")) {
+      return text.slice(0, i + 1);
+    }
+  }
+  return text;
+}
+
 /** The steps that applied a row from the quarter's activity tab, in the tab's own order. */
 export function activitySteps(c: CompanyResult): MarkStep[] {
   return c.steps.filter((s) => s.evidence).sort((a, b) => (a.evidence?.row_index ?? 0) - (b.evidence?.row_index ?? 0));
@@ -38,6 +58,9 @@ function Marks({ c }: { c: CompanyResult }) {
   const d = c.proposed_mark - c.prior_mark;
   const recorded = c.override ? c.override.booked : null;
   const published = c.approval === "Approved and published";
+  const inv = c.new_investment_quarter ?? 0;
+  const val = c.valuation_change_quarter ?? 0;
+  const allInvestment = Math.abs(val) < 0.005 && Math.abs(inv) > 0.005;
   return (
     <div className="shrink-0">
       <dl className="qmarks">
@@ -62,7 +85,9 @@ function Marks({ c }: { c: CompanyResult }) {
         </div>
         <div className="qdelta">
           <dt>Change</dt>
-          <dd className={signClass(d)}>
+          {/* Cash the fund put in is not appreciation. A move that is only new money is shown in
+              neutral ink, and where both are present the split is stated rather than implied. */}
+          <dd className={allInvestment ? "text-ink2" : signClass(d)}>
             {signed(d)} <span className="font-normal">({pct(deltaPct(c.prior_mark, c.proposed_mark), 1, true)})</span>
           </dd>
         </div>
@@ -75,7 +100,32 @@ function Marks({ c }: { c: CompanyResult }) {
         </div>
         <span className="qunit">$M</span>
       </dl>
+      {Math.abs(inv) > 0.005 && (
+        <div className="qsplit">
+          <span className="text-ink2">{signed(inv)} invested</span>
+          <span className="qsplit-sep" aria-hidden>
+            ·
+          </span>
+          <span className={Math.abs(val) < 0.005 ? "text-muted" : signClass(val)}>{signed(val)} revaluation</span>
+        </div>
+      )}
     </div>
+  );
+}
+
+/** What the proposed mark is made of, when it is made of more than one thing: the equity mark and
+    a note leg carried at cost are different assets inside one number, and a reviewer signing the
+    number should see both. Only rendered when there is a second component to show. */
+function Composition({ c }: { c: CompanyResult }) {
+  if (c.note_at_cost <= 0.005) return null;
+  // A note funded this quarter is new money; one restored from last quarter's sidecar is not.
+  const isNew = Math.abs(c.new_investment_quarter - c.note_at_cost) < 0.005 && c.new_investment_quarter > 0.005;
+  return (
+    <p className="qcomposition m-0">
+      <b className="num">${musd(c.equity_mark)}M</b> existing equity <span className="qcomp-op">+</span>{" "}
+      <b className="num">${musd(c.note_at_cost)}M</b> {isNew ? "new note" : "note at cost"} <span className="qcomp-op">=</span>{" "}
+      <b className="num">${musd(c.proposed_mark)}M</b> proposed value
+    </p>
   );
 }
 
@@ -116,7 +166,7 @@ export function PositionCard({
               {c.readiness}
             </span>
             {events.length > 0 && (
-              <span className="tag-activity" title={`${events.length} row${events.length === 1 ? "" : "s"} on the ${events[0].evidence?.sheet ?? "activity"} tab this quarter`}>
+              <span className="tag-activity" title={`${events.length} row${events.length === 1 ? "" : "s"} on the ${events[0].evidence?.sheet ?? "Activity"} tab this quarter`}>
                 New activity
               </span>
             )}
@@ -129,6 +179,11 @@ export function PositionCard({
         </div>
         <Marks c={c} />
       </div>
+      {c.note_at_cost > 0.005 && (
+        <div className="px-3.5 pl-4 pb-2">
+          <Composition c={c} />
+        </div>
+      )}
 
       {/* 1b — on the New Activity view: what came in on the activity tab, and what the engine did with it */}
       {showActivity && events.length > 0 && (
@@ -150,7 +205,7 @@ export function PositionCard({
                   <span className="num text-[12.5px] whitespace-nowrap">
                     {musd(s.prior_value)} → <b>{musd(s.new_value)}</b>
                   </span>
-                  <span className="text-[12px] text-ink2 leading-snug">{plainPoint(s.rationale)}</span>
+                  <span className="activity-say">{eventSummary(s.rationale)}</span>
                 </div>
               </li>
             ))}
@@ -166,9 +221,14 @@ export function PositionCard({
             <div className="resolve-col">
               <FlagActionList c={c} flags={acts} writeDisabled={writeDisabled} onChanged={onChanged} covered={c.recommendation?.covers} />
             </div>
-            <div className="resolve-col">
+            {/* the recommendation sits on its own quiet ground, and the verb that acts on it sits
+                directly beneath — one prominent button, in the same place on every card */}
+            <div className="resolve-col resolve-rec">
               <div className="eyebrow-sm">Suggested next step</div>
               <PositionStep c={c} writeDisabled={writeDisabled} onChanged={onChanged} apply={false} />
+              <div className="rec-act">
+                {lead && <DecisionBar c={c} f={lead} writeDisabled={writeDisabled} onChanged={onChanged} />}
+              </div>
             </div>
           </div>
         </div>
@@ -177,27 +237,25 @@ export function PositionCard({
       {/* 3 — monitor findings in a reviewer's words, never mixed into the decisions */}
       {notes.length > 0 && (
         <div className={`px-3.5 pl-4 pt-2 pb-2 ${acts.length > 0 ? "border-t border-hair" : "border-t border-hair"}`}>
-          <div className="eyebrow-sm">Also noted, nothing to decide</div>
+          <div className="eyebrow-sm">Monitoring</div>
           <FlagNoteList flags={notes} />
         </div>
       )}
 
       {/* 4 — the verbs, in one place; the disclosures ride on the right of the same bar */}
       <div className="px-3.5 pl-4 pt-2 pb-2.5 border-t border-hair">
-        {lead ? (
-          <DecisionBar c={c} f={lead} writeDisabled={writeDisabled} onChanged={onChanged}>
-            <Disclosures c={c} evidence={evidence} setEvidence={setEvidence} open={open} toggle={toggle} gotoCompany={gotoCompany} />
-          </DecisionBar>
-        ) : (
-          <div className="decision-bar">
-            <div className="decision-actions text-[11.5px] text-muted">
-              {c.readiness === "Ready" ? "Ready for approval — nothing for a person to decide." : "Nothing to decide."}
-            </div>
-            <div className="decision-more">
-              <Disclosures c={c} evidence={evidence} setEvidence={setEvidence} open={open} toggle={toggle} gotoCompany={gotoCompany} />
-            </div>
+        <div className="decision-bar">
+          <div className="decision-actions text-[11.5px] text-muted">
+            {lead
+              ? "A recorded decision is not an approval — the quarter is approved when it is published."
+              : c.readiness === "Ready"
+                ? "Ready for approval — nothing for a person to decide."
+                : "Nothing to decide."}
           </div>
-        )}
+          <div className="decision-more">
+            <Disclosures c={c} evidence={evidence} setEvidence={setEvidence} open={open} toggle={toggle} gotoCompany={gotoCompany} />
+          </div>
+        </div>
       </div>
 
       {/* 5 — Evidence & history: rule codes, sources, last quarter, the decision on record */}
@@ -282,11 +340,11 @@ function Disclosures({
     <>
       <button className="btn btn-ghost" onClick={() => setEvidence(!evidence)} aria-expanded={evidence}>
         <span className="text-[10px] leading-none">{evidence ? "▾" : "▸"}</span>
-        Evidence &amp; history
+        Decision history
       </button>
       <button className="btn btn-ghost" onClick={toggle} aria-expanded={open}>
         <span className="text-[10px] leading-none">{open ? "▾" : "▸"}</span>
-        {open ? "Hide calculation" : "Calculation"}
+        {open ? "Hide sources & calculation" : "Sources & calculation"}
       </button>
       <button className="btn btn-ghost" onClick={() => gotoCompany(c.company)}>
         Open in Companies

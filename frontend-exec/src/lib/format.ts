@@ -96,12 +96,56 @@ export function humanKind(kind: string): string {
 
 export function humanAltMark(key: string): string {
   const map: Record<string, string> = {
-    at_full_deal_value: "full deal value",
-    hold_prior: "hold prior",
+    at_full_deal_value: "at the full deal value",
+    hold_prior: "holding the prior mark",
     probability_weighted: "probability-weighted",
-    at_ipo_print: "at IPO print",
+    at_ipo_print: "at the listing-day price",
+    at_market_close: "at the market close",
+    at_secondary_price: "at the secondary price",
+    at_proceeds_price: "at the price the proceeds imply",
+    at_last_round: "at the last round's price",
+    at_cost: "at invested cost",
+    calibrated_to_comps: "calibrated to public comparables",
+    structure_adjusted: "after the structure haircut",
+    term_sheet_indicated: "at the term sheet's indicated value",
+    with_lockup_discount: "with a lock-up discount",
+    as_proposed: "as proposed",
   };
   return map[key] ?? key.replace(/_/g, " ");
+}
+
+/**
+ * The engine's four severities as an executive reads them. The *value* still drives the
+ * `chip-BLOCK` / `chip-REVIEW` classes and the sort order — only the word on screen changes.
+ */
+const DISPOSITION_LABEL: Record<string, string> = {
+  BLOCK: "Decision needed",
+  REVIEW: "To review",
+  MONITOR: "Monitored",
+  CLEAR: "Clear",
+};
+
+export function dispositionLabel(d: string): string {
+  return DISPOSITION_LABEL[d] ?? d.charAt(0) + d.slice(1).toLowerCase();
+}
+
+/**
+ * "live:edgar+yahoo" is a provider identifier, not a sentence. The footer says where the numbers
+ * came from in words; the raw string stays on the element's tooltip.
+ */
+export function marketSourceLabel(s: string | null | undefined): string {
+  if (!s) return "—";
+  const [kind, rest = ""] = s.split(":", 2);
+  const names = rest
+    .split("@")[0]
+    .split("+")
+    .map((n) => ({ edgar: "EDGAR", yahoo: "Yahoo", stooq: "Stooq", pitchbook: "PitchBook" })[n] ?? n)
+    .filter(Boolean);
+  const from = names.length ? ` (${names.join(" + ")})` : "";
+  if (kind === "live") return `Live${from}`;
+  if (kind === "synthetic") return "Synthetic test data — invented, not observed";
+  if (kind === "fixture" || kind === "stub") return `Illustrative — not live market data${from}`;
+  return s;
 }
 
 export function plural(n: number, one: string, many = `${one}s`): string {

@@ -18,7 +18,7 @@ import type { CompanyResult, Flag, PositionRecommendation, Readiness, Recommenda
 import { postOverride } from "../lib/api";
 import { useRationale, useRuleRationale } from "../lib/rationale";
 import { isoDate, musd, pct, shortDate, signClass, signed } from "../lib/format";
-import { evidenceLabel, familyLabel, FAMILY_LABEL, severityPhrase } from "../lib/labels";
+import { evidenceLabel, evidenceValue, familyLabel, FAMILY_LABEL, marketSourceLabel, plainSystemPhrase, severityPhrase } from "../lib/labels";
 import { DispChip, Field, Modal, WriteButton } from "./ui";
 
 /** `a **b** c` -> a, <strong>b</strong>, c. Splits on pairs only; odd markers stay literal. */
@@ -36,7 +36,7 @@ export function Rich({ text }: { text: string }) {
 /** A stub reference such as "(stub:seeded_to_ipo_print)" is provenance, not a fact about the
     company; it belongs under Evidence & history, not in the reason a reviewer reads first. */
 export function plainPoint(p: string): string {
-  return p
+  return plainSystemPhrase(p)
     .replace(/\s*\((?:source: )?(?:stub|fixture|live):[^)]*\)/g, "")
     .replace(/\s*\((?:[MXE]-\d{3})\)/g, "")
     .replace(/\s{2,}/g, " ")
@@ -44,11 +44,24 @@ export function plainPoint(p: string): string {
 }
 
 /** The two or three summary lines the engine wrote for a BLOCK or REVIEW flag. */
-export function FlagPoints({ f, className = "", plain = false }: { f: Flag; className?: string; plain?: boolean }) {
-  if (f.points.length === 0) return <p className={`text-[12px] text-ink2 leading-[1.5] m-0 ${className}`}>{f.message}</p>;
+export function FlagPoints({
+  f,
+  className = "",
+  plain = false,
+  limit,
+}: {
+  f: Flag;
+  className?: string;
+  plain?: boolean;
+  /** Two or three lines is what a reviewer reads; the rest is in Evidence. */
+  limit?: number;
+}) {
+  if (f.points.length === 0)
+    return <p className={`text-[12px] text-ink2 leading-[1.5] m-0 ${className}`}>{plainSystemPhrase(f.message)}</p>;
+  const shown = limit ? f.points.slice(0, limit) : f.points;
   return (
     <ul className={`flag-points ${className}`}>
-      {f.points.map((p, i) => (
+      {shown.map((p, i) => (
         <li key={i}>
           <Rich text={plain ? plainPoint(p) : p} />
         </li>
@@ -110,10 +123,55 @@ export function needsClosingPrice(c: CompanyResult, f: Flag): boolean {
 /** The headline: why this position stopped, in one plain line. A missing input outranks
     everything else, because it is the reason there is no supported mark at all. */
 export function exceptionHeadline(c: CompanyResult, acts: Flag[], names: Map<string, string> | undefined): string {
-  const f = acts[0];
-  if (!f) return c.monitor ? "Noted only — nothing to decide" : "No exceptions raised";
-  const name = flagName(f, names);
-  return acts.length > 1 ? `${name}, and ${acts.length - 1} more finding${acts.length > 2 ? "s" : ""}` : name;
+  if (acts.length === 0) return c.monitor ? "Nothing to decide — monitoring only" : "No exceptions raised";
+  // Name what is actually wrong. "and 1 more finding" told a reviewer there was something else
+  // without saying what, which is the one thing a headline must not do. Beyond three the tail is
+  // counted rather than listed, because the list below has them all in order anyway.
+  const all = acts.map((f) => flagName(f, names));
+  const shown = all.slice(0, 3);
+  const rest = all.length - shown.length;
+  const joined =
+    shown.length === 1
+      ? shown[0]
+      : shown.slice(0, -1).join(", ") + " and " + shown[shown.length - 1].charAt(0).toLowerCase() + shown[shown.length - 1].slice(1);
+  return rest > 0 ? `${joined}, and ${rest} more` : joined;
+}
+
+/** What is still outstanding on a finding the suggested step speaks to. A step is a proposal, not
+    a resolution: nothing is settled until a person records a decision, and where the finding is a
+    missing input, not even then — the input has to arrive. Named specifically so the reviewer
+    knows what to go and get. */
+/** A finding whose own evidence says its inputs predate an event this quarter — the runway
+    computed from a cash balance filed before the round that has just closed. The number is real;
+    it is simply not yet a fact about the position as it now stands. */
+export function unverifiedNote(f: Flag): string | null {
+  const fin = f.evidence.financings_in_quarter;
+  if (Array.isArray(fin) && fin.length > 0) {
+    return "Estimated, not verified: measured on cash and burn filed before this quarter's financing.";
+  }
+  return null;
+}
+
+export function pendingLabel(f: Flag): string {
+  switch (f.rule_id) {
+    case "X-113":
+      return "Pending the quarter-end close";
+    case "X-304":
+    case "X-303":
+      return "Pending updated cash data";
+    case "X-112":
+      return "Pending the acquirer's share terms";
+    case "X-116":
+      return "Pending a recovery estimate";
+    case "X-900":
+      return "Pending a corrected workbook row";
+    case "X-918":
+      return "Pending a Portfolio row";
+    case "M-999":
+      return "Pending an agreed treatment";
+    default:
+      return "Pending your confirmation";
+  }
 }
 
 /** The flags in the order a reviewer should meet them: the missing-input finding first, then
@@ -137,6 +195,17 @@ const OPTION_VERB: Record<string, string> = {
   to_cost: "Mark down to cost",
   reconfirm: "Re-confirm booked mark",
   adopt_proposed: "Adopt revised proposal",
+  at_cost: "Mark to cost",
+  write_to_zero: "Write down to zero",
+  at_secondary_price: "Book at the secondary price",
+  at_ipo_print: "Book at the listing-day price",
+  at_market_close: "Book at the market close",
+  at_proceeds_price: "Book at the price the proceeds imply",
+  at_last_round: "Book at the last round's price",
+  probability_weighted: "Book the probability-weighted figure",
+  with_lockup_discount: "Apply the lock-up discount",
+  term_sheet_indicated: "Book the term sheet's indicated value",
+  calibrated_to_comps: "Calibrate to public comps",
 };
 export function optionVerb(s: Suggestion): string {
   return OPTION_VERB[s.key] ?? "Apply suggested step";
@@ -167,7 +236,7 @@ export function FlagDetailModal({ f, company, onClose }: { f: Flag; company: str
       {f.action && <p className="text-[13.5px] font-semibold leading-snug mb-2">{f.action}</p>}
       {f.points.length > 0 && <FlagPoints f={f} className="mb-3" />}
       <div className="text-[11px] uppercase tracking-wider text-muted mt-3 mb-1">In full</div>
-      <p className="text-[12.5px] text-ink2 leading-[1.55] m-0 whitespace-normal">{f.message}</p>
+      <p className="text-[12.5px] text-ink2 leading-[1.55] m-0 whitespace-normal">{plainSystemPhrase(f.message)}</p>
       {why && (
         <>
           <div className="text-[11px] uppercase tracking-wider text-muted mt-3 mb-1">Why this rule, why this severity</div>
@@ -189,15 +258,17 @@ export function FlagDetailModal({ f, company, onClose }: { f: Flag; company: str
           <div className="inputs">
             {ev.map(([k, v]) => (
               <Fragment key={k}>
-                <span className="text-[11px] text-muted">{evidenceLabel(k)}</span>
+                <span className="text-[11px] text-muted" title={k}>
+                  {evidenceLabel(k)}
+                </span>
                 <span className="num text-[11.5px] text-right">
-                  {v === null || v === undefined
-                    ? "—"
-                    : Array.isArray(v)
-                      ? v.map((x) => (typeof x === "string" ? x.replace(/_/g, " ") : String(x))).join("; ")
-                      : typeof v === "object"
-                        ? Object.entries(v as Record<string, unknown>).map(([a, b]) => `${a.replace(/_/g, " ")}: ${String(b)}`).join("; ")
-                        : String(v)}
+                  {Array.isArray(v)
+                    ? v.map((x) => evidenceValue(x)).join("; ")
+                    : v !== null && typeof v === "object"
+                      ? Object.entries(v as Record<string, unknown>)
+                          .map(([a, b]) => `${evidenceLabel(a)}: ${evidenceValue(b)}`)
+                          .join("; ")
+                      : evidenceValue(v)}
                 </span>
                 <span />
               </Fragment>
@@ -552,6 +623,113 @@ function SourceChip({ rec }: { rec: Recommendation }) {
 
 /** Who chose the position's one next step. An AI draft is labelled and editable; a policy
     suggestion is the rule's own default, which is what a run with no key falls back to. */
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function monthLabel(k: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(k ?? "");
+  return m ? `${MONTHS[Number(m[2]) - 1]} ${m[1]}` : k;
+}
+
+function num_(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/** Which recorded alternative a suggestion's number *is*. Matching on the value, not on the
+    option's key, is what keeps a derivation honest: it describes the figure actually shown. */
+function altKind(c: CompanyResult, s: Suggestion): string | null {
+  for (const [k, v] of Object.entries(c.alternative_marks ?? {})) {
+    if (Math.abs(s.booked - v) < 5e-3) return k;
+  }
+  return null;
+}
+
+/** How the figure in front of the reviewer was arrived at — assembled only from numbers the run
+    recorded. Null when nothing is on file: no derivation is better than an invented one. */
+function calcBasis(c: CompanyResult, s: Suggestion): string | null {
+  const alt = altKind(c, s);
+  if (alt === "calibrated_to_comps") {
+    const i = c.steps.find((x) => x.rule_id === "M-080")?.inputs;
+    const then = num_(i?.comp_multiple_at_round);
+    const now = num_(i?.comp_multiple_now);
+    const raw = num_(i?.factor_raw);
+    const bounded = num_(i?.factor_bounded);
+    if (i === undefined || then === null || now === null || raw === null || bounded === null) return null;
+    return (
+      `${String(i.sector ?? "Sector")} comparables moved ${then.toFixed(1)}× in ${monthLabel(String(i.comp_month_used))} to ` +
+      `${now.toFixed(1)}× at the measurement date, ${pct(raw - 1, 0, true)}` +
+      (i.bound_hit ? `, held to ${pct(bounded - 1, 0, true)} by the policy limit` : "") +
+      `. Applied to the $${musd(c.equity_mark)}M equity mark: $${musd(s.booked)}M.`
+    );
+  }
+  if (alt === "structure_adjusted") {
+    const h = num_(c.flags.find((f) => num_(f.evidence.structure_haircut_pct) !== null)?.evidence.structure_haircut_pct);
+    return h === null ? null : `The policy's ${pct(h, 0)} junior-class haircut applied to the round price: $${musd(s.booked)}M.`;
+  }
+  if (s.key === "hold_prior") return `The prior mark, $${musd(c.prior_mark)}M, carried unchanged.`;
+  if (s.key === "as_proposed" || s.key === "adopt_proposed") return `The engine's proposed mark, $${musd(c.proposed_mark)}M, unchanged.`;
+  if (s.key === "to_cost" || s.key === "at_cost") return `Invested capital to date, $${musd(c.invested_after)}M.`;
+  if (s.key === "write_to_zero") return "The position written to zero.";
+  return null;
+}
+
+/** What a person has to check before this figure can be booked. A computed alternative is not a
+    validated one, and the card must not read as though it were. */
+function prerequisite(c: CompanyResult, s: Suggestion, covers: Flag[] = []): string {
+  // A finding the step speaks to names its own precondition better than the option key can:
+  // "confirm post-financing cash and monthly burn" is actionable, "confirm the inputs" is not.
+  const byFinding: Record<string, string> = {
+    "X-304": "Before approval: confirm post-financing cash and monthly burn.",
+    "X-303": "Before approval: confirm post-financing cash and monthly burn.",
+    "X-113": "Before approval: obtain the quarter-end closing price and its source.",
+    "X-112": "Before approval: confirm the acquirer's share count, listing and lock-up terms.",
+    "X-116": "Before approval: obtain a recovery estimate for the reorganisation.",
+    "X-102": "Before approval: read the round documents and confirm the preference stack and pay-to-play.",
+    "X-106": "Before approval: confirm nobody re-tested the price, and that the extension terms are as filed.",
+    "X-119": "Before approval: reconcile HC's cheque against the stated post-money.",
+    "X-123": "Before approval: confirm the mechanism that raised HC's stake without a cheque.",
+    "X-134": "Before approval: confirm why the row carries a figure its event type does not use.",
+    "X-900": "Before approval: correct the workbook row the data checks name, and rerun.",
+  };
+  for (const f of covers) {
+    const line = byFinding[f.rule_id];
+    if (line) return line;
+  }
+  const alt = altKind(c, s);
+  if (alt === "calibrated_to_comps")
+    return "Before approval: confirm the comparable companies, the underlying data, and the adjustment limit.";
+  if (alt === "structure_adjusted")
+    return "Before approval: confirm the preference stack, and that the policy haircut is the right stand-in for it.";
+  switch (s.key) {
+    case "hold_prior":
+      return "Before approval: confirm the prior mark still holds at the measurement date.";
+    case "as_proposed":
+    case "adopt_proposed":
+      return "Before approval: confirm the inputs the proposed mark rests on.";
+    case "to_cost":
+    case "at_cost":
+      return "Before approval: confirm invested cost is a defensible floor for this position.";
+    default:
+      return "Before approval: confirm the inputs behind this figure.";
+  }
+}
+
+/** The comparable set and the feed behind a calibrated figure, straight off the recorded step. */
+function sourceRows(c: CompanyResult, s: Suggestion): [string, string][] {
+  if (altKind(c, s) !== "calibrated_to_comps") return [];
+  const i = c.steps.find((x) => x.rule_id === "M-080")?.inputs;
+  if (!i) return [];
+  const nThen = num_(i.n_constituents_at_round);
+  const nNow = num_(i.n_constituents_now);
+  const rows: [string, string][] = [["Comparable set", String(i.sector ?? "—")]];
+  if (nNow !== null || nThen !== null) {
+    rows.push(["Constituents", `${nNow ?? "—"} at the measurement date · ${nThen ?? "—"} in ${monthLabel(String(i.comp_month_used))}`]);
+  }
+  rows.push(["Feed", marketSourceLabel(typeof i.comps_source === "string" ? i.comps_source : null)]);
+  const age = num_(i.age_months);
+  if (age !== null) rows.push(["Price age", `${age} months since ${monthLabel(String(i.round_month))}`]);
+  return rows;
+}
+
 function StepSource({ rec }: { rec: PositionRecommendation }) {
   if (rec.source === "claude") {
     return (
@@ -598,8 +776,23 @@ export function PositionStep({
   const delta = chosen.booked - c.proposed_mark;
   const price = needsClosingPrice(c, lead);
   const asOf = lead.evidence.measurement_date ? String(lead.evidence.measurement_date) : "quarter-end";
-  const others = acts.flatMap((f) => f.suggestions.filter((s) => !(f.rule_id === lead.rule_id && s.key === chosen.key)).map((s) => ({ f, s })));
-  const leadIndex = acts.findIndex((f) => f.rule_id === lead.rule_id) + 1;
+  // One row per distinct resolution. The same option raised on two findings — "keep the mark as
+  // proposed" on both — is one thing a reviewer can do, not two, and listing it twice (and again
+  // alongside the recommended one) was reading as three choices where there were two.
+  const seenOption = new Set<string>([`${chosen.key}|${chosen.booked.toFixed(4)}`]);
+  const others = acts
+    .flatMap((f) => f.suggestions.map((s) => ({ f, s })))
+    .filter(({ s }) => {
+      const k = `${s.key}|${s.booked.toFixed(4)}`;
+      if (seenOption.has(k)) return false;
+      seenOption.add(k);
+      return true;
+    });
+  const coveredFlags = (rec ? rec.covers : [lead.rule_id])
+    .map((id) => acts.find((f) => f.rule_id === id))
+    .filter((f): f is Flag => f !== undefined);
+  const covered = coveredFlags.map((f) => flagName(f, names));
+  const stillOpen = acts.length - covered.length;
 
   if (decided) {
     return (
@@ -615,82 +808,131 @@ export function PositionStep({
     );
   }
 
+  const basis = price ? null : calcBasis(c, chosen);
+  const sources = price ? [] : sourceRows(c, chosen);
+  const reasons = price
+    ? [`A listed security is worth its ${shortDate(asOf)} close (Level 1, ASC 820); no quote is on file, so the number shown is the listing-day cap standing in.`, ...(rec ? rec.reasons : chosen.reasons)]
+    : rec
+      ? rec.reasons
+      : chosen.reasons;
+  // Two supporting lines, no more: what happened and why it matters. How the number was arrived at
+  // is a working, not a reason, and lives under Sources & calculation with the rest of the
+  // provenance. The stand-in case prepends its own line, so it is left unlabelled.
+  const POINT_KEYS = price ? [] : ["What happened", "Why it matters"];
+  const shownReasons = reasons.slice(0, price ? 3 : 2);
+
   return (
     <div className="step">
-      <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-        <p className="step-label m-0">
-          {price
-            ? `Add the ${shortDate(asOf)} closing price and recalculate; until it is on file the listing-day stand-in holds.`
-            : rec
-              ? <Rich text={rec.label} />
-              : <Rich text={chosen.label} />}
-        </p>
-        {rec ? <StepSource rec={rec} /> : null}
-      </div>
-      {acts.length > 1 && (
-        <div className="text-[11px] text-muted">
-          This step takes finding <b>{leadIndex}</b>, {flagName(lead, names)}
-          {rec && rec.covers.length > 1
-            ? `, and settles ${rec.covers.length} of the ${acts.length} open findings.`
-            : acts.length - 1 === 1
-              ? "; the other finding stays open."
-              : `; the other ${acts.length - 1} findings stay open.`}
-        </div>
-      )}
-      <div className="step-num num">
-        {musd(chosen.booked)}
-        <span className={`ml-1 text-[10.5px] ${price ? "text-muted" : signClass(delta)}`}>
-          {price ? "Stand-in until priced" : Math.abs(delta) < 5e-3 ? "As proposed" : `(${signed(delta)})`}
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="step-head num">
+          {price ? "Stand-in mark" : "Recommended mark"} ${musd(chosen.booked)}M
         </span>
-        {apply && !price && (
+        <span className={`text-[11.5px] num ${price ? "text-muted" : signClass(delta)}`}>
+          {price
+            ? "not bookable until priced"
+            : Math.abs(delta) < 5e-3
+              ? "as proposed"
+              : `${delta > 0 ? "+" : "−"}$${musd(Math.abs(delta))}M from the proposed $${musd(c.proposed_mark)}M`}
+        </span>
+        {rec ? <span className="ml-auto">{<StepSource rec={rec} />}</span> : null}
+      </div>
+
+      <p className="step-say m-0">
+        {price
+          ? `Add the ${shortDate(asOf)} closing price and recalculate; until it is on file the listing-day stand-in holds.`
+          : rec
+            ? <Rich text={rec.label} />
+            : <Rich text={chosen.label} />}
+      </p>
+
+      {covered.length > 0 && (
+        <p className="step-addresses m-0">
+          Addresses: {covered.join(" · ")}
+          {stillOpen > 0 && ` · ${stillOpen} further finding${stillOpen === 1 ? "" : "s"} not addressed by this step`}
+        </p>
+      )}
+
+      <ul className="step-points">
+        {shownReasons.map((x, i) => (
+          <li key={i}>
+            {POINT_KEYS[i] ? <span className="step-point-k">{POINT_KEYS[i]} — </span> : null}
+            <Rich text={x} />
+          </li>
+        ))}
+      </ul>
+
+      <p className="step-before m-0">
+        {price
+          ? "Before approval: obtain the quarter-end closing price and its source. A stand-in mark cannot be booked."
+          : prerequisite(c, chosen, coveredFlags)}
+      </p>
+
+      <div className="step-more">
+        {(basis || sources.length > 0 || rec?.rationale || rec?.note) && (
+          <details className="step-why">
+            <summary>Sources &amp; calculation</summary>
+            <div className="step-why-body">
+              {basis && (
+                <div>
+                  <div className="step-sub">How this figure was calculated</div>
+                  <p className="m-0 mt-1 text-[11.5px] leading-[1.55] text-ink2">{basis}</p>
+                </div>
+              )}
+              {sources.length > 0 && (
+                <dl className="step-src">
+                  {sources.map(([k, v]) => (
+                    <Fragment key={k}>
+                      <dt>{k}</dt>
+                      <dd className="num">{v}</dd>
+                    </Fragment>
+                  ))}
+                </dl>
+              )}
+              {rec?.rationale && (
+                <div>
+                  <div className="step-sub">Methodology</div>
+                  <p className="suggest-rationale m-0 mt-1"><Rich text={rec.rationale} /></p>
+                </div>
+              )}
+              {rec?.note && <p className="suggest-rationale m-0">{rec.note}</p>}
+            </div>
+          </details>
+        )}
+        {others.length > 0 && (
+          <details className="step-why">
+            <summary>Other approaches ({others.length})</summary>
+            <div className="step-why-body">
+              {others.map(({ f, s }) => {
+                const d = s.booked - c.proposed_mark;
+                return (
+                  <div key={`${f.rule_id}/${s.key}`} className="step-other">
+                    <span className="text-[11.5px] font-normal leading-snug">{s.label}</span>
+                    <span className="num text-[11.5px] whitespace-nowrap">
+                      ${musd(s.booked)}M <span className={`text-[10.5px] ${signClass(d)}`}>({signed(d)})</span>
+                    </span>
+                    <WriteButton disabledReason={writeDisabled} className="btn btn-ghost text-[11px]" onClick={() => setPick({ kind: "option", s })}>
+                      {optionVerb(s)}
+                    </WriteButton>
+                    <span className="step-other-answers">Answers: {flagName(f, names)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+        )}
+      </div>
+
+      {apply && !price && (
+        <div>
           <WriteButton
             disabledReason={writeDisabled}
-            className="btn btn-ghost ml-auto text-[11px]"
+            className="btn btn-ghost text-[11px]"
             onClick={() => setPick(rec ? { kind: "step", s: chosen, rec } : { kind: "option", s: chosen })}
           >
             {optionVerb(chosen)}
           </WriteButton>
-        )}
-      </div>
-      <details className="step-why">
-        <summary>
-          Why this step{others.length ? ` · ${others.length} other way${others.length === 1 ? "" : "s"} to resolve it` : ""}
-        </summary>
-        <ul className="suggest-why mt-1">
-          {(price
-            ? [`A listed security is worth its ${shortDate(asOf)} close (Level 1, ASC 820); no quote is on file, so the number shown is the listing-day cap standing in.`, ...(rec ? rec.reasons : chosen.reasons)]
-            : rec
-              ? rec.reasons
-              : chosen.reasons
-          ).map((x, i) => (
-            <li key={i}><Rich text={x} /></li>
-          ))}
-        </ul>
-        {rec?.rationale && <p className="suggest-rationale m-0 mt-1"><Rich text={rec.rationale} /></p>}
-        {rec?.note && <p className="suggest-rationale m-0 mt-1">{rec.note}</p>}
-        {others.length > 0 && (
-          <div className="mt-2 flex flex-col gap-1">
-            {others.map(({ f, s }) => {
-              const d = s.booked - c.proposed_mark;
-              const n = acts.findIndex((x) => x.rule_id === f.rule_id) + 1;
-              return (
-                <div key={`${f.rule_id}/${s.key}`} className="step-other">
-                  <span className="text-[11.5px] leading-snug">
-                    {acts.length > 1 && <span className="text-muted">{n}. </span>}
-                    {s.label}
-                  </span>
-                  <span className="num text-[11.5px] whitespace-nowrap">
-                    {musd(s.booked)} <span className={`text-[10.5px] ${signClass(d)}`}>({signed(d)})</span>
-                  </span>
-                  <WriteButton disabledReason={writeDisabled} className="btn btn-ghost text-[11px]" onClick={() => setPick({ kind: "option", s })}>
-                    {optionVerb(s)}
-                  </WriteButton>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </details>
+        </div>
+      )}
       {pick && (
         <ConfirmModal
           c={c}
@@ -866,7 +1108,7 @@ export function FlagActionList({
   return (
     <>
       <div className="eyebrow-sm">
-        Why flagged{flags.length > 1 ? ` · ${flags.length} findings` : ""}
+        {flags.length > 1 ? `The ${flags.length} findings` : "The finding"}
       </div>
       <ol className="finding-list">
         {flags.map((f, i) => (
@@ -883,12 +1125,17 @@ export function FlagActionList({
                   </span>
                 )}
                 {flags.length > 1 && covered?.includes(f.rule_id) && (
-                  <span className="chip disp-CLEAR no-dot" style={{ fontSize: 10 }} title="The suggested next step settles this finding">
-                    Settled by the step
+                  <span
+                    className="chip disp-MONITOR no-dot"
+                    style={{ fontSize: 10 }}
+                    title="The suggested next step speaks to this finding. A suggestion is a proposal, not a resolution — nothing is settled until a decision is recorded, and a missing input has to arrive first."
+                  >
+                    {pendingLabel(f)}
                   </span>
                 )}
               </div>
-              <FlagPoints f={f} plain className="mt-1" />
+              <FlagPoints f={f} plain limit={3} className="mt-1" />
+              {unverifiedNote(f) && <p className="finding-unverified m-0 mt-1">{unverifiedNote(f)}</p>}
               <button
                 className="btn btn-ghost mt-1 text-[11px]"
                 onClick={() => setDetail(i)}

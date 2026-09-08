@@ -1,10 +1,10 @@
 import { Fragment, useState, type ReactNode } from "react";
 import { READINESS_HINT, type CompanyResult, type MarkStep } from "../types";
 import { isoDate, musd, pct, signed, signClass } from "../lib/format";
-import { altLabel, evidenceLabel, familyLabel, humanize, kindLabel, readinessClass, severityShort, shortRef } from "../lib/labels";
+import { altLabel, evidenceLabel, evidenceValue, humanize, kindLabel, readinessClass, severityShort, shortRef } from "../lib/labels";
 import { postOverride } from "../lib/api";
 import { eventRowRef, inputRef, portfolioRowRef, useSources } from "../lib/sources";
-import { FlagActionList, FlagDetailModal, FlagNoteList } from "./Flags";
+import { flagName, FlagActionList, FlagDetailModal, FlagNoteList, useFlagNames } from "./Flags";
 import { MarkHistoryCard } from "./MarkHistoryChart";
 import { FlagHistoryCard, PriorFlagPill } from "./FlagHistory";
 import { VendorSignalsCard } from "./VendorSignals";
@@ -12,13 +12,13 @@ import { CopyRef, Field, KV, Label, Modal, WriteButton, ReadinessChip } from "./
 
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 });
 
-/** Step inputs are heterogeneous: numbers, dates, provider strings, booleans. */
+/** Step inputs are heterogeneous: numbers, dates, provider strings, booleans. Numbers keep the
+    engine's precision; everything else goes through the display vocabulary, so a policy token
+    (`last_round`) and a flag (`true`) arrive as words. The raw key stays in the row's tooltip. */
 function inputValue(v: unknown): string {
-  if (v === null || v === undefined) return "—";
   if (typeof v === "number") return Number.isInteger(v) ? nf.format(v) + ".0" : nf.format(v);
-  if (typeof v === "boolean") return v ? "true" : "false";
-  if (typeof v === "string") return v;
-  return JSON.stringify(v);
+  if (v !== null && typeof v === "object") return JSON.stringify(v);
+  return evidenceValue(v);
 }
 
 /** Every input the rule read, with the workbook cell behind it where one exists. */
@@ -164,6 +164,7 @@ export function OverrideModal({
       else next.add(id);
       return next;
     });
+  const names = useFlagNames();
   const needsRules = c.flags.length > 0;
   const valid = approver.trim() && reason.trim() && Number.isFinite(parseFloat(booked)) && (!needsRules || addressed.size > 0);
   return (
@@ -173,18 +174,21 @@ export function OverrideModal({
         is replaced and the decision is written to the ledger with your name.
       </p>
       {needsRules && (
-        <Field label="Flags this decision resolves">
+        <Field label="What this decision settles">
           <div className="flex flex-col gap-1 mb-1">
             {c.flags.map((f) => (
               <label key={f.rule_id} className="flex items-baseline gap-2 text-[12px] cursor-pointer">
                 <input type="checkbox" checked={addressed.has(f.rule_id)} onChange={() => toggle(f.rule_id)} />
-                <span className="mono">{f.rule_id}</span>
+                <span className="text-ink2 truncate">{flagName(f, names)}</span>
                 <span className="text-muted">{severityShort(f.severity)}</span>
-                <span className="text-ink2 truncate">{familyLabel(f.family)}</span>
+                {/* the code stays on the row: it is what the ledger records against this decision */}
+                <span className="mono text-[10.5px] text-muted ml-auto">{f.rule_id}</span>
               </label>
             ))}
           </div>
-          {addressed.size === 0 && <div className="text-[11px] down">Tick at least one flag — an override must say what it decides.</div>}
+          {addressed.size === 0 && (
+            <div className="text-[11px] down">Tick at least one finding — a decision must say what it settles.</div>
+          )}
         </Field>
       )}
       <Field label="Booked mark ($M)">

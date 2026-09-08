@@ -101,7 +101,7 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
               style={{ width: `${job.error ? 100 : Math.max(pct, 4)}%`, transition: "width 250ms" }}
             />
           </div>
-          <div className="flex justify-between text-[11px] text-muted mb-1">
+          <div className={`flex justify-between text-[11px] text-muted ${job.done ? "mb-3" : "mb-1"}`}>
             <span>{job.message}</span>
             <span className="num">
               {job.done && !job.error ? `done in ${elapsed}s` : `step ${Math.min(job.stage + 1, job.total)} of ${job.total} · ${elapsed}s`}
@@ -113,13 +113,6 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
               that needs the live comps feed, can take a little while — nothing to do but wait.
             </div>
           )}
-          <ol className="text-[11px] text-muted space-y-0.5 mb-3 pl-4">
-            {job.stages.map((s, i) => (
-              <li key={s} className={i < job.stage || (job.done && !job.error) ? "text-ink2" : i === job.stage && !job.done ? "text-ink font-medium" : ""}>
-                {s}
-              </li>
-            ))}
-          </ol>
           {job.error && (
             <div className="card disp-BLOCK stripe p-3 pl-4 text-[12px] mb-3">
               <div className="font-semibold mb-1">The workbook could not be loaded — the previous run is still shown.</div>
@@ -151,8 +144,9 @@ function UploadDialog({ onClose, onLoaded }: { onClose: () => void; onLoaded: ()
                 </div>
               )}
               {job.policy_created && (
-                <div className="text-[11px] mt-1.5 text-muted">
-                  No policy file existed for {r.quarter}; <span className="mono">{job.policy_created}</span> was written from the base policy.
+                <div className="text-[11px] mt-1.5 text-muted" title={job.policy_created}>
+                  No policy existed for {r.quarter}, so one was created from the base policy. Its thresholds are the base ones until
+                  someone changes them.
                 </div>
               )}
               {r.synthetic && <div className="text-[11px] mt-1.5 text-[var(--block-text)]">This workbook is marked as synthetic test data.</div>}

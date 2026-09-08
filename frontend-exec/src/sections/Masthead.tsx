@@ -1,4 +1,5 @@
 import type { ExecView } from "../types";
+import { OutputWorkbookButton } from "../components/OutputWorkbook";
 import { longDate, plural } from "../lib/format";
 
 export const NAV = [
@@ -71,6 +72,7 @@ export function TopBar({ view }: { view: ExecView }) {
             </a>
           ))}
         </nav>
+        <OutputWorkbookButton />
         <StatusBadge view={view} compact />
       </div>
     </header>
@@ -95,8 +97,8 @@ export function Masthead({ view }: { view: ExecView }) {
           {proposed && (
             <div className="mt-2 text-[12.5px] text-muted max-w-[68ch]">
               A pre-read released before the committee sat: the review tool's own Publish stays locked until every decision and
-              confirmation is recorded, so this snapshot was released deliberately as <span className="text-ink2">proposed</span>{" "}
-              (from the command line) for the reading ahead of the meeting.
+              confirmation is recorded, so this snapshot was released deliberately as <span className="text-ink2">proposed</span>, for
+              the reading ahead of the meeting.
             </div>
           )}
         </div>

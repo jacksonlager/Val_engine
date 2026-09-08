@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { dirClass, signed, signedPct } from "../lib/format";
+import { dirClass, dispositionLabel, signed, signedPct } from "../lib/format";
 import type { Disposition } from "../types";
 
 export function Section({
@@ -29,8 +29,10 @@ export function Section({
   );
 }
 
-export function Chip({ d }: { d: Disposition | string }) {
-  return <span className={`chip chip-${d}`}>{d}</span>;
+/** The value keys the colour (`chip-BLOCK`); the label is what a reader sees. `label` overrides
+    it where the surrounding sentence already names the state. */
+export function Chip({ d, label }: { d: Disposition | string; label?: string }) {
+  return <span className={`chip chip-${d}`}>{label ?? dispositionLabel(d)}</span>;
 }
 
 /** Signed delta in $M, coloured by direction. */

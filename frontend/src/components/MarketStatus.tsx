@@ -1,16 +1,14 @@
-// Where the market data came from and when: "Live data as of 7 Sep 2026" with a Refresh button that
-// refetches the feed over its cache and reruns the book. The fixture and synthetic data have nothing to
-// refresh, so the button only appears for a live-priced workbook. A failed fetch keeps the data on file
-// and says so; nothing here ever invents a number.
+// Where the market data came from and when: "Live data as of 8 Sep 2026". There is no Refresh
+// button: the server refetches the live feed on start whenever the cache predates today, so the
+// dashboard always opens on current data and this line simply says which day it is. A failed fetch
+// keeps the data on file and says so; nothing here ever invents a number.
 import { useEffect, useState } from "react";
 import type { MarketStatus } from "../types";
-import { loadMarketStatus, refreshMarket } from "../lib/api";
+import { loadMarketStatus } from "../lib/api";
 import { shortDate } from "../lib/format";
 
-export function MarketStatusButton({ refreshKey, onRefreshed, compact = false }: { refreshKey: number; onRefreshed: () => void; compact?: boolean }) {
+export function MarketStatusButton({ refreshKey, compact = false }: { refreshKey: number; compact?: boolean }) {
   const [status, setStatus] = useState<MarketStatus | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -31,31 +29,11 @@ export function MarketStatusButton({ refreshKey, onRefreshed, compact = false }:
       ? "Synthetic test data"
       : "Illustrative data";
 
-  const go = async () => {
-    if (busy) return;
-    setBusy(true);
-    setNote(null);
-    try {
-      const r = await refreshMarket();
-      setStatus(r.market);
-      setNote(r.message);
-      onRefreshed();
-    } catch (e) {
-      setNote(String((e as Error).message ?? e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <span className={`inline-flex items-center gap-1.5 ${compact ? "text-[11px]" : "text-[12px]"} text-ink2 whitespace-nowrap`}>
-      <span title={status.fetched_at ? `Fetched ${status.fetched_at}` : undefined}>{label}</span>
-      {status.refreshable && (
-        <button className="btn btn-ghost px-2 py-0.5 text-[11px]" onClick={go} disabled={busy} title="Refetch the live feed now and rerun the book on it">
-          {busy ? "Refreshing…" : "Refresh"}
-        </button>
-      )}
-      {note && <span className="text-[11px] text-muted">{note}</span>}
+      <span title={live ? "Refetched automatically when the dashboard starts on a day the data has not been fetched" : undefined}>
+        {label}
+      </span>
     </span>
   );
 }

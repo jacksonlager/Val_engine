@@ -89,23 +89,6 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
 
   const colorOf = (k: Bridge["kind"]) => (k === "up" ? th.up : k === "down" ? th.down : th.neutral);
 
-  const s = run.sensitivity;
-  // one headline: the brief's "software multiples"; the wider scope is a secondary line and the slider's switch
-  const soft = typeof s["nav_if_software_multiples_-20pct"] === "number";
-  const loKey = soft ? "nav_if_software_multiples_-20pct" : "nav_if_multiples_-20pct";
-  const hiKey = soft ? "nav_if_software_multiples_+20pct" : "nav_if_multiples_+20pct";
-  const exposedNav = soft ? s.software_exposed_nav : s.multiple_exposed_nav;
-  const sens = [
-    { name: "Multiples −20%", value: s[loKey], key: "down" },
-    { name: "Base (booked)", value: s.base_nav, key: "base" },
-    { name: "Multiples +20%", value: s[hiKey], key: "up" },
-  ].filter((x) => x.value !== undefined);
-  const exposedShare = s.base_nav ? exposedNav / s.base_nav : null;
-  const sensMin = Math.min(...sens.map((x) => x.value));
-  const sensMax = Math.max(...sens.map((x) => x.value));
-  const sFloor = Math.floor((sensMin - (sensMax - sensMin) * 0.4) / 100) * 100;
-  const sCeil = Math.ceil((sensMax + (sensMax - sensMin) * 0.05) / 100) * 100;
-
   const switcher = (
     <div className="view-switch" role="tablist" aria-label="Movement views">
       <button role="tab" aria-selected={!sensitivity} className={`btn ${!sensitivity ? "btn-primary" : "btn-ghost"}`} onClick={() => setSensitivity(false)}>
@@ -217,62 +200,11 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
         </div>
       </div>
 
-      <div className="card p-4">
-        <SectionTitle
-          right={
-            <button className="btn btn-ghost" onClick={() => setSensitivity(true)} title="Slider from −20% to +20%, by sector, fund and position">
-              Open slider →
-            </button>
-          }
-        >
-          Sensitivity · {soft ? "software" : "revenue"} multiples ±20%
-        </SectionTitle>
-        <p className="text-[11px] text-muted mb-2 num">
-          Shock applied to {soft ? "software-sector " : ""}Level 3 positions with ARR above the screening floor: {musd(exposedNav, 1)} of{" "}
-          {musd(s.base_nav, 1)} ({pct(exposedShare)}). Level 1, pre-revenue and terminal positions held flat. $M.
-        </p>
-        <div style={{ height: 150 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={sens} layout="vertical" margin={{ top: 4, right: 64, left: 4, bottom: 4 }} barCategoryGap="30%">
-              <XAxis type="number" domain={[sFloor, sCeil]} allowDataOverflow hide />
-              <YAxis type="category" dataKey="name" width={112} tick={{ fill: th.ink2, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip
-                cursor={{ fill: th.grid, opacity: 0.5 }}
-                content={({ active, payload }) =>
-                  active && payload?.length ? (
-                    <div className="tooltip-box num">
-                      <strong>{musd(payload[0].value as number)}</strong> <span className="text-muted">{payload[0].payload.name}</span>
-                    </div>
-                  ) : null
-                }
-              />
-              <Bar dataKey="value" isAnimationActive={false} maxBarSize={22} radius={[0, 3, 3, 0]}>
-                {sens.map((x, i) => (
-                  <Cell key={i} fill={x.key === "base" ? th.neutral : th.series1} />
-                ))}
-                <LabelList
-                  dataKey="value"
-                  position="right"
-                  fill={th.ink2}
-                  fontSize={11}
-                  fontFamily="IBM Plex Mono, ui-monospace, monospace"
-                  formatter={(v: number) => musd(v, 1)}
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+      {run.comps_move && (
+        <div className="card p-4">
+          <CompsMoveCard m={run.comps_move} />
         </div>
-        <div className="text-[11px] text-ink2 mt-1 num">
-          Range {signed(sens[0].value - s.base_nav, 1)} / {signed(sens[sens.length - 1].value - s.base_nav, 1)} around base. Axis starts at {musd(sFloor, 0)}.
-          {soft && typeof s["nav_if_multiples_-20pct"] === "number" && (
-            <>
-              {" "}
-              Every multiple-exposed position: {signed(s["nav_if_multiples_-20pct"] - s.base_nav, 1)} / {signed(s["nav_if_multiples_+20pct"] - s.base_nav, 1)}.
-            </>
-          )}
-        </div>
-        {run.comps_move && <CompsMoveCard m={run.comps_move} />}
-      </div>
+      )}
     </div>
     </div>
   );
@@ -284,7 +216,7 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
 function CompsMoveCard({ m }: { m: CompsMove }) {
   const share = m.exposed_nav ? m.covered_nav / m.exposed_nav : 0;
   return (
-    <div className="mt-4 pt-3 border-t border-line">
+    <div>
       <SectionTitle
         right={
           m.all_live ? (

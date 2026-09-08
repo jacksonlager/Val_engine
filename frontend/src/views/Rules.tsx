@@ -24,19 +24,7 @@ export function whyDisposition(c: CompanyResult): string {
   if (families.length) return `One concern needs a review: ${familyPhrase(families[0])}.`;
   if (c.override) return "A decision is on file, and it stays visible here.";
   if (c.flags.some((f) => f.severity === "MONITOR")) return "Watch items only — nothing to decide.";
-  return "No rule fired on this position.";
-}
-
-function SourceTag({ r }: { r: RuleRationale }) {
-  return r.source === "brief" ? (
-    <span className="rtag rtag-brief" title={`The brief names this exception: “${r.brief_text}”`}>
-      in the brief
-    </span>
-  ) : (
-    <span className="rtag rtag-ours" title="A rule we added; the two bullets are its defence">
-      rule we added
-    </span>
-  );
+  return "No rule raised anything on this position.";
 }
 
 export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
@@ -48,14 +36,11 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
         {r.severity.map((s) => (
           <DispChip key={s} d={s} />
         ))}
-        <span className="ml-auto flex items-center gap-2">
-          {count !== undefined && count > 0 && (
-            <span className="text-[11px] text-muted mono" title="Positions carrying this flag in the current run">
-              ×{count}
-            </span>
-          )}
-          <SourceTag r={r} />
-        </span>
+        {count !== undefined && count > 0 && (
+          <span className="ml-auto text-[11px] text-muted mono" title="Positions carrying this flag in the current run">
+            ×{count}
+          </span>
+        )}
       </div>
       <div className="text-[10.5px] text-muted">
         {familyLabel(r.family)} · reads {r.reads}
@@ -67,6 +52,13 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
         <li>
           <b>Why this severity.</b> {r.why_severity}
         </li>
+        {/* The assessment's own wording for the exception, quoted rather than badged: it says more
+            about the rule than a provenance tag did, and only the rules it actually names carry it. */}
+        {r.source === "brief" && r.brief_text && (
+          <li>
+            <b>Named in the brief.</b> “{r.brief_text}”
+          </li>
+        )}
       </ul>
     </div>
   );
@@ -83,7 +75,6 @@ const STEPS: { q: string; a: string; d: Disposition }[] = [
 
 export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany: (n: string) => void }) {
   const rationale = useRationale();
-  const [source, setSource] = useState<"" | "brief" | "policy">("");
   const [onlyFired, setOnlyFired] = useState(false);
   const [q, setQ] = useState("");
 
@@ -120,9 +111,8 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
 
   const groups = rationale.groups.map((g) => ({
     ...g,
-    rules: rationale.rules.filter((r) => r.family === g.key && (!source || r.source === source) && (!onlyFired || (counts[r.id] ?? 0) > 0)),
+    rules: rationale.rules.filter((r) => r.family === g.key && (!onlyFired || (counts[r.id] ?? 0) > 0)),
   }));
-  const briefCount = rationale.rules.filter((r) => r.source === "brief").length;
 
   return (
     <div className="space-y-4">
@@ -158,17 +148,11 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
       <section>
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <h2 className="text-[14px] font-semibold m-0 mr-2">Why each rule exists, and why that severity</h2>
-          <select className="select" value={source} onChange={(e) => setSource(e.target.value as "" | "brief" | "policy")}>
-            <option value="">Named in the brief, and rules we added</option>
-            <option value="brief">Named in the brief ({briefCount})</option>
-            <option value="policy">Rules we added ({rationale.rules.length - briefCount})</option>
-          </select>
           <label className="flex items-center gap-1.5 text-[12px] cursor-pointer">
-            <input type="checkbox" checked={onlyFired} onChange={(e) => setOnlyFired(e.target.checked)} /> only rules that fired this quarter
+            <input type="checkbox" checked={onlyFired} onChange={(e) => setOnlyFired(e.target.checked)} /> only rules that applied this quarter
           </label>
-          <span className="text-[11px] text-muted ml-auto max-w-[60ch] text-right leading-snug">
-            <span className="rtag rtag-brief">in the brief</span> = one of the five exceptions the assessment names. <span className="rtag rtag-ours">rule we added</span> = a
-            rule we added and must defend. Severity test: <i>could a reviewer change the booked number?</i>
+          <span className="text-[11px] text-muted ml-auto leading-snug">
+            Severity test: <i>could a reviewer change the booked number?</i>
           </span>
         </div>
         <div className="space-y-4">
@@ -176,10 +160,7 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
             .filter((g) => g.rules.length > 0)
             .map((g) => (
               <div key={g.key}>
-                <div className="flex items-baseline gap-2 mb-1.5">
-                  <h3 className="text-[12.5px] font-semibold m-0">{g.title}</h3>
-                  {g.brief_text && <span className="text-[11px] text-muted italic">— “{g.brief_text}”</span>}
-                </div>
+                <h3 className="text-[12.5px] font-semibold m-0 mb-1.5">{g.title}</h3>
                 <div className="grid grid-cols-2 gap-2 max-[1100px]:grid-cols-1">
                   {g.rules.map((r) => (
                     <RuleCard key={r.id} r={r} count={counts[r.id]} />
@@ -204,8 +185,8 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
             <thead>
               <tr>
                 <th>Company</th>
-                <th>Disposition · why the engine gave it</th>
-                <th>Flags · the engine's reason</th>
+                <th>Review status · why it landed there</th>
+                <th>Findings · why each was raised</th>
               </tr>
             </thead>
             <tbody>

@@ -156,7 +156,10 @@ export function PublishControls({
           onDone={(rec) => {
             setOpen(false);
             const next = rec.next_quarter_input ? ` Next quarter's workbook written: ${rec.next_quarter_input.split("/").pop()} — it is in the Workbook select.` : "";
-            const failed = rec.next_quarter_input_error ? ` The next-quarter workbook could not be written (${rec.next_quarter_input_error}); run hc-valuation build.` : "";
+            // the quarter is published either way; the roll-forward workbook is a convenience
+            const failed = rec.next_quarter_input_error
+              ? ` The quarter is published. Next quarter's starting workbook could not be written (${rec.next_quarter_input_error}), so it will have to be prepared by hand.`
+              : "";
             setToast(`Published ${rec.quarter} as ${publishStatusLabel(rec.status)}, released by ${rec.published_by}.${next}${failed}`);
             published.refetch();
           }}

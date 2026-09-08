@@ -6,8 +6,10 @@
    near-black ink #171614, warm greys #423e35 / #78746d, paper surfaces #f9f8f0 / #eeece1,
    taupe hairline #b8b1a4. The site is monochrome, so the accent is the ink; semantic hues are
    separate and validated with the dataviz palette validator against each surface:
-     light status  #b23a2b #a37a12 #5e52a8 #3f7f4e   (BLOCK, REVIEW, MONITOR, CLEAR) - pass
-     dark  status  #d9453a #b8860b #8577e0 #1aa39e   (previously validated) - pass
+     light status  #b23a2b #a37a12 #3f7f4e   (BLOCK, REVIEW, CLEAR) - pass
+     dark  status  #d9453a #b8860b #1aa39e   (previously validated) - pass
+   MONITOR is deliberately not a hue: it never gates anything, so it is a dashed outline in a
+   warm neutral (#9b958a / #8b857a) rather than a fourth colour competing with the three above.
      series (RVPI, DPI) light #423e35 #a37a12 / dark #d8d3c6 #d4a933
    Text tints clear 4.5:1 on their ground. */
 :root {
@@ -35,15 +37,15 @@
 
   --block: #b23a2b;
   --review: #a37a12;
-  --monitor: #5e52a8;
+  --monitor: #9b958a;
   --clear: #3f7f4e;
   --block-text: #9a3224;
   --review-text: #7d5d0b;
-  --monitor-text: #4d4292;
+  --monitor-text: #67625a;
   --clear-text: #316a40;
   --block-wash: rgba(178, 58, 43, 0.10);
   --review-wash: rgba(163, 122, 18, 0.12);
-  --monitor-wash: rgba(94, 82, 168, 0.10);
+  --monitor-wash: transparent;
   --clear-wash: rgba(63, 127, 78, 0.10);
 
   --series-1: #423e35;
@@ -81,15 +83,15 @@
 
     --block: #d9453a;
     --review: #b8860b;
-    --monitor: #8577e0;
+    --monitor: #8b857a;
     --clear: #1aa39e;
     --block-text: #f07a70;
     --review-text: #e0b23a;
-    --monitor-text: #b3a8f5;
+    --monitor-text: #b0aa9e;
     --clear-text: #3fc4b8;
     --block-wash: rgba(217, 69, 58, 0.14);
     --review-wash: rgba(184, 134, 11, 0.14);
-    --monitor-wash: rgba(133, 119, 224, 0.14);
+    --monitor-wash: transparent;
     --clear-wash: rgba(26, 163, 158, 0.14);
 
     --series-1: #d8d3c6;
@@ -127,15 +129,15 @@
 
   --block: #d9453a;
   --review: #b8860b;
-  --monitor: #8577e0;
+  --monitor: #8b857a;
   --clear: #1aa39e;
   --block-text: #f07a70;
   --review-text: #e0b23a;
-  --monitor-text: #b3a8f5;
+  --monitor-text: #b0aa9e;
   --clear-text: #3fc4b8;
   --block-wash: rgba(217, 69, 58, 0.14);
   --review-wash: rgba(184, 134, 11, 0.14);
-  --monitor-wash: rgba(133, 119, 224, 0.14);
+  --monitor-wash: transparent;
   --clear-wash: rgba(26, 163, 158, 0.14);
 
   --series-1: #d8d3c6;
@@ -224,7 +226,9 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .chip-BLOCK { color: var(--block-text); background: var(--block-wash); }
 .chip-REVIEW { color: var(--review-text); background: var(--review-wash); }
-.chip-MONITOR { color: var(--monitor-text); background: var(--monitor-wash); }
+/* noted, not a category: an outline rather than a fourth severity hue (see the review tool) */
+.chip-MONITOR { color: var(--monitor-text); background: transparent; border: 1px dashed color-mix(in srgb, var(--monitor) 65%, transparent); }
+.chip-MONITOR::before { display: none; }
 .chip-CLEAR { color: var(--clear-text); background: var(--clear-wash); }
 
 .up { color: var(--up); }

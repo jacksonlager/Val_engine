@@ -13,10 +13,30 @@ export function musdTile(v: number | null | undefined): string {
   return musd(v, 1);
 }
 
+// A tile figure that has to read on its own. The headline strip wraps, so a bare "32.5" can end
+// up on a line with nothing to say what it is; these carry the unit with the number.
+export function musdUnit(v: number | null | undefined): string {
+  if (v === null || v === undefined || Number.isNaN(v)) return "—";
+  return (v < 0 ? "−$" : "$") + musdTile(Math.abs(v)) + "M";
+}
+
+export function musdSigned(v: number | null | undefined): string {
+  if (v === null || v === undefined || Number.isNaN(v)) return "—";
+  if (Math.abs(v) < 0.05) return "$0.0M";
+  return (v > 0 ? "+$" : "−$") + musdTile(Math.abs(v)) + "M";
+}
+
 export function signed(v: number | null | undefined, decimals = 2): string {
   if (v === null || v === undefined || Number.isNaN(v)) return "—";
   if (Math.abs(v) < 0.5 * Math.pow(10, -decimals)) return nf(decimals).format(0);
   return (v > 0 ? "+" : "−") + nf(decimals).format(Math.abs(v));
+}
+
+/** "06/30/26" — the exact day. Parsed off the ISO string rather than through Date, so a
+    UTC-midnight timestamp cannot slip a day backwards in a western timezone. */
+export function mmddyy(iso: string | null | undefined): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso ?? ""));
+  return m ? `${m[2]}/${m[3]}/${m[1].slice(2)}` : "—";
 }
 
 export function pct(v: number | null | undefined, decimals = 1, sign = false): string {

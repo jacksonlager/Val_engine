@@ -93,7 +93,7 @@ export function Sensitivity({ view }: { view: ExecView }) {
               <thead>
                 <tr>
                   <th>Company</th>
-                  <th>Kind</th>
+                  <th>Type</th>
                   <th>Opened</th>
                   <th>Expected</th>
                   <th className="r">Amount</th>

@@ -275,7 +275,7 @@ export default function App() {
               bucket on its own tiles, and Companies has its own filter bar. A second severity
               filter up here only competed with them. */}
           <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
-            {mode === "served" && <MarketStatusButton refreshKey={reloads} onRefreshed={reload} compact />}
+            {mode === "served" && <MarketStatusButton refreshKey={reloads} compact />}
             {mode === "served" && <UploadButton onLoaded={reload} />}
             <WorkbookSwitcher served={mode === "served"} refreshKey={reloads} onSwitched={reload} onBusy={setSwitching} />
             <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} onGoto={gotoCompany} />
@@ -325,7 +325,7 @@ export default function App() {
         {view === "companies" && <CompaniesView run={run} writeDisabled={writeDisabled} onChanged={reload} focus={focus} />}
         {view === "movement" && <MovementView run={run} onGoto={gotoCompany} />}
         {view === "funds" && <FundsView run={run} gotoCompany={gotoCompany} />}
-        {view === "market" && <MarketView mode={mode} run={run} onGoto={gotoCompany}  onRefreshed={reload} />}
+        {view === "market" && <MarketView mode={mode} run={run} onGoto={gotoCompany} />}
         {view === "rules" && <RulesView run={run} gotoCompany={gotoCompany} />}
         {view === "open" && <OpenItemsView run={run} gotoCompany={gotoCompany} />}
         {view === "proposals" && <ProposalsView run={run} mode={mode} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />}

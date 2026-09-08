@@ -4,6 +4,7 @@ import { decideProposal, loadProposals, proposalId, type Mode } from "../lib/api
 import { musd, pct, shortDate } from "../lib/format";
 import { evidenceLabel, humanize, parameterSource, proposalStatusLabel, proposedKindLabel, provenanceLabel } from "../lib/labels";
 import { DispChip, Empty, Field, KV, Modal, ReadinessChip, useAsync, WriteButton } from "../components/ui";
+import { useRationale } from "../lib/rationale";
 
 type Action = "accept_once" | "promote" | "reject";
 
@@ -33,6 +34,9 @@ export function ProposalsView({
   gotoCompany: (n: string) => void;
 }) {
   const { data, error, loading, refetch } = useAsync(() => loadProposals(mode), [mode]);
+  // the closest existing rule is named, not just numbered: a code alone says nothing about the case
+  const rationale = useRationale();
+  const ruleName = (id: string) => rationale?.rules.find((r) => r.id === id)?.name ?? "";
   const [act, setAct] = useState<{ p: TreatmentProposal; a: Action } | null>(null);
   const byCompany = Object.fromEntries(run.companies.map((c) => [c.company, c]));
 
@@ -83,7 +87,7 @@ export function ProposalsView({
                 <span className="text-[11px] text-muted">seen {p.repeat_count}× before</span>
               )}
               <span className={`chip no-dot ${draftedByClaude(p) ? "chip-ai" : "disp-MONITOR"}`} title={p.provenance?.model ? `Drafted by ${p.provenance.model}` : ""}>
-                {draftedByClaude(p) ? "Drafted by Claude" : "Drafted by built-in heuristics"}
+                {draftedByClaude(p) ? "Drafted by Claude" : "Drafted by the engine, from the rule catalogue"}
               </span>
               <span className="ml-auto text-[11px] text-muted num" title="How sure the model is of this draft. Shown for context; it decides nothing.">
                 Model confidence {pct(p.confidence, 0)}
@@ -110,10 +114,14 @@ export function ProposalsView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 mt-3 text-[12px]">
               <div>
                 <div className="text-[11px] uppercase tracking-wider text-muted">Closest existing rule</div>
-                <div className="mono">{p.analogue_rule_id}</div>
+                <div>
+                  {ruleName(p.analogue_rule_id) || "Not in the catalogue"}{" "}
+                  <span className="mono text-[11px] text-muted">{p.analogue_rule_id}</span>
+                </div>
               </div>
               <div>
                 <div className="text-[11px] uppercase tracking-wider text-muted">Calculation it would apply</div>
+                {/* the formula stays verbatim — an auditor checks it — with every parameter spelled out beneath */}
                 <div className="mono">{p.formula}</div>
                 {Object.keys(p.parameter_map ?? {}).length > 0 && (
                   <table className="dtable text-[11px] w-full mt-1">
@@ -220,7 +228,10 @@ function DecisionModal({
   const [booked, setBooked] = useState(proposedMark !== undefined ? String(proposedMark) : "");
   const [approver, setApprover] = useState("");
   const [reason, setReason] = useState(
-    a === "reject" ? "" : `${a === "accept_once" ? "Accepted once" : "Promoted"} per proposal ${proposalId(p)} (analogue ${p.analogue_rule_id}).`,
+    a === "reject"
+      ? ""
+      : `${a === "accept_once" ? "Accepted once" : "Promoted to a rule"} on the drafted treatment for this event, on the ` +
+        `${p.analogue_rule_id} analogue. (Ledger reference ${proposalId(p)}.)`,
   );
   const [effective, setEffective] = useState(nextQuarterStart(measurementDate));
   const [busy, setBusy] = useState(false);

@@ -19,7 +19,7 @@ const COLUMNS: { key: SortKey; label: string; numeric?: boolean; defaultDesc?: b
   { key: "booked", label: "Booked", numeric: true, defaultDesc: true },
   { key: "delta", label: "Δ", numeric: true, defaultDesc: true },
   { key: "delta_pct", label: "Δ %", numeric: true, defaultDesc: true },
-  { key: "disposition", label: "Disposition" },
+  { key: "disposition", label: "Review status" },
 ];
 
 function sortValue(r: CompanyRow, k: SortKey): string | number {

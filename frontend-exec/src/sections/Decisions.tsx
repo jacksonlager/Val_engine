@@ -1,6 +1,6 @@
 import type { Action, Decision, ExecView, Suggestion } from "../types";
 import { Section, Chip, Delta, DeltaPct, Empty } from "../components/ui";
-import { humanAltMark, money, num, plural } from "../lib/format";
+import { dispositionLabel, humanAltMark, money, num, plural } from "../lib/format";
 
 /** `**bold**` in an engine point marks the words that carry the decision. */
 function renderBold(text: string): React.ReactNode {
@@ -15,12 +15,13 @@ function Suggestions({ items, rec }: { items: Suggestion[]; rec?: Action["recomm
   const primary = rec && chosen ? { label: rec.label, reasons: rec.reasons, booked: chosen.booked } : items[0];
   const primaryKey = chosen?.key ?? items[0]?.key;
   const others = items.filter((s) => s.key !== primaryKey);
-  const who = rec?.source === "claude" ? `Claude · ${rec.model ?? "model"}` : "policy default";
+  const who = rec?.source === "claude" ? "Suggested by Claude" : "The policy default";
+  const whoDetail = rec?.source === "claude" ? `Drafted by ${rec.model ?? "Claude"} from the engine's priced options` : undefined;
   return (
     <div className="mt-1 rounded-[4px] px-3 py-2" style={{ background: "var(--raised)" }}>
       <div className="flex items-center justify-between gap-2 mb-1">
         <div className="eyebrow" style={{ fontSize: 10 }}>Recommended resolution</div>
-        <span className="text-[10.5px] text-muted">{who}</span>
+        <span className="text-[10.5px] text-muted" title={whoDetail}>{who}</span>
       </div>
       <div className="flex items-baseline justify-between gap-3 text-[12.5px] leading-snug">
         <span className="text-ink font-medium">
@@ -84,7 +85,8 @@ function DecisionCard({ d, index }: { d: Decision; index: number }) {
               ) : (
                 <div className="text-[12.5px] leading-snug text-ink2">{a.message}</div>
               )}
-              <div className="num text-[10.5px] text-muted uppercase tracking-[0.06em]">{a.rule_id} · {a.severity}</div>
+              {/* the rule code stays as the reference into the policy; the severity reads as words */}
+              <div className="text-[10.5px] text-muted"><span className="num">{a.rule_id}</span> · {dispositionLabel(a.severity)}</div>
               {a.suggestions && a.suggestions.length > 0 && <Suggestions items={a.suggestions} rec={a.recommendation} />}
             </li>
           ))}
@@ -131,9 +133,9 @@ export function Decisions({ view }: { view: ExecView }) {
       <div className="mt-8 frame">
         <div className="px-4 pt-3.5 pb-2 flex items-baseline justify-between">
           <div className="text-[13px] font-medium text-ink flex items-center gap-2">
-            <Chip d="REVIEW" /> Flagged for review
+            <Chip d="REVIEW" label="Flagged for review" />
           </div>
-          <div className="text-[11px] text-muted">{plural(view.reviews.length, "position")} · booked marks stand unless the committee acts · <Chip d="MONITOR" /> {monitor} on monitor</div>
+          <div className="text-[11px] text-muted">{plural(view.reviews.length, "position")} · booked marks stand unless the committee acts · <Chip d="MONITOR" label={`${monitor} monitored`} /></div>
         </div>
         {view.reviews.length === 0 ? (
           <Empty>Nothing is flagged for review.</Empty>

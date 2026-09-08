@@ -14,7 +14,7 @@ const COLS: { key: Key; label: string; right?: boolean }[] = [
   { key: "booked", label: "Booked", right: true },
   { key: "delta", label: "Δ", right: true },
   { key: "delta_pct", label: "Δ %", right: true },
-  { key: "disposition", label: "Disposition" },
+  { key: "disposition", label: "Review status" },
 ];
 
 export function Activity({ view }: { view: ExecView }) {

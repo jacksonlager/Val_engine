@@ -269,6 +269,15 @@ export interface RunManifest {
   };
 }
 
+export interface SectorSensitivity {
+  sector: string;
+  positions: number;
+  exposed_positions: number;
+  nav: number;          // booked marks, the whole sector
+  exposed_nav: number;  // the part a multiple regime drives
+  software: boolean;
+}
+
 export interface ValuationRun {
   manifest: RunManifest;
   companies: CompanyResult[];
@@ -279,6 +288,8 @@ export interface ValuationRun {
   // keys: base_nav, multiple_exposed_nav, software_exposed_nav, nav_if_multiples_±20pct, nav_if_software_multiples_±20pct
   sensitivity: Record<string, number>;
   sensitivity_meta: { shock_pct: number[]; min_arr: number; software_sectors: string[] };
+  /** the same multiple exposure, split by sector, so each can be shocked at its own rate */
+  sensitivity_sectors?: SectorSensitivity[];
   /** the observed counterpart of the shock: each sector's public-comps move this quarter applied to the marks it drives */
   comps_move: CompsMove | null;
 }
