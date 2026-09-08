@@ -615,7 +615,7 @@ function SourceChip({ rec }: { rec: Recommendation }) {
   if (rec.source === "claude") {
     return (
       <span className="chip chip-ai no-dot" title={`Drafted by ${rec.model ?? "Claude"} from the engine's priced options${rec.confidence !== null ? ` · confidence ${Math.round(rec.confidence * 100)}%` : ""}; editable before it is recorded`}>
-        AI draft
+        AI summary
       </span>
     );
   }
@@ -744,7 +744,7 @@ function StepSource({ rec }: { rec: PositionRecommendation }) {
           rec.confidence !== null ? ` · confidence ${Math.round(rec.confidence * 100)}%` : ""
         }; the number comes from the engine's priced option, and the wording is editable before it is recorded`}
       >
-        AI draft
+        AI summary
       </span>
     );
   }
