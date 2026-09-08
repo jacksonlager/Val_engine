@@ -66,14 +66,6 @@ function SourceChip({ live, long = false, source }: { live: boolean; long?: bool
 
 // ---------------------------------------------------------------- header strip
 
-function Meta({ k, title, children }: { k: string; title?: string; children: React.ReactNode }) {
-  return (
-    <span className="text-[11px] text-muted whitespace-nowrap" title={title}>
-      {k} <span className="mono text-ink2">{children}</span>
-    </span>
-  );
-}
-
 /** What this policy does with the sector multiples, in the reviewer's words rather than as a
     config dump. The engine's own wording stays verbatim under Technical details. */
 function policySentences(rep: MarketReport): string {
@@ -87,6 +79,21 @@ function policySentences(rep: MarketReport): string {
   return `${screens} ${cal}`;
 }
 
+/** One number a reviewer can act on, with the words that make it one. */
+function Kpi({ label, value, tone, sub }: { label: string; value: React.ReactNode; tone?: "up" | "down" | "warn" | "ok"; sub: React.ReactNode }) {
+  const color =
+    tone === "up" ? "text-[var(--clear-text)]" : tone === "down" ? "text-[var(--block-text)]" : tone === "warn" ? "text-[var(--review-text)]" : "text-ink";
+  return (
+    <div className="card p-3.5 min-w-0">
+      <div className="eyebrow-sm">{label}</div>
+      <div className={`num text-[24px] font-semibold leading-tight mt-0.5 ${color}`}>{value}</div>
+      <div className="text-[11px] text-muted mt-1 leading-snug">{sub}</div>
+    </div>
+  );
+}
+
+/** The top of the page: three numbers, then the notices that change how the page is read. Every
+    sentence of provenance and every data caveat is kept, one click away under "Data notes". */
 function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
   const [showErrors, setShowErrors] = useState(false);
   const n = rep.errors.length;
@@ -95,10 +102,31 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
   const mismatch = askedLive !== rep.reached_live;
   const names = useMemo(() => new Set(rep.sectors.flatMap((s) => s.constituents.map((c) => c.ticker))).size, [rep]);
   const synthetic = rep.synthetic === true || rep.provider === "synthetic" || rep.source.startsWith("synthetic:");
+  const caveats = useMemo(() => qualityCaveats(rep), [rep]);
+  const nCaveats = caveats.filter((c) => !c.ok).length;
+  const asOf = shortDate(rep.priced_as_of ?? rep.as_of);
+
+  // 1. how much of the book is screened against observed multiples
+  const positions = rep.sectors.reduce((t, s) => t + s.positions, 0);
+  const livePositions = rep.sectors.filter((s) => s.live).reduce((t, s) => t + s.positions, 0);
+  const liveSectors = rep.sectors.filter((s) => s.live).length;
+  const coverage = positions ? livePositions / positions : 0;
+  // 2. what the multiples did this quarter, weighted by the positions that sit under each sector
+  const moved = rep.sectors.filter((s) => s.qoq_pct !== null && s.positions > 0);
+  const wsum = moved.reduce((t, s) => t + s.positions, 0);
+  const wavg = wsum ? moved.reduce((t, s) => t + (s.qoq_pct as number) * s.positions, 0) / wsum : null;
+  const up = moved.filter((s) => (s.qoq_pct as number) > 0).length;
+  const down = moved.filter((s) => (s.qoq_pct as number) < 0).length;
+  const byMove = [...moved].sort((x, y) => (y.qoq_pct as number) - (x.qoq_pct as number));
+  const top = byMove[0];
+  const bottom = byMove[byMove.length - 1];
+  // 3. whether the numbers rest on priced names
+  const priced = distinctPriced(rep).length;
+
   return (
-    <div className="card p-4">
+    <div className="space-y-3">
       {synthetic && (
-        <div className="card disp-BLOCK stripe p-3 pl-4 mb-3" role="alert">
+        <div className="card disp-BLOCK stripe p-3 pl-4" role="alert">
           <div className="flex items-center gap-2">
             <span className="chip disp-BLOCK no-dot">Synthetic test data</span>
             <span className="font-semibold text-[13px]">These multiples were invented for a test quarter. They are not market data.</span>
@@ -106,22 +134,8 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
           <p className="text-[12px] text-ink2 mt-1 mb-0">{rep.notice ?? SYNTHETIC_TIP}</p>
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <SourceChip live={rep.reached_live} long source={rep.source} />
-        <span className="text-[11px] text-muted">Sector multiples priced from {sourceWords(rep.source, rep.reached_live)}.</span>
-        <span className="border-l border-line h-4" aria-hidden />
-        {served ? null : (
-          <Meta k="Multiples as of" title="The day the comps are priced as of: the last close on file when the feed was fetched.">
-            {shortDate(rep.priced_as_of ?? rep.as_of)}
-          </Meta>
-        )}
-        {served && <MarketStatusButton refreshKey={rep.fetched_at ? rep.fetched_at.length : 0} />}
-        <Meta k="Comparables" title="Comparable-company baskets: listed names per sector, medianed each month">
-          {rep.sectors.length} sectors, {names} public companies
-        </Meta>
-      </div>
       {mismatch && (
-        <p className="text-[11.5px] mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <p className="text-[11.5px] m-0 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="chip disp-REVIEW no-dot">Substituted source</span>
           <span className="text-ink2">
             {askedLive
@@ -130,9 +144,50 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
           </span>
         </p>
       )}
-      <p className="text-[11px] text-muted mt-2">{policySentences(rep)}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <Kpi
+          label="Positions screened against live multiples"
+          value={rep.reached_live ? pct(coverage, 0) : "None"}
+          tone={rep.reached_live && coverage >= 0.999 ? "ok" : rep.reached_live ? "warn" : "down"}
+          sub={
+            rep.reached_live
+              ? `${liveSectors} of ${rep.sectors.length} sectors on live data · ${names} public companies · priced as of ${asOf}`
+              : `Illustrative multiples only · ${rep.sectors.length} sectors · no live feed answered`
+          }
+        />
+        <Kpi
+          label="Sector multiples this quarter"
+          value={wavg === null ? "—" : pct(wavg, 1, true)}
+          tone={wavg === null ? undefined : wavg > 0 ? "up" : wavg < 0 ? "down" : undefined}
+          sub={
+            wavg === null ? (
+              "No prior quarter on file"
+            ) : (
+              <>
+                {up} up · {down} down, weighted by positions
+                {top && bottom && top !== bottom && (
+                  <>
+                    {" "}· widest {top.sector} <span className={signClass(top.qoq_pct)}>{pct(top.qoq_pct, 1, true)}</span>, {bottom.sector}{" "}
+                    <span className={signClass(bottom.qoq_pct)}>{pct(bottom.qoq_pct, 1, true)}</span>
+                  </>
+                )}
+              </>
+            )
+          }
+        />
+        <Kpi
+          label="Comparables priced"
+          value={names ? `${priced} of ${names}` : "—"}
+          tone={names && priced < names ? "warn" : nCaveats ? "warn" : "ok"}
+          sub={
+            nCaveats
+              ? `${nCaveats} data ${nCaveats === 1 ? "caveat" : "caveats"} on this run · read them under Data notes`
+              : "No data caveats on this run"
+          }
+        />
+      </div>
       {n > 0 && (
-        <div className="mt-2 text-[12px]">
+        <div className="text-[12px]">
           <button
             className="inline-flex items-center gap-1.5 text-[var(--review-text)] hover:underline"
             onClick={() => setShowErrors((v) => !v)}
@@ -153,34 +208,54 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
           )}
         </div>
       )}
-      {/* the operator's half of the provenance: the exact source ids, the cache, the files and the
-          policy switches. Kept whole, one click away from the page a reviewer reads. */}
-      <details className="mt-2">
-        <summary className="text-[11px] text-muted cursor-pointer select-none">Technical details</summary>
-        <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px] m-0">
-          <dt className="text-muted">Requested source</dt>
-          <dd className="m-0 mono text-ink2">{rep.provider}</dd>
-          <dt className="text-muted">Source that answered</dt>
-          <dd className="m-0 mono text-ink2">{rep.source}</dd>
-          <dt className="text-muted">Fetched at</dt>
-          <dd className="m-0 mono text-ink2">{rep.fetched_at ? isoDateTime(rep.fetched_at) : "nothing was fetched"}</dd>
-          <dt className="text-muted">Data on file</dt>
-          <dd className="m-0 text-ink2">
-            {rep.cache ? (rep.cache.hit ? "Read from the saved feed for this quarter" : "Fetched fresh on this run and saved") : "Nothing saved for this run"}
-          </dd>
-          {rep.synthetic_file && (
-            <>
-              <dt className="text-muted">Synthetic data file</dt>
-              <dd className="m-0 mono text-ink2">{rep.synthetic_file}</dd>
-            </>
+      {/* everything that used to be two panels of text: the caveats, the provenance and the
+          operator's half of it. Kept whole, one click away from the numbers. */}
+      <details className="px-1">
+        <summary className="text-[11px] text-muted cursor-pointer select-none">
+          Data notes{nCaveats ? ` · ${nCaveats} ${nCaveats === 1 ? "caveat" : "caveats"}` : ""} · where these multiples come from
+        </summary>
+        <div className="card p-4 mt-2 space-y-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <SourceChip live={rep.reached_live} long source={rep.source} />
+            <span className="text-[11px] text-muted">Sector multiples priced from {sourceWords(rep.source, rep.reached_live)}.</span>
+            {served && <MarketStatusButton refreshKey={rep.fetched_at ? rep.fetched_at.length : 0} />}
+          </div>
+          <p className="text-[11px] text-muted m-0">{policySentences(rep)}</p>
+          {caveats.length > 0 && (
+            <dl className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2 m-0">
+              {caveats.map((c) => (
+                <div key={c.key} className="text-[11.5px] leading-snug">
+                  <dt className={`font-semibold ${c.ok ? "text-[var(--clear-text)]" : "text-ink2"}`}>{c.title}</dt>
+                  <dd className="m-0 text-muted">{c.text}</dd>
+                </div>
+              ))}
+            </dl>
           )}
-          <dt className="text-muted">Policy settings</dt>
-          <dd className="m-0 mono text-ink2">
-            multiple.mode={rep.used_by.multiple_mode} · calibration={rep.used_by.calibration_enabled ? "on" : "off"}
-          </dd>
-          <dt className="text-muted">Engine note</dt>
-          <dd className="m-0 text-ink2">{rep.used_by.note}</dd>
-        </dl>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px] m-0">
+            <dt className="text-muted">Requested source</dt>
+            <dd className="m-0 mono text-ink2">{rep.provider}</dd>
+            <dt className="text-muted">Source that answered</dt>
+            <dd className="m-0 mono text-ink2">{rep.source}</dd>
+            <dt className="text-muted">Fetched at</dt>
+            <dd className="m-0 mono text-ink2">{rep.fetched_at ? isoDateTime(rep.fetched_at) : "nothing was fetched"}</dd>
+            <dt className="text-muted">Data on file</dt>
+            <dd className="m-0 text-ink2">
+              {rep.cache ? (rep.cache.hit ? "Read from the saved feed for this quarter" : "Fetched fresh on this run and saved") : "Nothing saved for this run"}
+            </dd>
+            {rep.synthetic_file && (
+              <>
+                <dt className="text-muted">Synthetic data file</dt>
+                <dd className="m-0 mono text-ink2">{rep.synthetic_file}</dd>
+              </>
+            )}
+            <dt className="text-muted">Policy settings</dt>
+            <dd className="m-0 mono text-ink2">
+              multiple.mode={rep.used_by.multiple_mode} · calibration={rep.used_by.calibration_enabled ? "on" : "off"}
+            </dd>
+            <dt className="text-muted">Engine note</dt>
+            <dd className="m-0 text-ink2">{rep.used_by.note}</dd>
+          </dl>
+        </div>
       </details>
     </div>
   );
@@ -311,31 +386,6 @@ function qualityCaveats(rep: MarketReport): Caveat[] {
   }
 
   return out;
-}
-
-function DataQuality({ rep }: { rep: MarketReport }) {
-  const caveats = useMemo(() => qualityCaveats(rep), [rep]);
-  if (!caveats.length) return null;
-  const n = caveats.filter((c) => !c.ok).length;
-  return (
-    <div className="card p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="eyebrow text-muted">Data quality</span>
-        <span className={`chip ${n ? "disp-REVIEW" : "disp-CLEAR"} no-dot`}>{n}</span>
-        <span className="text-[11px] text-muted">
-          {n === 1 ? "caveat" : "caveats"} on this run · per-name detail in the constituents table
-        </span>
-      </div>
-      <dl className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2 m-0">
-        {caveats.map((c) => (
-          <div key={c.key} className="text-[11.5px] leading-snug">
-            <dt className={`font-semibold ${c.ok ? "text-[var(--clear-text)]" : "text-ink2"}`}>{c.title}</dt>
-            <dd className="m-0 text-muted">{c.text}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  );
 }
 
 // ---------------------------------------------------------------- sector table
@@ -954,7 +1004,6 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
   return (
     <div className="space-y-4">
       <HeaderStrip rep={rep} served={mode === "served"} />
-      <DataQuality rep={rep} />
 
       {rep.sectors.length === 0 ? (
         <div className="card p-6 text-center text-muted text-[12px]">No sectors in the market report.</div>
