@@ -88,9 +88,8 @@ function SectorShocks({ run, base, portfolioShock }: { run: ValuationRun; base: 
       >
         Sector by sector
       </SectionTitle>
-      <p className="text-[12px] text-ink2 leading-[1.55] max-w-[78ch] mt-1 mb-2">
-        Every sector starts at the move set above. Change one and the rest hold, so you can ask what a re-rating in one
-        part of the book does on its own. Open a sector to see every position in it and what the move does to each.
+      <p className="text-[13.5px] text-ink2 leading-snug mt-1 mb-2">
+        Each sector starts at the move above; change one and the rest hold. Open a sector to see each position.
       </p>
       <div className="overflow-x-auto -mx-4 px-4">
         <table className="dtable text-[12px] w-full">
@@ -220,10 +219,8 @@ function SectorShocks({ run, base, portfolioShock }: { run: ValuationRun; base: 
           </tbody>
         </table>
       </div>
-      <p className="text-[11px] text-muted mt-2 mb-0 max-w-[82ch]">
-        Arithmetic on the booked book, not a revaluation: nothing here is written back, and no mark changes until a
-        decision is recorded against the position itself. A position moves only where the mark rests on a revenue
-        multiple — the equity leg of a Level 3 mark whose revenue clears the {musd(minArr, 1)}M screening floor.
+      <p className="text-[12.5px] text-ink2 mt-2 mb-0">
+        What-if arithmetic only: nothing is written back, and no mark changes without a recorded decision.
       </p>
     </div>
   );
@@ -261,12 +258,9 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
     <div className="space-y-4">
       <div className="card p-4">
         <SectionTitle>Sensitivity · what the book looks like if multiples move</SectionTitle>
-        <p className="text-[11px] text-muted num mb-3">
-          The move is applied one-for-one to every position whose mark rests on a revenue multiple — the equity leg of a
-          booked Level 3 mark with revenue at or above the ${run.sensitivity_meta?.min_arr ?? 0.5}M screening floor.
-          That is {exposed.length} of {run.companies.length} positions, {musd(exposedNav, 1)} of {musd(base, 1)}{" "}
-          ({pct(exposedNav / base)}) of the book. The other {unexposed} — listed, pre-revenue, no longer held, or priced
-          by a transaction — and any note leg carried at cost are held flat. Nothing here changes a mark.
+        <p className="text-[13.5px] text-ink2 num mb-3 leading-snug">
+          Moves the {exposed.length} of {run.companies.length} positions priced on a revenue multiple, {musd(exposedNav, 1)} of{" "}
+          {musd(base, 1)} ({pct(exposedNav / base)}) of the book. The other {unexposed} hold flat. No mark changes.
         </p>
 
         <div className="sens-slider">
