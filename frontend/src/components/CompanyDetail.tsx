@@ -4,7 +4,7 @@ import { isoDate, musd, pct, signed, signClass } from "../lib/format";
 import { altLabel, evidenceLabel, evidenceValue, humanize, kindLabel, readinessClass, severityShort, shortRef } from "../lib/labels";
 import { postOverride } from "../lib/api";
 import { eventRowRef, inputRef, portfolioRowRef, useSources } from "../lib/sources";
-import { flagName, FlagActionList, FlagDetailModal, FlagNoteList, plainPoint, useFlagNames } from "./Flags";
+import { flagName, FlagActionList, FlagDetailModal, FlagNoteList, plainPoint, ReadyOverrideBar, useFlagNames } from "./Flags";
 import { MarkHistoryCard } from "./MarkHistoryChart";
 import { FlagHistoryCard, PriorFlagPill } from "./FlagHistory";
 import { CopyRef, Field, FlagChip, KV, Label, Modal, WriteButton, ReadinessChip } from "./ui";
@@ -431,7 +431,7 @@ export function CompanyDetail({
                 {actions.length > 0 && <p className="text-[11px] text-muted mt-1 mb-0">Decided on the Activity tab.</p>}
               </div>
             )}
-            {c.override && (
+            {c.override && actions.length > 0 && (
               <div>
                 <Label>Reviewer decision</Label>
                 <div className="text-[12px]">
@@ -442,6 +442,13 @@ export function CompanyDetail({
                     {" "}proposed · {c.override.approver} · <span className="mono">{isoDate(c.override.created_at)}</span>
                   </span>
                 </div>
+              </div>
+            )}
+            {actions.length === 0 && (
+              // a position with nothing to decide is not on the Activity tab: this is where a
+              // reviewer who does not accept its mark records their own
+              <div className="card p-2.5">
+                <ReadyOverrideBar c={c} writeDisabled={writeDisabled} onChanged={onChanged} />
               </div>
             )}
             <PositionFacts c={c} />

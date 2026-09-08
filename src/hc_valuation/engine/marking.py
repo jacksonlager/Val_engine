@@ -851,7 +851,7 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
                       f"(${cap:,.0f}M market cap), so the proposed mark is the listing-day market cap of ${float(e.value):,.0f}M "
                       f"and stands in for the close until the actual {md.strftime('%d %b')} price is confirmed.")
         quote_point = (f"Now **listed**: the mark should be the **{md.isoformat()} close**; no quote is on file, so the "
-                       f"**${float(e.value):,.0f}M listing-day market cap** stands in ({source}).")
+                       f"**${float(e.value):,.0f}M listing-day market cap** stands in ({price_source_words(source)}).")
     else:
         quote_line = (f"The mark should be the closing price on {md.isoformat()} (${cap:,.0f}M market cap, {source}) — not the "
                       f"${float(e.value):,.0f}M market cap the shares priced at on listing day.")

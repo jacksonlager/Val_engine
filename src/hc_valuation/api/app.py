@@ -200,17 +200,21 @@ def market_status(result: PipelineResult | None) -> dict[str, Any]:
 def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None,
                refresh_market: bool = False, recommender: str | None = None,
                provider_explicit: str | None = None, *, start_empty: bool = False, root: Path | None = None,
-               note_reader: str | None = None, auto_refresh_market: bool = True) -> FastAPI:
+               note_reader: str | None = None, auto_refresh_market: bool = True,
+               ledger_dir_explicit: Path | None = None) -> FastAPI:
     """`provider` is what the first run reads (the CLI passes its resolved default; the library default is
     the fixture). `provider_explicit` is what the operator actually asked for, if anything: a workbook
     switch re-derives the provider from it, so a quarter only a synthetic file can price gets that file
     and the real book gets its cache, unless a flag or HC_MARKET_PROVIDER pinned one.
 
     `start_empty`: no workbook is loaded until one is uploaded (`POST /api/upload`) — the app opens on
-    an empty page with the Upload button, and every read route answers 404 until then."""
+    an empty page with the Upload button, and every read route answers 404 until then.
+
+    `ledger_dir_explicit`: the ledger folder the operator asked for (`--ledger-dir`). It outlives the
+    workbook it was started with: an upload or a reset keeps recording there, never in `data/`."""
     from ..config import repo_root
     if start_empty:
-        paths = RunPaths.default(root=root or repo_root())
+        paths = RunPaths.default(root=root or repo_root(), ledger_dir=ledger_dir_explicit)
     else:
         paths = paths or RunPaths.default()
     static_dir = Path(static_dir) if static_dir is not None else STATIC_DIR
@@ -245,6 +249,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
             return recompute()
 
     app.state.paths = paths
+    app.state.ledger_dir_explicit = Path(ledger_dir_explicit) if ledger_dir_explicit is not None else None
     app.state.provider = provider
     app.state.provider_explicit = provider_explicit
     app.state.static_dir = static_dir
@@ -434,7 +439,8 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
                                         note=f"written on upload of {filename}: inherits the base policy, window only")
                 job["policy_created"] = str(pol.relative_to(root))
             synthetic = is_synthetic(dest, marked)
-            new_paths = RunPaths.default(root=root, workbook=dest, policy=pol, ledger_dir=ledger_dir_for(root, dest, synthetic))
+            new_paths = RunPaths.default(root=root, workbook=dest, policy=pol,
+                                         ledger_dir=app.state.ledger_dir_explicit or ledger_dir_for(root, dest, synthetic))
             new_provider = provider_for(root, pol, app.state.provider_explicit, synthetic=synthetic)
             previous = (app.state.paths, app.state.provider, app.state.result)
             offset = 2
@@ -501,7 +507,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
             app.state.result = None
             app.state.known_workbooks = []
             app.state.jobs = {}
-            app.state.paths = RunPaths.default(root=app.state.paths.root or repo_root())
+            app.state.paths = RunPaths.default(root=app.state.paths.root or repo_root(), ledger_dir=app.state.ledger_dir_explicit)
             app.state.provider = app.state.provider_explicit
         return {"status": "empty", **outcome}
 

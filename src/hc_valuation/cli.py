@@ -546,13 +546,15 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
     if input_path is None:
         application = create_app(None, provider=provider, provider_explicit=provider, refresh_market=refresh_market,
                                  recommender=recommender, note_reader=note_reader, start_empty=True,
-                                 auto_refresh_market=not no_market_refresh)
+                                 auto_refresh_market=not no_market_refresh,
+                                 ledger_dir_explicit=ledger_dir.resolve() if ledger_dir else None)
         typer.echo("no workbook loaded: upload one from the dashboard (or pass --input)")
     else:
         paths = _paths(input_path, policy, overrides, ledger_dir)
         application = create_app(paths, provider=_default_provider(paths, provider), provider_explicit=provider,
                                  refresh_market=refresh_market, recommender=recommender, note_reader=note_reader,
-                                 auto_refresh_market=not no_market_refresh)
+                                 auto_refresh_market=not no_market_refresh,
+                                 ledger_dir_explicit=ledger_dir.resolve() if ledger_dir else None)
         typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")

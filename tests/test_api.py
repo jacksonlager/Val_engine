@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import shutil
+import time
 from pathlib import Path
 
 import pytest
@@ -211,3 +212,34 @@ def test_override_on_a_ready_position_needs_no_finding(client: TestClient):
         assert after["booked_mark"] == 1.25 and after["proposed_mark"] == before["proposed_mark"]
         assert after["readiness"] == "Ready" and after["override"]["rule_ids_addressed"] == []
         assert any(s["rule_id"] == "E-01" for s in after["steps"]) and after["approval"] != "Pending"
+
+
+def test_an_explicit_ledger_dir_outlives_upload_and_reset(tmp_path: Path):
+    """`hc-valuation run --ledger-dir X`: an upload and a reset used to rebuild the paths from the
+    root alone, so the server silently went back to recording in data/ — the committee's ledger."""
+    import shutil
+    from hc_valuation.config import repo_root
+    root = tmp_path / "root"
+    (root / "data").mkdir(parents=True)
+    shutil.copy(repo_root() / "data" / "HC_Mock_Portfolio_Data.xlsx", root / "data" / "HC_Mock_Portfolio_Data.xlsx")
+    shutil.copytree(repo_root() / "rules", root / "rules")
+    shutil.copytree(repo_root() / "data" / "mock_responses", root / "data" / "mock_responses")
+    ledger = tmp_path / "my_ledger"
+    app = create_app(start_empty=True, root=root, provider="stub", static_dir=tmp_path / "no-static", ledger_dir_explicit=ledger)
+    client = TestClient(app)
+    assert Path(app.state.paths.ledger_dir) == ledger, "empty state already points at the operator's ledger"
+    with open(repo_root() / "data" / "HC_Mock_Portfolio_Data.xlsx", "rb") as fh:
+        job = client.post("/api/upload", files={"file": ("HC_Mock_Portfolio_Data.xlsx", fh.read())}).json()
+    for _ in range(600):
+        j = client.get(f"/api/upload/{job['id']}").json()
+        if j["done"] or j["error"]:
+            break
+        time.sleep(0.2)
+    assert j["done"] and not j["error"], j
+    assert Path(app.state.paths.ledger_dir) == ledger, "the upload keeps recording where the operator said"
+    r = client.post("/api/overrides", json={"company": "Rivenmark", "booked": 2.5, "reason": "t", "approver": "T", "source_suggestion": "ready/manual"})
+    assert r.status_code == 200 and "Rivenmark" in (ledger / "overrides.yaml").read_text()
+    assert not (root / "data" / "overrides.yaml").exists() or "Rivenmark" not in (root / "data" / "overrides.yaml").read_text()
+    assert client.post("/api/reset", json={"confirm": "RESET"}).status_code == 200
+    assert Path(app.state.paths.ledger_dir) == ledger, "and so does a reset"
+    assert client.get("/api/health").json()["ledger"]["overrides"] == str(ledger / "overrides.yaml")
