@@ -164,11 +164,12 @@ class PublicCompsProvider:
                  refresh: bool = False, timeout_s: float = DEFAULT_TIMEOUT_S,
                  fetch_text: FetchText | None = None, contact: str | None = None,
                  max_per_s: float = MAX_REQUESTS_PER_S, price_source: str | None = None,
-                 price_max_per_s: float | None = None) -> None:
+                 price_max_per_s: float | None = None, valuation_date: date | None = None) -> None:
         self.baskets = baskets
         self._fallback = fallback
         self._cache = cache
-        self.as_of = as_of
+        self.as_of = as_of                                   # the day the comps are priced as of (the fetch day)
+        self.valuation_date = valuation_date or as_of        # the run's measurement date, for the label only
         self._timeout = timeout_s
         self._fetch = fetch_text
         self._edgar = EdgarClient(contact=contact, timeout_s=timeout_s, fetch_text=fetch_text, max_per_s=max_per_s)
@@ -490,7 +491,8 @@ class PublicCompsProvider:
             self._report = {
                 "provider": provider, "source": self.live_source if self.reached_live else "stub",   # the manifest label
                 "reached_live": self.reached_live,
-                "as_of": self.as_of.isoformat(), "fetched_at": self.fetched_at,
+                "as_of": self.as_of.isoformat(), "priced_as_of": self.as_of.isoformat(),
+                "valuation_date": self.valuation_date.isoformat(), "fetched_at": self.fetched_at,
                 "cache": {"dir": self._cache.rel_dir, "hit": self.cache_hit, "refreshable": True},
                 "used_by": dict(used_by or {}), "baskets_file": BASKETS_FILE.as_posix(),
                 "errors": collapse_errors(self.errors), "sectors": [self._sector_report(s) for s in self.sectors],
@@ -529,6 +531,7 @@ def stub_market_report(stub: StubCompsProvider, as_of: date, *, positions: Mappi
         })
     return {
         "provider": provider, "source": "stub", "reached_live": False, "as_of": as_of.isoformat(),
+        "priced_as_of": as_of.isoformat(), "valuation_date": as_of.isoformat(),
         "fetched_at": None, "cache": None, "used_by": dict(used_by or {}), "baskets_file": BASKETS_FILE.as_posix(),
         "errors": list(errors or []), "sectors": sorted(sectors, key=lambda s: (-s["positions"], s["sector"])),
     }

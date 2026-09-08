@@ -101,9 +101,22 @@ def _live_factory(req: CompsRequest) -> CompsAnswer:
         from .cache import MarketCache
         from .live import PublicCompsProvider   # local import: httpx is an optional extra
         baskets = load_baskets(_baskets_path(req.root))
-        live = PublicCompsProvider(baskets, req.fallback, MarketCache(Path(req.root), req.measurement_date),
-                                   req.measurement_date, refresh=req.refresh,
-                                   price_source=resolve_price_source(req.price_source))
+        cache = MarketCache(Path(req.root), req.measurement_date)      # one cache per valuation run, keyed by its measurement date
+        # The comps are priced as of the day they are fetched — today's data, labelled today — not as of the
+        # measurement date: on a refetch that is today; on a cache read it is the day the cache was fetched, so
+        # a rerun on the committed cache is the same run every time. With no cache and no network the
+        # measurement date stands in and the fixture answers.
+        from datetime import date as _date
+        meta = cache.read_meta() or {}
+        if req.refresh:
+            priced_as_of = _date.today()
+        elif meta.get("fetched_at"):
+            priced_as_of = _date.fromisoformat(str(meta["fetched_at"])[:10])
+        else:
+            priced_as_of = req.measurement_date
+        live = PublicCompsProvider(baskets, req.fallback, cache, priced_as_of, refresh=req.refresh,
+                                   price_source=resolve_price_source(req.price_source),
+                                   valuation_date=req.measurement_date)
         # honest: never a live label over fixture numbers
         return CompsAnswer(comps=live, label=live.source if live.reached_live else "stub",
                            report=live.report(positions=req.positions, used_by=req.used_by, provider="live"),

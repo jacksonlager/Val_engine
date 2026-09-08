@@ -119,8 +119,10 @@ deterministic and offline (`pip install -e ".[adjudication]"`, set `ANTHROPIC_AP
 `hc-valuation recommend` once, commit the folder). Accepting a recommendation, or any other
 option, records an ordinary override under a named approver.
 
-**Live market data, dated.** The header and the Market tab say "Live data as of <date>": the day the
-comps feed was last fetched into `data/market_cache/<measurement date>/`. On start the dashboard
+**Live market data, dated.** The comps are priced as of the day they are fetched, not as of the
+measurement date: the header and the Market tab say "Live data as of <date>", the day the feed was
+last fetched into `data/market_cache/<measurement date>/`, and a rerun on that cache prices them as of
+that same day so it is the same run every time. On start the dashboard
 refetches once a day on its own when that date is before today (`--no-market-refresh` to skip), and a
 **Refresh** button next to it refetches on demand and reruns the book (`POST /api/market/refresh`). A
 fetch that fails keeps the data on file and says so; the fixture and synthetic data have nothing to

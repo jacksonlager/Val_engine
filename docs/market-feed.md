@@ -471,3 +471,11 @@ those three members and an entry in `price_provider()`; the label (`live:edgar+<
 cache key (`meta.price_source`) and the error text follow from `name`. Yahoo is the default
 because it answers automated clients today; Stooq stays selectable so the day it lifts its
 browser check nothing but a flag changes.
+
+## Priced as of the fetch day
+
+The multiples are priced as of the day the feed is fetched (`priced_as_of` in the report), not as of the
+run's measurement date (`valuation_date`). A refetch prices them as of today; a rerun on the cache prices
+them as of the day that cache was fetched, so the same cache is the same run every time. The Market tab
+labels the date and says when the two differ. With no cache and no network the measurement date stands
+in and the fixture answers.

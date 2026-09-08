@@ -538,7 +538,9 @@ export interface MarketReport {
   synthetic?: boolean;
   notice?: string;
   synthetic_file?: string;
-  as_of: string; // ISO date
+  as_of: string; // ISO date: the day the comps are priced as of (the fetch day for live data)
+  priced_as_of?: string; // same as as_of, named for what it is
+  valuation_date?: string; // the run's measurement date, for the label only
   fetched_at: string | null; // ISO datetime; null when the fixture answered
   cache: MarketCacheInfo | null;
   used_by: { multiple_mode: string; calibration_enabled: boolean; note: string };

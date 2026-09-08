@@ -119,10 +119,9 @@ function HeaderStrip({ rep, served, onRefreshed }: { rep: MarketReport; served: 
         <SourceChip live={rep.reached_live} long source={rep.source} />
         <span className="text-[11px] text-muted">Sector multiples priced from {sourceWords(rep.source, rep.reached_live)}.</span>
         <span className="border-l border-line h-4" aria-hidden />
-        <Meta k="Valuation date">{shortDate(rep.as_of)}</Meta>
-        {served ? null : rep.reached_live && (
-          <Meta k="Data as of" title="When the live feed was last fetched. The multiples are the last close on file at that fetch.">
-            <span title={rep.fetched_at ?? undefined}>{rep.fetched_at ? shortDate(rep.fetched_at) : "—"}</span>
+        {served ? null : (
+          <Meta k="Multiples as of" title="The day the comps are priced as of: the last close on file when the feed was fetched.">
+            {shortDate(rep.priced_as_of ?? rep.as_of)}
           </Meta>
         )}
         {served && <MarketStatusButton refreshKey={rep.fetched_at ? rep.fetched_at.length : 0} onRefreshed={() => onRefreshed?.()} />}
@@ -217,12 +216,6 @@ interface Caveat {
 }
 
 /** Whole days from `a` to `b` (positive when `b` is later); null when either does not parse. */
-function daysBetween(a: string | null | undefined, b: string | null | undefined): number | null {
-  if (!a || !b) return null;
-  const ta = Date.parse(a), tb = Date.parse(b);
-  if (!Number.isFinite(ta) || !Number.isFinite(tb)) return null;
-  return Math.round((tb - ta) / 86400000);
-}
 
 /** "2026-09" -> "September 2026". */
 function monthLabel(ym: string): string {
@@ -259,15 +252,16 @@ function qualityCaveats(rep: MarketReport): Caveat[] {
   const live = rep.sectors.filter((s) => s.live);
   const obsMonth = live[0]?.as_of_month ?? rep.as_of.slice(0, 7);
 
-  // 1 — the close was retrieved before the valuation date: it is the last close on file, not an as-of print
-  const lag = daysBetween(rep.fetched_at, `${rep.as_of}T00:00:00Z`);
-  if (lag !== null && lag > 0)
+  // 1 — the multiples are priced as of the fetch day, not the valuation date: say so when the two differ
+  const valuation = rep.valuation_date ?? rep.as_of;
+  const pricedDay = rep.priced_as_of ?? rep.as_of;
+  if (valuation !== pricedDay)
     out.push({
       key: "asof",
-      title: "Close not dated to the valuation date",
-      text: `The ${monthLabel(obsMonth)} close was retrieved ${lag} day${lag === 1 ? "" : "s"} before ${shortDate(rep.as_of)} (on ${shortDate(
-        rep.fetched_at,
-      )}). It is the last close on file at retrieval, not a ${shortDate(rep.as_of)} print.`,
+      title: "Priced as of the fetch day",
+      text: `The ${monthLabel(obsMonth)} multiples are the last close on file at the fetch on ${shortDate(pricedDay)}; the book is valued as of ${shortDate(
+        valuation,
+      )}. Refresh to price them as of today.`,
     });
 
   // 2 — share-count provenance
@@ -944,7 +938,7 @@ export function MarketView({ mode, run, onGoto, onRefreshed }: { mode: Mode; run
             <SectionTitle
               right={
                 <>
-                  {liveCount} of {rep.sectors.length} sectors on live data · EV to trailing revenue at {shortDate(rep.as_of)}
+                  {liveCount} of {rep.sectors.length} sectors on live data · EV to trailing revenue as of {shortDate(rep.priced_as_of ?? rep.as_of)}
                 </>
               }
             >

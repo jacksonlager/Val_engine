@@ -61,7 +61,7 @@ CONSTITUENT_KEYS = {"ticker", "name", "cik", "status", "price", "price_month", "
                      "months_negative_ev", "months_unverified_splits", "splits_known"}
 SECTOR_KEYS = {"sector", "positions", "ev_to_revenue", "as_of_month", "source", "live", "prior_quarter", "qoq_pct",
                "history", "counts", "constituents"}
-REPORT_KEYS = {"provider", "source", "reached_live", "as_of", "fetched_at", "cache", "used_by", "baskets_file",
+REPORT_KEYS = {"provider", "source", "reached_live", "as_of", "priced_as_of", "valuation_date", "fetched_at", "cache", "used_by", "baskets_file",
                "errors", "sectors"}
 
 
