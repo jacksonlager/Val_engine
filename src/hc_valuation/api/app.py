@@ -8,6 +8,7 @@ The run is computed once when the app is created and held in `app.state.result`;
 from __future__ import annotations
 
 import os
+import logging
 import threading
 import time
 import uuid
@@ -161,6 +162,8 @@ def rule_catalogue(result: PipelineResult) -> list[dict[str, Any]]:
     ]
 
 
+log = logging.getLogger(__name__)
+
 UPLOADS_DIR = Path("data") / "uploads"
 NO_WORKBOOK = {"message": "No workbook loaded yet. Upload a portfolio workbook to begin.", "empty": True}
 
@@ -194,9 +197,17 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     lock = threading.RLock()
 
     def recompute(refresh: bool = False, progress: Any = None) -> PipelineResult:
+        """Rerun the served workbook. If the workbook has gone (a reset or a re-upload while a request was in
+        flight) the last good run stays served and the caller gets a plain 409, not a traceback."""
+        from ..ingest.reader import IngestError
         with lock:
-            app.state.result = execute(app.state.paths, provider=app.state.provider, refresh_market=refresh,
-                                       recommender=recommender, note_reader=note_reader, progress=progress)
+            try:
+                app.state.result = execute(app.state.paths, provider=app.state.provider, refresh_market=refresh,
+                                           recommender=recommender, note_reader=note_reader, progress=progress)
+            except IngestError as ex:
+                log.warning("rerun skipped: %s; still serving the previous run", ex)
+                raise HTTPException(409, {"message": f"The workbook could not be reread ({ex}). The previous run is still shown; "
+                                                     "upload the workbook again to continue."}) from None
         return app.state.result
 
     def write_then_recompute(write) -> PipelineResult:

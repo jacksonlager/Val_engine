@@ -122,3 +122,18 @@ def test_a_row_naming_an_unknown_company_is_a_blocked_card(tmp_path: Path, cfg):
     assert [r[0] for r in ws.iter_rows(min_row=2, values_only=True)] == ["Alpha"]
     notes = dict(r[:2] for r in openpyxl.load_workbook(out)["Snapshot Notes"].iter_rows(min_row=2, values_only=True))
     assert "Aravinee" in notes and "refused" in notes["Aravinee"]
+
+
+
+def test_a_rerun_against_a_vanished_workbook_keeps_the_previous_run_and_says_so(root: Path, tmp_path: Path):
+    """Seen on a demo machine: a decision posted while the workbook was being replaced printed a raw
+    IngestError. The previous run stays served and the caller gets a plain 409 instead."""
+    client = TestClient(create_app(None, provider="stub", static_dir=tmp_path / "no-static", start_empty=True, root=root))
+    job = _wait(client, client.post("/api/upload", files={"file": ("HC_Mock_Portfolio_Data.xlsx", REAL.read_bytes())}).json()["id"])
+    run_id = job["result"]["run_id"]
+    (root / "data" / "uploads" / "2026Q3" / "HC_Mock_Portfolio_Data.xlsx").unlink()
+    # the override route is the one a reviewer hits; it records the decision and reruns
+    body = {"company": "Halcyra", "booked": 2.7, "approver": "Tom", "reason": "test", "rule_ids_addressed": ["X-202"]}
+    resp = client.post("/api/overrides", json=body)
+    assert resp.status_code == 409 and "previous run is still shown" in resp.json()["detail"]["message"]
+    assert client.get("/api/health").json()["run_id"] == run_id      # the previous run is still served
