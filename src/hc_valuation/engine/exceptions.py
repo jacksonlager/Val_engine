@@ -166,8 +166,10 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
             "X-404": "an outsized unrealised gain", "X-301": "revenue now shrinking",
         }
         hits = [screens[k] for k in ("X-401", "X-402", "X-404", "X-301") if k in ids]
-        if age > x.staleness.monitor_months and hits and not (ids & {"X-302", "X-202"}):
-            # (X-302 / X-202 already put the position in REVIEW on their own; no double count)
+        if age > x.staleness.monitor_months and hits and not (ids & {"X-302", "X-202"}) and not deal_priced:
+            # (X-302 / X-202 already put the position in REVIEW on their own; no double count. A signed
+            # acquisition is the price test now — X-201 says so — so the round's age is context, not a
+            # reason to reprice: the deal already did.)
             mult_txt = f"{w.latest_post / p.arr:.0f}× revenue" if p.arr else "an unscreenable multiple"
             w.flag("X-405", "valuation", Severity.REVIEW,
                    f"The price behind this mark is {age} months old, and the current numbers disagree with it: "

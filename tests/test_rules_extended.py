@@ -559,3 +559,19 @@ def test_exec_view_drivers_cover_the_new_rules(build):
         assert _driver_for(c) == key, rid
     listed, _ = build([_public()], [], market=_quote(cap=600.0))
     assert _driver_for(only(listed)) == "ipo"
+
+
+def test_x405_stays_quiet_when_a_signed_deal_prices_the_position(build):
+    """A stale round with a multiple screen against it is X-405 on its own. Once a signed acquisition
+    prices the position (M-050), the deal is the price test — X-201 already says the round's age is
+    context only — so the same screen must not add a REVIEW asking to reprice a deal-priced mark."""
+    stale = dict(latest_round=date(2024, 1, 15), latest_post_money=400.0, arr=10.0, arr_growth=0.6)   # 32 months old, 40× revenue
+    run, _ = build([position(**stale)], [])
+    c = only(run)
+    assert {"X-201", "X-401", "X-405"} <= set(flag_ids(c)), flag_ids(c)
+    announced = next(e for e in EventType if "ANNOUNC" in e.name)
+    run, _ = build([position(**stale)], [event(announced, detail="Definitive agreement, all cash", value=500.0)])
+    c = only(run)
+    assert "M-050" in [s.rule_id for s in c.steps] and "X-101" in flag_ids(c)
+    assert "X-201" in flag_ids(c) and _flag(c, "X-201").evidence.get("superseded_by") == "pending acquisition"
+    assert "X-405" not in flag_ids(c), "the signed deal is the price test; the round's age is context only"
