@@ -168,10 +168,37 @@ UPLOADS_DIR = Path("data") / "uploads"
 NO_WORKBOOK = {"message": "No workbook loaded yet. Upload a portfolio workbook to begin.", "empty": True}
 
 
+def market_cache_is_stale_today(root: Path, policy: Path, today: date | None = None) -> bool:
+    """True when the live comps cache for the policy's measurement date was fetched before today (or
+    does not exist): the dashboard refetches once a day so the screen shows today's data and says so."""
+    from ..config import load_config
+    from ..connectors.cache import MarketCache
+    try:
+        md = load_config(policy).quarter.measurement_date
+        meta = MarketCache(root, md).read_meta()
+    except Exception:  # noqa: BLE001 — an unreadable cache is a stale one
+        return True
+    if not meta or not meta.get("fetched_at"):
+        return True
+    fetched = str(meta["fetched_at"])[:10]
+    return fetched < (today or date.today()).isoformat()
+
+
+def market_status(result: PipelineResult | None) -> dict[str, Any]:
+    """What the header says about the market data: where it came from and when it was fetched."""
+    if result is None:
+        return {"source": None, "reached_live": False, "fetched_at": None, "as_of": None, "refreshable": False, "errors": 0}
+    rep = result.market_report or {}
+    return {"source": rep.get("source") or result.run.manifest.market_data_source, "reached_live": bool(rep.get("reached_live")),
+            "fetched_at": rep.get("fetched_at"), "as_of": rep.get("as_of"),
+            "refreshable": (rep.get("provider") or "") == "live" or str(result.run.manifest.market_data_source).startswith("live"),
+            "errors": len(rep.get("errors") or [])}
+
+
 def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None,
                refresh_market: bool = False, recommender: str | None = None,
                provider_explicit: str | None = None, *, start_empty: bool = False, root: Path | None = None,
-               note_reader: str | None = None) -> FastAPI:
+               note_reader: str | None = None, auto_refresh_market: bool = True) -> FastAPI:
     """`provider` is what the first run reads (the CLI passes its resolved default; the library default is
     the fixture). `provider_explicit` is what the operator actually asked for, if anything: a workbook
     switch re-derives the provider from it, so a quarter only a synthetic file can price gets that file
@@ -224,7 +251,10 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     app.state.jobs = {}                 # upload jobs: id -> progress record (see post_upload)
     app.state.known_workbooks = [] if start_empty else [Path(paths.workbook)]   # every book this server has served
     if not start_empty:
-        recompute(refresh=refresh_market)   # a forced refetch applies to the first run only; reruns read the cache
+        # A forced refetch applies to the first run only; reruns read the cache. The dashboard also refetches
+        # once a day on its own when the cache was fetched before today, so the screen shows today's data.
+        first_refresh = refresh_market or (auto_refresh_market and provider == "live" and market_cache_is_stale_today(paths.root, paths.policy))
+        recompute(refresh=first_refresh)
 
     def result() -> PipelineResult:
         if app.state.result is None:
@@ -244,12 +274,13 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     def health() -> dict[str, Any]:
         if app.state.result is None:
             return {"status": "empty", "run_id": None, "quarter": None, "generated_at": None, "blocked": False,
+                    "market": market_status(None),
                     "ledger": {"overrides": str(paths.overrides), "published_dir": str(paths.published_dir),
                                "workbook": None, "policy": None}}
         m = result().run.manifest
         return {"status": "ok", "run_id": m.run_id, "quarter": m.quarter_label, "policy_version": m.policy_version,
                 "engine_version": m.engine_version, "generated_at": m.generated_at.isoformat(),
-                "blocked": result().run.blocked,
+                "blocked": result().run.blocked, "market": market_status(result()),
                 # which ledger a decision made on this page lands in — a test chain must never
                 # append to the real book's overrides.yaml, and the page can say where it writes
                 "ledger": {"overrides": str(paths.overrides), "published_dir": str(paths.published_dir),
@@ -285,6 +316,21 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     def get_market() -> JSONResponse:
         """The sector comps behind X-401/X-402 and M-080, with where they came from (docs/market-feed.md §3)."""
         return JSONResponse(result().market_report)
+
+    @app.post("/api/market/refresh")
+    def refresh_market_now() -> dict[str, Any]:
+        """Refetch the live comps feed over its cache and rerun the book on it. Only for a workbook priced
+        from the live feed; the fixture and synthetic data have nothing to refresh. If the feed cannot be
+        reached the cache stays as it was and the response says so."""
+        if app.state.result is None:
+            raise HTTPException(404, NO_WORKBOOK)
+        if not market_status(app.state.result)["refreshable"]:
+            raise HTTPException(400, {"message": "This workbook is not priced from the live feed, so there is nothing to refresh."})
+        r = recompute(refresh=True)
+        status = market_status(r)
+        return {"ok": True, "run_id": r.run.manifest.run_id, "market": status,
+                "message": (f"Live data refreshed." if status["reached_live"] and not status["errors"] else
+                            f"The feed answered with {status['errors']} problem(s); see the Market tab. Data on file is kept where a fetch failed.")}
 
     @app.get("/api/history")
     def get_history() -> JSONResponse:
@@ -390,6 +436,8 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
                 app.state.paths, app.state.provider = new_paths, new_provider
                 try:
                     app.state.result = execute(new_paths, provider=new_provider, recommender=recommender, note_reader=note_reader,
+                                               refresh_market=(auto_refresh_market and new_provider == "live"
+                                                               and market_cache_is_stale_today(root, pol)),
                                                progress=lambda i, name: step(offset + i, name))
                 except Exception:
                     app.state.paths, app.state.provider, app.state.result = previous

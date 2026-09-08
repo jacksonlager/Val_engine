@@ -521,7 +521,9 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
         watch: bool = typer.Option(False, "--watch", help="Recompute when the workbook, policy or a ledger changes; "
                                                           "the open dashboard reloads itself"),
         provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt,
-        recommender: Optional[str] = RecommenderOpt, note_reader: Optional[str] = NoteReaderOpt) -> None:
+        recommender: Optional[str] = RecommenderOpt, note_reader: Optional[str] = NoteReaderOpt,
+        no_market_refresh: bool = typer.Option(False, "--no-market-refresh", help="Do not refetch the live feed on start even "
+                                                                                  "when the cache was fetched before today")) -> None:
     """Compute the run, serve the dashboard and API, open a browser. With --watch, a new
     workbook dropped in place (or an edited policy / ledger) re-runs and refreshes the page."""
     import uvicorn
@@ -541,12 +543,14 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
             typer.echo(f"opening the most recent upload: {input_path.relative_to(repo_root())}")
     if input_path is None:
         application = create_app(None, provider=provider, provider_explicit=provider, refresh_market=refresh_market,
-                                 recommender=recommender, note_reader=note_reader, start_empty=True)
+                                 recommender=recommender, note_reader=note_reader, start_empty=True,
+                                 auto_refresh_market=not no_market_refresh)
         typer.echo("no workbook loaded: upload one from the dashboard (or pass --input)")
     else:
         paths = _paths(input_path, policy, overrides, ledger_dir)
         application = create_app(paths, provider=_default_provider(paths, provider), provider_explicit=provider,
-                                 refresh_market=refresh_market, recommender=recommender, note_reader=note_reader)
+                                 refresh_market=refresh_market, recommender=recommender, note_reader=note_reader,
+                                 auto_refresh_market=not no_market_refresh)
         typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")

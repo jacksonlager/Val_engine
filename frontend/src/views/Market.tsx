@@ -14,6 +14,7 @@ import { loadMarket, type Mode } from "../lib/api";
 import { isoDateTime, mult, musd, pct, shortDate, signClass } from "../lib/format";
 import { altLabel, humanize } from "../lib/labels";
 import { useChartTheme } from "../lib/theme";
+import { MarketStatusButton } from "../components/MarketStatus";
 import { DispChip, SectionTitle, useAsync } from "../components/ui";
 
 const MONO = "IBM Plex Mono, ui-monospace, monospace";
@@ -95,7 +96,7 @@ function policySentences(rep: MarketReport): string {
   return `${screens} ${cal}`;
 }
 
-function HeaderStrip({ rep }: { rep: MarketReport }) {
+function HeaderStrip({ rep, served, onRefreshed }: { rep: MarketReport; served: boolean; onRefreshed?: () => void }) {
   const [showErrors, setShowErrors] = useState(false);
   const n = rep.errors.length;
   const askedLive = rep.provider === "live";
@@ -119,11 +120,12 @@ function HeaderStrip({ rep }: { rep: MarketReport }) {
         <span className="text-[11px] text-muted">Sector multiples priced from {sourceWords(rep.source, rep.reached_live)}.</span>
         <span className="border-l border-line h-4" aria-hidden />
         <Meta k="Valuation date">{shortDate(rep.as_of)}</Meta>
-        {rep.reached_live && (
-          <Meta k="Retrieved">
+        {served ? null : rep.reached_live && (
+          <Meta k="Data as of" title="When the live feed was last fetched. The multiples are the last close on file at that fetch.">
             <span title={rep.fetched_at ?? undefined}>{rep.fetched_at ? shortDate(rep.fetched_at) : "—"}</span>
           </Meta>
         )}
+        {served && <MarketStatusButton refreshKey={rep.fetched_at ? rep.fetched_at.length : 0} onRefreshed={() => onRefreshed?.()} />}
         <Meta k="Comparables" title={`Basket definitions: ${rep.baskets_file}`}>
           {rep.sectors.length} sectors, {names} public companies
         </Meta>
@@ -881,8 +883,8 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
   );
 }
 
-export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationRun; onGoto?: (name: string) => void }) {
-  const { data: rep, error, loading } = useAsync(() => loadMarket(mode), [mode]);
+export function MarketView({ mode, run, onGoto, onRefreshed }: { mode: Mode; run?: ValuationRun; onGoto?: (name: string) => void; onRefreshed?: () => void }) {
+  const { data: rep, error, loading, refetch } = useAsync(() => loadMarket(mode), [mode]);
   const [selected, setSelected] = useState<string | null>(null);
 
   // default to the sector with the most portfolio positions (the API's first row)
@@ -924,7 +926,14 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
 
   return (
     <div className="space-y-4">
-      <HeaderStrip rep={rep} />
+      <HeaderStrip
+        rep={rep}
+        served={mode === "served"}
+        onRefreshed={() => {
+          refetch();
+          onRefreshed?.();
+        }}
+      />
       <DataQuality rep={rep} />
 
       {rep.sectors.length === 0 ? (

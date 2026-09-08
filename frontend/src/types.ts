@@ -520,6 +520,16 @@ export interface MarketCacheInfo {
   refreshable: boolean;
 }
 
+/** GET /api/health `market` and POST /api/market/refresh `market`: where the comps came from and when. */
+export interface MarketStatus {
+  source: string | null;        // "live:edgar+yahoo" | "stub" | "synthetic:…"
+  reached_live: boolean;
+  fetched_at: string | null;    // ISO datetime of the fetch that filled the cache
+  as_of: string | null;         // the measurement date the data is priced for
+  refreshable: boolean;
+  errors: number;
+}
+
 export interface MarketReport {
   provider: MarketProvider;
   source: string; // manifest label, e.g. "live:edgar+yahoo" (live:edgar+<price source>), "stub" or "synthetic:invented-test-data"

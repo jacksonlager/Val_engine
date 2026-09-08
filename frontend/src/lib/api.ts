@@ -2,7 +2,7 @@
 //   served  — the FastAPI app serves this bundle at '/' and exposes /api/*
 //   static  — the run is inlined as window.__HC_RUN__ (hc-valuation build); no API,
 //             so every write action is disabled with an explanation.
-import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, ResetResult, Sources, TreatmentProposal, UploadJob, ValuationRun, WorkbookProfile } from "../types";
+import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, ResetResult, Sources, TreatmentProposal, UploadJob, ValuationRun, WorkbookProfile, MarketStatus } from "../types";
 
 export type Mode = "served" | "static";
 
@@ -213,4 +213,15 @@ export async function selectWorkbook(id: string): Promise<{ run_id: string; quar
 /** Back to the landing screen: removes every upload, decision and published snapshot (the server requires the word). */
 export async function resetApp(): Promise<ResetResult> {
   return postJson<ResetResult>("/api/reset", { confirm: "RESET" });
+}
+
+/** Where the market data came from and when it was fetched (from /api/health). */
+export async function loadMarketStatus(): Promise<MarketStatus | null> {
+  const h = await getJson<{ market?: MarketStatus }>("/api/health");
+  return h.market ?? null;
+}
+
+/** Refetch the live comps feed over its cache and rerun the book on it. */
+export async function refreshMarket(): Promise<{ ok: boolean; run_id: string; market: MarketStatus; message: string }> {
+  return postJson<{ ok: boolean; run_id: string; market: MarketStatus; message: string }>("/api/market/refresh", {});
 }
