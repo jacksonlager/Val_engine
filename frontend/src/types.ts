@@ -15,6 +15,10 @@ export const DISPOSITION_HINT: Record<Disposition, string> = {
   CLEAR: "Nothing outstanding; book as proposed",
 };
 
+/** The three readiness states, in the order a reviewer works them, and what each asks. */
+export const READINESS_ORDER: Record<string, number> = { Blocked: 0, "Needs Review": 1, Ready: 2 };
+export const READINESSES: string[] = ["Blocked", "Needs Review", "Ready"];
+
 // engine/inputs.py Status enum — values as they appear in the workbook.
 export type Status = "Active" | "Acquired" | "Shut Down" | string;
 

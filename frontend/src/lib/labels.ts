@@ -23,12 +23,18 @@ export function humanize(k: string): string {
 // Deliberately different words from readiness (Blocked / Needs Review / Ready): a disposition counts
 // findings — "Decision required" is one or more findings that stop approval, "Confirm" is a judgment
 // to ratify — while readiness says whether the engine had what it needed. The two are not the same axis.
+// Used only on individual findings now: a position carries a readiness word instead.
 export const DISPOSITION_LABEL: Record<string, string> = {
-  BLOCK: "Decision required",
-  REVIEW: "Confirm",
+  BLOCK: "Blocks approval",
+  REVIEW: "Needs a review",
   MONITOR: "Noted",
   CLEAR: "Clear",
 };
+
+/** "Needs Review" -> "rd-NeedsReview": the readiness CSS class. */
+export function readinessClass(r: string): string {
+  return `rd-${r.replace(/\s+/g, "")}`;
+}
 
 export function dispositionLabel(d: string): string {
   return DISPOSITION_LABEL[d] ?? humanize(d);

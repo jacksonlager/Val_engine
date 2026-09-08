@@ -126,7 +126,7 @@ Every finding has a severity. The position's **readiness** is one state, decided
 
 A decision resolves the findings it names (`rule_ids_addressed`), and only those. A provisional mark stays Blocked until a decision names its rule — the committee accepting the stand-in knowingly. A BLOCK-severity *finding* does not by itself mean a Blocked *position*: Gryphonel's announced deal is BLOCK severity, but nothing is missing, so it is Needs Review.
 
-**Monitor** is a tag, not a bucket. A position carries it when any MONITOR-severity finding is present — a 24-month-old round, a high multiple, an insider-led round — and it can sit on a Ready position. These read under "Also noted, nothing to decide" on the card. (The dedicated watch-item tile and filter were withdrawn at your request; the findings themselves remain.)
+**Noted** findings are not a bucket. A position can carry them — a 24-month-old round, a high multiple, an insider-led round — and still be Ready. They read under "Also noted, nothing to decide" on the card. A position itself carries one word only: Blocked, Needs Review or Ready.
 
 Two more states are kept separate from readiness. **Approval** is Not approved → Decision recorded → Approved and published; nothing is "booked" until the quarter is published. And the older **disposition** vocabulary (BLOCK / REVIEW / MONITOR / CLEAR) still exists underneath as the maximum severity of a position's findings, with one escalation: two REVIEW findings from *different families* compound to BLOCK. It drives the executive dashboard's counts and the Companies table; the cards speak readiness.
 

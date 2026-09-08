@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CompanyResult, PublishRecord, ValuationRun } from "../types";
 import { fetchPublished, publishRun, type Mode } from "../lib/api";
 import { musd, relativeTime } from "../lib/format";
-import { dispositionLabel, publishStatusLabel, shortRef } from "../lib/labels";
+import { publishStatusLabel, readinessClass, shortRef } from "../lib/labels";
 import { Field, Modal, useAsync, WriteButton } from "./ui";
 
 /** The decision gate. A position that is still BLOCK ("decision required before booking") or REVIEW
@@ -263,8 +263,8 @@ function GateModal({
       <ul className="gate-list" aria-label="Positions still waiting">
         {items.map(({ c, rules }) => (
           <li key={c.company} className="gate-row" title={rules.length > 0 ? `Open findings: ${rules.join(", ")}` : undefined}>
-            <span className={`chip disp-${c.disposition} no-dot gate-disp`} title={c.disposition === "BLOCK" ? "Decision required" : "Confirmation required"}>
-              {dispositionLabel(c.disposition)}
+            <span className={`chip ${readinessClass(c.readiness)} no-dot gate-disp`} title={c.disposition === "BLOCK" ? "A decision is required" : "A confirmation is required"}>
+              {c.readiness}
             </span>
             <span className="gate-name">
               <span className="font-semibold">{c.company}</span>

@@ -1,10 +1,20 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { CompanyResult, Disposition, Flag, Severity } from "../types";
 import { musd, signClass, signed } from "../lib/format";
-import { dispositionLabel, familyLabel, severityShort } from "../lib/labels";
+import { dispositionLabel, familyLabel, severityShort, readinessClass } from "../lib/labels";
+import { READINESS_HINT } from "../types";
 
 export function DispChip({ d, className = "" }: { d: Disposition | Severity; className?: string }) {
   return <span className={`chip disp-${d} ${className}`}>{dispositionLabel(d)}</span>;
+}
+
+/** A position's readiness — Blocked / Needs Review / Ready — the one status a position carries. */
+export function ReadinessChip({ r, className = "" }: { r: string; className?: string }) {
+  return (
+    <span className={`chip ${readinessClass(r)} ${className}`} title={(READINESS_HINT as Record<string, string>)[r] ?? ""}>
+      {r}
+    </span>
+  );
 }
 
 export const ESCALATION_HINT =

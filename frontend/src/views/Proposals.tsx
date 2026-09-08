@@ -3,7 +3,7 @@ import type { ProposalDecision, TreatmentProposal, ValuationRun } from "../types
 import { decideProposal, loadProposals, proposalId, type Mode } from "../lib/api";
 import { musd, pct, shortDate } from "../lib/format";
 import { evidenceLabel, humanize, parameterSource, proposalStatusLabel, proposedKindLabel, provenanceLabel } from "../lib/labels";
-import { DispChip, Empty, Field, KV, Modal, useAsync, WriteButton } from "../components/ui";
+import { DispChip, Empty, Field, KV, Modal, ReadinessChip, useAsync, WriteButton } from "../components/ui";
 
 type Action = "accept_once" | "promote" | "reject";
 
@@ -104,7 +104,7 @@ export function ProposalsView({
             )}
             {c && (
               <div className="text-[11px] text-muted mt-1 num">
-                {c.fund} · {c.sector} · prior {musd(c.prior_mark)} · proposed {musd(c.proposed_mark)} · <DispChip d={c.disposition} />
+                {c.fund} · {c.sector} · prior {musd(c.prior_mark)} · proposed {musd(c.proposed_mark)} · <ReadinessChip r={c.readiness} />
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 mt-3 text-[12px]">

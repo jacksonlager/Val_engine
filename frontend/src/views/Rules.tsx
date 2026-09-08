@@ -6,9 +6,9 @@ import type { CompanyResult, Disposition, RuleRationale, ValuationRun } from "..
 import { useRationale } from "../lib/rationale";
 import { musd } from "../lib/format";
 import { familyLabel, familyPhrase, joinPhrases } from "../lib/labels";
-import { DispChip, EscalatedChip, escalatedReviewFamilies } from "../components/ui";
+import { DispChip, ReadinessChip, EscalatedChip, escalatedReviewFamilies } from "../components/ui";
 
-const DISP_ORDER: Record<Disposition, number> = { BLOCK: 0, REVIEW: 1, MONITOR: 2, CLEAR: 3 };
+const READINESS_RANK: Record<string, number> = { Blocked: 0, "Needs Review": 1, Ready: 2 };
 
 /** Which of the six checks decided this position, in the reviewer's words. */
 export function whyDisposition(c: CompanyResult): string {
@@ -99,7 +99,7 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
         .filter((c) => c.disposition !== "CLEAR")
         .filter((c) => !q || `${c.company} ${c.flags.map((f) => f.rule_id).join(" ")}`.toLowerCase().includes(q.toLowerCase()))
         .slice()
-        .sort((a, b) => DISP_ORDER[a.disposition] - DISP_ORDER[b.disposition] || a.company.localeCompare(b.company)),
+        .sort((a, b) => READINESS_RANK[a.readiness] - READINESS_RANK[b.readiness] || a.company.localeCompare(b.company)),
     [run, q],
   );
 
@@ -221,7 +221,7 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
                     </td>
                     <td className="align-top">
                       <span className="inline-flex items-center gap-1">
-                        <DispChip d={c.disposition} />
+                        <ReadinessChip r={c.readiness} />
                         <EscalatedChip n={n} short />
                       </span>
                       <div className="text-[11px] text-muted mt-0.5 whitespace-normal max-w-[260px]">{whyDisposition(c)}</div>

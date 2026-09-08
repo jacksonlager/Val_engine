@@ -9,12 +9,12 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import type { CompanyResult, Disposition, ValuationRun } from "../types";
-import { DISPOSITIONS } from "../types";
+import type { CompanyResult, ValuationRun } from "../types";
+import { READINESSES, READINESS_ORDER } from "../types";
 import { deltaPct, months, mult, musd, pct, signed, signClass } from "../lib/format";
-import { dispositionLabel } from "../lib/labels";
+import { readinessClass } from "../lib/labels";
 import { CompanyDetail } from "../components/CompanyDetail";
-import { DispChip, EscalatedChip, escalatedReviewFamilies, FlagChip } from "../components/ui";
+import { EscalatedChip, escalatedReviewFamilies, FlagChip, ReadinessChip } from "../components/ui";
 
 const col = createColumnHelper<CompanyResult>();
 
@@ -38,12 +38,12 @@ export function CompaniesView({
 }) {
   const [search, setSearch] = useState("");
   // the severity filter lives here, beside the others it belongs with, rather than in the chrome
-  const [filter, setFilter] = useState<Disposition | "ALL">("ALL");
+  const [filter, setFilter] = useState<string>("ALL");
   const [fund, setFund] = useState("");
   const [sector, setSector] = useState("");
   const [rule, setRule] = useState("");
   const [hasEvent, setHasEvent] = useState(false);
-  const [sorting, setSorting] = useState<SortingState>([{ id: "disposition", desc: false }]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "readiness", desc: false }]);
   const [expanded, setExpanded] = useState<string | null>(focus);
   // The table scrolls horizontally; the expanded detail row is pinned to the visible
   // width so the audit chain never hides off-screen to the right.
@@ -86,14 +86,14 @@ export function CompaniesView({
   const rows = useMemo(
     () =>
       run.companies.filter((c) => {
-        if (filter !== "ALL" && c.disposition !== filter) return false;
+        if (filter !== "ALL" && c.readiness !== filter) return false;
         if (fund && c.fund !== fund) return false;
         if (sector && c.sector !== sector) return false;
         if (rule && !c.flags.some((f) => f.rule_id === rule) && !c.steps.some((s) => s.rule_id === rule)) return false;
         if (hasEvent && !c.steps.some((s) => s.evidence)) return false;
         if (search) {
           const q = search.toLowerCase();
-          const hay = `${c.company} ${c.fund} ${c.sector} ${c.stage} ${c.disposition} ${c.flags.map((f) => f.rule_id).join(" ")}`.toLowerCase();
+          const hay = `${c.company} ${c.fund} ${c.sector} ${c.stage} ${c.readiness} ${c.flags.map((f) => f.rule_id).join(" ")}`.toLowerCase();
           if (!hay.includes(q)) return false;
         }
         return true;
@@ -101,7 +101,6 @@ export function CompaniesView({
     [run, filter, fund, sector, rule, hasEvent, search],
   );
 
-  const DISP_ORDER: Record<Disposition, number> = { BLOCK: 0, REVIEW: 1, MONITOR: 2, CLEAR: 3 };
 
   const columns = useMemo<ColumnDef<CompanyResult, any>[]>(
     () => [
@@ -118,14 +117,14 @@ export function CompaniesView({
           </span>
         ),
       }),
-      col.accessor("disposition", {
-        header: "Review status",   // right after the name: the column the reader sorts by, never at the scroll edge
-        sortingFn: (a, b) => DISP_ORDER[a.original.disposition] - DISP_ORDER[b.original.disposition],
+      col.accessor("readiness", {
+        header: "Review status",   // right after the name: the column the reader sorts by, never at the scroll edge ("Status" further right is Active / Acquired / Shut Down)
+        sortingFn: (a, b) => READINESS_ORDER[a.original.readiness] - READINESS_ORDER[b.original.readiness],
         cell: (i) => {
           const n = escalatedReviewFamilies(i.row.original);
           return (
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
-              <DispChip d={i.getValue()} />
+              <ReadinessChip r={i.getValue()} />
               <EscalatedChip n={n} short />
             </span>
           );
@@ -249,11 +248,11 @@ export function CompaniesView({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select className="select" value={filter} onChange={(e) => setFilter(e.target.value as Disposition | "ALL")} title="Positions carrying a finding of this severity">
-          <option value="ALL">Any finding</option>
-          {DISPOSITIONS.map((d) => (
-            <option key={d} value={d}>
-              {dispositionLabel(d)} ({run.totals.dispositions[d] ?? 0})
+        <select className="select" value={filter} onChange={(e) => setFilter(e.target.value)} title="Positions in this state">
+          <option value="ALL">Any status</option>
+          {READINESSES.map((r) => (
+            <option key={r} value={r}>
+              {r} ({run.totals.readiness?.[r] ?? 0})
             </option>
           ))}
         </select>
@@ -315,7 +314,7 @@ export function CompaniesView({
                 <Fragment key={row.id}>
                   <tr
                     id={`row-${c.company}`}
-                    className={`row disp-${c.disposition} ${isOpen ? "expanded" : ""}`}
+                    className={`row ${readinessClass(c.readiness)} ${isOpen ? "expanded" : ""}`}
                     onClick={() => setExpanded(isOpen ? null : c.company)}
                     aria-expanded={isOpen}
                   >

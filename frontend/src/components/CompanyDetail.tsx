@@ -1,14 +1,14 @@
 import { Fragment, useState, type ReactNode } from "react";
-import { DISPOSITION_HINT, type CompanyResult, type MarkStep } from "../types";
+import { READINESS_HINT, type CompanyResult, type MarkStep } from "../types";
 import { isoDate, musd, pct, signed, signClass } from "../lib/format";
-import { altLabel, evidenceLabel, familyLabel, humanize, kindLabel, severityShort, shortRef } from "../lib/labels";
+import { altLabel, evidenceLabel, familyLabel, humanize, kindLabel, readinessClass, severityShort, shortRef } from "../lib/labels";
 import { postOverride } from "../lib/api";
 import { eventRowRef, inputRef, portfolioRowRef, useSources } from "../lib/sources";
 import { FlagActionList, FlagDetailModal, FlagNoteList } from "./Flags";
 import { MarkHistoryCard } from "./MarkHistoryChart";
 import { FlagHistoryCard, PriorFlagPill } from "./FlagHistory";
 import { VendorSignalsCard } from "./VendorSignals";
-import { CopyRef, DispChip, Field, KV, Label, Modal, WriteButton } from "./ui";
+import { CopyRef, Field, KV, Label, Modal, WriteButton, ReadinessChip } from "./ui";
 
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 });
 
@@ -255,7 +255,7 @@ function DecisionStrip({ c }: { c: CompanyResult }) {
   const d = c.proposed_mark - c.prior_mark;
   const overridden = Math.abs(c.booked_mark - c.proposed_mark) > 1e-6;
   return (
-    <div className={`dstrip disp-${c.disposition}`}>
+    <div className={`dstrip ${readinessClass(c.readiness)}`}>
       <dl className="qmarks">
         <div>
           <dt>Prior</dt>
@@ -280,9 +280,9 @@ function DecisionStrip({ c }: { c: CompanyResult }) {
         <span className="qunit">$M</span>
       </dl>
       <div className="dstrip-disp">
-        <DispChip d={c.disposition} />
+        <ReadinessChip r={c.readiness} />
         <PriorFlagPill c={c} />
-        <span className="text-[12px] text-ink2">{DISPOSITION_HINT[c.disposition]}</span>
+        <span className="text-[12px] text-ink2">{READINESS_HINT[c.readiness]}</span>
       </div>
     </div>
   );

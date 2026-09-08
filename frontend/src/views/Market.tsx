@@ -15,7 +15,7 @@ import { isoDateTime, mult, musd, pct, shortDate, signClass } from "../lib/forma
 import { altLabel, humanize } from "../lib/labels";
 import { useChartTheme } from "../lib/theme";
 import { MarketStatusButton } from "../components/MarketStatus";
-import { DispChip, SectionTitle, useAsync } from "../components/ui";
+import { ReadinessChip, SectionTitle, useAsync } from "../components/ui";
 
 const MONO = "IBM Plex Mono, ui-monospace, monospace";
 
@@ -833,7 +833,7 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
                       ) : (
                         <span className="font-medium">{r.c.company}</span>
                       )}{" "}
-                      <DispChip d={r.c.disposition} className="no-dot" />
+                      <ReadinessChip r={r.c.readiness} className="no-dot" />
                     </td>
                     <td className="text-ink2">{r.c.sector}</td>
                     <td

@@ -13,8 +13,8 @@
 #            be ready to defend them"). The two bullets are the defence.
 #
 # The one test behind every severity: could a reviewer, looking at this, change the booked
-# number? No → Monitor. Plausibly → Needs review. Cannot be booked until someone chooses →
-# Blocking.
+# number? No → Noted. Plausibly → Needs a review. Cannot be booked until someone chooses →
+# Blocks approval.
 
 version: 2026Q3-0.2
 groups:
@@ -159,7 +159,7 @@ rules:
       Non-binding, so nothing is booked; the indicated value is recorded as an open item that
       ages in the register and escalates if it never closes.
     why_severity: >-
-      Monitor by default; it needs a review when the indication is at or below 80% of the last
+      Noted by default; it needs a review when the indication is at or below 80% of the last
       round: a lower price in writing is evidence a market participant would not pay the carried
       price (ASC 820), so "mark down to the indication" becomes a real option.
   - id: X-124
@@ -241,7 +241,7 @@ rules:
       On a listed position the shares become saleable and the lock-up item closes; the mark is the
       market close as before, since a Level 1 price carries no lock-up discount under this policy.
     why_severity: >-
-      Monitor on a listed position: nothing to decide. Review when the book does not show the
+      Noted on a listed position: nothing to decide. A review when the book does not show the
       company as listed — the listing was never recorded on the tab or the row is on the wrong
       company, and a person has to say which.
   - id: X-133
@@ -255,7 +255,7 @@ rules:
       the fully diluted stake are unchanged. A row that also moves the stake is either a
       non-neutral reclassification or a wrong cell.
     why_severity: >-
-      Monitor when the stake is unchanged. Review when the row's ownership differs from the book:
+      Noted when the stake is unchanged. A review when the row's ownership differs from the book:
       the mark holds on the book's stake until the cap table says whether the economics moved.
   - id: X-130
     name: Note describes what no rule applied
@@ -423,7 +423,7 @@ rules:
     why_flag: >-
       Existing investors, not HC, priced the round. Weaker evidence than new money at the table.
     why_severity: >-
-      Monitor because insiders are still third parties; it needs a review when they re-priced the
+      Noted because insiders are still third parties; it needs a review when they re-priced the
       company 2× or more with no new investor testing it — a reviewer could reasonably book less,
       and "hold the prior mark" is offered.
   - id: X-119
@@ -482,7 +482,7 @@ rules:
     why_flag: >-
       A priced round re-priced the company 3× or more against the prior post-money.
     why_severity: >-
-      Monitor when the notes name a new lead or outside investor — the price was tested. It needs
+      Noted when the notes name a new lead or outside investor — the price was tested. It needs
       a review otherwise: a step-up that size with nobody new at the table is a price a reviewer
       should confirm, and "hold the prior mark" is offered.
   - id: M-999
@@ -697,7 +697,7 @@ rules:
       position the book already carries at the same round — a double count. Either the row is wrong
       or the Portfolio row is, and the workbook cannot say which.
     why_severity: >-
-      Blocking, on the row: nothing from it is applied, the prior mark is carried, and the position
+      Blocks approval, on the row: nothing from it is applied, the prior mark is carried, and the position
       stays Blocked until one of the two records is removed and the quarter rerun.
   - id: X-923
     name: Row applied on a corrected reading
