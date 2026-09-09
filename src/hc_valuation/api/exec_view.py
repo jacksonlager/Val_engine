@@ -13,6 +13,7 @@ where people departed from it.
 from __future__ import annotations
 
 from collections import defaultdict
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from ..engine.inputs import Status
@@ -90,7 +91,10 @@ def _event_label(c: CompanyResult) -> str:
 
 
 def _r(x: float, n: int = 2) -> float:
-    return round(float(x), n)
+    """Round half-up, the way the review tool's Intl formatter does, so a mark of 0.845 reads
+    0.85 on both dashboards. Python's round() is banker's rounding on a binary float and gave
+    0.84 for the same number, which put the two screens $5k apart on five positions."""
+    return float(Decimal(str(float(x))).quantize(Decimal(1).scaleb(-n), rounding=ROUND_HALF_UP))
 
 
 def _pct(delta: float, base: float) -> float | None:
@@ -290,7 +294,10 @@ def build_exec_view(run: ValuationRun, publish: dict[str, Any]) -> dict[str, Any
             "exit_proceeds": _r(sum(c.realized_quarter for c in cs
                                     if c.status_before == Status.ACTIVE and c.status_after == Status.ACQUIRED)),
             "positions": t.positions, "active": t.active_after,
-            "events": sum(1 for c in cs if any(s.evidence is not None for s in c.steps)),
+            "events": sum(1 for c in cs if any(s.evidence is not None for s in c.steps)),   # positions with activity
+            # distinct activity rows the engine applied, and how many positions carry a reviewer's decision
+            "activity_rows": len({(s.evidence.sheet, s.evidence.row_index) for c in cs for s in c.steps if s.evidence is not None}),
+            "reviewer_decisions": sum(1 for c in cs if c.override is not None),
             "level1_positions": t.level1_positions, "top10_concentration": _r(t.top10_concentration, 4),
             "dispositions": dict(t.dispositions),
             "invested": _r(sum(c.invested_after for c in cs)),
@@ -301,6 +308,9 @@ def build_exec_view(run: ValuationRun, publish: dict[str, Any]) -> dict[str, Any
         "movers": {"up": [_company_row(c) for c in ups[:8]], "down": [_company_row(c) for c in downs[:8]],
                    "realized": [_company_row(c) for c in realized[:8]]},
         "marks": _marks_schedule(cs),
+        # Footer totals from the unrounded sums: adding 100 two-decimal rows drifts a cent or two
+        # from the headline, and the two must agree on the same page.
+        "marks_totals": {"prior": _r(t.prior_nav), "proposed": _r(t.proposed_nav), "booked": _r(t.booked_nav)},
         "funds": [
             {"fund": r.fund, "companies": r.companies, "active": r.active, "invested": _r(r.invested),
              "prior_nav": _r(r.prior_nav), "booked_nav": _r(r.booked_nav), "delta": _r(r.booked_nav - r.prior_nav),

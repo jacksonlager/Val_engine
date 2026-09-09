@@ -4,7 +4,6 @@ import { dirClass, money, multiple, plural, shortDate, signedMoney, signedPct } 
 
 export function Headline({ view }: { view: ExecView }) {
   const h = view.headline;
-  const d = h.dispositions;
   const dir = dirClass(h.net_movement);
   // "Booked" is reserved for a final release; a proposed release shows the proposal the committee is being asked to book.
   const navLabel = view.meta.status === "final" ? "Booked NAV" : "Proposed NAV";
@@ -45,13 +44,12 @@ export function Headline({ view }: { view: ExecView }) {
         <Tile
           label="Active positions"
           value={String(h.active)}
-          foot={<>of {h.positions} held · {plural(h.events, "event")} this quarter</>}
+          foot={<>of {h.positions} held</>}
         />
         <Tile
-          label="Awaiting reviewer decision"
-          value={String(d.BLOCK ?? 0)}
-          valueClass={(d.BLOCK ?? 0) > 0 ? "!text-[var(--block-text)]" : ""}
-          foot={<>{d.REVIEW ?? 0} to review · {d.MONITOR ?? 0} monitored · {d.CLEAR ?? 0} clear</>}
+          label="Marked this quarter"
+          value={String(h.events)}
+          foot={<>positions with activity · {plural(h.activity_rows ?? h.events, "activity row")} · {plural(h.reviewer_decisions ?? 0, "reviewer decision")} on the book</>}
         />
       </div>
     </section>

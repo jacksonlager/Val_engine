@@ -35,7 +35,10 @@ export interface Headline {
   exit_proceeds: number;
   positions: number;
   active: number;
+  /** positions with at least one activity row this quarter */
   events: number;
+  activity_rows: number;
+  reviewer_decisions: number;
   level1_positions: number;
   top10_concentration: number;
   dispositions: Partial<Record<Disposition, number>>;
@@ -166,6 +169,7 @@ export interface ExecView {
   movers: { up: CompanyRow[]; down: CompanyRow[]; realized?: CompanyRow[] };
   /** Every position in the run: the full proposed-marks schedule (fund, then |Δ| desc). */
   marks?: CompanyRow[];
+  marks_totals?: { prior: number; proposed: number; booked: number };
   funds: Fund[];
   composition: { by_sector: CompositionSlice[]; by_stage: CompositionSlice[]; by_fund: CompositionSlice[] };
   hierarchy: Record<string, { count: number; nav: number }>;

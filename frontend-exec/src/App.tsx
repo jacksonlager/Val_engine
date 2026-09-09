@@ -4,11 +4,9 @@ import { TopBar, Masthead } from "./sections/Masthead";
 import { Headline } from "./sections/Headline";
 import { Bridge } from "./sections/Bridge";
 import { Movers } from "./sections/Movers";
-import { Decisions } from "./sections/Decisions";
 import { Funds } from "./sections/Funds";
 import { Composition } from "./sections/Composition";
 import { Risk } from "./sections/Risk";
-import { Sensitivity } from "./sections/Sensitivity";
 import { Activity } from "./sections/Activity";
 import { Marks } from "./sections/Marks";
 import { Footer } from "./sections/Footer";
@@ -65,11 +63,9 @@ export default function App() {
         <Headline view={view} />
         <Bridge view={view} />
         <Movers view={view} />
-        <Decisions view={view} />
         <Funds view={view} />
         <Composition view={view} />
         <Risk view={view} />
-        <Sensitivity view={view} />
         <Activity view={view} />
         <Marks view={view} />
         <Footer view={view} />

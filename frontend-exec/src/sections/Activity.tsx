@@ -42,7 +42,7 @@ export function Activity({ view }: { view: ExecView }) {
     <Section
       id="activity"
       eyebrow="All activity"
-      title={`${plural(view.events.length, "event")} marked this quarter`}
+      title={`${plural(view.events.length, "position")} marked this quarter`}
       aside={<>Every position with an event in the quarter. Proposed is the engine's number; booked is what stands after any override{overridden ? ` (${overridden} overridden)` : ""}. Click a column to sort.</>}
     >
       <div className="frame overflow-x-auto">

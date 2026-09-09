@@ -86,7 +86,7 @@ export function Risk({ view }: { view: ExecView }) {
           threshold="ARR growth below −15%"
           rows={r.arr_contraction}
           word={word}
-          metric={(x) => ({ value: typeof x.evidence.arr_growth === "number" ? `−${Math.abs(x.evidence.arr_growth * 100).toFixed(0)}%` : "—", label: "YoY" })}
+          metric={(x) => ({ value: typeof x.evidence.arr_growth === "number" ? `${x.evidence.arr_growth > 0 ? "+" : "−"}${Math.abs(x.evidence.arr_growth * 100).toFixed(0)}%` : "—", label: "YoY" })}
         />
         <RiskList
           title="Stale marks"

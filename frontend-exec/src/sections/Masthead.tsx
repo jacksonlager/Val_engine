@@ -6,11 +6,9 @@ export const NAV = [
   ["headline", "Headline"],
   ["bridge", "Bridge"],
   ["movers", "Movers"],
-  ["decisions", "Decisions"],
   ["funds", "Funds"],
   ["composition", "Composition"],
   ["risk", "Risk watch"],
-  ["sensitivity", "Sensitivity"],
   ["activity", "Activity"],
   ["marks", "All marks"],
 ] as const;

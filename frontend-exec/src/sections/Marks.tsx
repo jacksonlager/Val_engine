@@ -62,7 +62,10 @@ export function Marks({ view }: { view: ExecView }) {
 
   const sorted = useMemo(() => [...rows].sort((a, b) => compare(a, b, sort.key, sort.desc)), [rows, sort]);
 
+  // From the unrounded sums when the payload carries them: adding 100 two-decimal rows drifts a
+  // cent or two from the headline tile, and the two must agree on the same page.
   const totals = useMemo(() => {
+    if (view.marks_totals) return view.marks_totals;
     const t = { prior: 0, proposed: 0, booked: 0 };
     for (const r of rows) {
       t.prior += r.prior;
@@ -70,25 +73,17 @@ export function Marks({ view }: { view: ExecView }) {
       t.booked += r.booked;
     }
     return t;
-  }, [rows]);
+  }, [rows, view.marks_totals]);
 
   function clickHeader(col: (typeof COLUMNS)[number]) {
     setSort((s) => (s.key === col.key ? { key: col.key, desc: !s.desc } : { key: col.key, desc: !!col.defaultDesc }));
   }
-
-  const moved = rows.filter((r) => Math.abs(r.delta) > 0.0005).length;
 
   return (
     <Section
       id="marks"
       eyebrow="Full schedule"
       title={`${proposed ? "Proposed" : "Booked"} marks — all positions`}
-      aside={
-        <>
-          Every position in the published run, {plural(rows.length, "position")} in all; {moved} moved this quarter. Click a
-          column to sort; Δ and Δ % sort by size of movement. Realized exits show in blue: the mark is released because cash came back.
-        </>
-      }
     >
       {rows.length === 0 ? (
         <Empty>The published snapshot carries no per-position schedule.</Empty>

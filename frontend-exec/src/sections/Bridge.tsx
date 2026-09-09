@@ -62,7 +62,9 @@ export function Bridge({ view }: { view: ExecView }) {
               ))}
               <tr>
                 <td className="font-medium text-ink">Net movement</td>
-                <td className="r text-ink2">{rows.reduce((s, b) => s + b.count, 0)}</td>
+                <td className="r text-ink2" title="Distinct positions across every bar; one that moved and was then overridden counts once">
+                  {new Set(rows.flatMap((b) => b.companies.map((c) => c.company))).size}
+                </td>
                 <td className="r"><Delta v={h.net_movement} d={1} className="font-semibold" /></td>
               </tr>
             </tbody>
