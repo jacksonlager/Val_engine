@@ -99,6 +99,15 @@ export function actionableFlags(c: CompanyResult): Flag[] {
   return c.flags.filter((f) => f.severity !== "MONITOR");
 }
 
+/** Has a recorded decision already answered this finding? An override names the rules it resolves;
+    an empty list is the older shape and resolves everything on the position. A finding that has been
+    answered must not still advertise "Decision required" — the card would argue with its own panel. */
+export function addressedByDecision(c: CompanyResult, f: Flag): boolean {
+  const o = c.override;
+  if (!o) return false;
+  return o.rule_ids_addressed.length === 0 || o.rule_ids_addressed.includes(f.rule_id);
+}
+
 /** Is this the finding that says an input is missing? A stand-in mark (provisional) or a rule
     from the missing-input set: the reason there is no supported mark at all, and the one an
     override must not step past without saying so. */
@@ -1199,19 +1208,31 @@ export function FlagActionList({
             <div className="finding-body">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span className="text-[12.5px] font-semibold leading-snug">{flagName(f, names)}</span>
-                {f.severity === "BLOCK" && (
-                  <span className="chip disp-BLOCK no-dot" style={{ fontSize: 10 }} title="A decision is required before the quarter can be published">
-                    Decision required
-                  </span>
-                )}
-                {flags.length > 1 && covered?.includes(f.rule_id) && (
+                {addressedByDecision(c, f) ? (
                   <span
-                    className="chip disp-MONITOR no-dot"
+                    className="chip disp-CLEAR no-dot"
                     style={{ fontSize: 10 }}
-                    title="The suggested next step speaks to this finding. A suggestion is a proposal, not a resolution — nothing is settled until a decision is recorded, and a missing input has to arrive first."
+                    title={`A decision on file names this rule${c.override?.approver ? `, recorded by ${c.override.approver}` : ""}. It is no longer waiting on anyone.`}
                   >
-                    {pendingLabel(f)}
+                    Decision recorded
                   </span>
+                ) : (
+                  <>
+                    {f.severity === "BLOCK" && (
+                      <span className="chip disp-BLOCK no-dot" style={{ fontSize: 10 }} title="A decision is required before the quarter can be published">
+                        Decision required
+                      </span>
+                    )}
+                    {flags.length > 1 && covered?.includes(f.rule_id) && (
+                      <span
+                        className="chip disp-MONITOR no-dot"
+                        style={{ fontSize: 10 }}
+                        title="The suggested next step speaks to this finding. A suggestion is a proposal, not a resolution — nothing is settled until a decision is recorded, and a missing input has to arrive first."
+                      >
+                        {pendingLabel(f)}
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
               <FlagPoints f={f} plain limit={3} className="mt-1" />
