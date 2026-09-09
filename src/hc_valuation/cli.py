@@ -525,24 +525,26 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
         provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt,
         recommender: Optional[str] = RecommenderOpt, note_reader: Optional[str] = NoteReaderOpt,
         no_market_refresh: bool = typer.Option(False, "--no-market-refresh", help="Do not refetch the live feed on start even "
-                                                                                  "when the cache was fetched before today")) -> None:
-    """Compute the run, serve the dashboard and API, open a browser. With --watch, a new
-    workbook dropped in place (or an edited policy / ledger) re-runs and refreshes the page."""
+                                                                                  "when the cache was fetched before today"),
+        reopen: bool = typer.Option(False, "--reopen", help="Open the most recently uploaded workbook instead of the Upload screen")) -> None:
+    """Serve the dashboard and API and open a browser on the Upload screen; `--input <workbook>`
+    or `--reopen` opens a file straight away. With --watch, a new workbook dropped in place (or an
+    edited policy / ledger) re-runs and refreshes the page."""
     import uvicorn
 
     from .api.app import STATIC_DIR, create_app, watch_inputs
 
     from .config import repo_root
 
-    if input_path is None:
-        # The dashboard is upload-driven: with no --input it opens on the most recently uploaded workbook,
-        # or empty (the Upload button) when nothing has been uploaded yet. The CLI commands keep their
-        # file defaults; `run` is the one that a person drives from the browser.
+    if input_path is None and reopen:
+        # The dashboard is upload-driven: with no --input it opens on the Upload button. `--reopen`
+        # asks for the most recently uploaded workbook instead — never the default, because the last
+        # file someone tried (a next-quarter draft, a variant) is not necessarily the one to review.
         uploads = sorted((p for p in (repo_root() / "data" / "uploads").rglob("*.xlsx")
                           if not p.name.startswith("~$") and p.parent.name != "incoming"), key=lambda p: p.stat().st_mtime)
         if uploads:
             input_path = uploads[-1]
-            typer.echo(f"opening the most recent upload: {input_path.relative_to(repo_root())}")
+            typer.echo(f"reopening the most recent upload: {input_path.relative_to(repo_root())}")
     if input_path is None:
         application = create_app(None, provider=provider, provider_explicit=provider, refresh_market=refresh_market,
                                  recommender=recommender, note_reader=note_reader, start_empty=True,

@@ -57,7 +57,8 @@ hc-valuation run
 browser (`--no-browser` to skip that, `--port` to move it). With nothing uploaded yet the page
 is a landing screen with one **Upload workbook** button: pick the quarter's `.xlsx` (a `Portfolio`
 tab and a `Qn YYYY Activity` tab), watch it processed stage by stage, and open the queue. The file
-is kept under `data/uploads/<quarter>/`; on the next start `run` reopens the most recent upload.
+is kept under `data/uploads/<quarter>/`. The next start opens on the Upload screen again — nothing is
+reopened unless you ask: `run --reopen` takes the most recent upload, `run --input <file>` a named one.
 `run --input <workbook>` opens a specific file straight away (`hc-valuation run --input
 data/HC_Mock_Portfolio_Data.xlsx` is the Q3 2026 deliverable). The dashboard bundle is committed
 under `src/hc_valuation/api/static/`, so no Node is required; if it is absent the same URL serves
