@@ -64,7 +64,6 @@ function buildBridge(run: ValuationRun): Bridge[] {
 export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (name: string) => void }) {
   const th = useChartTheme();
   const data = useMemo(() => buildBridge(run), [run]);
-  const [showTable, setShowTable] = useState(false);
   const [sensitivity, setSensitivity] = useState(false);
 
   // Truncate the axis so a $35M step is legible against a $1.1B total. Stated in the subtitle.
@@ -108,22 +107,13 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
     {switcher}
     <div className="grid grid-cols-1 gap-4">
       <div className="card p-4">
-        <SectionTitle
-          right={
-            <button className="btn btn-ghost" onClick={() => setShowTable((v) => !v)}>
-              {showTable ? "Chart" : "Table view"}
-            </button>
-          }
-        >
+        <SectionTitle>
           Quarter-over-quarter bridge · {run.manifest.prior_close} → {run.manifest.measurement_date}
         </SectionTitle>
         <p className="text-[13px] text-ink2 mb-2 num">
           Prior NAV {musd(run.totals.prior_nav, 1)} → updated NAV {musd(run.totals.proposed_nav, 1)} ({signed(run.totals.net_movement, 1)},{" "}
           {pct(run.totals.net_movement / run.totals.prior_nav, 1, true)}). The {TAIL_AFTER} largest moves; the rest fold into Other. $M.
         </p>
-        {showTable ? (
-          <BridgeTable data={data} />
-        ) : (
           <div style={{ height: 420 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={plotted} margin={{ top: 24, right: 12, left: 0, bottom: 64 }} barCategoryGap="28%">
@@ -184,11 +174,13 @@ export function MovementView({ run, onGoto }: { run: ValuationRun; onGoto?: (nam
               </BarChart>
             </ResponsiveContainer>
           </div>
-        )}
         <div className="flex gap-4 text-[11px] text-ink2 mt-1">
           <span className="flex items-center gap-1"><i className="inline-block w-3 h-3 rounded-sm" style={{ background: th.up }} /> mark up</span>
           <span className="flex items-center gap-1"><i className="inline-block w-3 h-3 rounded-sm" style={{ background: th.down }} /> mark down / realized / written off</span>
           <span className="flex items-center gap-1"><i className="inline-block w-3 h-3 rounded-sm" style={{ background: th.neutral }} /> NAV total</span>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <BridgeTable data={data} />
         </div>
       </div>
 
