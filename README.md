@@ -28,11 +28,41 @@ number for each, and says why it is not the final word:
 | Beltrix | 8.1 → 8.10 | Runway under 6 months, and a 27-month-old price the multiple screen argues with: two families |
 | Jupelan | 14.3 → 14.30 | Runway under 6 months, and a 31-month-old price carried below the multiple screen: two families |
 
-Twenty-five more positions need a reviewer's confirmation (a stale round, a contraction, short
-runway, a term or a note the columns cannot hold); 44 carry a watch item; 22 are clear.
-**Publish is locked until all 34 are decided** — the executive dashboard never sees an
-undecided book. Open the review tool (`hc-valuation run`), or the executive view at
-`/exec/`, and the numbers above are the first thing on the screen.
+Every one of the 100 positions falls into one of four groups, and the review tool's three
+readiness tiles (*can this be booked?*) are built from them:
+
+| Group | Positions | Readiness tile |
+|---|---:|---|
+| Committee decisions, the nine in the table above | 9 | 1 **Blocked** (Drayvenn: the IPO close is missing information, so there is no supported final mark yet) + 8 **Needs Review** (a proposal exists; the committee must choose) |
+| Reviewer confirmations: a stale round, a contraction, short runway, a term or a note the columns cannot hold | 26 | 26 **Needs Review** (a proposal exists; verification is needed) |
+| Watch items only: information for the reviewer, nothing to decide | 44 | 44 **Ready** |
+| Clear: no activity and no signal | 21 | 21 **Ready** |
+| | **100** | |
+
+So the tiles on the first screen read:
+
+| Tile | Build-up | Count |
+|---|---|---:|
+| **Blocked** | Drayvenn | 1 |
+| **Needs Review** | 8 committee decisions + 26 confirmations | 8 + 26 = **34** |
+| **Ready** | 44 watch items + 21 clear | 44 + 21 = **65** |
+| | | 1 + 34 + 65 = 100 |
+
+Beneath them, the quarter in six numbers:
+
+| Portfolio fair value, prior | Portfolio fair value, proposed | New investment | Valuation change | Realized in quarter | Fair value not yet cleared |
+|---|---|---|---|---|---|
+| $1,139.3M | $1,184.3M | $4.1M | +$73.4M | $32.5M | $515.8M |
+
+Valuation change is the movement before cash: 1,184.3 − 1,139.3 + 32.5 realized − 4.1 new money
+= +73.4. Fair value not yet cleared is the proposed marks of the 35 positions that are not Ready
+(1 + 34), 515.8 ÷ 1,184.3 = 43.6% of the proposed book. **Publish is locked until all 35 are
+decided** — the executive dashboard at `/exec/` never sees an undecided book.
+
+This is a test run on the sample workbook HC sent over (`data/HC_Mock_Portfolio_Data.xlsx`, 100
+synthetic companies), with the note reader on so every activity row's free text was read. The
+numbers above are what the shipped checkout shows; a different workbook, or a decision recorded
+against this one, changes them.
 
 The engine is deterministic and pure: the same workbook and policy file always produce
 the same marks, the same queue and the same audit chain. Judgment lives in the policy
@@ -111,8 +141,7 @@ source to confirm, a down round whose headline post-money is only an upper bound
 announced deal whose close probability needs ratifying, an event type the engine does not
 recognise. `REVIEW` is a single judgment call; two independent REVIEW families on one
 company escalate to BLOCK. `MONITOR` is information; `CLEAR` had no activity and no
-signal. On the Q3 book, on the committed live comps, that is 9 BLOCK / 25 REVIEW / 44 MONITOR / 22 CLEAR
-(on the illustrative fixture, `--provider stub`, 7 / 20 / 39 / 34: the live multiples move the X-401/402 screens). Exception
+signal. On the Q3 book the readiness tiles show 1 Blocked / 34 Needs Review / 65 Ready. Exception
 rules only ever add flags: no flag has changed a mark, and none can. Every BLOCK and
 REVIEW flag carries an imperative action, two or three scannable points, and one to three
 priced suggestions (ratify, hold the prior mark, the full deal value, cost, an alternative
