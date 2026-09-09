@@ -277,8 +277,9 @@ def validate(snapshot: PortfolioSnapshot, feed: ActivityFeed, config: RuleConfig
                 else:
                     issues.append(ValidationIssue(rule_id="X-904", severity=Severity.BLOCK, sheet=snapshot.sheet_name,
                                                   row_index=p.row_index, company=p.company,
-                                                  message=(f"prior mark {p.prior_mark:.2f} does not reconcile to "
-                                                           f"ownership × post-money = {expected:.2f} (tol {tol})")))
+                                                  message=(f"Prior Mark ${p.prior_mark:.2f}M does not match Ownership × Latest Post-Money = "
+                                                           f"{p.ownership:.1%} × ${p.latest_post_money:.1f}M = ${p.ownership * p.latest_post_money:.2f}M "
+                                                           f"(tolerance ${tol:.2f}M); correct Prior Mark, Ownership or Latest Post-Money")))
         else:
             if p.prior_mark != 0:
                 issues.append(ValidationIssue(rule_id="X-904", severity=Severity.BLOCK, sheet=snapshot.sheet_name,

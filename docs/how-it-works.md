@@ -67,7 +67,7 @@ A position that was listed last quarter and has no event re-marks to its measure
 | Growth | Is revenue going backwards? | ARR contracting MONITOR (X-301), down >15% REVIEW (X-302) |
 | Liquidity | Is cash short? | runway <12 months MONITOR (X-303), <6 months REVIEW (X-304) — aged one month for reporting lag |
 | Valuation | Does the implied multiple look wrong? | above 2× / below 0.5× the live sector median (X-401 / X-402); MOIC >5× on a stale round (X-404); a stale price with any of these against it → REVIEW (X-405) |
-| Notes | Does the free text say something the columns do not? | 21 screened terms — *pay-to-play*, *recap*, *bridge*, *going concern*… (X-105) |
+| Notes | Does the free text say something the columns do not? | 75 screened terms — *pay-to-play*, *recap*, *bridge*, *going concern*… (X-105) |
 | Related party | Did the price come from an insider? | HC-led (X-117), insider-led with a ≥2× step-up (X-118) |
 
 Then the position is put in one **readiness bucket** — Blocked, Needs Review or Ready — described in section 3.
@@ -79,7 +79,7 @@ the situations the columns cannot hold turn up — an escrow, a preference senio
 "per the cap table" differs from the cell, a figure that supersedes the Portfolio tab, an instruction
 to whoever values the position. The engine reads that text twice. A keyword screen (X-105) raises a
 fixed vocabulary from the policy. Then the note reader — Claude, when `ANTHROPIC_API_KEY` is set —
-classifies each row's text against the case catalogue (`docs/case-catalogue.md`: 28 kinds of thing a
+classifies each row's text against the case catalogue (`docs/case-catalogue.md`: 29 kinds of thing a
 note can say) and reports, quoting the row, what it found. The engine compares that with what the
 row's rule took account of and raises the rest for review: X-130 for a kind no rule applied, X-131
 when the text states a different value for a column, X-126 when it supersedes the tab, X-132 when a
@@ -109,7 +109,7 @@ Publishing is the final gate: `Publish` refuses while any position is Blocked or
 
 ### Stage 5 — Outputs
 
-`hc-valuation build` writes the review workbook (`valuation_Q3_2026.xlsx`: Marks, Exceptions, Audit Trail, Open Items, Alternatives, Fund Rollup, Validation), the same as CSVs, a single-file `report.html` of the review tool, `exec_report.html` for the executive dashboard once a quarter is published, and — only when nothing blocks — **next quarter's input workbook** with this quarter's booked marks as its Prior Mark column, plus a sidecar carrying the open items forward. The round trip is tested: the emitted file re-ingests with zero blocking issues.
+`hc-valuation build` writes the review workbook (`valuation_Q3_2026.xlsx`: Marks, Exceptions, Audit Trail, Open Items, Alternatives, Fund Rollup, Validation), the same as CSVs, a single-file `report.html` of the review tool, `exec_report.html` for the executive dashboard once a quarter is published, and — withheld only when the workbook itself failed a blocking integrity check (X-9xx) — **next quarter's input workbook** with this quarter's booked marks as its Prior Mark column, plus a sidecar carrying the open items forward. The round trip is tested: the emitted file re-ingests with zero blocking issues.
 
 ## 3. What decides the bucket
 
@@ -145,7 +145,7 @@ All three are real positions in the current run.
 
 *Fund II · AI/ML · Series B.* Prior mark $24.1M at 8.6%, last priced October 2023 at $279.8M post. No rows on the Activity tab.
 
-**Calculation.** M-000: carry $24.1M. Then M-080 runs, because the round is 35.7 months old and the AI/ML basket has a live history: the five AI/ML comparables' own multiples moved ×0.45, ×3.34, ×0.58, ×4.50 and ×1.38 since the round month, a median of ×1.385 (+38.5%), capped by policy at +35%, so a **calibrated alternative of $24.10M × 1.35 = $32.53M** is recorded beside the mark. The mark itself does not move.
+**Calculation.** M-000: carry $24.1M. Then M-080 runs, because the round is 35.7 months old and the AI/ML basket has a live history: the five AI/ML comparables' own multiples moved ×0.45, ×3.34, ×0.58, ×4.50 and ×1.38 since the round month, a median of ×1.385 (+38.5%), capped by policy at +35%, so a **calibrated alternative of $24.10M × 1.35 = $32.54M** is recorded beside the mark. The mark itself does not move.
 
 **Checks.** X-201 MONITOR: the round is older than 24 months. X-304 REVIEW: **3.1 months of cash** — $5.6M on hand against $1.36M a month, aged one month for the reporting lag. The engine's summary: *the company must raise before the next close; the round that saves it may be priced below this mark.*
 
@@ -207,18 +207,18 @@ Marks sheet → the company's **Portfolio Row** → Audit Trail rows for that co
 
 ## 6. What is real, what is mocked, what is planned
 
-**Implemented and live.** Everything in stages 1–5 above. The comps feed is real: SEC EDGAR filings and Yahoo closes, cached under `data/market_cache/`, 54 public names across 12 five-name baskets (a few names sit in two), 55 months of history. The decision ledger, the publish gate, the audit trail, the next-quarter round trip, the review tool and the executive dashboard all work end to end. 1,034 tests, including a golden fixture that pins all 100 positions, a determinism test, and a 213-test stress suite (`tests/stress/`) covering threshold boundaries, overlapping and malformed activity, the approval controls, and no-activity positions.
+**Implemented and live.** Everything in stages 1–5 above. The comps feed is real: SEC EDGAR filings and Yahoo closes, cached under `data/market_cache/`, 54 public names across 12 five-name baskets (a few names sit in two), 55 to 96 months of history per sector. The decision ledger, the publish gate, the audit trail, the next-quarter round trip, the review tool and the executive dashboard all work end to end. 1,314 tests, including a golden fixture that pins all 100 positions, a determinism test, and a 223-test stress suite (`tests/stress/`) covering threshold boundaries, overlapping and malformed activity, the approval controls, and no-activity positions.
 
 **Mocked, and labelled as such in the UI.**
 
 - *Quotes for listed positions.* There is no live price feed for individual stocks. Drayvenn, which listed in September, is seeded to its IPO print and marked **provisional**; the card says "Missing quarter-end share price" and the primary action asks you to supply it. The tickers in the workbook are synthetic, so no feed could price them anyway.
 - *Vendor signals.* The Foresight (metrics) and AlphaSense (news) panels read from fixture stubs. The connector slots exist; nothing live is wired.
 - *PitchBook comps.* `--provider pitchbook` is a registered name that returns the fixture with a "not configured" note.
-- *The measurement date.* The workbook's quarter ends 30 September 2026; the market cache was fetched on 7 September. The "September" close is the last one on file at retrieval, not a quarter-end print, and the Market tab says so in its first line.
+- *The measurement date.* The workbook's quarter ends 30 September 2026; the market cache was fetched on 8 September. The "September" close is the last one on file at retrieval, not a quarter-end print, and the Market tab says so in its first line.
 
 **Optional, and inert without a key.** The AI recommender (`recommendation.provider: claude`) and the note reader (`note_reader.provider: claude`). Both need `ANTHROPIC_API_KEY`; both cache every answer so reruns are offline and deterministic; both fall back to the policy default and say so.
 
-**Planned, not built.** A live quote feed; deeper comps baskets (five names is thin — the ±35% M-080 cap binds on 24 of 42 indications for that reason); a CSV export that preserves the Companies view's current filter; the Companies detail panel and the executive dashboard still use the older "booked" vocabulary rather than readiness.
+**Planned, not built.** A live quote feed; deeper comps baskets (five names is thin — the ±35% M-080 cap binds on 23 of 42 indications for that reason); a CSV export that preserves the Companies view's current filter; the Companies detail panel and the executive dashboard still use the older "booked" vocabulary rather than readiness.
 
 ## 7. Where to change things
 
@@ -303,7 +303,7 @@ A **provisional** mark is one whose step recorded a `price_source` beginning `st
 
 **Marking (M-0xx).** M-000 carry · M-010 priced round (→ M-011 flat, M-012 recap) · M-013 ownership adjustment · M-014 new investment at cost · M-020 acquisition closed (→ M-024 stock consideration) · M-021 shutdown · M-022 distribution · M-025 Chapter 11 · M-030 secondary sale · M-031 secondary purchase · M-040 IPO/listing · M-041 listed carry · M-050 acquisition announced · M-051 deal terminated · M-060 convertible note · M-061 note repaid · M-070 term sheet · M-080 comps calibration (alternative only) · M-999 unrecognised event (blocks).
 
-**Exceptions.** Treatment X-101…X-123 and M-999; staleness X-201/202; growth X-301/302; liquidity X-303/304; valuation X-401…X-405; notes X-105; related party X-117/118; decision drift E-01; aged open item E-07; data X-900…X-923. Eleven of the 39 catalogue entries are marked `source: brief` — the exceptions the assessment named; the rest are the fund's own calls, each with a two-line defence in `rules/rationale.yaml`.
+**Exceptions.** Treatment X-101…X-123 and M-999; staleness X-201/202; growth X-301/302; liquidity X-303/304; valuation X-401…X-405; notes X-105; related party X-117/118; decision drift E-01; aged open item E-07; data X-900…X-923. Ten of the 54 catalogue entries are marked `source: brief` — the exceptions the assessment named; the rest are the fund's own calls, each with a two-line defence in `rules/rationale.yaml`.
 
 ### E. Commands
 

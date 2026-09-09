@@ -360,6 +360,13 @@ class CustomRuleSpec(_Strict):
     terminal: bool = False
 
 
+class OverridesCfg(_Strict):
+    """A recorded mark is a fair value a person is prepared to defend: it must be a finite number, and
+    a figure many times anything the position has ever been marked, proposed or cost is a typo until
+    evidence says otherwise (a closing price, a deal document) — refused, never booked by accident."""
+    max_multiple_of_reference: float = 20.0
+
+
 class PublishCfg(_Strict):
     """Four eyes on the release: the person publishing may not be the approver on any override
     recorded this quarter. Segregation of duties at the one place a number leaves the back office."""
@@ -383,6 +390,7 @@ class RuleConfig(_Strict):
     recommendation: RecommendationCfg = RecommendationCfg()
     note_reader: NoteReaderCfg = NoteReaderCfg()
     publish: PublishCfg = PublishCfg()
+    overrides: OverridesCfg = OverridesCfg()
     history: HistoryCfg = HistoryCfg()
     custom_rules: list[CustomRuleSpec] = Field(default_factory=list)
 

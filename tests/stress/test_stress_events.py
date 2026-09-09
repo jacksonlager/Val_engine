@@ -394,7 +394,7 @@ def test_ipo_then_secondary_sale_of_part_of_the_stake(build):
     assert c.ownership_after == 0.06 and c.realized_quarter == pytest.approx(22.0)
     assert c.listed and c.fv_level == 1 and c.stage == "Public" and c.status_after is Status.ACTIVE
     assert c.action is ValuationAction.PARTIAL_EXIT
-    assert flag_ids(c) == {"X-101", "X-104", "X-401"}
+    assert flag_ids(c) == {"X-101", "X-104"}, "a listed mark is the quote: no multiple screen against the last private round"
     x101 = _flag(c, "X-101", Severity.BLOCK)
     assert "none is on file" in x101.action and x101.evidence["price_source"] == "ipo_print"
     x104 = _flag(c, "X-104", Severity.REVIEW)

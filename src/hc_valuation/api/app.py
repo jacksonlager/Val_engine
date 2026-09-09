@@ -19,11 +19,13 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from fastapi import FastAPI, File, HTTPException, Response, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, Response, UploadFile
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from ..engine.run import build_registry
 from ..fsutil import write_atomically  # noqa: F401 — re-exported; tests import it from here
@@ -42,12 +44,19 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 class OverrideIn(BaseModel):
     company: str
-    booked: float = Field(ge=0.0)   # a fair value; zero is a write-off, below zero is a typo
+    booked: float = Field(ge=0.0, allow_inf_nan=False)   # a fair value; zero is a write-off, below zero (or NaN, inf) is a typo
     reason: str = Field(min_length=1)
     approver: str = Field(min_length=1)
     rule_ids_addressed: list[str] = Field(default_factory=list)
     source_suggestion: str | None = None   # "<rule_id>/<key>" when the reviewer accepted an engine suggestion
     evidence: dict[str, Any] | None = None  # the input the reviewer supplied, e.g. a closing price the engine lacked
+
+    @field_validator("booked", mode="before")
+    @classmethod
+    def _a_number_not_a_flag(cls, v: Any) -> Any:
+        if isinstance(v, bool):
+            raise ValueError("booked must be a number in $M, not true/false")
+        return v
 
 
 def check_evidence(evidence: dict[str, Any] | None) -> None:
@@ -210,6 +219,16 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         paths = paths or RunPaths.default()
     static_dir = Path(static_dir) if static_dir is not None else STATIC_DIR
     app = FastAPI(title="HC valuation engine", version="0.1.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+    @app.exception_handler(RequestValidationError)
+    async def _bad_request(_: Request, exc: RequestValidationError) -> JSONResponse:
+        # One shape for every rejected request, and never an echo of the offending value: a NaN in the
+        # body used to crash the default handler (it is not JSON) and answer 500 for a client typo.
+        errors = [{"field": ".".join(str(x) for x in e.get("loc", ()) if x != "body"), "message": e.get("msg", "invalid")}
+                  for e in exc.errors()]
+        return JSONResponse(status_code=422, content={"detail": {"message": "the request could not be read: "
+                                                                 + "; ".join(f"{e['field']}: {e['message']}" for e in errors),
+                                                                 "errors": errors}})
     app.add_middleware(
         CORSMiddleware,
         allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
@@ -465,6 +484,10 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
                                "notes_with_text": (m.note_reader_report or {}).get("rows_with_text", 0),
                                "ledger": str(new_paths.ledger_dir.relative_to(root)) if str(new_paths.ledger_dir).startswith(str(root)) else str(new_paths.ledger_dir)})
         except Exception as exc:  # noqa: BLE001 — the dialog shows the reason; the previous run keeps serving
+            try:
+                (root / UPLOADS_DIR / "incoming" / filename).unlink(missing_ok=True)   # a refused file is not kept
+            except OSError:
+                pass
             job.update(done=True, error=f"{type(exc).__name__}: {exc}", message="Failed")
 
     @app.post("/api/upload")
@@ -474,7 +497,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         worker thread. Returns a job id; poll GET /api/upload/{id} for the stage and the outcome."""
         from ..pipeline import STAGES
         name = Path(file.filename or "").name
-        if not name.lower().endswith(".xlsx"):
+        if not name.lower().endswith(".xlsx") or len(name) <= len(".xlsx"):
             raise HTTPException(415, {"message": "Upload an .xlsx workbook in the portfolio schema (Portfolio tab + 'Qn YYYY Activity' tab)."})
         data = await file.read()
         if len(data) > 50 * 1024 * 1024:
@@ -645,10 +668,30 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         if not body.reason.strip() or not body.approver.strip():
             raise HTTPException(422, {"message": "an override needs a reason and an approver"})
         check_evidence(body.evidence)
+        # A mark many times anything this position has been marked, proposed or cost is a typo until
+        # evidence says otherwise; refused rather than booked and published by accident.
+        reference = max(float(c.proposed_mark), float(c.prior_mark), float(c.invested_after), 1.0)
+        ceiling = r.config.overrides.max_multiple_of_reference * reference
+        if body.evidence is None and float(body.booked) > ceiling:
+            raise HTTPException(422, {"message": (f"${body.booked:,.2f}M is more than {r.config.overrides.max_multiple_of_reference:g}× the largest of the "
+                                                  f"proposed mark (${c.proposed_mark:,.2f}M), the prior mark (${c.prior_mark:,.2f}M) and invested cost "
+                                                  f"(${c.invested_after:,.2f}M). Check the figure, or attach evidence (a closing price, a deal document).")})
+        reason = body.reason
+        # A decision on a stand-in mark without the missing input records that it is standing in: the
+        # ledger says so whichever client wrote it (the dashboard asks for the acknowledgement; the API
+        # applies it), and the position stays provisional until the input arrives.
+        if c.provisional and body.evidence is None and not reason.lstrip().startswith("[input still missing]"):
+            reason = "[input still missing] " + reason.strip()
+        # The same decision twice is one decision: an identical record already in force is not appended.
+        prev = c.override
+        if (prev is not None and abs(float(prev.booked) - float(body.booked)) < 1e-9 and prev.approver.strip() == body.approver.strip()
+                and prev.reason.strip() == reason.strip() and set(prev.rule_ids_addressed) == set(body.rule_ids_addressed)):
+            raise HTTPException(409, {"message": f"this decision is already on the ledger for {body.company} ({prev.approver.strip()}, "
+                                                 f"${float(prev.booked):,.2f}M); nothing was recorded twice"})
         record = {
             "company": body.company, "quarter": r.config.quarter.label,
             "proposed": float(c.proposed_mark), "booked": float(body.booked),
-            "reason": body.reason, "approver": body.approver,
+            "reason": reason, "approver": body.approver,
             "created_at": date.today().isoformat(),
             "rule_ids_addressed": list(body.rule_ids_addressed),
             **({"source_suggestion": body.source_suggestion} if body.source_suggestion else {}),
@@ -662,6 +705,9 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     # The executive site is a separate bundle at /exec/. It reads only published snapshots.
     exec_dir = getattr(app.state, "exec_static_dir", None) or EXEC_STATIC_DIR
     if (Path(exec_dir) / "index.html").is_file():
+        @app.get("/exec", include_in_schema=False)
+        def exec_slash() -> RedirectResponse:
+            return RedirectResponse("/exec/", status_code=307)   # a hand-typed URL without the slash still lands
         app.mount("/exec", StaticFiles(directory=str(exec_dir), html=True), name="exec")
     else:
         @app.get("/exec", include_in_schema=False)

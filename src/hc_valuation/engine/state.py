@@ -172,11 +172,15 @@ class Working:
         st = next((x for x in self.steps if x.rule_id == "M-080"), None)
         if st is None:
             return label
+        from decimal import ROUND_HALF_UP, Decimal
+        usd = lambda x: f"{Decimal(repr(float(x))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):.2f}"  # noqa: E731 — half-up, as the card rounds
         i = st.inputs
         f, raw = float(i["factor_bounded"]), float(i["factor_raw"])
         alt = self.equity_mark * f
         head = label.rstrip(".")
-        arith = f"${self.equity_mark:.2f}M × {f:.4f} = ${alt:.2f}M"
+        arith = f"${usd(self.equity_mark)}M × {f:.4f} = ${usd(alt)}M"
+        if self.note_at_cost > 0.005:   # the option books the alternative plus the note leg at cost
+            arith += f" + ${usd(self.note_at_cost)}M note at cost = ${usd(alt + self.note_at_cost)}M"
         if i.get("bound_hit"):
             return f"{head}: {arith} — comps moved ×{raw:.3f} ({raw - 1:+.0%}), capped by policy at {f - 1:+.0%}."
         return f"{head}: {arith} ({f - 1:+.1%} since the round)."

@@ -44,7 +44,7 @@ def test_same_set_median_of_per_name_ratios_not_a_ratio_of_basket_medians():
     assert rr is not None and rr.method == SAME_SET and rr.n_names == 3
     assert [n.ratio for n in rr.names] == [2.0, 0.5, 1.2]             # each name's own move, in ticker order
     assert rr.factor == pytest.approx(1.2)                             # the median of those, not 10 ÷ 10 = 1.0
-    assert "A 10.00÷5.00=2.00" in rr.formula() and "median of 3 = 1.200" in rr.formula()
+    assert "A 10.000÷5.000=2.000" in rr.formula() and "median of 3 = 1.200" in rr.formula()
 
 
 def test_a_name_entering_the_basket_does_not_move_the_re_rating():

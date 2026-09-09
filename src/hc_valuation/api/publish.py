@@ -73,11 +73,11 @@ class PublishBlocked(ValueError):
 
     def __init__(self, items: list[dict[str, Any]]):
         self.items = items
-        blocks = sum(1 for i in items if i["disposition"] == "BLOCK")
-        reviews = len(items) - blocks
-        parts = [f"{blocks} BLOCK" if blocks else "", f"{reviews} REVIEW" if reviews else ""]
+        blocked = sum(1 for i in items if i.get("readiness") == "Blocked")
+        review = len(items) - blocked
+        parts = [f"{blocked} Blocked" if blocked else "", f"{review} Needs Review" if review else ""]
         super().__init__(f"{len(items)} position(s) still need a decision before the book can be published "
-                         f"({' and '.join(p for p in parts if p)}). Decide or confirm each one from the queue first.")
+                         f"({' and '.join(p for p in parts if p)} — the queue's own counts). Decide or confirm each one from the queue first.")
 
 
 def _slug(label: str) -> str:
@@ -147,7 +147,13 @@ def publish_run(run: ValuationRun, root: Path, *, approver: str, note: str = "",
         hist.mkdir(exist_ok=True)
         prev = json.loads(target.read_text())
         stamp = str(prev.get("publish", {}).get("published_at", "prev")).replace(":", "-")
-        target.replace(hist / f"{record['slug']}_{stamp}.json")
+        # Every superseded release is kept: the name carries its run id, and a second release in the
+        # same second (a double-click) gets a suffix rather than overwriting the first.
+        base = f"{record['slug']}_{stamp}_{prev.get('publish', {}).get('run_id', 'run')}"
+        dest, n = hist / f"{base}.json", 2
+        while dest.exists():
+            dest, n = hist / f"{base}_{n}.json", n + 1
+        target.replace(dest)
     payload = {"publish": record, "run": json.loads(run.model_dump_json())}
     write_atomically(target, json.dumps(payload, indent=1))
     write_atomically(d / "latest.json", json.dumps({"slug": record["slug"], "quarter": record["quarter"]}))

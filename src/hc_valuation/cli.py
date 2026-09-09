@@ -118,7 +118,7 @@ def _headline(run: ValuationRun) -> str:
     ]
     blocked = [c.company for c in run.companies if c.disposition.value == "BLOCK"]
     if blocked:
-        lines.append("blocked: " + ", ".join(blocked))
+        lines.append("needs a decision (disposition BLOCK): " + ", ".join(blocked))
     if run.validation:
         nb = sum(1 for v in run.validation if v.blocking)
         lines.append(f"validation issues: {len(run.validation)} ({nb} blocking)")

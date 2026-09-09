@@ -971,7 +971,7 @@
       "row_index": 17,
       "sheet": "Q3 2026 Activity"
      },
-     "formula": null,
+     "formula": "indicated: 8.5% \u00d7 $50.0M = $4.25M (disclosed, not booked)",
      "inputs": {
       "detail": "Series B term sheet at ~$50.0M post",
       "indicated_mark": 4.25,
@@ -10250,7 +10250,7 @@
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
   "recommender": "policy",
-  "run_id": "59c60eaae53a"
+  "run_id": "812e2447ce4c"
  },
  "open_items": [
   {

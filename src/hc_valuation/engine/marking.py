@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import re
 from datetime import date, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 
 from ..config import RuleConfig
 from .inputs import Event, EventType, Position, Status
@@ -1078,8 +1079,9 @@ def term_sheet(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
     w.handled(e, "non-binding", "nonbinding", "term sheet", "indicative", "proposal")
     w.step("M-070", V, {"indicated_post_money": e.value, "ownership": w.ownership, "indicated_mark": indicated, "detail": e.detail},
            w.proposed_mark, w.proposed_mark,
-           f"Term sheet signed ({e.detail}); not closed. No enforceable transaction — mark unchanged"
-           + (f"; indicated value ${indicated:.2f}M disclosed, not booked." if indicated else "."), e)
+           formula=(f"indicated: {w.ownership:.1%} × ${float(e.value):.1f}M = ${indicated:.2f}M (disclosed, not booked)" if indicated else None),
+           rationale=f"Term sheet signed ({e.detail}); not closed. No enforceable transaction — mark unchanged"
+           + (f"; indicated value ${indicated:.2f}M disclosed, not booked." if indicated else "."), e=e)
     ratio_ = ratio(float(e.value), w.latest_post) if (e.value and w.latest_post) else None
     limit = cfg.exceptions.indications.term_sheet_review_below
     if indicated is not None:
@@ -1439,9 +1441,10 @@ def distribution(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
     proceeds = float(e.proceeds or 0.0)
     w.step("M-022", V, {"proceeds": proceeds, "ownership": w.ownership, "status": w.status.value, "detail": e.detail},
            w.proposed_mark, w.proposed_mark,
-           f"Cash distribution of ${proceeds:.2f}M ({e.detail}); the stake is unchanged, so the mark is unchanged and the cash "
+           formula=f"realized ${w.pos.realized + w.realized_quarter:.2f}M + ${proceeds:.2f}M = ${w.pos.realized + w.realized_quarter + proceeds:.2f}M; mark unchanged",
+           rationale=f"Cash distribution of ${proceeds:.2f}M ({e.detail}); the stake is unchanged, so the mark is unchanged and the cash "
            "goes to realized proceeds."
-           + (f" The position was already {w.status.value}; this is money arriving after the exit." if w.terminal else ""), e)
+           + (f" The position was already {w.status.value}; this is money arriving after the exit." if w.terminal else ""), e=e)
     carrying = w.equity_mark + w.note_at_cost
     if w.terminal:
         # Cash from a company that is already gone: liquidation language is the row's own nature here
@@ -1552,10 +1555,12 @@ def secondary_purchase(w: Working, e: Event, cfg: RuleConfig, market: MarketData
                         "hc_investment": inv, "implied_post_money": implied_post, "last_round_post_money": w.latest_post,
                         "at_last_round": at_last_round, "at_implied_price": at_implied, "detail": e.detail},
            w.proposed_mark, at_last_round + w.note_at_cost,
-           f"Bought {bought:.1%} more of the company for ${inv:.2f}M"
+           formula=(f"{after:.1%} × ${w.latest_post:.1f}M = ${at_last_round:.2f}M at the last round"
+                    + (f" · implied ${inv:.2f}M ÷ {bought:.1%} = ${implied_post:.1f}M post" if implied_post else "")),
+           rationale=f"Bought {bought:.1%} more of the company for ${inv:.2f}M"
            + (f" (implies ${implied_post:.1f}M post vs ${w.latest_post:.1f}M last round" + (f", {spread:+.1%})" if spread is not None else ")")
               if implied_post else "")
-           + f". Whole stake {after:.1%} marked at the last-round price: one buyer taking one block is evidence, not the principal market.", e)
+           + f". Whole stake {after:.1%} marked at the last-round price: one buyer taking one block is evidence, not the principal market.", e=e)
     if at_implied is not None:
         w.alternative_marks["at_implied_price"] = at_implied
     w.handled(e, "discount", "premium", "secondary", "block", "spread", "partial", "no new capital")
@@ -1688,10 +1693,11 @@ def deal_terminated(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -
     w.step("M-051", V, {"ownership": w.ownership, "last_round_post_money": w.latest_post, "prior_mark": w.equity_mark,
                         "detail": e.detail, "break_fee": fee},
            w.proposed_mark, new_equity + w.note_at_cost,
-           f"Announced acquisition terminated ({e.detail}). The deal-based mark no longer has a deal behind it: reverted to "
+           formula=f"{w.ownership:.1%} × ${w.latest_post:.1f}M = ${new_equity:.2f}M" + (f" · ${fee:.2f}M break fee → realized" if fee else ""),
+           rationale=f"Announced acquisition terminated ({e.detail}). The deal-based mark no longer has a deal behind it: reverted to "
            f"{w.ownership:.1%} × ${w.latest_post:.1f}M last-round post = ${new_equity:.2f}M. Staleness clock unchanged "
            f"(runs from {w.staleness_anchor.isoformat()})."
-           + (f" ${fee:.2f}M received (break fee) goes to realized proceeds; the stake is unchanged." if fee else ""), e)
+           + (f" ${fee:.2f}M received (break fee) goes to realized proceeds; the stake is unchanged." if fee else ""), e=e)
     if fee:
         w.realized_quarter += fee
         w.handled(e, "break fee", "termination fee", "fee", "fees")
@@ -1849,12 +1855,18 @@ def calibrate_stale(w: Working, cfg: RuleConfig, market: MarketData) -> None:
            f"Comps calibration (alternative only): {w.pos.sector} comps re-rated ×{raw:.3f} ({raw - 1:+.1%}) from {k_then} to "
            f"{k_now}, as the {how}; {age} months since the round"
            + (f"; {k_now} priced on {priced.isoformat()}, not a month-end" if priced and priced.strftime("%Y-%m") == k_now and priced != _month_end(md) else "")
-           + (f" — CAPPED at {factor - 1:+.0%} by the policy limit of ±{c.bound_pct:.0%} (uncapped it would be ${w.equity_mark * raw:.2f}M)" if bounded else "")
-           + f". Calibrated alternative ${alt:.2f}M recorded; base mark unchanged"
-           + (f"; it sits below invested cost of ${w.invested:.2f}M" if below_cost else "") + ".",
+           + (f" — CAPPED at {factor - 1:+.0%} by the policy limit of ±{c.bound_pct:.0%} (uncapped it would be ${usd2(w.equity_mark * raw)}M)" if bounded else "")
+           + f". Calibrated alternative ${usd2(alt)}M recorded; base mark unchanged"
+           + (f"; it sits below invested cost of ${usd2(w.invested)}M" if below_cost else "") + ".",
            formula=(rr.formula() if same_set else f"{hist.get(k_now, 0):.2f}× ÷ {hist.get(k_then, 0):.2f}× = {raw:.3f}")
-                   + (f" → cap: policy limit ±{c.bound_pct:.0%}, so {raw:.3f} becomes {factor:.4f} (uncapped ${w.equity_mark:.2f}M × {raw:.3f} = ${w.equity_mark * raw:.2f}M)" if bounded else " (within the ±{:.0%} policy limit, no cap)".format(c.bound_pct))
-                   + f" · ${w.equity_mark:.2f}M × {factor:.4f} = ${alt:.2f}M as an alternative; base mark unchanged")
+                   + (f" → cap: policy limit ±{c.bound_pct:.0%}, so {raw:.3f} becomes {factor:.4f} (uncapped ${usd2(w.equity_mark)}M × {raw:.3f} = ${usd2(w.equity_mark * raw)}M)" if bounded else " (within the ±{:.0%} policy limit, no cap)".format(c.bound_pct))
+                   + f" · ${usd2(w.equity_mark)}M × {factor:.4f} = ${usd2(alt)}M as an alternative; base mark unchanged")
+
+
+def usd2(x: float) -> str:
+    """$M to the cent, rounded half-up like the labels and the review tool (a binary float's `.2f`
+    rounds 32.535 to 32.53 while the card beside it says 32.54)."""
+    return f"{Decimal(repr(float(x))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):.2f}"
 
 
 def _month_end(d: date) -> date:

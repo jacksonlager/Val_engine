@@ -88,7 +88,14 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     if rw is not None:
         # aged for the reporting lag; a company already out of cash has zero months, not minus one
         aged = max(0.0, rw - cfg.metrics.reporting_lag_months)
-        if aged < x.runway.review_below_mo:
+        if aged < x.runway.review_below_mo and deal_priced:
+            # A signed sale prices the company now; the round that "saves it" is not the question while
+            # the deal is pending. Kept as context, like X-201 on the same position.
+            w.flag("X-303", "liquidity", Severity.MONITOR,
+                   f"About {aged:.1f} months of cash left (${p.cash:.1f}M against ${p.net_burn:.2f}M a month); the signed acquisition "
+                   "this quarter is the price test now, so runway is context while the deal is pending.",
+                   runway_months_aged=round(aged, 2), superseded_by="pending acquisition")
+        elif aged < x.runway.review_below_mo:
             w.flag("X-304", "liquidity", Severity.REVIEW,
                    f"About {aged:.1f} months of cash left (${p.cash:.1f}M against ${p.net_burn:.2f}M a month, aged "
                    f"{cfg.metrics.reporting_lag_months} month for the reporting lag). The company has to raise before the next "
@@ -112,9 +119,11 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
                    runway_months_aged=round(aged, 2),
                    financings_in_quarter=[{"date": d.isoformat(), "event": kind, "hc_investment": inv} for d, kind, inv in raised])
 
-    # ---- X-401 / X-402 / X-403 mark vs performance (a screen, not a valuation → MONITOR)
+    # ---- X-401 / X-402 / X-403 mark vs performance (a screen, not a valuation → MONITOR).
+    # Not on a listed position: its mark is the quote, and a screen against the last private round
+    # says nothing about a price the market sets every day.
     arr = p.arr
-    if arr is not None and w.latest_post:
+    if arr is not None and w.latest_post and not w.listed:
         if arr < x.multiple.min_arr:
             w.flag("X-403", "valuation", Severity.MONITOR,
                    f"At ${arr:.1f}M of revenue the multiple screen produces numbers that mean nothing except that the denominator is "

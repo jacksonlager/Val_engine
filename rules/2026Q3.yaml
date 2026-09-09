@@ -162,6 +162,11 @@ declarative:
 publish:
   require_second_approver: true
 
+# A recorded mark beyond this multiple of the largest of the proposal, the prior mark and invested
+# cost is refused unless evidence (a closing price, a deal document) travels with it.
+overrides:
+  max_multiple_of_reference: 20
+
 # The per-company flag archive. It fills itself from the publish ledger: release Q3 and next
 # quarter's panel shows what each position was flagged for this quarter. Q3 2026 is the first
 # quarter on the engine, so nothing was released before it and the prior quarter reads "not on

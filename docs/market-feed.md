@@ -289,7 +289,8 @@ constituent — but a negative EV/revenue is not a comparable *multiple*. It can
 median used to price a private company's revenue, where it drags the basket toward and past
 zero. That constituent-month leaves the median and is counted in `months_negative_ev`,
 rather than being silently dropped or silently included; in the committed cache 19
-historical constituent-months are excluded this way. The same test applies to the
+sector-constituent-months are excluded this way (16 distinct ticker-months: Datadog sits in two
+baskets, so its three count twice). The same test applies to the
 measurement month: the constituent's own `ev_to_revenue` is still reported, negative, but it
 does not enter that month's median.
 
@@ -375,12 +376,12 @@ Two things about that history should be read before it is relied on.
 
 **The baskets are five names deep.** A median of five moves when one name does, and an
 early month may rest on as few as `min_constituents` (3). M-080 produces 42 indications
-from this history, and 24 of them are set by the ±35% limit rather than by the comps, on
-raw ratios between 0.26× and 2.59× (the step shows both, `factor_raw` beside
+from this history, and 23 of them are set by the ±35% limit rather than by the comps, on
+raw ratios between 0.32× and 2.70× (the step shows both, `factor_raw` beside
 `factor_bounded`). That is the limit doing what the policy asks of it over a thin basket,
 not a defect in the feed — but a wider basket would let the comps speak more often, and the
 basket review in the architecture document's next-steps list is the answer. The comps never
-touch a mark: against the unfixed feed 20 of the 100 positions change disposition through
+touch a mark: against the unfixed feed 21 of the 100 positions change disposition through
 the X-401/X-402 screens, and marks and NAV are unchanged.
 
 **Some excluded months are input errors the filter is masking, not real states.** The
@@ -409,10 +410,10 @@ the measurement date (`market --provider live --refresh`) replaces it, and the m
   "source": "live:edgar+yahoo",                // what actually answered (manifest label): live:edgar+<price source> | stub
   "reached_live": true,
   "as_of": "2026-09-30",                       // measurement date
-  "fetched_at": "2026-09-04T06:12:40Z",        // null when the fixture answered
+  "fetched_at": "2026-09-08T19:16:52Z",        // null when the fixture answered
   "cache": { "dir": "data/market_cache/2026-09-30", "hit": true, "refreshable": true },
-  "used_by": { "multiple_mode": "absolute", "calibration_enabled": true,
-               "note": "Screens X-401/X-402 use absolute thresholds under this policy; set exceptions.multiple.mode: relative_to_comps to screen against these multiples." },
+  "used_by": { "multiple_mode": "relative_to_comps", "calibration_enabled": true,
+               "note": "Screens X-401/X-402 bound at 2.0× / 0.5× the live sector median where the sector is observed; absolute 30× / 3× elsewhere." },
   "baskets_file": "rules/comps_baskets.yaml",
   "errors": [ "SPOT: EDGAR has no revenue periods under any known concept (foreign private issuer?)",
               "3 tickers: price fetch failed (yahoo): HTTP 429 for … [AI, BBAI, SOUN]" ],   // ≥ 3 identical ticker failures collapse

@@ -13,7 +13,7 @@ mark (a $10.0M gain, realized rather than held); two shutdowns write off $21.4M;
 cash came back in the quarter.
 Ninety-three positions are active, one is now Level 1.
 
-**Seven positions need a committee decision before anything is booked** — the engine has a
+**Nine positions need a committee decision before anything is booked** — the engine has a
 number for each, and says why it is not the final word:
 
 | Company | Prior → proposed ($M) | The decision |
@@ -24,11 +24,13 @@ number for each, and says why it is not the final word:
 | Tarnwick Aerospace | 2.0 → 1.14 | Down round, same question |
 | Duskfern | 6.1 → 6.60 | HC's $0.5M bridge note carried at cost on its own leg; is the bridge a distress signal? |
 | Pellagrin | 13.0 → 13.93 | A same-terms extension is not price discovery: 59 months since the last real price |
-| Birchhollow | 43.3 → 43.30 | 65-month-old round plus shrinking ARR: two independent reasons to doubt the number |
+| Birchhollow | 43.3 → 43.30 | 64-month-old round plus shrinking ARR: two independent reasons to doubt the number |
+| Beltrix | 8.1 → 8.10 | Runway under 6 months, and a 27-month-old price the multiple screen argues with: two families |
+| Jupelan | 14.3 → 14.30 | Runway under 6 months, and a 31-month-old price carried below the multiple screen: two families |
 
-Twenty more positions need a reviewer's confirmation (a stale round, a contraction, short
-runway, a term or a note the columns cannot hold); 39 carry a watch item; 34 are clear.
-**Publish is locked until all 27 are decided** — the executive dashboard never sees an
+Twenty-five more positions need a reviewer's confirmation (a stale round, a contraction, short
+runway, a term or a note the columns cannot hold); 44 carry a watch item; 22 are clear.
+**Publish is locked until all 34 are decided** — the executive dashboard never sees an
 undecided book. Open the review tool (`hc-valuation run`), or the executive view at
 `/exec/`, and the numbers above are the first thing on the screen.
 
@@ -90,12 +92,14 @@ sidecar. The Audit Trail carries a `Portfolio Row` and an `Input Cells` column
 Marks traces to the workbook cell it was read from.
 
 The full command list is `run | build | validate | export | rules | publish | market |
-history | next-policy | version`: `validate` (ingest + integrity checks only; exit 1 if
+history | recommend | next-policy | reset | version`: `validate` (ingest + integrity checks only; exit 1 if
 anything blocks), `export` (workbook + CSVs only), `rules` (the rule catalogue), `publish`
 (freeze the run for the executive dashboard under a named approver), `market` (the sector
 comps feed report), `history` (the mark archive per company, `--company` for one),
-`next-policy` (the next quarter's rules file), `version`. Every command accepts
-`--input <workbook>` and `--policy <rules file>`; `hc-valuation --help` lists the rest. The
+`recommend` (the recommendations alone), `next-policy` (the next quarter's rules file), `reset`
+(clear uploads, the published snapshot and the ledger, with confirmation), `version`. Every command
+that computes a run accepts `--input <workbook>` and `--policy <rules file>`; `hc-valuation --help`
+lists the rest. The
 activity tab's quarter must match the policy's quarter or the run blocks (X-922) —
 `next-policy` writes the matching file.
 
@@ -107,7 +111,8 @@ source to confirm, a down round whose headline post-money is only an upper bound
 announced deal whose close probability needs ratifying, an event type the engine does not
 recognise. `REVIEW` is a single judgment call; two independent REVIEW families on one
 company escalate to BLOCK. `MONITOR` is information; `CLEAR` had no activity and no
-signal. On the Q3 book that is 7 BLOCK / 20 REVIEW / 39 MONITOR / 34 CLEAR. Exception
+signal. On the Q3 book, on the committed live comps, that is 9 BLOCK / 25 REVIEW / 44 MONITOR / 22 CLEAR
+(on the illustrative fixture, `--provider stub`, 7 / 20 / 39 / 34: the live multiples move the X-401/402 screens). Exception
 rules only ever add flags: no flag has changed a mark, and none can. Every BLOCK and
 REVIEW flag carries an imperative action, two or three scannable points, and one to three
 priced suggestions (ratify, hold the prior mark, the full deal value, cost, an alternative
@@ -133,7 +138,7 @@ synthetic data have nothing to refresh, so the button does not appear for them.
 **The note reader.** The free text on an activity row is where the situations the columns cannot
 hold turn up. With `note_reader.provider: claude` in the policy (the default; `--note-reader off`
 or `HC_NOTE_READER=off` disables it) and `ANTHROPIC_API_KEY` set, Claude reads each row's Detail
-and Notes against the case catalogue (`docs/case-catalogue.md`, 28 kinds of thing a note can say)
+and Notes against the case catalogue (`docs/case-catalogue.md`, 29 kinds of thing a note can say)
 and reports, quoting the row, what it found. The engine compares the reading with what the row's
 rule took account of and raises the rest for review — X-130 a kind no rule applied, X-131 a value
 that conflicts with a column, X-126 a figure that supersedes the Portfolio tab, X-132 a row the
@@ -159,7 +164,7 @@ reference row below the decision.
 
 **Rules.** The review tool's Rules tab is the page an auditor reads first: the six checks
 behind every disposition, then every exception rule with two bullets — why it is a flag and
-why it carries that severity — tagged *in the brief* (the five exceptions the assessment
+why it carries that severity — tagged *in the brief* (the ten exception rules the assessment
 names) or *our call* (rules we added and defend), and a table of every flagged company with
 the engine's exact reason. The bullets live in `rules/rationale.yaml`, are served at
 `/api/rationale`, inlined into the static report, and shown beside every flag's detail; a
@@ -243,7 +248,7 @@ src/hc_valuation/
   api/signals.py             the vendor-signals card: Foresight-shaped metrics beside the workbook's,
                              AlphaSense-shaped news — context for the reviewer, never an input to a number
   api/exec_view.py           the executive view-model (bridge, movers, funds, decisions, risk watch)
-  cli.py                     hc-valuation run | build | validate | export | rules | publish | market | history | next-policy | version
+  cli.py                     hc-valuation run | build | validate | export | rules | publish | market | history | recommend | next-policy | reset | version
   __main__.py                python3 -m hc_valuation ... == hc-valuation ...
 frontend/                    React + Vite source for the review tool (builds into api/static)
 frontend-exec/               React + Vite source for the executive dashboard (builds into api/static_exec)
@@ -334,10 +339,17 @@ and driven by `scripts/synthetic_chain.py`.
    instead of being forgotten, and so marks the prior quarter deliberately set away from
    ownership × post-money (a note at cost, a weighted pending deal) are explained rather
    than blocked.
-4. `hc-valuation next-policy` writes `rules/2026Q4.yaml` — `inherits: 2026Q3` with only the
-   quarter window changed (the year-end rollover to `2027Q1` is parsed, not typed). Edit it
-   only for thresholds that moved, and bump `policy_version` when you do.
-5. `hc-valuation validate --input <file> --policy rules/2026Q4.yaml`, then `run` or `build`.
+4. The next quarter's policy file. `rules/2026Q4.yaml` (and 2027Q1, 2027Q2) already ship —
+   `inherits: 2026Q3` with only the quarter window changed — and the workbook's own quarter picks
+   its file up automatically. For a quarter with no file yet, `hc-valuation next-policy` writes it
+   (it refuses to overwrite one that exists). Edit only for thresholds that moved, and bump
+   `policy_version` when you do.
+5. `hc-valuation validate --input <file>`, then `run` or `build`. Uploading the file in the
+   dashboard does the same and switches the served run to that quarter.
+
+Publishing needs two names: the person releasing the quarter may not be the approver on any
+override recorded in it (`publish.require_second_approver: true`). A solo reviewer records the
+decisions under their own name and a second person publishes; the refusal names the positions.
 
 ## Mark history
 

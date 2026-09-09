@@ -396,7 +396,7 @@ class ClaudeChooser:
             raise ValueError(f"reply keys {sorted(data)} != {sorted(expected)}")
         keys = {s.key for s in f.suggestions}
         if data["choice"] not in keys:
-            raise ValueError(f"choice {data['choice']!r} is not a candidate ({sorted(keys)})")
+            raise ValueError(f"the reply's choice is not a candidate ({sorted(keys)})")
         chosen = next(s for s in f.suggestions if s.key == data["choice"])
         allowed = _allowed_figures([f])
         label, reasons = _fit_card(data, allowed, chosen)
@@ -426,7 +426,7 @@ class ClaudeChooser:
             raise ValueError(f"rule_id {rid!r} is not an actionable finding ({sorted(by_id)})")
         keys = {s.key for s in by_id[rid].suggestions}
         if data["choice"] not in keys:
-            raise ValueError(f"choice {data['choice']!r} is not a candidate on {rid} ({sorted(keys)})")
+            raise ValueError(f"the reply's choice is not a candidate on {rid} ({sorted(keys)})")
         covers = [str(x) for x in data["covers"]]
         unknown = sorted(set(covers) - set(by_id))
         if unknown:

@@ -513,22 +513,23 @@ def test_C5_override_cannot_address_a_rule_that_is_not_on_the_position(scratch: 
     assert not yaml.safe_load(scratch.overrides.read_text())["overrides"]
 
 
-def test_C6_booked_has_no_server_side_sanity_bound(scratch: RunPaths):
-    """Observed: any float is accepted as the booked mark. A $1,000,000M mark on a $5M
-    position books, clears the flag and is Ready. Drift (E-01) does not catch it either — the
-    override records the proposal it was measured against, not the size of the departure."""
+def test_C6_booked_has_a_server_side_sanity_bound(scratch: RunPaths):
+    """A $1,000,000M mark on an $8M position used to book, clear the flag and read Ready. It is
+    refused unless evidence travels with it (policy `overrides.max_multiple_of_reference`)."""
     client = _client(scratch)
     b = _company(client, "Beltrix")
     r = client.post("/api/overrides", json={"company": "Beltrix", "booked": 1e6, "approver": "A", "reason": "fat finger",
                                             "rule_ids_addressed": ["X-304"], "source_suggestion": "X-304/manual"})
+    assert r.status_code == 422 and "20×" in r.json()["detail"]["message"] and "evidence" in r.json()["detail"]["message"]
+    assert _company(client, "Beltrix")["booked_mark"] == pytest.approx(b["proposed_mark"]), "nothing was booked"
+    with_evidence = {"company": "Beltrix", "booked": 1e6, "approver": "A", "reason": "priced by a deal document",
+                     "rule_ids_addressed": ["X-304"], "evidence": {"kind": "deal_document", "source": "SPA dated 2026-09-20"}}
+    r = client.post("/api/overrides", json=with_evidence)
     assert r.status_code == 200, r.text
     c = r.json()
-    assert c["booked_mark"] == 1e6 and c["readiness"] == "Ready" and c["approval"] == "Decision recorded"
-    assert not any(f["rule_id"] == "E-01" for f in c["flags"])
+    assert c["booked_mark"] == 1e6 and c["override"]["proposed"] == pytest.approx(b["proposed_mark"])
+    # the size of the departure is visible on the record and in the bridge
     run = client.get("/api/run").json()
-    assert run["totals"]["booked_nav"] > 1e6 and run["totals"]["proposed_nav"] < 2e3
-    assert c["override"]["booked"] == 1e6 and c["override"]["proposed"] == pytest.approx(b["proposed_mark"])
-    # the size of the departure is visible on the record and in the bridge; it is not a gate
     view = build_exec_view(ValuationRun.model_validate(run), {})
     assert any(bar["key"] == "overrides" for bar in view["bridge"])
 

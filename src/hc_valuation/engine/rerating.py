@@ -55,7 +55,7 @@ class Rerating:
         """The arithmetic, with operands: "SOUN 13.76÷7.70=1.79 · PLTR … ; median of 5 = 1.20"."""
         if self.method == BASKET_RATIO:
             return f"basket median now ÷ basket median then = {self.factor:.3f}"
-        parts = " · ".join(f"{n.ticker} {n.now:.2f}÷{n.then:.2f}={n.ratio:.2f}" for n in self.names)
+        parts = " · ".join(f"{n.ticker} {n.now:.3f}÷{n.then:.3f}={n.ratio:.3f}" for n in self.names)
         return f"{parts}; median of {self.n_names} = {self.factor:.3f}"
 
 
@@ -82,7 +82,7 @@ def sector_rerating(market: MarketData, sector: str, then_key: str, now_key: str
         then = _window_value(names[ticker], then_key, window)
         now = _window_value(names[ticker], now_key, window)
         if then and now:
-            moves.append(NameMove(ticker=ticker, then=round(then, 2), now=round(now, 2), ratio=round(now / then, 4)))
+            moves.append(NameMove(ticker=ticker, then=round(then, 3), now=round(now, 3), ratio=round(now / then, 4)))
     if len(moves) >= min_names:
         factor = statistics.median(m.ratio for m in moves)
         return Rerating(factor=round(factor, 4), then_key=then_key, now_key=now_key, method=SAME_SET,

@@ -18,7 +18,7 @@ import type { CompanyResult, Flag, PositionRecommendation, Readiness, Recommenda
 import { postOverride } from "../lib/api";
 import { useRationale, useRuleRationale } from "../lib/rationale";
 import { isoDate, musd, pct, shortDate, signClass, signed } from "../lib/format";
-import { evidenceLabel, evidenceValue, familyLabel, FAMILY_LABEL, marketSourceLabel, plainSystemPhrase, severityPhrase } from "../lib/labels";
+import { evidenceLabel, evidenceValue, familyLabel, FAMILY_LABEL, marketSourceLabel, plainSystemPhrase, severityPhrase, lowerFirst } from "../lib/labels";
 import { DispChip, Field, Modal, WriteButton } from "./ui";
 
 /** `a **b** c` -> a, <strong>b</strong>, c. Splits on pairs only; odd markers stay literal. */
@@ -142,7 +142,7 @@ export function exceptionHeadline(c: CompanyResult, acts: Flag[], names: Map<str
   const joined =
     shown.length === 1
       ? shown[0]
-      : shown.slice(0, -1).join(", ") + " and " + shown[shown.length - 1].charAt(0).toLowerCase() + shown[shown.length - 1].slice(1);
+      : shown.slice(0, -1).join(", ") + " and " + lowerFirst(shown[shown.length - 1]);
   return rest > 0 ? `${joined}, and ${rest} more` : joined;
 }
 

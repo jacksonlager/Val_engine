@@ -22,8 +22,8 @@ setuptools-based build", make the venv with `python3.12 -m venv .venv` (see READ
 ## Test
 
 ```bash
-python3 -m pytest -q tests/          # 1,047 tests, ~90s — run the whole suite, it is fast enough
-python3 -m pytest -q tests/stress/   # 213 adversarial tests on the escalation controls
+python3 -m pytest -q tests/          # 1,314 tests, ~70s — run the whole suite, it is fast enough
+python3 -m pytest -q tests/stress/   # 223 adversarial tests on the escalation controls
 ```
 
 Everything must pass before a commit. Two suites are load-bearing:
@@ -156,5 +156,6 @@ paths is a cheap way to catch machine vocabulary leaking onto a reviewer's scree
 ## State
 
 Branch **`v1-refresh`**. `main` holds an earlier full-redesign UI that was set aside — work
-continues on `v1-refresh`. The market cache under `~/.cache/hc-valuation` is live data fetched
-from EDGAR and Yahoo; refresh it with `hc-valuation market --provider live --refresh`.
+continues on `v1-refresh`. The market cache under `data/market_cache/2026-09-30/` is live data fetched from EDGAR and
+Yahoo, committed and served as is; a start never refetches it. Refresh it deliberately with
+`hc-valuation market --provider live --refresh` (or `run --refresh-market`).

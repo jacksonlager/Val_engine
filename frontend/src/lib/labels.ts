@@ -91,10 +91,17 @@ export function familyLabel(f: string): string {
   return FAMILY_LABEL[f] ?? humanize(f);
 }
 
+/** Lower-case a leading capital where the phrase continues a sentence — unless the word is an
+    acronym (ARR, HC, IPO, MOIC), which keeps its case: "and ARR down more than 15%", never "aRR". */
+export function lowerFirst(s: string): string {
+  if (s.length > 1 && /[A-Z]/.test(s.charAt(1))) return s;
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
 /** The same wording where it continues a sentence: "…needs a review: the price behind this mark is old." */
 export function familyPhrase(f: string): string {
   const s = familyLabel(f);
-  return s.charAt(0).toLowerCase() + s.slice(1);
+  return lowerFirst(s);
 }
 
 /** Joins phrases the way a sentence would: "a", "a and b", "a, b and c". */

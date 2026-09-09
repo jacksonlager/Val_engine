@@ -178,7 +178,7 @@ def test_outstanding_lists_every_block_and_review_with_its_flags(result):
 def test_publish_refuses_an_undecided_book(result, root):
     with pytest.raises(PublishBlocked) as exc:
         publish_run(result.run, root, approver="Jackson Lagerwey")
-    assert len(exc.value.items) == 27 and "27 position(s)" in str(exc.value) and "7 BLOCK and 20 REVIEW" in str(exc.value)
+    assert len(exc.value.items) == 27 and "27 position(s)" in str(exc.value) and "1 Blocked and 26 Needs Review" in str(exc.value)
     assert not (root / "data" / "published").exists(), "nothing is written when the gate refuses"
 
 

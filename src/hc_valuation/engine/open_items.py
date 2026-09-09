@@ -64,8 +64,10 @@ def carry_prior_items(w: Working, prior: list[OpenItem], cfg: RuleConfig, resolv
 
 RESOLVES: dict[str, set[OpenItemKind]] = {
     "Priced Equity Round": {OpenItemKind.CONVERTIBLE_NOTE, OpenItemKind.TERM_SHEET},   # a note converts into the round
+    # a closing (with its proceeds) confirms an exit, so it resolves everything; a shutdown resolves
+    # what needed the company open, never the two kinds that exist because an exit already happened
     "Acquisition (Closed)": {k for k in OpenItemKind},
-    "Shutdown": {k for k in OpenItemKind},
+    "Shutdown": {k for k in OpenItemKind} - _SURVIVES_CLOSE,
     "IPO": {OpenItemKind.CONVERTIBLE_NOTE, OpenItemKind.TERM_SHEET, OpenItemKind.PENDING_ACQUISITION},
     "Direct Listing": {OpenItemKind.CONVERTIBLE_NOTE, OpenItemKind.TERM_SHEET, OpenItemKind.PENDING_ACQUISITION},
     "Acquisition (Terminated)": {OpenItemKind.PENDING_ACQUISITION},
