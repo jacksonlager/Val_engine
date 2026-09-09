@@ -293,7 +293,7 @@ expect:
 ```
 
 Runner semantics: every scenario runs in isolation against a temp copy of `rules/` and the
-workbook; `execute(...)` with `adjudicate=False`; expectations compared; every failure is
+workbook; `execute(...)`; expectations compared; every failure is
 one line in `report.md` with scenario, company, expected vs actual. `tests/test_gauntlet.py`
 parametrizes over `scenarios/*.yaml` so the whole corpus is part of `pytest`.
 

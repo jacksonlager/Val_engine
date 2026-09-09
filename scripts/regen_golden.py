@@ -1,7 +1,7 @@
 """Regenerate tests/fixtures/golden_q3_2026.json from the real workbook.
 
 Run deliberately, never on a whim: the golden file pins 18 event treatments, the four
-queue counts and the portfolio total. Adjudication is off and `generated_at` is fixed so
+queue counts and the portfolio total. `generated_at` is fixed so
 the fixture is a pure function of (workbook, policy, engine).
 
     python scripts/regen_golden.py
@@ -29,7 +29,7 @@ def main() -> int:
     # today (a quarter's decisions accumulate there as it is closed). The same pin the suite uses.
     import tempfile
     paths = pipeline.RunPaths.default(root=ROOT, ledger_dir=Path(tempfile.mkdtemp(prefix="hc-golden-ledger-")))
-    result = pipeline.execute(paths, adjudicate=False, generated_at=GENERATED_AT)
+    result = pipeline.execute(paths, generated_at=GENERATED_AT)
     run = result.run
 
     # model_dump_json handles dates/enums; the json round-trip gives sorted keys and a stable

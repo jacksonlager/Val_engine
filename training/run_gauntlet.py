@@ -6,7 +6,7 @@ result to the scenario's `expect:` block, and write report.md + report.json.
 
 Each scenario runs in isolation: a temp copy of `rules/` (plus a generated `2026Q4.yaml`
 when the policy is 2026Q4), the committed workbook, no override ledger, no proposals,
-adjudication off, a pinned `generated_at`. The runner never crashes on a failing scenario:
+a pinned `generated_at`. The runner never crashes on a failing scenario:
 an `IngestError` is the expected outcome for `ingest_ok: false`; any other exception is a
 failure that carries the traceback's last line.
 
@@ -130,8 +130,7 @@ def _prepare(spec: dict[str, Any], tmp: Path) -> tuple[pipeline.RunPaths, str]:
     if sidecar.exists():
         shutil.copy(sidecar, carry)
     # data/mock_responses lives in the repo root; the stub connectors fall back to it.
-    paths = pipeline.RunPaths(root=tmp, policy=policy_path, workbook=workbook, overrides=tmp / "overrides.yaml",
-                              proposals_dir=tmp / "proposals", precedent=tmp / "precedent.yaml", open_items_carry=carry)
+    paths = pipeline.RunPaths(root=tmp, policy=policy_path, workbook=workbook, overrides=tmp / "overrides.yaml", precedent=tmp / "precedent.yaml", open_items_carry=carry)
     return paths, policy
 
 
@@ -184,8 +183,7 @@ def run_scenario(path: Path) -> ScenarioReport:
         try:
             with _MarketPatch(drop):
                 cfg = load_config(paths.policy)
-                result = pipeline.execute(paths, generated_at=datetime.combine(cfg.quarter.measurement_date, datetime.min.time()),
-                                          adjudicate=False, provider="stub")
+                result = pipeline.execute(paths, generated_at=datetime.combine(cfg.quarter.measurement_date, datetime.min.time()), provider="stub")
         except IngestError as exc:
             error = exc
         except Exception as exc:  # noqa: BLE001

@@ -98,7 +98,7 @@ def _snapshot_base(tmp: Path) -> tuple[Path, Path]:
     from hc_valuation.export.snapshot import write_next_quarter_workbook
 
     paths = pipeline.RunPaths.default(root=ROOT, workbook=BASE_WORKBOOK, policy=ROOT / "rules" / "2026Q3.yaml")
-    res = pipeline.execute(paths, adjudicate=False, generated_at=datetime(2026, 9, 30), provider="stub")
+    res = pipeline.execute(paths, generated_at=datetime(2026, 9, 30), provider="stub")
     out = write_next_quarter_workbook(res.run, BASE_WORKBOOK, tmp / "snapshot_2026Q4.xlsx", res.config)
     return out, out.parent / "open_items_carry.yaml"
 

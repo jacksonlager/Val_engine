@@ -1,6 +1,6 @@
 """The note reader: Claude reads each activity row's free text against the case catalogue.
 
-It runs at ingest, outside the engine, like the adjudicator (E-09) and the recommender: the
+It runs at ingest, outside the engine, like the recommender: the
 engine receives its readings as value objects and stays pure. What it may say is bounded by
 `catalogue.py` (the kinds) and `schema.py` (the shape); what it may do is bounded by
 `engine/notes.py`, which only ever *adds* review findings. It never produces a number, never
@@ -135,7 +135,7 @@ class ClaudeReader:
         if not self.api_key:
             return "no model key is set in this environment"
         if importlib.util.find_spec("anthropic") is None:
-            return "the anthropic package is not installed for this Python (pip install -e \".[adjudication]\")"
+            return "the anthropic package is not installed for this Python (pip install -e \".[claude]\")"
         return None
 
     @property
@@ -176,7 +176,7 @@ class ClaudeReader:
 
     # -- the call
     def _call(self, payload: dict[str, Any]) -> dict[str, Any]:
-        import anthropic  # optional dependency: the `adjudication` extra
+        import anthropic  # optional dependency: the `claude` extra
         client = anthropic.Anthropic(api_key=self.api_key, timeout=self.timeout_s)
         msg = client.messages.create(model=self.model, max_tokens=self.max_tokens, system=SYSTEM_PROMPT,
                                      messages=[{"role": "user", "content": "ACTIVITY ROWS (JSON):\n" + json.dumps(payload, default=str)}])

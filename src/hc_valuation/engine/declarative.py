@@ -1,4 +1,4 @@
-"""Declarative rules promoted from adjudication (E-09 → E-08).
+"""Declarative rules written into the policy file (E-08).
 
 A `CustomRuleSpec` in the policy file becomes a registered handler whose formula is
 evaluated by the restricted DSL. The model that drafted it never executes; the spec is
@@ -29,7 +29,7 @@ def _values(w: Working, e: Event, cfg: RuleConfig) -> dict[str, float | None]:
 
 
 def register_custom_rules(registry: Registry, cfg: RuleConfig) -> None:
-    adj = cfg.adjudication
+    adj = cfg.declarative
     for spec in cfg.custom_rules:
         tree = dsl.parse(spec.formula, adj.allowed_fields, adj.allowed_operators)  # raises before anything runs
 
@@ -59,17 +59,17 @@ def register_custom_rules(registry: Registry, cfg: RuleConfig) -> None:
                 return
             w.step(_spec.rule_id, _spec.version,
                    {"formula": _spec.formula, **{k: vals[k] for k in dsl.fields_used(_tree)}, "approver": _spec.approver,
-                    "effective_from": _spec.effective_from.isoformat(), "source_proposal": _spec.source_proposal},
+                    "effective_from": _spec.effective_from.isoformat()},
                    w.equity_mark, new_equity,
                    f"Declarative rule {_spec.rule_id} (promoted precedent, approved by {_spec.approver}): {_spec.rationale}", e)
             sev = Severity(_spec.severity)
             w.flag(_spec.rule_id, "treatment", sev,
-                   f"Marked by {_spec.rule_id}, a rule promoted from an earlier adjudication and approved by {_spec.approver} "
+                   f"Marked by {_spec.rule_id}, a rule declared in the policy file and approved by {_spec.approver} "
                    f"with effect from {_spec.effective_from.isoformat()}: {_spec.rationale}",
                    action=("" if sev is Severity.MONITOR else
                            f"Confirm {_spec.rule_id} is still the right treatment for a {_spec.event_type}."),
                    points=(() if sev is Severity.MONITOR else
-                           (f"Marked by **{_spec.rule_id}**, a rule **promoted from an earlier adjudication**.",
+                           (f"Marked by **{_spec.rule_id}**, a rule **declared in the policy file**.",
                             f"Approved by **{_spec.approver}**, effective {_spec.effective_from.isoformat()}.",
                             f"Rationale: {_spec.rationale}")),
                    suggestions=(() if sev is Severity.MONITOR else

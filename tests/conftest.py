@@ -2,7 +2,7 @@
 
 Two ways to exercise the engine live here:
 
-* `run_real` — the full pipeline over the real workbook with adjudication off and a
+* `run_real` — the full pipeline over the real workbook with a
   pinned `generated_at`, so every integration test sees exactly the run the golden
   fixture was regenerated from.
 * `make_workbook` / `run_workbook` — a synthetic workbook written with the exact column
@@ -85,13 +85,13 @@ def workbook_path() -> Path:
 
 @pytest.fixture(scope="session")
 def run_real() -> ValuationRun:
-    """The canonical run: real workbook, adjudication off, fixed generated_at."""
+    """The canonical run: real workbook, fixed generated_at."""
     return execute_real().run
 
 
 def execute_real(policy: Path | None = None) -> pipeline.PipelineResult:
     paths = pipeline.RunPaths.default(root=ROOT, workbook=WORKBOOK_PATH, policy=policy or POLICY_PATH)
-    return pipeline.execute(paths, adjudicate=False, generated_at=GENERATED_AT)
+    return pipeline.execute(paths, generated_at=GENERATED_AT)
 
 
 # ----------------------------------------------------------------------------- builders
@@ -312,17 +312,16 @@ def next_quarter_cfg(cfg):
 
 @pytest.fixture(autouse=True, scope="session")
 def _model_sdk_shim():
-    """The AI-layer tests replace the network call on the three model clients, so they need the
+    """The AI-layer tests replace the network call on both model clients, so they need the
     clients to consider themselves available with a fake key even when the `anthropic` package is
     not installed (a bare `pip install -e .`). With the package present nothing is changed."""
     if importlib.util.find_spec("anthropic") is not None:
         yield
         return
     from hc_valuation import recommend
-    from hc_valuation.adjudication import proposer
     from hc_valuation.notes import reader
     restore = []
-    for cls in (recommend.ClaudeChooser, reader.ClaudeReader, proposer.ClaudeProposer):
+    for cls in (recommend.ClaudeChooser, reader.ClaudeReader):
         orig = cls.unavailable_reason
         cls._real_unavailable_reason = orig          # a test that wants the real check restores this
         cls.unavailable_reason = property(lambda self, _o=orig.fget: None if self.api_key else _o(self))

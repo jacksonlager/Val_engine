@@ -177,7 +177,6 @@ def summary_rows(run: ValuationRun) -> list[tuple[str, Any, str]]:
         ("Input SHA-256", m.input_sha256, TEXT),
         ("Generated at", m.generated_at.isoformat(), TEXT),
         ("Market data source", m.market_data_source, TEXT),
-        ("Adjudication enabled", "yes" if m.adjudication_enabled else "no", TEXT),
         ("", None, TEXT),
         ("Positions", t.positions, INT),
         ("Active after", t.active_after, INT),

@@ -29,7 +29,7 @@ BASELINE = {"BLOCK": 7, "REVIEW": 20, "MONITOR": 39, "CLEAR": 34}
 
 @pytest.fixture(scope="module")
 def baseline():
-    return execute(adjudicate=False)
+    return execute()
 
 
 def _policy_copy(tmp_path: Path, mutate) -> RunPaths:
@@ -42,7 +42,6 @@ def _policy_copy(tmp_path: Path, mutate) -> RunPaths:
     p.write_text(yaml.safe_dump(raw, sort_keys=False))
     paths = RunPaths.default(ROOT)
     paths.policy = p
-    paths.proposals_dir = tmp_path / "proposals"
     paths.precedent = tmp_path / "precedent.yaml"
     paths.overrides = tmp_path / "overrides.yaml"
     return paths
@@ -131,14 +130,14 @@ def test_provider_resolution(monkeypatch):
 def test_relative_to_comps_changes_valuation_flags(tmp_path, baseline):
     """Policy 0.2 is relative_to_comps but gated to a live history, so on the fixture the screens are the
     absolute bounds (the baseline). Waiving the gate lets the fixture's sector multiples set the bounds."""
-    gated = execute(RunPaths.default(ROOT), adjudicate=False)
+    gated = execute(RunPaths.default(ROOT))
     assert {(c.company, f.rule_id) for c in gated.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402")} == \
         {(c.company, f.rule_id) for c in baseline.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402")}
 
     def mutate(raw):
         raw["exceptions"]["multiple"]["require_live_comps"] = False
     paths = _policy_copy(tmp_path, mutate)
-    rel = execute(paths, adjudicate=False)
+    rel = execute(paths)
     base_flags = {(c.company, f.rule_id) for c in baseline.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402")}
     rel_flags = {(c.company, f.rule_id) for c in rel.run.companies for f in c.flags if f.rule_id in ("X-401", "X-402")}
     assert rel_flags != base_flags
@@ -150,13 +149,13 @@ def test_relative_to_comps_changes_valuation_flags(tmp_path, baseline):
 def test_calibration_writes_alternative_only(tmp_path, baseline):
     """On the fixture comps the gate holds (no alternatives); waived, the fixture history calibrates
     alternatives only — proposals and dispositions are untouched either way."""
-    gated = execute(RunPaths.default(ROOT), adjudicate=False)
+    gated = execute(RunPaths.default(ROOT))
     assert not any("calibrated_to_comps" in c.alternative_marks for c in gated.run.companies)
 
     def mutate(raw):
         raw["marking"]["calibration"]["require_live_history"] = False
     paths = _policy_copy(tmp_path, mutate)
-    cal = execute(paths, adjudicate=False)
+    cal = execute(paths)
     calibrated = [c for c in cal.run.companies if "calibrated_to_comps" in c.alternative_marks]
     assert len(calibrated) >= 20
     for c in calibrated:
@@ -172,7 +171,7 @@ def test_temp_root_without_fixtures_still_gets_comps(tmp_path):
     """A tmp root (tests) falls back to the repo fixtures rather than silently returning no comps."""
     paths = RunPaths.default(ROOT)
     paths.root = tmp_path
-    r = execute(paths, adjudicate=False)
+    r = execute(paths)
     assert r.market.comps and r.run.totals.dispositions == BASELINE
 
 
@@ -191,7 +190,7 @@ def test_live_falls_back_to_stub_on_network_failure(monkeypatch, caplog, tmp_pat
     paths = RunPaths.default(ROOT)
     paths.root = tmp_path                     # an empty cache: every fetch is attempted and fails
     with caplog.at_level("WARNING"):
-        r = execute(paths, adjudicate=False, provider="live")
+        r = execute(paths, provider="live")
     assert r.run.manifest.market_data_source == "stub" and "falling back" in caplog.text
     assert r.run.totals.dispositions == BASELINE
     assert not r.market_report["reached_live"] and r.market_report["errors"]

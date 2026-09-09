@@ -20,7 +20,7 @@ from hc_valuation.engine.inputs import EventType
 
 ENGINE_DIR = ROOT / "src" / "hc_valuation" / "engine"
 POLICY_DOC = ROOT / "docs" / "valuation-policy.md"
-FORBIDDEN_IMPORTS = ("api", "ingest", "connectors", "adjudication", "export", "pipeline")
+FORBIDDEN_IMPORTS = ("api", "ingest", "connectors", "export", "pipeline")
 
 
 @pytest.fixture(scope="module")

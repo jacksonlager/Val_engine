@@ -72,7 +72,7 @@ A position that was listed last quarter and has no event re-marks to its measure
 
 Then the position is put in one **readiness bucket** — Blocked, Needs Review or Ready — described in section 3.
 
-**AI:** none in the screens. The one optional model integration at this stage is the *recommender*: when switched on, it chooses which of the engine's already-priced resolutions to show first and writes the sentence a reviewer reads. It cannot invent a resolution or a number. Today it is off (`recommendation.provider: policy`), so every suggestion is the rule's own default and is labelled "Policy suggestion".
+**AI:** none in the screens. The one optional model integration at this stage is the *recommender*: when switched on, it chooses which of the engine's already-priced resolutions to show first and writes the sentence a reviewer reads. It cannot invent a resolution or a number. The shipped policy sets `recommendation.provider: claude`, so on a run with a key every suggestion is the model's choice among the engine's candidates; without a key it falls back to the rule's own default and is labelled "Policy suggestion".
 
 **Reading the notes.** The columns drive every rule; the free text on a row (Detail, Notes) is where
 the situations the columns cannot hold turn up — an escrow, a preference senior to HC, a stake that
@@ -88,13 +88,10 @@ person. The reader never sets a number, never lowers a severity, never removes a
 off (the footer says so) only the keyword screen runs. Readings are cached, so a rerun of the same
 workbook is identical and needs no network.
 
-**Where Claude sits, and what it may never do.** Three places, all outside the pure engine and all
+**Where Claude sits, and what it may never do.** Two places, both outside the pure engine and both
 advisory. (1) The *note reader* classifies each row's free text against the case catalogue and says,
 quoting, what it found and what it means for the mark; the engine turns that into review findings.
-(2) The *adjudicator* (E-09) drafts a treatment when an event type has no rule: the closest existing
-rule, the calculation it would apply, and a briefing in plain words — what happened, why no rule
-covers it, what it means for the mark, the suggested course, what to check first. The position stays
-Blocked until a person accepts, promotes or rejects the draft. (3) The *recommender* picks, for each
+(2) The *recommender* picks, for each
 card, one of the engine's own priced options as the suggested next step and says why. None of the
 three can produce a number, lower a severity, remove a finding or mark a position Ready; every answer
 is cached, quoted and labelled with the model that gave it; and each falls back to a deterministic
@@ -120,7 +117,7 @@ Every finding has a severity. The position's **readiness** is one state, decided
 
 | Readiness | Triggered when | What it means for the reviewer |
 |---|---|---|
-| **Blocked** | An input the mark needs is missing: a listed position with no measurement-date price (the mark is a *provisional* stand-in), stock consideration with no listing details (X-112), Chapter 11 (X-116), a refused or contradictory workbook row (X-900), a company created from activity with no Portfolio row (X-918), an event type no rule recognises (M-999 — the treatment is missing, and adjudication exists to draft it) | There is no supported number yet. The primary action supplies the input; an override must acknowledge, in writing, that it is stepping past the gap — and an override that names no finding never clears a Blocked one |
+| **Blocked** | An input the mark needs is missing: a listed position with no measurement-date price (the mark is a *provisional* stand-in), stock consideration with no listing details (X-112), Chapter 11 (X-116), a refused or contradictory workbook row (X-900), a company created from activity with no Portfolio row (X-918), an event type no rule recognises (M-999 — the treatment is missing until a rule for it is written into the policy file) | There is no supported number yet. The primary action supplies the input; an override must acknowledge, in writing, that it is stepping past the gap — and an override that names no finding never clears a Blocked one |
 | **Needs Review** | Any other BLOCK- or REVIEW-severity finding is unresolved — a recap, an announced deal, a stale round with a screen against it, short runway, shrinking revenue | A proposal exists and is defensible; a person must ratify it, pick another priced option, or override |
 | **Ready** | Nothing unresolved above MONITOR | Checks complete; the proposal can be approved as it stands |
 
@@ -219,7 +216,7 @@ Marks sheet → the company's **Portfolio Row** → Audit Trail rows for that co
 - *PitchBook comps.* `--provider pitchbook` is a registered name that returns the fixture with a "not configured" note.
 - *The measurement date.* The workbook's quarter ends 30 September 2026; the market cache was fetched on 7 September. The "September" close is the last one on file at retrieval, not a quarter-end print, and the Market tab says so in its first line.
 
-**Optional, off by default.** The AI recommender (`recommendation.provider: claude`) and the novel-event adjudicator (`adjudication.provider: claude`). Both need `ANTHROPIC_API_KEY`; both cache every answer so reruns are offline and deterministic; both fall back to the policy default and say so.
+**Optional, and inert without a key.** The AI recommender (`recommendation.provider: claude`) and the note reader (`note_reader.provider: claude`). Both need `ANTHROPIC_API_KEY`; both cache every answer so reruns are offline and deterministic; both fall back to the policy default and say so.
 
 **Planned, not built.** A live quote feed; deeper comps baskets (five names is thin — the ±35% M-080 cap binds on 24 of 42 indications for that reason); a CSV export that preserves the Companies view's current filter; the Companies detail panel and the executive dashboard still use the older "booked" vocabulary rather than readiness.
 
@@ -229,14 +226,13 @@ Marks sheet → the company's **Portfolio Row** → Audit Trail rows for that co
 |---|---|---|
 | Any threshold — staleness months, runway months, growth floor, multiple bounds, MOIC, close probability, lock-up discount, structure haircut, spread tolerances | `rules/2026Q3.yaml` | Every number the engine uses is here; there are no numeric literals in the engine. The header comment says which section holds what. Changing one changes the `run_id` |
 | Which resolution is shown first, and whether a model chooses | `recommendation:` block | `policy` or `claude` |
-| Whether the engine drafts rules for unknown event types | `adjudication:` block | `stub` or `claude`; `auto_accept: never` is not a threshold |
 | Whether publishing needs a second name | `publish.require_second_approver` | |
 | The plain-English name, family and "why" of each rule, and whether the brief asked for it | `rules/rationale.yaml` | Feeds the card headlines, the Rules tab and the Evidence dialog |
 | The public comparables per sector | `rules/comps_baskets.yaml` | Then `market --provider live --refresh` |
 | Screened note-text terms and their exemptions | `note_screen:` block | |
 | How much workbook drift to tolerate | `normalization:` and `tolerances:` blocks | |
 | Next quarter's policy | `hc-valuation next-policy` | Inherits everything; edit only what changed |
-| A rule promoted from adjudication | `custom_rules:` | Declarative formulas, written by the promote step, never code |
+| A rule for an event type the engine does not handle | `custom_rules:` | A declarative formula in the policy file, approved and dated by a person, never code. The whitelist it is parsed against is the `declarative:` block |
 | Pre-engine mark history for the chart | `data/mark_history.yaml` | Optional; tagged "backfill"; never read by the engine |
 
 ---
@@ -294,7 +290,7 @@ A **provisional** mark is one whose step recorded a `price_source` beginning `st
 | `rules/2026Q3.yaml` · `rules/rationale.yaml` · `rules/comps_baskets.yaml` | Policy, rule catalogue, comps baskets |
 | `data/overrides.yaml` | E-01 committee decisions; append-only; versioned |
 | `data/published/2026Q3.json`, `latest.json`, `history/` | The released snapshot the executive dashboard reads |
-| `data/proposals/`, `data/precedent.yaml` | E-09 adjudication drafts and decision counts |
+| `data/precedent.yaml` | How often each treatment has been decided the same way |
 | `data/market_cache/2026-09-30/` | EDGAR extracts, raw facts, closes, split events, `meta.json` |
 | `data/recommendations/` | Cached model answers, when the recommender is on |
 | `dist/valuation_Q3_2026.xlsx` | Marks · Exceptions · Audit Trail · Open Items · Alternatives · Fund Rollup · Validation |
@@ -315,4 +311,4 @@ A **provisional** mark is one whose step recorded a `price_source` beginning `st
 
 ### F. Glossary
 
-**Mark** — the fair value of HC's stake in one company, $M. **Proposed** — the engine's mark before any decision. **Provisional** — a proposed mark resting on a stand-in input. **Recorded** — a decision exists but the quarter is not published. **Booked** — published. **Level 1 / 3** — ASC 820 fair-value hierarchy: quoted price vs unobservable inputs. **Post-money** — company value after a round; ownership × post-money is the mark. **TTM** — trailing twelve months. **EV/Revenue** — enterprise value ÷ TTM revenue; the comps multiple. **PWERM** — probability-weighted expected return: the announced-deal treatment. **ASU 2022-03** — a contractual lock-up is not a characteristic of the security, so no discount. **E-01** — a committee override on the ledger. **E-07** — an open item carried past its ageing limit. **E-09** — adjudication: a drafted rule for an event type the engine does not know. **Staleness anchor** — the date of the last real price discovery; a flat extension does not move it.
+**Mark** — the fair value of HC's stake in one company, $M. **Proposed** — the engine's mark before any decision. **Provisional** — a proposed mark resting on a stand-in input. **Recorded** — a decision exists but the quarter is not published. **Booked** — published. **Level 1 / 3** — ASC 820 fair-value hierarchy: quoted price vs unobservable inputs. **Post-money** — company value after a round; ownership × post-money is the mark. **TTM** — trailing twelve months. **EV/Revenue** — enterprise value ÷ TTM revenue; the comps multiple. **PWERM** — probability-weighted expected return: the announced-deal treatment. **ASU 2022-03** — a contractual lock-up is not a characteristic of the security, so no discount. **E-01** — a committee override on the ledger. **E-07** — an open item carried past its ageing limit. **M-999** — an event type the engine does not know. **Staleness anchor** — the date of the last real price discovery; a flat extension does not move it.

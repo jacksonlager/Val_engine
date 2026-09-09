@@ -33,7 +33,7 @@ def main() -> int:
         "",
         "1. **The event type** (the `Event` cell) picks a marking rule. Every spelling in the synonym table maps to one of",
         "   the types below; anything else is unrecognised, blocks the position (M-999), and gets a drafted treatment for a",
-        "   person to accept, reject or promote (E-09).",
+        "   person to handle.",
         "2. **The free text** (`Detail`, `Notes`) is read twice. A deterministic keyword screen (X-105) raises the terms in",
         "   the policy's `note_screen.terms` unless the row's rule handled them. The note reader (Claude) classifies the",
         "   text against the kinds below and raises what no rule took account of (X-130), what conflicts with a column",
@@ -53,7 +53,8 @@ def main() -> int:
         lines.append(f"| {et.value} | {meta.rule_id} | {meta.description} | {syn} |")
     lines += [
         "",
-        "Anything not in the table: **M-999**, Blocked, with an E-09 draft beside it.",
+        "Anything not in the table: **M-999**, Blocked. A rule for the new event type is written into the",
+        "policy file (`custom_rules:`) by a person, approved and dated, before it can price anything.",
         "",
         "## What a note can say",
         "",

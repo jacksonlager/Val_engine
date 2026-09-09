@@ -21,7 +21,7 @@ REPO = Path(__file__).resolve().parents[1]
 
 @pytest.fixture(scope="module")
 def result():
-    return execute(RunPaths.default(REPO), generated_at=datetime(2026, 9, 30), adjudicate=False)
+    return execute(RunPaths.default(REPO), generated_at=datetime(2026, 9, 30))
 
 
 @pytest.fixture()
@@ -234,7 +234,7 @@ def test_publish_needs_a_second_pair_of_eyes(root):
     # the library call says the same thing, and the policy switch turns it off
     run = c.get("/api/run").json()
     from hc_valuation.pipeline import execute
-    res = execute(RunPaths.default(root), adjudicate=False)
+    res = execute(RunPaths.default(root))
     with pytest.raises(SecondApproverRequired):
         publish_run(res.run, root, approver="Jackson Lagerwey")
     publish_run(res.run, root, approver="Jackson Lagerwey", require_second_approver=False)

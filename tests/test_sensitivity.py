@@ -62,7 +62,7 @@ def test_shock_moves_only_exposed_marks_and_reports_both_scopes(build, cfg):
 
 
 def test_shock_on_the_real_book_holds_level_1_and_terminal_flat():
-    r = execute(RunPaths.default(), adjudicate=False)
+    r = execute(RunPaths.default())
     run = r.run
     s = run.sensitivity
     exposed = [c for c in run.companies if c.multiple_exposed]
@@ -117,7 +117,7 @@ def test_comps_move_is_none_without_history_and_labels_the_fixture(build, cfg):
 
 
 def test_comps_move_on_the_real_book_is_the_fixture_and_reconciles():
-    r = execute(RunPaths.default(), adjudicate=False)
+    r = execute(RunPaths.default())
     run = r.run
     m = run.comps_move
     assert m is not None and not m.all_live and all(x.source.startswith("fixture:") for x in m.sectors)
@@ -150,7 +150,7 @@ def test_sector_sensitivity_splits_the_same_exposure_and_never_exceeds_the_secto
 def test_sector_sensitivity_on_the_real_book_ties_out_and_is_ordered():
     """On the shipped book: every sector present, exposure summing to the portfolio's, largest
     first — the order the review tool relies on to put the sectors worth arguing about at the top."""
-    run = execute(RunPaths.default(), adjudicate=False).run
+    run = execute(RunPaths.default()).run
     rows = run.sensitivity_sectors
     assert {s.sector for s in rows} == {c.sector for c in run.companies}
     assert sum(s.exposed_nav for s in rows) == pytest.approx(run.sensitivity["multiple_exposed_nav"])
@@ -179,7 +179,7 @@ def _moves_with_multiples(c) -> float:
 def test_positions_inside_a_sector_add_up_to_that_sectors_impact():
     """Open a sector in the review tool and it lists every position with its own impact. Those
     impacts must sum to the sector row above them, at any shock, or the screen contradicts itself."""
-    run = execute(RunPaths.default(), adjudicate=False).run
+    run = execute(RunPaths.default()).run
     by: dict[str, list] = {}
     for c in run.companies:
         by.setdefault(c.sector, []).append(c)
@@ -202,7 +202,7 @@ def test_positions_inside_a_sector_add_up_to_that_sectors_impact():
 def test_a_position_held_flat_is_held_flat_for_a_reason_the_card_can_name():
     """Every position the shock does not move must fall into one of the buckets the drill-down
     names, so "held flat" is never unexplained."""
-    run = execute(RunPaths.default(), adjudicate=False).run
+    run = execute(RunPaths.default()).run
     flat = [c for c in run.companies if _moves_with_multiples(c) == 0]
     assert flat, "the shipped book has positions a multiple regime does not drive"
     for c in flat:

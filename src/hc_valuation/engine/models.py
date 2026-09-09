@@ -69,7 +69,6 @@ class OverrideRecord(_Frozen):
     approver: str
     created_at: date
     rule_ids_addressed: tuple[str, ...] = ()
-    source_proposal: str | None = None
     source_suggestion: str | None = None   # "<rule_id>/<suggestion key>" when a suggestion was accepted
     # The input the reviewer supplied when the override fills a gap rather than asserts a number —
     # e.g. the measurement-date closing price the engine had no quote for. Free-shape, keyed by
@@ -382,7 +381,6 @@ class RunManifest(_Frozen):
     measurement_date: date
     prior_close: date
     generated_at: datetime
-    adjudication_enabled: bool
     market_data_source: str
     recommender: str = "policy"     # "policy" | "claude:<model>" — who chose each flag's recommendation
     note_reader: str = "off"        # "off: <reason>" | "claude:<model>" — who read the free text on each row

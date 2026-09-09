@@ -252,11 +252,11 @@ def test_pipeline_passes_readings_in_and_reports_the_reader(tmp_path: Path):
                                                                       "quote": "regulatory investigation into the company's data practices",
                                                                       "note": "open investigation"}],
                                           "conflicts": [], "supersedes_portfolio_tab": [], "instructions": [], "novel": None, "confidence": 0.95}]}})
-    r = execute(paths, provider="stub", adjudicate=False, reader=fake)
+    r = execute(paths, provider="stub", reader=fake)
     c = r.run.by_company()["Alpha"]
     assert fake.asked == ["Alpha"] and "X-130" in _flags(c) and c.readiness is Readiness.NEEDS_REVIEW
     assert r.run.manifest.note_reader == "claude:fake" and r.run.manifest.note_reader_report["rows_read"] == 1
-    off = execute(paths, provider="stub", adjudicate=False, note_reader="off")
+    off = execute(paths, provider="stub", note_reader="off")
     assert "X-130" not in _flags(off.run.by_company()["Alpha"]) and off.run.manifest.note_reader.startswith("off:")
     assert off.run.by_company()["Alpha"].proposed_mark == c.proposed_mark
 
@@ -385,7 +385,7 @@ def test_shapes_the_rule_already_settled_do_not_become_a_second_finding(tmp_path
     by = _run(wb, cfg, readings).by_company()
     for name in ("Kol", "Nim", "Tarn", "Orch", "Fen", "Mard"):
         assert "X-130" not in _flags(by[name]), (name, sorted(_flags(by[name])))
-    # ... and an unrecognised event's reading rides on the adjudication draft, not a second finding
+    # ... and an unrecognised event already blocks on M-999, so no second finding is raised
     spac = event("SPAC Merger", date=date(2026, 9, 17), company="Mard", detail="Combination with a listed acquisition vehicle", value=240.0, ownership_after=0.031,
                  notes="Business combination with a special-purpose acquisition company, alongside a $60.0M PIPE.")
     wb2 = make_workbook(tmp_path, [book[5]], [spac], name="b.xlsx")

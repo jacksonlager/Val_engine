@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Rationale, Sources, ValuationRun, WorkbookProfile, RunManifest } from "./types";
-import { currentRunStamp, fetchWorkbooks, loadHistory, loadProposals, loadRationale, loadRun, loadSignals, NoWorkbookError, selectWorkbook, STATIC_REASON, type Mode } from "./lib/api";
+import type { Rationale, Sources, ValuationRun, RunManifest } from "./types";
+import { currentRunStamp, loadHistory, loadRationale, loadRun, loadSignals, NoWorkbookError, STATIC_REASON, type Mode } from "./lib/api";
 import { UploadButton } from "./components/Upload";
 import { ResetButton } from "./components/Reset";
 import { MarketStatusButton } from "./components/MarketStatus";
@@ -16,11 +16,10 @@ import { CompaniesView } from "./views/Companies";
 import { MovementView } from "./views/Movement";
 import { FundsView } from "./views/Funds";
 import { OpenItemsView } from "./views/OpenItems";
-import { ProposalsView } from "./views/Proposals";
 import { MarketView } from "./views/Market";
 import { RulesView } from "./views/Rules";
 
-type View = "queue" | "companies" | "movement" | "funds" | "market" | "rules" | "open" | "proposals";
+type View = "queue" | "companies" | "movement" | "funds" | "market" | "rules" | "open";
 
 /** "On (Claude, 21 rows)" / "Off: no API key" — what the footer says about the note reader. */
 function noteReaderLabel(m: RunManifest): string {
@@ -35,7 +34,7 @@ function noteReaderLabel(m: RunManifest): string {
 // The Queue first — what the quarter brought in sits at its top, then the rest of the book that
 // needs a person — then the views the brief asks for: the auditor's table, what moved and why,
 // and where the market numbers came from. Funds lives on the executive dashboard; open items
-// sit at the foot of the Queue; Proposals appears only when the engine actually has one.
+// sit at the foot of the Queue.
 // The other routes still answer to their hash (#funds, #open) for anyone who bookmarked them;
 // #activity, the former New Activity tab, lands on the Queue.
 const VIEWS: { id: View; label: string }[] = [
@@ -45,78 +44,11 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "market", label: "Market" },
   { id: "rules", label: "Rules" },
 ];
-const ALL_VIEWS: View[] = ["queue", "companies", "movement", "funds", "market", "rules", "open", "proposals"];
+const ALL_VIEWS: View[] = ["queue", "companies", "movement", "funds", "market", "rules", "open"];
 
 /** The workbook the served run reads, and the others it could. Switching asks the server to
     recompute on that file — with its quarter's policy and its own decision ledger — so the run
     id changes and the page reloads. A synthetic profile is said so beside the name. */
-function WorkbookSwitcher({
-  served,
-  refreshKey,
-  onSwitched,
-  onBusy,
-}: {
-  served: boolean;
-  refreshKey: number;
-  onSwitched: () => void;
-  /** the app shows a full-page "Running the valuation…" overlay while a switch is in progress */
-  onBusy?: (busy: boolean) => void;
-}) {
-  const [profiles, setProfiles] = useState<WorkbookProfile[]>([]);
-  const [busy, setBusyState] = useState(false);
-  const setBusy = (b: boolean) => {
-    setBusyState(b);
-    onBusy?.(b);
-  };
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    if (!served) return;
-    fetchWorkbooks().then(setProfiles, () => setProfiles([]));
-  }, [served, refreshKey]);
-  if (!served || profiles.length < 2) return null;
-  const current = profiles.find((p) => p.current);
-  const change = async (id: string) => {
-    if (!id || id === current?.id) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await selectWorkbook(id);
-      onSwitched();
-    } catch (e) {
-      setError(String((e as Error)?.message ?? e));
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <span className="inline-flex items-center gap-1.5 text-[12px]">
-      <label className="text-muted" htmlFor="workbook-select">
-        Workbook
-      </label>
-      <select
-        id="workbook-select"
-        className="rounded-md border border-line bg-surface px-1.5 py-0.5 text-[12px] max-w-[320px]"
-        value={current?.id ?? ""}
-        disabled={busy}
-        onChange={(e) => change(e.target.value)}
-        title={current ? `${current.workbook}\nPolicy: ${current.policy ?? "—"}\nDecisions recorded in: ${current.ledger_dir}` : undefined}
-      >
-        {profiles.map((p) => (
-          <option key={p.id} value={p.id} disabled={!p.usable} title={p.usable ? p.workbook : p.reason}>
-            {(p.quarter ?? p.workbook) + (p.synthetic ? " · synthetic test data" : "") + (p.usable ? "" : ` (${p.reason})`)}
-          </option>
-        ))}
-      </select>
-      {busy && (
-        <span className="text-muted inline-flex items-center gap-1.5">
-          <span className="spinner" aria-hidden /> running…
-        </span>
-      )}
-      {error && <span className="text-[var(--block-text)]">{error}</span>}
-    </span>
-  );
-}
-
 function viewFromHash(): View {
   const h = window.location.hash.replace("#", "");
   return (ALL_VIEWS.includes(h as View) ? h : "queue") as View;
@@ -125,7 +57,6 @@ function viewFromHash(): View {
 export default function App() {
   const [state, setState] = useState<{ run?: ValuationRun; mode?: Mode; sources?: Sources; error?: string; stale?: boolean; empty?: boolean }>({});
   // a full-page overlay while a workbook switch recomputes, and the note the landing page shows after a reset
-  const [switching, setSwitching] = useState(false);
   const [resetNote, setResetNote] = useState<ResetResult | null>(null);
   const afterReset = (r: ResetResult) => {
     setResetNote(r);
@@ -137,7 +68,6 @@ export default function App() {
   // why every rule exists (rules/rationale.yaml); shown on the Rules tab and beside each flag
   const [rationale, setRationale] = useState<Rationale | undefined>(undefined);
   // E-09 drafts for events no rule recognises; the tab exists only while there are some
-  const [proposalCount, setProposalCount] = useState(0);
   const [view, setView] = useState<View>(viewFromHash);
   const [focus, setFocus] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
@@ -153,7 +83,6 @@ export default function App() {
         Promise.all([loadHistory(mode).then((data) => ({ data }), (e) => ({ error: String(e?.message ?? e) })), loadSignals(mode)]).then(
           ([h, signals]) => setHistory({ ...h, signals }),
         );
-        loadProposals(mode).then((p) => setProposalCount(p.length), () => setProposalCount(0));
         loadRationale(mode).then(setRationale, () => setRationale(undefined));
       },
       (e) =>
@@ -246,7 +175,7 @@ export default function App() {
             <span className="text-[13px] font-medium">{m.quarter_label}</span>
           </div>
           <nav className="flex flex-wrap gap-1 ml-2" aria-label="Views">
-            {[...VIEWS, ...(proposalCount > 0 || view === "proposals" ? [{ id: "proposals" as View, label: "Proposals" }] : [])].map((v) => (
+            {VIEWS.map((v) => (
               <button
                 key={v.id}
                 onClick={() => go(v.id)}
@@ -264,9 +193,6 @@ export default function App() {
                     {run.totals.readiness?.Blocked ?? 0} blocked
                   </span>
                 )}
-                {v.id === "proposals" && proposalCount > 0 && (
-                  <span className={`ml-1.5 mono text-[10px] ${view === v.id ? "" : "text-[var(--review-text)]"}`}>{proposalCount}</span>
-                )}
               </button>
             ))}
           </nav>
@@ -276,7 +202,6 @@ export default function App() {
               filter up here only competed with them. */}
           <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
             {mode === "served" && <MarketStatusButton refreshKey={reloads} compact />}
-            <WorkbookSwitcher served={mode === "served"} refreshKey={reloads} onSwitched={reload} onBusy={setSwitching} />
             <PublishControls run={run} mode={mode} writeDisabled={writeDisabled} refreshKey={reloads} onGoto={gotoCompany} />
             <span
               className={`chip no-dot ${mode === "static" ? "disp-MONITOR" : "disp-CLEAR"} hint`}
@@ -306,17 +231,6 @@ export default function App() {
         )}
       </header>
 
-      {switching && (
-        <div className="overlay" role="status" aria-live="polite">
-          <div className="overlay-card">
-            <span className="spinner spinner-lg" aria-hidden />
-            <div>
-              <div className="font-semibold text-[13px]">Running the valuation…</div>
-              <div className="text-[11.5px] text-muted">Rolling every position forward and screening it. This can take a little while.</div>
-            </div>
-          </div>
-        </div>
-      )}
       <main className="flex-1 px-4 py-4 max-w-[1600px] w-full mx-auto">
         {view === "queue" && (
           <QueueView run={run} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />
@@ -327,7 +241,6 @@ export default function App() {
         {view === "market" && <MarketView mode={mode} run={run} onGoto={gotoCompany} />}
         {view === "rules" && <RulesView run={run} gotoCompany={gotoCompany} />}
         {view === "open" && <OpenItemsView run={run} gotoCompany={gotoCompany} />}
-        {view === "proposals" && <ProposalsView run={run} mode={mode} writeDisabled={writeDisabled} onChanged={reload} gotoCompany={gotoCompany} />}
       </main>
 
       {/* The footer used to be eight lowercase `key value` pairs — a log line, not a footer. The
@@ -373,12 +286,6 @@ export default function App() {
             <div>
               <span>Market data</span>
               <span title={m.market_data_source}>{marketSourceLabel(m.market_data_source)}</span>
-            </div>
-            <div>
-              <span title="When an event matches no marking rule, the engine drafts a suggested treatment beside the blocked position.">
-                Drafting for uncovered events
-              </span>
-              <span>{m.adjudication_enabled ? "On" : "Off"}</span>
             </div>
             <div>
               <span title="Who picks the one resolution shown first on each card: the rule's own default, or Claude choosing among the engine's priced options for that company's facts. Never a number of its own.">

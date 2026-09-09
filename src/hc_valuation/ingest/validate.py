@@ -66,7 +66,7 @@ _FORMULA_ROW_FIELDS: dict[str, str] = {
 def _custom_rule_fields(config: RuleConfig) -> dict[str, set[str]]:
     """event type -> the row-sourced fields its in-force declarative formula needs."""
     md = config.quarter.measurement_date
-    adj = config.adjudication
+    adj = config.declarative
     out: dict[str, set[str]] = {}
     for r in config.custom_rules:
         if r.effective_from > md:

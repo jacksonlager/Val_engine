@@ -16,10 +16,10 @@ policy_overrides:
   custom_rules:
     - { rule_id: M-120, version: "1", event_type: "SPAC Merger", formula: "ownership_after * deal_value * close_probability",
         severity: REVIEW, rationale: "De-SPAC treated like an announced acquisition, probability-weighted.", approver: "J. Doe",
-        effective_from: 2026-07-01, source_proposal: prop-0001 }
+        effective_from: 2026-07-01 }
     - { rule_id: M-121, version: "1", event_type: "Earn-out True-up", formula: "prior_mark * proceeds / hc_investment",
         severity: REVIEW, rationale: "Earn-out received scales the carrying value by the payout ratio.", approver: "J. Doe",
-        effective_from: 2026-07-01, source_proposal: prop-0002 }
+        effective_from: 2026-07-01 }
 activity:
   - { date: 2026-07-09, company: Kilnbrook, event: "SPAC Merger", detail: "De-SPAC with a listed sponsor", value: 400.0, ownership_after: 0.08,
       notes: "Business combination agreement signed." }

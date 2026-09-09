@@ -56,7 +56,7 @@ def runs(variants, tmp_path_factory):
         root = tmp_path_factory.mktemp(name)
         shutil.copytree(ROOT / "rules", root / "rules")
         paths = RunPaths.default(root=ROOT, workbook=wb, policy=ROOT / "rules" / "2026Q3.yaml", ledger_dir=root / "ledger")
-        out[name] = (execute(paths, provider="stub", adjudicate=False), paths, root)
+        out[name] = (execute(paths, provider="stub"), paths, root)
     return out
 
 
@@ -112,7 +112,7 @@ def test_renamed_book_values_exactly_like_the_original(runs, variants):
     v1 = runs["v1_renamed"][0].run
     base = execute(RunPaths.default(root=ROOT, workbook=ROOT / "data" / "HC_Mock_Portfolio_Data.xlsx",
                                     policy=ROOT / "rules" / "2026Q3.yaml", ledger_dir=variants["v1_renamed"].parent / "base-ledger"),
-                   provider="stub", adjudicate=False).run
+                   provider="stub").run
     assert v1.totals.readiness == base.totals.readiness
     assert v1.totals.proposed_nav == pytest.approx(base.totals.proposed_nav) and v1.totals.realized_quarter == pytest.approx(base.totals.realized_quarter)
     assert sorted(c.proposed_mark for c in v1.companies) == pytest.approx(sorted(c.proposed_mark for c in base.companies))

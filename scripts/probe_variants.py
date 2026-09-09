@@ -31,7 +31,7 @@ def probe(name: str, wb: Path) -> None:
     print(f"\n===== {name} =====")
     paths = RunPaths.default(root=ROOT, workbook=wb, policy=ROOT / "rules" / "2026Q3.yaml", ledger_dir=tmp / "ledger")
     try:
-        r = execute(paths, provider="stub", adjudicate=False)
+        r = execute(paths, provider="stub")
     except Exception:
         print("EXECUTE CRASHED"); traceback.print_exc(); return
     run = r.run

@@ -64,7 +64,7 @@ RecommenderOpt = typer.Option(None, "--recommender", help="Who picks the one res
 # gets its own folder so its simulated decisions never land in the committee's overrides.yaml or in
 # the publish archive the mark history reads.
 OverridesOpt = typer.Option(None, "--overrides", help="Override ledger (E-01 decisions). Default: <ledger dir>/overrides.yaml")
-LedgerDirOpt = typer.Option(None, "--ledger-dir", help="Folder for every decision record — overrides.yaml, proposals/, "
+LedgerDirOpt = typer.Option(None, "--ledger-dir", help="Folder for every decision record — overrides.yaml, "
                                                       "precedent.yaml, published/. Default: data/")
 
 
@@ -500,7 +500,7 @@ def _open_when_up(url: str, health: str, timeout: float = 30.0) -> None:
 def reset(yes: bool = typer.Option(False, "--yes", help="Actually do it. Without this the command only says what it would remove."),
           overrides: Optional[Path] = OverridesOpt, ledger_dir: Optional[Path] = LedgerDirOpt) -> None:
     """Back to 'nothing uploaded yet': remove the uploads, the decisions, the published snapshots, the carried
-    open items, proposals, precedents and cached recommendations. Keeps the market cache, the vendor fixtures,
+    open items, precedents and cached recommendations. Keeps the market cache, the vendor fixtures,
     the policy files, the repository's own workbook and the synthetic test chain."""
     from .reset import KEPT, reset_workspace
 
@@ -560,7 +560,7 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
     typer.echo(f"\nserving {url}  (API at {url}api/run; docs at {url}api/docs)")
     if watch:
         watch_inputs(application, log=lambda m: typer.echo(f"watch: {m}"))
-        typer.echo("watch: recomputing whenever the workbook, policy, overrides or proposals change")
+        typer.echo("watch: recomputing whenever the workbook, policy or overrides change")
     if not (STATIC_DIR / "index.html").is_file():
         typer.echo("note: no dashboard bundle in api/static; '/' serves the plain report page")
     if not no_browser:

@@ -133,7 +133,7 @@ def scratch(tmp_path: Path) -> RunPaths:
     (data / "overrides.yaml").write_text("overrides: []\n")
     return RunPaths(
         root=tmp_path, policy=root / "rules" / "2026Q3.yaml", workbook=data / "HC_Mock_Portfolio_Data.xlsx",
-        overrides=data / "overrides.yaml", proposals_dir=data / "proposals", precedent=data / "precedent.yaml",
+        overrides=data / "overrides.yaml", precedent=data / "precedent.yaml",
         open_items_carry=data / "open_items_carry.yaml",
     )
 

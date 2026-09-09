@@ -25,7 +25,7 @@ GENERATED = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
 
 @pytest.fixture(scope="module")
 def result():
-    return execute(RunPaths.default(), generated_at=GENERATED, adjudicate=False)
+    return execute(RunPaths.default(), generated_at=GENERATED)
 
 
 # ------------------------------------------------------------------ workbook + csv

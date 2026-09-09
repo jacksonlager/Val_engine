@@ -115,7 +115,7 @@ policy default; with `recommendation.provider: claude` in the policy (or `--reco
 Claude chooses among the engine's priced options for that company's facts and writes the
 sentence and two reasons — it can never propose a number of its own, the choice is validated
 against the candidates, and every answer is cached under `data/recommendations/` so reruns are
-deterministic and offline (`pip install -e ".[adjudication]"`, set `ANTHROPIC_API_KEY`, run
+deterministic and offline (`pip install -e ".[claude]"`, set `ANTHROPIC_API_KEY`, run
 `hc-valuation recommend` once, commit the folder). Accepting a recommendation, or any other
 option, records an ordinary override under a named approver.
 
@@ -181,10 +181,10 @@ any gap above 10% highlighted, and the quarter's AlphaSense-shaped news with sen
 are fixtures in this tree, and neither ever touches a mark, a flag or a disposition — the
 card exists so a restatement or a headline is seen by the reviewer, not booked by the engine.
 
-**Proposals.** An unrecognised event type blocks the position (`M-999`). The optional
-adjudication layer then drafts a *treatment proposal* — an analogue rule, a formula in a
-restricted DSL, the facts still missing — for a human to accept, promote into the policy
-file as a declarative rule, or reject. A proposal never contains a mark and never books one.
+**An event no rule covers.** An unrecognised event type blocks the position (`M-999`) and the
+prior mark stands: the engine never falls through to a guess. A rule for the new type is written
+into the policy file as a declarative formula (`custom_rules:`), approved and dated by a person,
+and the next run applies it. Automating that draft is listed under next steps.
 
 ## Two sites: the review tool and the executive dashboard
 
@@ -232,7 +232,6 @@ src/hc_valuation/
                              overrides, open items, rollup, sensitivity, run_valuation()
   connectors/                market data: protocols, vendor stubs, the live EDGAR + Yahoo/Stooq comps feed
                              (edgar.py, prices.py, stooq.py, cache.py, live.py) — docs/market-feed.md
-  adjudication/              E-09 proposals for novel cases (runs after the engine, never inside it)
   export/                    review workbook, CSVs, next-quarter snapshot, single-file HTML report
   api/app.py                 FastAPI over the pipeline; api/static/ is the built review tool,
                              api/static_exec/ the built executive dashboard (served at /exec/)
@@ -247,7 +246,7 @@ src/hc_valuation/
 frontend/                    React + Vite source for the review tool (builds into api/static)
 frontend-exec/               React + Vite source for the executive dashboard (builds into api/static_exec)
 tests/                       golden file, determinism, rules, ingest, normalize, edge cases, connectors, market; stress/ — boundaries, overlapping events, controls, carries
-                             feed, adjudication, export, api, cli, publish, history, flag points, suggestions, gauntlet
+                             feed, export, api, cli, publish, history, flag points, suggestions, gauntlet
 training/                    SPEC.md (the hardening contract), scenario corpus, workbook generator, gauntlet
 docs/valuation-policy.md     the marking policy the rules implement
 docs/architecture.md         the run as a diagram: feeds, triggers, the review and publish gates, what is stubbed
@@ -462,12 +461,32 @@ fills the same slot honestly:
   test runs against them. The live EDGAR + Yahoo feed is selected with `--provider live`
   without touching the engine, and falls back to the stub — labelled as such — whenever
   it cannot answer.
-- **Adjudication is optional and never books a number.** It can be disabled in the policy
-  file and the engine produces identical marks either way; an unhandled event stays
-  blocked until a human decides.
+- **An unhandled event blocks; it is never guessed.** M-999 halts the position at its prior
+  mark, and a rule for the new event type is added to the policy file by a person before it
+  can price anything.
 - **Structure the schema cannot see.** Preference stacks, pay-to-play, escrow and
   holdbacks are not in the workbook. Rules that would need them (down rounds, closed
   exits with proceeds that do not tie) block or flag rather than guess.
+
+## Next steps
+
+1. **A drafted treatment for an event no rule covers.** Today `M-999` blocks the position at its
+   prior mark, and a rule for the new event type is written into the policy file by a person: a
+   declarative formula under `custom_rules:`, parsed against the `declarative:` whitelist,
+   carrying an approver and an `effective_from` date, applied by the engine on the next run. That
+   mechanism is built and tested. What is not built is the drafting: proposing the analogue rule,
+   the formula and the facts still missing, for a person to accept before it prices anything. It
+   integrates into the policy exactly where a hand-written rule already goes, so adding it changes
+   no engine code and no booked number — a draft would still be a suggestion a named person
+   ratifies, never a mark.
+2. **A real quarter-end close for the listed position**, through the quote slot, removing the
+   seeded IPO print.
+3. **Waterfall and preference modelling for recaps**, so a down round can be valued on the
+   common-equivalent rather than blocked for the committee to read the stack.
+4. **Foresight metrics as a time series**, which unlocks the rules deliberately not written:
+   margin trend, headcount change, and runway recomputed from a burn series.
+
+See `docs/architecture.md` §11 for the full list, including production hardening.
 
 ## AI tooling, reuse and open-source
 
@@ -478,11 +497,11 @@ with a human gate at each phase (golden numbers, determinism, edge cases) before
 began. Thresholds were tuned by running the exception screens over all 100 companies and
 reading the resulting queue — the first cut flagged 58 of 96 active companies, which is
 how it was caught and fixed. Nothing a model produces enters a booked mark: the one place
-a model sits inside the product is the optional E-09 adjudicator, whose drafts are rules
-for a human to promote, and the deterministic engine computes every value.
+a model sits inside the product is advisory: it reads the notes and it chooses among the
+engine's own priced options. The deterministic engine computes every value.
 `docs/architecture.md` §12 has the specifics.
 
 No prior code was reused. Open-source components: FastAPI, uvicorn, Typer, pydantic,
-openpyxl, PyYAML, httpx (live feed) and the optional `anthropic` SDK (E-09) on the Python
+openpyxl, PyYAML, httpx (live feed) and the optional `anthropic` SDK on the Python
 side; React, Vite, TypeScript, Tailwind CSS, TanStack Table and Recharts in the front ends;
 pytest for the tests and Playwright for the screenshot scripts.

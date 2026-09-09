@@ -886,8 +886,8 @@ def test_priced_round_then_shutdown_writes_off_the_fresh_price(build):
 def test_tender_offer_is_m999_block_and_blocked(build):
     """'Tender Offer' is an ambiguous X-914 at ingest (prefix-matches Secondary Purchase / Secondary
     Sale) and is NOT refused: it is dispatched to M-999, which blocks the position and raises the
-    adjudication proposal. fixed: readiness is Blocked, not Needs Review — M-999 is now on the
-    missing-input list (the treatment is the missing input, and E-09 exists to draft it), which
+    prior mark. fixed: readiness is Blocked, not Needs Review — M-999 is now on the
+    missing-input list (the treatment itself is the missing input).
     agrees with the row's own X-914: 'not guessed, fix the cell'. Disposition BLOCK is unchanged."""
     run, issues = build([position()], [event("Tender Offer", detail="Tender at $250M", value=250.0, ownership_after=0.08, proceeds=3.0)])
     c = only(run)

@@ -30,3 +30,12 @@ training/variants/
 
 # subagent worktrees and local Claude Code state
 .claude/
+
+# Model-answer caches: a reading per activity row, a choice per flag. Both are rebuilt on demand
+# and are per-machine (they only exist once someone has run with a key), so they are not the record.
+data/note_reads/
+data/recommendations/
+# Uploads and trial ledgers are this machine's working state, never the committee's.
+data/uploads/
+data/trials/
+Claude outputs/

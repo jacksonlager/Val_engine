@@ -26,7 +26,7 @@ MISSING_INPUT_RULES = frozenset({
     "X-113",   # listed position with no measurement-date price
     "X-116",   # Chapter 11: the recovery estimate is not in the workbook
     "X-918",   # a company created from activity with no Portfolio row behind it
-    "M-999",   # an event type no rule recognises: the treatment is missing, and E-09 exists to draft it
+    "M-999",   # an event type no rule recognises: the treatment is missing until E-09 exists to draft it
 })
 
 # One marking rule per shape of quarter. Anything not named here re-priced the position.

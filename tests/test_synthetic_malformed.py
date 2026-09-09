@@ -40,7 +40,7 @@ pytestmark = pytest.mark.skipif(not CLEAN.exists() or not MALFORMED.exists(), re
 
 def _run(path: Path):
     paths = RunPaths.default(root=ROOT, workbook=path, policy=ROOT / "rules" / "2026Q4.yaml", ledger_dir=ROOT / "data" / "quarters" / "synthetic" / "ledger")
-    return execute(paths, provider="synthetic", adjudicate=False, generated_at=GENERATED_AT).run
+    return execute(paths, provider="synthetic", generated_at=GENERATED_AT).run
 
 
 @pytest.fixture(scope="module")

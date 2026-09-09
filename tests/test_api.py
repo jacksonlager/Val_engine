@@ -23,7 +23,7 @@ def paths(tmp_path: Path) -> RunPaths:
     (data / "overrides.yaml").write_text("overrides: []\n")
     return RunPaths(
         root=root, policy=root / "rules" / "2026Q3.yaml", workbook=data / "HC_Mock_Portfolio_Data.xlsx",
-        overrides=data / "overrides.yaml", proposals_dir=data / "proposals", precedent=data / "precedent.yaml",
+        overrides=data / "overrides.yaml", precedent=data / "precedent.yaml",
         open_items_carry=data / "open_items_carry.yaml",
     )
 
@@ -52,13 +52,12 @@ def test_company_route(client: TestClient):
     assert client.get("/api/companies/Nobody").status_code == 404
 
 
-def test_rules_and_proposals(client: TestClient):
+def test_rules(client: TestClient):
     rules = client.get("/api/rules").json()
     ids = {r["id"] for r in rules}
     assert {"M-010", "M-040", "M-999"} <= ids
     m010 = next(r for r in rules if r["id"] == "M-010")
     assert set(m010) >= {"id", "version", "applies_to", "severity", "effective_from", "description", "source"}
-    assert isinstance(client.get("/api/proposals").json(), list)
 
 
 def test_override_changes_booked_not_proposed(client: TestClient, paths: RunPaths):
@@ -102,16 +101,12 @@ def test_root_serves_bundle_when_present(paths: RunPaths, tmp_path: Path):
     assert c.get("/api/health").status_code == 200
 
 
-def test_decision_route_is_501_until_promote_exists(client: TestClient):
-    try:
-        from hc_valuation.adjudication import promote  # noqa: F401
-    except ImportError:
-        promote = None
+def test_the_proposal_routes_are_gone(client: TestClient):
+    """Drafting a treatment for an unrecognised event was removed: an event no rule covers blocks
+    on M-999 and a rule for it is written into the policy file by a person. Nothing serves a draft."""
+    assert client.get("/api/proposals").status_code == 404
     r = client.post("/api/proposals/nope/decision", json={"decision": "reject", "approver": "x", "reason": "test"})
-    if promote is None or not hasattr(promote, "record_decision"):
-        assert r.status_code == 501 and "adjudication" in r.text
-    else:
-        assert r.status_code == 404 and "nope" in r.text   # unknown proposal id, named by the adjudication module
+    assert r.status_code in (404, 405)
 
 
 def test_rerun(client: TestClient):

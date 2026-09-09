@@ -28,7 +28,7 @@ def main() -> int:
     # The baseline is defined on an EMPTY committee ledger: the deliverable as published. The working
     # ledger (data/overrides.yaml) fills as the quarter is decided, and that is not a regression.
     paths = RunPaths.default(root=ROOT, overrides=ROOT / "data" / "overrides.baseline-empty.yaml")
-    r = execute(paths, provider="live", adjudicate=False)
+    r = execute(paths, provider="live")
     run = r.run
     ready = dict(run.totals.readiness)
     fv = round(run.totals.proposed_nav, 1)
@@ -41,7 +41,7 @@ def main() -> int:
         pass
     print(f"Q3 2026  provider {run.manifest.market_data_source}  run {run.manifest.run_id}  (working ledger data/overrides.yaml holds {live} decision(s); not read here)")
     print(f"readiness {ready}   proposed fair value {fv:,.1f}   booked {run.totals.booked_nav:,.1f}")
-    stub = execute(paths, provider="stub", adjudicate=False).run
+    stub = execute(paths, provider="stub").run
     print(f"(stub fixture for reference: readiness {dict(stub.totals.readiness)}, proposed {stub.totals.proposed_nav:,.1f})")
     ok = ready == EXPECTED and fv == EXPECTED_FV and ledger == 0
     print("OK: baseline unchanged" if ok else f"MOVED: expected {EXPECTED} and {EXPECTED_FV} on an empty ledger")

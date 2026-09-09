@@ -7,7 +7,7 @@ Sections
   A. readiness invariants over the real run and a few synthetic runs
   B. the publish gate (API, library and CLI), including the `--proposed` bypass
   C. override controls: what an E-01 record can and cannot resolve
-  D. the AI seams: the recommender and the adjudicator cannot reach a mark or a readiness
+  D. the AI seams: the note reader and the recommender cannot reach a mark or a readiness
   E. a hunt for any path to "Approved and published" on an open position
 
 Defect protocol: a real gap is asserted as the CORRECT behaviour and marked
@@ -29,9 +29,6 @@ from fastapi.testclient import TestClient
 from typer.testing import CliRunner
 
 from conftest import GENERATED_AT, event, make_workbook, only, position, with_policy
-from hc_valuation.adjudication import load_proposal, proposal_path
-from hc_valuation.adjudication.promote import record_decision
-from hc_valuation.adjudication.schema import Provenance, TreatmentProposal, catalogue_version_for, validation_scope
 from hc_valuation.api.app import append_override, create_app
 from hc_valuation.api.exec_view import build_exec_view
 from hc_valuation.api.history import build_history
@@ -64,7 +61,7 @@ def scratch(tmp_path: Path) -> RunPaths:
     (data / "overrides.yaml").write_text("overrides: []\n")
     return RunPaths(
         root=tmp_path, policy=tmp_path / "rules" / "2026Q3.yaml", workbook=data / "HC_Mock_Portfolio_Data.xlsx",
-        overrides=data / "overrides.yaml", proposals_dir=data / "proposals", precedent=data / "precedent.yaml",
+        overrides=data / "overrides.yaml", precedent=data / "precedent.yaml",
         open_items_carry=data / "open_items_carry.yaml",
     )
 
@@ -613,8 +610,8 @@ def test_D2_the_reply_cannot_price(run_real, tmp_path: Path):
     rec = ch.choose(brief, f)
     assert rec.source == "policy" and rec.booked == f.suggestions[0].booked and "reply keys" in (rec.note or "")
     # a valid choice whose wording claims a different number books the CANDIDATE's number — and
-    # the sentence that invented the figure is withheld, as the note reader and the adjudicator
-    # withhold theirs: the choice is the substance and still counts, but prose quoting a number
+    # the sentence that invented the figure is withheld, as the note reader
+    # withholds its own: the choice is the substance and still counts, but prose quoting a number
     # the engine never produced does not reach a reviewer beside the engine's own figure.
     ch = _Fake(tmp_path / "b", json.dumps({"choice": other.key, "label": "Book this at $999,999.00M today.",
                                            "reasons": ["Worth $999,999M.", "Trust me."],
@@ -719,80 +716,7 @@ def test_D4_accepting_a_recommendation_is_an_ordinary_named_override(scratch: Ru
     assert _company(client, "Beltrix")["readiness"] == "Needs Review"
 
 
-def _spac_paths(tmp_path: Path, cfg_edit: dict[str, Any] | None = None) -> RunPaths:
-    (tmp_path / "rules").mkdir()
-    shutil.copy(ROOT / "rules" / "2026Q3.yaml", tmp_path / "rules" / "2026Q3.yaml")
-    if cfg_edit:
-        _edit_policy(tmp_path / "rules" / "2026Q3.yaml", **cfg_edit)
-    wb = make_workbook(tmp_path, [position()], [event("SPAC Merger", detail="Business combination", value=500.0, ownership_after=0.03)])
-    return RunPaths(root=tmp_path, policy=tmp_path / "rules" / "2026Q3.yaml", workbook=wb,
-                    overrides=tmp_path / "overrides.yaml", proposals_dir=tmp_path / "proposals",
-                    precedent=tmp_path / "precedent.yaml", open_items_carry=tmp_path / "carry.yaml")
 
-
-def test_D5_adjudication_confidence_gates_nothing(tmp_path: Path, cfg):
-    """fixed: an unhandled event type is a missing input (M-999 in MISSING_INPUT_RULES), so the
-    position is Blocked and carries at the prior mark until a named decision is booked."""
-    paths = _spac_paths(tmp_path)
-    r = execute(paths, generated_at=GENERATED_AT)
-    c = only(r.run)
-    assert c.readiness is Readiness.BLOCKED and c.disposition.value == "BLOCK" and c.booked_mark == c.proposed_mark == 10.0
-    assert len(r.proposals) == 1 and r.proposals[0].status == "pending"
-    # a proposal at 0.99 confidence is still pending: there is no auto-accept, and the policy cannot enable one
-    with validation_scope(r.config, build_registry(r.config)):
-        prov = Provenance(model="test", prompt_sha256="0" * 64,
-                          catalogue_version=catalogue_version_for(r.config.policy_version, build_registry(r.config)),
-                          created_at=GENERATED_AT)
-        p = TreatmentProposal(event_signature="spac merger", event_type="SPAC Merger", company="Alpha", event_row_index=2,
-                              quarter_label=cfg.quarter.label, proposed_mark_at_proposal=10.0, analogue_rule_id="M-040",
-                              proposed_kind="reuse", formula="ownership_after * deal_value", parameter_map={},
-                              suggested_severity=Severity.BLOCK, rationale="like an IPO", missing_facts=["closing market cap"],
-                              confidence=0.99, provenance=prov)
-    assert p.status == "pending" and p.decision is None
-    with pytest.raises(Exception):
-        with_policy(cfg, **{"adjudication.auto_accept": "always"})
-    with pytest.raises(Exception):
-        with_policy(cfg, **{"adjudication.auto_accept": "above_confidence"})
-    # decisions need a named approver
-    pid = r.proposals[0].proposal_id
-    for who in ("", "   "):
-        with pytest.raises(ValueError, match="named approver"):
-            record_decision(paths, pid, "accept_once", approver=who, reason="x", booked=15.0)
-    assert not paths.overrides.exists() and not paths.precedent.exists()
-    assert load_proposal(proposal_path(paths.proposals_dir, pid), r.config).status == "pending"
-
-
-def test_D5_tampered_proposal_file_books_nothing(tmp_path: Path):
-    """Editing the cached proposal to say `accepted_once` by hand changes what the proposals
-    endpoint reports and nothing else: only the override ledger books, and only through a decision."""
-    paths = _spac_paths(tmp_path)
-    r = execute(paths, generated_at=GENERATED_AT)
-    path = proposal_path(paths.proposals_dir, r.proposals[0].proposal_id)
-    raw = json.loads(path.read_text())
-    raw["status"] = "accepted_once"
-    raw["decision"] = {"decision": "accept_once", "approver": "nobody", "booked": 15.0}
-    raw["confidence"] = 1.0
-    path.write_text(json.dumps(raw))
-    r2 = execute(paths, generated_at=GENERATED_AT)
-    assert r2.proposals[0].status == "accepted_once"     # the file says so ...
-    c = only(r2.run)
-    assert c.booked_mark == 10.0 and c.override is None and c.readiness is Readiness.BLOCKED   # ... the book does not
-    assert any(f.rule_id == "M-999" for f in c.flags) and c.approval is Approval.NONE
-    assert not paths.overrides.exists()
-
-
-def test_D5_decision_api_refuses_a_blank_approver(tmp_path: Path):
-    paths = _spac_paths(tmp_path)
-    client = TestClient(create_app(paths, static_dir=tmp_path / "no-static"))
-    pid = client.get("/api/proposals").json()[0]["proposal_id"]
-    r = client.post(f"/api/proposals/{pid}/decision", json={"decision": "accept_once", "approver": "", "booked": 15.0})
-    assert r.status_code == 422
-    r = client.post(f"/api/proposals/{pid}/decision", json={"decision": "accept_once", "approver": "   ", "booked": 15.0})
-    assert r.status_code == 400 and "named approver" in r.text
-    r = client.post(f"/api/proposals/{pid}/decision", json={"decision": "auto", "approver": "IC", "booked": 15.0})
-    assert r.status_code == 400
-    assert _company(client, "Alpha")["booked_mark"] == 10.0 and _company(client, "Alpha")["override"] is None
-    # test_edge_cases::test_custom_rule_not_yet_effective_falls_back_to_m999 covers the future effective_from case
 
 
 # ============================================================================ E. silent-approval hunt
@@ -835,7 +759,7 @@ def test_E_history_tags_a_proposed_snapshot_as_published(scratch: RunPaths, cli)
     After `--proposed`, every current-quarter point reads `source: published` while the
     position is still Blocked or Needs Review in the same point."""
     assert cli("--approver", "Tom Moore", "--proposed").exit_code == 0
-    r = execute(scratch, adjudicate=False)
+    r = execute(scratch)
     hist = build_history(r.run, scratch.root)
     pt = hist["companies"]["Beltrix"][-1]
     assert pt["quarter"] == "Q3 2026" and pt["source"] == "published" and pt["disposition"] == "REVIEW"

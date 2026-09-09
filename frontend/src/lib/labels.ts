@@ -337,60 +337,6 @@ export function publishStatusLabel(s: string): string {
 }
 
 /** What a drafted treatment would become if a reviewer took it. */
-export const PROPOSED_KIND_LABEL: Record<string, string> = {
-  new_rule: "Needs a new rule",
-  reuse: "Reuses an existing rule",
-};
-
-export function proposedKindLabel(k: string): string {
-  return PROPOSED_KIND_LABEL[k] ?? humanize(k);
-}
-
-/** Where a drafted treatment stands. Reads after "Already …" on a spent button. */
-export const PROPOSAL_STATUS_LABEL: Record<string, string> = {
-  pending: "Awaiting a decision",
-  accepted: "Accepted once",
-  promoted: "Promoted to a rule",
-  rejected: "Rejected",
-};
-
-export function proposalStatusLabel(s: string): string {
-  return PROPOSAL_STATUS_LABEL[s] ?? humanize(s);
-}
-
-/** How a draft was produced — provenance a regulator reads, not a key=value dump. */
-export const PROVENANCE_LABEL: Record<string, string> = {
-  model: "Model",
-  prompt_hash: "Prompt fingerprint",
-  catalogue_version: "Rule catalogue version",
-  ts: "Drafted",
-};
-
-export function provenanceLabel(k: string): string {
-  return PROVENANCE_LABEL[k] ?? humanize(k);
-}
-
-/**
- * Where a drafted formula reads a parameter from. The path stays visible — an auditor checks it —
- * but the source it names is spelled out: "event.value" -> "The event row (value)".
- */
-export const PARAM_SOURCE_ROOT: Record<string, string> = {
-  event: "The event row",
-  config: "A policy setting",
-  policy: "A policy setting",
-  position: "The position record",
-  company: "The company record",
-  market: "Market data",
-  inputs: "The workbook row",
-};
-
-export function parameterSource(v: string): string {
-  const [root, ...rest] = v.split(".");
-  const head = PARAM_SOURCE_ROOT[root];
-  if (!head) return humanize(v.replace(/\./g, " "));
-  return rest.length ? `${head} (${rest.join(".")})` : head;
-}
-
 /**
  * The manifest's market-data source ("live:edgar+yahoo", "fixture:pitchbook@2026-09") as a
  * reader would say it. The raw string is a provider identifier, not a sentence.

@@ -101,7 +101,7 @@ def apply_readings(w: Working, events: list[Event], readings: Mapping[int, RowRe
         if r.novel:
             open_aspects.append(Aspect(kind=AspectKind.OTHER, quote="", note=r.novel, verified=True))
         if any(f.rule_id == "M-999" for f in w.flags):
-            open_aspects = []            # an unrecognised event: the adjudication draft carries the reading, not a second finding
+            open_aspects = []            # an unrecognised event already blocks on M-999; a second finding adds nothing
         elif open_aspects and all(a.kind is AspectKind.OTHER for a in open_aspects) and any(f.severity is Severity.BLOCK for f in w.flags):
             open_aspects = []            # "something else" on a position a person already has to decide: the block carries it
         if open_aspects:

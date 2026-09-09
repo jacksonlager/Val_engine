@@ -9898,7 +9898,6 @@
   ]
  },
  "manifest": {
-  "adjudication_enabled": true,
   "engine_version": "0.1.0",
   "generated_at": "2026-09-30T00:00:00",
   "input_file": "HC_Mock_Portfolio_Data.xlsx",
@@ -9923,7 +9922,7 @@
   "prior_close": "2026-06-30",
   "quarter_label": "Q3 2026",
   "recommender": "policy",
-  "run_id": "982718b0232b"
+  "run_id": "401a6725581d"
  },
  "open_items": [
   {

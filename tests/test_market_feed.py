@@ -668,12 +668,12 @@ def test_price_source_selection_default_kwarg_env(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(fetch_mod, "fetch_text", boom)
     paths = RunPaths.default(ROOT)
     paths.root = root
-    r = execute(paths, provider="live", adjudicate=False)                       # env: stooq -> cache hit, offline
+    r = execute(paths, provider="live")                       # env: stooq -> cache hit, offline
     assert r.run.manifest.market_data_source == LIVE_STOOQ and r.market_report["source"] == LIVE_STOOQ
     assert r.market_report["cache"]["hit"] is True
 
     monkeypatch.setenv(PRICE_SOURCE_ENV, "yahoo")                               # env: yahoo -> price half refetched, fails
-    r = execute(paths, provider="live", adjudicate=False)
+    r = execute(paths, provider="live")
     assert r.run.manifest.market_data_source == "stub" and not r.market_report["reached_live"]
     assert any(e.startswith("3 tickers: price fetch failed (yahoo): network") for e in r.market_report["errors"])
     cache = MarketCache(root, AS_OF)                                            # nothing answered: the stooq half survives
@@ -746,7 +746,7 @@ def test_full_failure_falls_back_to_the_fixture_everywhere(tmp_path: Path, monke
     paths = RunPaths.default(ROOT)
     paths.root = root
     with caplog.at_level("WARNING"):
-        r = execute(paths, provider="live", adjudicate=False)
+        r = execute(paths, provider="live")
     assert r.run.manifest.market_data_source == "stub" and r.run.totals.dispositions == BASELINE
     rep = r.market_report
     assert rep["provider"] == "live" and rep["source"] == "stub" and not rep["reached_live"]
@@ -765,7 +765,7 @@ def test_provider_names(monkeypatch):
 def test_pitchbook_is_not_configured_and_never_stops_a_run(tmp_path: Path):
     paths = RunPaths.default(ROOT)
     paths.root = tmp_path
-    r = execute(paths, provider="pitchbook", adjudicate=False)
+    r = execute(paths, provider="pitchbook")
     assert r.run.manifest.market_data_source == "stub" and r.run.totals.dispositions == BASELINE
     assert r.market_report["provider"] == "pitchbook" and r.market_report["source"] == "stub"
     assert any("PITCHBOOK_API_KEY" in e and "connectors/pitchbook.py" in e for e in r.market_report["errors"])
@@ -791,7 +791,7 @@ def _paths(tmp_path: Path, root: Path | None = None) -> RunPaths:
     if not data.exists():
         shutil.copytree(ROOT / "data", data, ignore=shutil.ignore_patterns("sample_run.json", "market_cache", "overrides.yaml", "published", "open_items_carry.yaml", "Q? ???? *.xlsx"))
     return RunPaths(root=root or ROOT, policy=ROOT / "rules" / "2026Q3.yaml", workbook=data / "HC_Mock_Portfolio_Data.xlsx",
-                    overrides=data / "overrides.yaml", proposals_dir=data / "proposals", precedent=data / "precedent.yaml",
+                    overrides=data / "overrides.yaml", precedent=data / "precedent.yaml",
                     open_items_carry=data / "open_items_carry.yaml")
 
 
@@ -851,7 +851,7 @@ def test_api_market_live_from_cache_without_network(tmp_path: Path, monkeypatch)
 
 
 def test_static_report_inlines_the_market_report(tmp_path: Path):
-    r = execute(_paths(tmp_path), adjudicate=False)
+    r = execute(_paths(tmp_path))
     rep = dict(r.market_report, errors=["<script>alert(1)</script>"])
     html = write_static_report(r.run, tmp_path / "report.html", tmp_path / "no-static", None, rep).read_text()
     assert "window.__HC_MARKET__ = " in html and "window.__HC_RUN__ = " in html

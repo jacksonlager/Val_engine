@@ -105,7 +105,6 @@ export interface OverrideRecord {
   approver: string;
   created_at: string; // ISO date
   rule_ids_addressed: string[];
-  source_proposal: string | null;
   /** "<rule_id>/<suggestion key>" when the decision was an accepted engine suggestion. */
   source_suggestion?: string | null;
   evidence?: Record<string, unknown> | null;
@@ -265,7 +264,6 @@ export interface RunManifest {
   measurement_date: string; // ISO date
   prior_close: string; // ISO date
   generated_at: string; // ISO datetime
-  adjudication_enabled: boolean;
   market_data_source: string;
   /** who chose each flag's recommendation: "policy" or "claude:<model>" */
   recommender?: string;
@@ -324,45 +322,6 @@ export interface CompsMove {
   sectors: SectorMove[];
   all_live: boolean;
 }
-
-// ---------------------------------------------------------------- E-09 proposals (GET /api/proposals)
-// Shape follows TreatmentProposal in the build spec; `id` is the API's handle for
-// POST /api/proposals/{id}/decision. Fields the API may omit are optional.
-
-export interface Provenance {
-  model?: string;
-  prompt_hash?: string;
-  catalogue_version?: string;
-  ts?: string;
-  [k: string]: unknown;
-}
-
-export interface TreatmentProposal {
-  proposal_id?: string; // adjudication/schema.py handle; POST /api/proposals/{proposal_id}/decision
-  id?: string; // tolerated alias
-  company?: string;
-  event_type?: string;
-  event_signature: string;
-  analogue_rule_id: string;
-  proposed_kind: "reuse" | "new_rule" | string;
-  formula: string;
-  parameter_map: Record<string, string>;
-  suggested_severity: Severity;
-  rationale: string;
-  missing_facts: string[];
-  confidence: number; // displayed only; gates nothing
-  briefing?: Record<string, string>; // what_happened, why_no_rule, what_it_means, suggested_course, what_to_check — prose for the reviewer
-  provenance?: Provenance;
-  status?: string; // pending | accepted | promoted | rejected
-  decision?: Record<string, unknown> | null;
-  repeat_count?: number;
-}
-
-// Body of POST /api/proposals/{id}/decision — approver and reason on every decision.
-export type ProposalDecision =
-  | { decision: "accept_once"; booked: number; approver: string; reason: string }
-  | { decision: "promote"; approver: string; reason: string; effective_from: string }
-  | { decision: "reject"; approver: string; reason: string };
 
 export interface OverrideRequest {
   company: string;
@@ -659,6 +618,8 @@ export interface RuleRationale {
   source: "brief" | "policy";
   brief_text?: string | null;
   reads: string;
+  /** What in the workbook fires this rule, in a few words. */
+  trigger: string;
   why_flag: string;
   why_severity: string;
 }
@@ -666,6 +627,8 @@ export interface RuleRationale {
 export interface RationaleGroup {
   key: string;
   title: string;
+  /** One line under the heading: what this family of rules is asking about. */
+  description?: string | null;
   brief_text: string | null;
 }
 
@@ -679,7 +642,6 @@ declare global {
   interface Window {
     __HC_RUN__?: ValuationRun;
     __HC_RATIONALE__?: Rationale;
-    __HC_PROPOSALS__?: TreatmentProposal[];
     __HC_SOURCES__?: Sources;
     __HC_MARKET__?: MarketReport;
     __HC_HISTORY__?: MarkHistory;

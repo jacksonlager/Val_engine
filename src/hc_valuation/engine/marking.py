@@ -23,7 +23,7 @@ from .textscreen import any_term_in
 # value, earlier ones included: a Q2 2026 book that arrives after the Q3 base policy is valued by the
 # same rules (found by that exact file — dated 2026-07-01, no rule applied on 30 Jun 2026, not even
 # the M-999 fallback, and the engine raised instead of reporting). Only a rule promoted from
-# adjudication carries a real `effective_from`, so that a Q4 rule never rewrites a Q3 re-run.
+# the policy file carries a real `effective_from`, so that a Q4 rule never rewrites a Q3 re-run.
 EFFECTIVE = date.min
 BASE_RULE_EFFECTIVE = EFFECTIVE
 V = "2026Q3.1"
@@ -1745,7 +1745,7 @@ def unrecognised(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
                    "The mark is **unchanged** and the position is **held**.",
                    "An event the engine does not understand must **never look like a quiet quarter**."),
            suggestions=(
-               Suggest("hold_prior", "Hold the prior mark and adjudicate the event.", ("An event the engine does not understand must not book a number.", "A drafted treatment waits on the Proposals tab to accept once or make a rule."), "prior"),
+               Suggest("hold_prior", "Hold the prior mark until a rule covers the event.", ("An event the engine does not understand must not book a number.", "A rule for this event type goes in the policy file, approved and dated, before it can price anything."), "prior"),
            ),
            action=f"Decide how a {e.event_type!r} should be treated, then accept it once or promote it to a rule.",
            event_type=e.event_type, signature=e.signature)

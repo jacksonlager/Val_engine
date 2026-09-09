@@ -102,7 +102,7 @@ def test_nothing_is_written_to_any_cache(root: Path, monkeypatch, tmp_path: Path
 def test_the_engine_never_calibrates_to_or_screens_against_synthetic_multiples(root: Path):
     paths = RunPaths.default(root=root, workbook=ROOT / "data" / "HC_Mock_Portfolio_Data.xlsx",
                              policy=root / "rules" / "2026Q3.yaml")
-    r = execute(paths, provider="synthetic", adjudicate=False, generated_at=datetime(2026, 9, 30))
+    r = execute(paths, provider="synthetic", generated_at=datetime(2026, 9, 30))
     assert r.run.manifest.market_data_source == SYNTHETIC_SOURCE
     # M-080 requires an observed (live:) history; the synthetic one must not produce a calibrated alternative
     assert not any("calibrated" in c.alternative_marks for c in r.run.companies)
@@ -112,7 +112,7 @@ def test_the_engine_never_calibrates_to_or_screens_against_synthetic_multiples(r
     assert screened, "the Q3 book has multiple-screen findings; the synthetic run must too"
     assert all(f.evidence["basis"] == "absolute policy bound" for f in screened)
     # and the identity of the run says which source it was marked against
-    stub = execute(paths, provider="stub", adjudicate=False, generated_at=datetime(2026, 9, 30))
+    stub = execute(paths, provider="stub", generated_at=datetime(2026, 9, 30))
     assert stub.run.manifest.run_id != r.run.manifest.run_id
 
 

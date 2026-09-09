@@ -26,7 +26,7 @@ of the position's actionable findings, and the number comes from the suggestion.
 
 Either way the reviewer still confirms under a named approver, the other candidates stay
 one click away, and accepting a recommendation records an ordinary E-01 override. This runs
-in the pipeline after the engine, like adjudication: the engine never holds a client.
+in the pipeline after the engine: the engine never holds a client.
 """
 from __future__ import annotations
 
@@ -360,7 +360,7 @@ class ClaudeChooser:
 
     # -- the call
     def _call(self, brief: dict[str, Any], system: str | None = None) -> str:
-        import anthropic  # optional dependency: the `adjudication` extra
+        import anthropic  # optional dependency: the `claude` extra
         client = anthropic.Anthropic(api_key=self.api_key, timeout=self.timeout_s)
         msg = client.messages.create(
             model=self.model, max_tokens=self.max_tokens, system=system or SYSTEM_PROMPT,

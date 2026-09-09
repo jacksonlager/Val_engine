@@ -2,7 +2,7 @@
 
 What a reset removes is everything a quarter's work produces: the uploaded workbooks (and the next
 quarter's input a close emitted beside them), the committee ledger's decisions, the published
-snapshots, the carried open items, the adjudication proposals and precedents, and the cached model
+snapshots, the carried open items, the precedents, and the cached model
 recommendations. What it keeps is everything that is *not* the work: the market cache, the vendor
 fixtures, the policy files, the repository's own fixture workbook, the synthetic test chain, and
 the assessment source. The ledger reset is written to the ledger the app is actually using
@@ -58,7 +58,6 @@ def reset_workspace(paths: RunPaths) -> dict[str, Any]:
 
     rm_tree(root / "data" / "uploads")
     rm_tree(Path(paths.published_dir))
-    rm_tree(Path(paths.proposals_dir))
     rm_tree(root / "data" / "recommendations")
     rm_file(Path(paths.precedent))
     rm_file(root / "data" / "open_items_carry.yaml")

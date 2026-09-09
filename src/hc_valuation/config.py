@@ -309,12 +309,10 @@ class OpenItemsCfg(_Strict):
     unconfirmed_exit_stale_quarters: int = 1   # an exit closed with no cash recorded escalates every quarter it stays open
 
 
-class AdjudicationCfg(_Strict):
-    enabled: bool = True
-    provider: Literal["stub", "claude"] = "stub"
-    auto_accept: Literal["never"] = "never"
-    cache_proposals: bool = True
-    promote_after_repeats: int = 3
+class DeclarativeCfg(_Strict):
+    """The whitelist a `custom_rules` formula is parsed against (engine/dsl.py). A rule for an
+    event type the engine does not yet handle is written here, in the policy file, by a person:
+    only these fields and operators may appear in it, so a policy edit can never become code."""
     allowed_fields: list[str] = Field(default_factory=list)
     allowed_operators: list[str] = Field(default_factory=list)
 
@@ -343,7 +341,7 @@ class RecommendationCfg(_Strict):
 
 
 class CustomRuleSpec(_Strict):
-    """A declarative rule promoted from adjudication (E-09). Formula is DSL, never code."""
+    """A rule for a new event type, written into the policy file. Formula is DSL, never code."""
     rule_id: str
     version: str = "1"
     event_type: str
@@ -352,7 +350,6 @@ class CustomRuleSpec(_Strict):
     rationale: str
     approver: str
     effective_from: date
-    source_proposal: str | None = None
     fv_level: int = 3
     terminal: bool = False
 
@@ -376,7 +373,7 @@ class RuleConfig(_Strict):
     note_screen: NoteScreenCfg = NoteScreenCfg()
     normalization: NormalizationCfg = NormalizationCfg()
     open_items: OpenItemsCfg = OpenItemsCfg()
-    adjudication: AdjudicationCfg = AdjudicationCfg()
+    declarative: DeclarativeCfg = DeclarativeCfg()
     recommendation: RecommendationCfg = RecommendationCfg()
     note_reader: NoteReaderCfg = NoteReaderCfg()
     publish: PublishCfg = PublishCfg()

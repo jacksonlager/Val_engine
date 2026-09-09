@@ -149,12 +149,9 @@ open_items:
   ipo_lockup_days: 180
   unconfirmed_exit_stale_quarters: 1   # an exit closed with no cash recorded, held on the book, escalates every quarter (D-9)
 
-adjudication:
-  enabled: true
-  provider: claude                   # stub | claude — Claude drafts; the stub answers when no model is reachable
-  auto_accept: never                 # not a threshold. there is no value here.
-  cache_proposals: true
-  promote_after_repeats: 3
+# The whitelist a custom_rules formula is parsed against: a rule for a new event type is written
+# here by a person, and may only use these fields and operators.
+declarative:
   allowed_fields: [ownership_before, ownership_after, post_money, deal_value,
                    proceeds, prior_mark, hc_investment, close_probability, note_at_cost]
   allowed_operators: ["*", "/", "+", "-", "min", "max"]
@@ -197,5 +194,6 @@ note_reader:
   model: claude-sonnet-4-5
   cache: true
 
-# Declarative rules promoted from E-09 adjudication land here. Empty for the base quarter.
+# Rules for event types the engine does not handle are written here by a person, parsed against
+# the `declarative:` whitelist above. Empty for the base quarter.
 custom_rules: []

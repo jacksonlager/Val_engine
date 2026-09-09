@@ -50,7 +50,6 @@ def test_default_paths_keep_the_real_ledger_under_data(monkeypatch):
 def test_ledger_dir_moves_every_decision_record_together(tmp_path: Path):
     p = RunPaths.default(root=ROOT, ledger_dir=tmp_path / "chain")
     assert p.overrides == tmp_path / "chain" / "overrides.yaml"
-    assert p.proposals_dir == tmp_path / "chain" / "proposals"
     assert p.precedent == tmp_path / "chain" / "precedent.yaml"
     assert p.published_dir == tmp_path / "chain" / "published"
     assert p.ledger_dir == tmp_path / "chain"
@@ -72,7 +71,7 @@ def test_overrides_alone_moves_only_the_e01_file(tmp_path: Path, monkeypatch):
 def test_older_seven_field_construction_still_publishes_under_data(tmp_path: Path):
     """Tests and callers written before `published_dir` existed keep the old default."""
     p = RunPaths(root=tmp_path, policy=ROOT / "rules" / "2026Q3.yaml", workbook=ROOT / "data" / "HC_Mock_Portfolio_Data.xlsx",
-                 overrides=tmp_path / "o.yaml", proposals_dir=tmp_path / "p", precedent=tmp_path / "pr.yaml",
+                 overrides=tmp_path / "o.yaml", precedent=tmp_path / "pr.yaml",
                  open_items_carry=tmp_path / "carry.yaml")
     assert p.published_dir == tmp_path / "data" / "published"
 
@@ -115,7 +114,7 @@ def test_api_override_appends_to_the_chain_ledger_and_not_to_data(chain: RunPath
 
 def test_publish_and_history_read_the_chain_folder(chain: RunPaths, tmp_path: Path):
     before = _snapshot_real_ledger()
-    r = execute(chain, provider="stub", generated_at=datetime(2026, 9, 30), adjudicate=False)
+    r = execute(chain, provider="stub", generated_at=datetime(2026, 9, 30))
     rec = publish_run(r.run, chain.root, approver="Tester", published_at=datetime(2026, 10, 1, tzinfo=timezone.utc),
                       require_decisions=False, published=chain.published_dir)
     assert (chain.published_dir / f"{rec['slug']}.json").exists()

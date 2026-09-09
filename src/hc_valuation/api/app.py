@@ -83,14 +83,6 @@ class ResetIn(BaseModel):
     confirm: str = ""               # must be the word RESET: this deletes every decision and upload
 
 
-class DecisionIn(BaseModel):
-    decision: str            # accept_once | promote | reject (the adjudication module validates)
-    approver: str = Field(min_length=1)
-    reason: str = ""
-    booked: float | None = None
-    effective_from: date | None = None
-
-
 def _json(model: Any) -> Response:
     """Serialise via pydantic so dates, enums and tuples come out exactly as in run.json."""
     return Response(content=model.model_dump_json(), media_type="application/json")
@@ -113,7 +105,6 @@ def watched_inputs(paths: RunPaths) -> list[Path]:
     prior quarter's sidecar. Not the market cache — a refetch is an explicit `--refresh-market`."""
     out = [paths.workbook, paths.policy, paths.overrides, paths.precedent, paths.open_items_carry]
     out += sorted(Path(paths.policy).parent.glob("*.yaml"))
-    out += sorted(Path(paths.proposals_dir).glob("*.json")) if Path(paths.proposals_dir).exists() else []
     return out
 
 
@@ -496,7 +487,7 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     @app.post("/api/reset")
     def post_reset(body: ResetIn) -> dict[str, Any]:
         """Back to 'nothing uploaded yet': removes the uploads, the decisions, the published snapshots, the
-        carried open items, proposals, precedents and cached recommendations; keeps the market cache, the
+        carried open items, precedents and cached recommendations; keeps the market cache, the
         fixtures, the policies and the repository's own workbook. The body must say confirm: RESET."""
         from ..config import repo_root
         from ..reset import reset_workspace
@@ -517,13 +508,6 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         if job is None:
             raise HTTPException(404, f"no upload job {job_id!r}")
         return job
-
-    @app.get("/api/proposals")
-    def get_proposals() -> JSONResponse:
-        out = []
-        for p in result().proposals:
-            out.append(p.model_dump(mode="json") if hasattr(p, "model_dump") else p)
-        return JSONResponse(out)
 
     @app.get("/api/published")
     def get_published_list() -> JSONResponse:
@@ -669,29 +653,6 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
         }
         r2 = write_then_recompute(lambda: append_override(paths.overrides, record))
         return _json(r2.run.by_company()[body.company])
-
-    @app.post("/api/proposals/{proposal_id}/decision")
-    def post_decision(proposal_id: str, body: DecisionIn) -> Response:
-        try:
-            from ..adjudication import promote  # lazy: the adjudication package is an optional work package
-        except ImportError:
-            raise HTTPException(501, "adjudication.promote is not available in this build; proposals can be read "
-                                     "but decisions cannot be recorded") from None
-        record = getattr(promote, "record_decision", None)
-        if record is None:
-            raise HTTPException(501, "adjudication.promote exists but has no record_decision(); decisions cannot be recorded")
-        try:
-            with lock:
-                outcome = record(paths, proposal_id, body.decision, body.approver, body.reason,
-                                 booked=body.booked, effective_from=body.effective_from)
-                r2 = recompute()
-        except (FileNotFoundError, KeyError) as exc:
-            raise HTTPException(404, f"proposal {proposal_id!r}: {exc}") from exc
-        except ValueError as exc:
-            raise HTTPException(400, str(exc)) from exc
-        payload = {"proposal_id": proposal_id, "decision": body.decision, "run_id": r2.run.manifest.run_id,
-                   "outcome": outcome.model_dump(mode="json") if hasattr(outcome, "model_dump") else outcome}
-        return JSONResponse(payload)
 
     # ------------------------------------------------------------------ frontend
 

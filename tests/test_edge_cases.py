@@ -132,7 +132,7 @@ def test_terminal_companies_do_not_count_as_written_off(build):
 SPAC_RULE = dict(rule_id="M-110", version="1", event_type="SPAC Merger",
                  formula="ownership_after * deal_value * close_probability", severity="REVIEW",
                  rationale="De-SPAC treated like an announced acquisition: probability-weighted deal value.",
-                 approver="J. Doe", effective_from=date(2026, 7, 1), source_proposal="prop-0001")
+                 approver="J. Doe", effective_from=date(2026, 7, 1))
 
 
 def test_custom_rule_is_registered_and_applied(build, cfg):
@@ -148,7 +148,7 @@ def test_custom_rule_is_registered_and_applied(build, cfg):
     step = c.steps[-1]
     assert c.proposed_mark == pytest.approx(0.08 * 400.0 * 0.90) == pytest.approx(step.new_value)
     assert step.inputs["approver"] == "J. Doe" and step.inputs["formula"] == SPAC_RULE["formula"]
-    assert step.inputs["source_proposal"] == "prop-0001" and step.inputs["effective_from"] == "2026-07-01"
+    assert step.inputs["effective_from"] == "2026-07-01"
     assert step.inputs["close_probability"] == 0.90 and step.inputs["deal_value"] == 400.0
     assert "J. Doe" in step.rationale
     assert "M-999" not in flag_ids(c) and "M-999" not in rule_ids(c)
@@ -198,11 +198,11 @@ def test_dsl_parse_never_executes(cfg):
     """Names are looked up in a value table; there is no eval path for a formula to reach."""
     from hc_valuation.engine import dsl
     tree = dsl.parse("max(prior_mark, ownership_after * deal_value) - hc_investment / 2",
-                     cfg.adjudication.allowed_fields, cfg.adjudication.allowed_operators)
+                     cfg.declarative.allowed_fields, cfg.declarative.allowed_operators)
     assert dsl.fields_used(tree) >= {"prior_mark", "ownership_after", "deal_value", "hc_investment"}
     assert dsl.evaluate(tree, {"prior_mark": 10.0, "ownership_after": 0.1, "deal_value": 400.0, "hc_investment": 2.0}) == pytest.approx(39.0)
     with pytest.raises(DSLError, match="division by zero"):
-        dsl.evaluate(dsl.parse("prior_mark / proceeds", cfg.adjudication.allowed_fields, cfg.adjudication.allowed_operators),
+        dsl.evaluate(dsl.parse("prior_mark / proceeds", cfg.declarative.allowed_fields, cfg.declarative.allowed_operators),
                      {"prior_mark": 1.0, "proceeds": 0.0})
 
 

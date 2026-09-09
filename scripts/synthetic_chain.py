@@ -91,10 +91,10 @@ def paths_for(slug: str) -> RunPaths:
     return RunPaths.default(root=ROOT, workbook=wb, policy=ensure_policy(slug), ledger_dir=LEDGER)
 
 
-def run_quarter(slug: str, *, adjudicate: bool = False):
+def run_quarter(slug: str):
     paths = paths_for(slug)
     provider = provider_for(ROOT, paths.policy, synthetic=True)   # the chain is invented data: it may read the invented multiples
-    return execute(paths, provider=provider, adjudicate=adjudicate, generated_at=GENERATED_AT[slug]), paths, provider
+    return execute(paths, provider=provider, generated_at=GENERATED_AT[slug]), paths, provider
 
 
 def _add_marker(wb: openpyxl.Workbook, edits: list[list[Any]] | None = None) -> None:
@@ -556,7 +556,7 @@ def compare(slug: str) -> int:
     undecided.write_text(yaml.safe_dump({"overrides": keep}, sort_keys=False, allow_unicode=True))
     paths.overrides = undecided
     provider = provider_for(ROOT, paths.policy, synthetic=True)
-    r = execute(paths, provider=provider, adjudicate=False, generated_at=GENERATED_AT[slug])
+    r = execute(paths, provider=provider, generated_at=GENERATED_AT[slug])
     run = r.run
     by = run.by_company()
     mismatches: list[str] = []

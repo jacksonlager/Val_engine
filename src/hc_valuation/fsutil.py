@@ -1,7 +1,7 @@
 """One atomic text write, shared by everything that mutates state on disk.
 
 The ledger (`data/overrides.yaml`), the published snapshot, the promoted policy and the
-adjudication artefacts are all read by another process — the review tool's watch thread, a
+ledger artefacts are all read by another process — the review tool's watch thread, a
 second request, an auditor opening the file — so none of them may ever be seen half-written.
 Write to a temp file in the same directory, then rename: POSIX and NTFS both make the
 rename atomic, and a crash mid-write leaves the old file intact and a `.tmp` to sweep.

@@ -50,8 +50,7 @@ def test_generated_at_does_not_leak_into_run_id(run_real):
     from datetime import datetime
     from hc_valuation import pipeline
     from conftest import ROOT, WORKBOOK_PATH
-    other = pipeline.execute(pipeline.RunPaths.default(root=ROOT, workbook=WORKBOOK_PATH),
-                             adjudicate=False, generated_at=datetime(2026, 10, 1, 12, 0)).run
+    other = pipeline.execute(pipeline.RunPaths.default(root=ROOT, workbook=WORKBOOK_PATH), generated_at=datetime(2026, 10, 1, 12, 0)).run
     assert other.manifest.run_id == run_real.manifest.run_id
     assert other.manifest.generated_at != run_real.manifest.generated_at
     assert canonical(other)["companies"] == canonical(run_real)["companies"]

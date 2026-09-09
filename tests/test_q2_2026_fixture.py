@@ -39,7 +39,7 @@ def q2(tmp_path_factory):
     if not (root / "rules" / "2026Q2.yaml").exists():
         write_next_policy(root / "rules" / "2026Q3.yaml", quarter="Q2 2026")
     paths = RunPaths.default(root=root, workbook=FIXTURE, policy=root / "rules" / "2026Q2.yaml", ledger_dir=root / "ledger")
-    run = execute(paths, provider="stub", adjudicate=False).run
+    run = execute(paths, provider="stub").run
     wb = openpyxl.load_workbook(FIXTURE, data_only=True)
     ws = wb["June 30 Target"]
     hdr = [c.value for c in ws[1]]

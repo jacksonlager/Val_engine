@@ -1,5 +1,5 @@
-"""Pre-demo review of the three model-assisted layers: the note reader, the recommender and the
-adjudicator (E-09). Every test here injects a fake in place of the model — the suite pins
+"""Pre-demo review of the two model-assisted layers: the note reader and the recommender.
+Every test here injects a fake in place of the model — the suite pins
 HC_NOTE_READER=off and hides the key — and asserts the contract that matters when Claude is
 called for real:
 
@@ -9,7 +9,6 @@ called for real:
 * a reply that validates but names a figure the row does not carry is withheld, not shown as if
   it were a mark; a quote from another row is unverified;
 * a cache entry survives exactly as long as the prompt and model it was written under;
-* a decision on a draft books a non-negative, finite, engine-anchored number;
 * the keyword screen and the reader do not raise the same aspect twice; a refused row's reading
   raises nothing; a reading never moves a mark or lowers readiness.
 """
@@ -26,10 +25,6 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from hc_valuation.adjudication import adjudicate_run, load_proposal, proposal_path
-from hc_valuation.adjudication.promote import record_decision
-from hc_valuation.adjudication.proposer import ClaudeProposer, build_packet
-from hc_valuation.adjudication.schema import BRIEFING_KEYS, TreatmentProposal, validation_scope
 from hc_valuation.api.app import create_app
 from hc_valuation.config import load_config, repo_root
 from hc_valuation.engine.inputs import Event, EventType
@@ -42,7 +37,6 @@ from hc_valuation.notes.schema import validate_reply
 from hc_valuation.pipeline import RunPaths, execute
 from hc_valuation.recommend import ClaudeChooser, build_brief, build_position_brief, recommend_run
 from tests.conftest import GENERATED_AT, event, make_workbook, position
-from tests.test_adjudication import COMPANY, _write_workbook
 
 ROOT = repo_root()
 
@@ -102,39 +96,6 @@ def _fake_anthropic(reply_text: str, seen: dict) -> types.ModuleType:
 
 
 @pytest.fixture
-def adj_paths(tmp_path: Path) -> RunPaths:
-    """The synthetic SPAC workbook from test_adjudication, under private ledgers."""
-    (tmp_path / "rules").mkdir()
-    (tmp_path / "docs").mkdir()
-    shutil.copy(ROOT / "rules" / "2026Q3.yaml", tmp_path / "rules" / "2026Q3.yaml")
-    shutil.copy(ROOT / "docs" / "valuation-policy.md", tmp_path / "docs" / "valuation-policy.md")
-    cfg = load_config(tmp_path / "rules" / "2026Q3.yaml")
-    wb = tmp_path / "synthetic.xlsx"
-    _write_workbook(wb, cfg.quarter.label)
-    return RunPaths(root=tmp_path, policy=tmp_path / "rules" / "2026Q3.yaml", workbook=wb,
-                    overrides=tmp_path / "overrides.yaml", proposals_dir=tmp_path / "proposals",
-                    precedent=tmp_path / "precedent.yaml", open_items_carry=tmp_path / "carry.yaml")
-
-
-def _claude_proposer(monkeypatch, reply: dict, model: str = "claude-sonnet-4-5") -> ClaudeProposer:
-    cp = ClaudeProposer(model=model, api_key="sk-not-real")
-    monkeypatch.setattr(cp, "_call", lambda packet: json.dumps(reply))
-    monkeypatch.setattr(type(cp), "unavailable_reason", property(lambda self: None))
-    return cp
-
-
-_GOOD_DRAFT = {"analogue_rule_id": "M-040", "proposed_kind": "reuse", "formula": "ownership_after * deal_value",
-               "parameter_map": {"deal_value": "pro-forma EV"}, "suggested_severity": "BLOCK", "rationale": "listing",
-               "missing_facts": ["the closing market cap"], "confidence": 0.7,
-               "briefing": {"what_happened": "The company combined with a listed vehicle.",
-                            "why_no_rule": "No rule is written for a SPAC combination.",
-                            "what_it_means": "HC now holds a listed security; the mark should follow the market.",
-                            "suggested_course": "Treat it as a listing once the close is known.",
-                            "what_to_check": "Whether the combination has closed; the redemption rate."}}
-
-
-# ================================================================ A. nothing raises into the run
-
 def test_reader_survives_a_cache_directory_it_cannot_write(tmp_path: Path, cfg, monkeypatch):
     wb = make_workbook(tmp_path, [position()], [event(detail="Series B", value=150.0, ownership_after=0.09, notes="escrow of $1M")])
     _, feed = read_workbook(wb, cfg)
@@ -189,7 +150,7 @@ def test_an_unreadable_cached_answer_is_refetched_not_failed_forever(tmp_path: P
 
 
 def test_recommender_survives_a_cache_directory_it_cannot_write(tmp_path: Path):
-    base = execute(RunPaths.default(), provider="stub", recommender="policy", adjudicate=False)
+    base = execute(RunPaths.default(), provider="stub", recommender="policy")
     c = next(c for c in base.run.companies if any(f.severity is not Severity.MONITOR and len(f.suggestions) >= 2 for f in c.flags))
     f = next(f for f in c.flags if f.severity is not Severity.MONITOR and len(f.suggestions) >= 2)
     blocker = tmp_path / "rec"
@@ -211,17 +172,6 @@ def test_recommender_survives_a_cache_directory_it_cannot_write(tmp_path: Path):
     out = recommend_run(base.run, ch)                       # the whole run, six workers, no exception
     assert out.manifest.recommender.startswith("claude")
 
-
-def test_adjudicator_survives_a_proposals_directory_it_cannot_write(adj_paths: RunPaths, monkeypatch):
-    r = execute(adj_paths, adjudicate=False)
-    adj_paths.proposals_dir.write_text("not a directory")
-    _, feed = read_workbook(adj_paths.workbook, r.config)
-    cp = _claude_proposer(monkeypatch, _GOOD_DRAFT)
-    props = adjudicate_run(r.run, feed, r.config, adj_paths, proposer=cp)
-    assert len(props) == 1 and props[0].provenance.model == "claude-sonnet-4-5"
-
-
-# ================================================================ B. counters under the executors
 
 def _hammer(fn, threads: int = 8, per_thread: int = 3000) -> None:
     old = sys.getswitchinterval()
@@ -301,27 +251,6 @@ def test_a_quote_copied_from_another_row_is_unverified():
     assert unverified == 2 and not readings[2].aspects[0].verified and not readings[3].aspects[0].verified
 
 
-def test_a_briefing_that_names_a_number_to_book_is_withheld(adj_paths: RunPaths, monkeypatch):
-    r = execute(adj_paths, adjudicate=False)
-    cfg, reg = r.config, build_registry(r.config)
-    _, feed = read_workbook(adj_paths.workbook, cfg)
-    pk = build_packet(feed.events[0], None, r.run.by_company()[COMPANY], cfg, reg, None)
-    draft = json.loads(json.dumps(_GOOD_DRAFT))
-    draft["briefing"]["what_it_means"] = "HC's stake is worth about $15.0M on the pro-forma value."
-    draft["briefing"]["suggested_course"] = "Book $15M now and true up at the close."
-    draft["briefing"]["what_happened"] = "The row records a $500M combination on 2026-08-15."      # the row's own figure
-    cp = _claude_proposer(monkeypatch, draft)
-    with validation_scope(cfg, reg):
-        p = cp.propose(pk)
-    assert p.provenance.model == "claude-sonnet-4-5"
-    assert "15" not in p.briefing.get("what_it_means", "") and "15" not in p.briefing.get("suggested_course", "")
-    assert "withheld" in p.briefing["what_it_means"].lower() and "withheld" in p.briefing["suggested_course"].lower()
-    assert p.briefing["what_happened"].startswith("The row records a $500M")
-    assert set(p.briefing) <= set(BRIEFING_KEYS)
-
-
-# ================================================================ D. cache keys follow the prompt and the model
-
 def test_reader_cache_key_moves_with_prompt_version_model_and_catalogue(tmp_path: Path, monkeypatch):
     from hc_valuation.notes import reader as mod
     payload = {"company": "Alpha", "rows": [{"row_index": 2, "notes": "x"}]}
@@ -334,42 +263,8 @@ def test_reader_cache_key_moves_with_prompt_version_model_and_catalogue(tmp_path
     assert mod.vocabulary_for_prompt() in mod.SYSTEM_PROMPT
 
 
-def test_a_pending_claude_draft_under_an_older_prompt_or_model_is_redrafted(adj_paths: RunPaths, monkeypatch):
-    r = execute(adj_paths, adjudicate=False)
-    cfg = r.config
-    _, feed = read_workbook(adj_paths.workbook, cfg)
-    cp = _claude_proposer(monkeypatch, _GOOD_DRAFT)
-    first = adjudicate_run(r.run, feed, cfg, adj_paths, proposer=cp)
-    assert first[0].provenance.prompt_sha256 == cp.prompt_sha256
-    path = proposal_path(adj_paths.proposals_dir, first[0].proposal_id)
-    # rewrite the cached draft as if an earlier prompt had produced it
-    stale = first[0].model_copy(update={"provenance": first[0].provenance.model_copy(update={"prompt_sha256": "0" * 64}),
-                                        "briefing": {}})
-    path.write_text(stale.model_dump_json(indent=2))
-    again = adjudicate_run(r.run, feed, cfg, adj_paths, proposer=cp)
-    assert again[0].provenance.prompt_sha256 == cp.prompt_sha256 and again[0].briefing["what_happened"].startswith("The company")
-    # a different model likewise
-    other = first[0].model_copy(update={"provenance": first[0].provenance.model_copy(update={"model": "claude-older"})})
-    path.write_text(other.model_dump_json(indent=2))
-    assert adjudicate_run(r.run, feed, cfg, adj_paths, proposer=cp)[0].provenance.model == "claude-sonnet-4-5"
-    # but with no model reachable the older draft is better than the stub and is kept
-    path.write_text(stale.model_dump_json(indent=2))
-
-    class Off(ClaudeProposer):                       # its own class: the helper above patched the parent's property
-        unavailable_reason = property(lambda self: "ANTHROPIC_API_KEY not set")
-
-    off = Off(model="claude-sonnet-4-5", api_key="")
-    assert not off.available
-    kept = adjudicate_run(r.run, feed, cfg, adj_paths, proposer=off)
-    assert kept[0].provenance.prompt_sha256 == "0" * 64
-    # and a decided draft is never rewritten, whatever prompt produced it
-    decided = stale.model_copy(update={"status": "rejected", "decision": {"approver": "Tom", "reason": "no"}})
-    path.write_text(decided.model_dump_json(indent=2))
-    assert adjudicate_run(r.run, feed, cfg, adj_paths, proposer=cp)[0].status == "rejected"
-
-
 def test_recommendation_cache_is_revalidated_against_todays_candidates(tmp_path: Path):
-    base = execute(RunPaths.default(), provider="stub", recommender="policy", adjudicate=False)
+    base = execute(RunPaths.default(), provider="stub", recommender="policy")
     c = next(c for c in base.run.companies if any(f.severity is not Severity.MONITOR and len(f.suggestions) >= 2 for f in c.flags))
     f = next(f for f in c.flags if f.severity is not Severity.MONITOR and len(f.suggestions) >= 2)
     ch = ClaudeChooser(tmp_path / "rec", api_key=None)
@@ -382,47 +277,6 @@ def test_recommendation_cache_is_revalidated_against_todays_candidates(tmp_path:
 
 
 # ================================================================ E. deciding on a draft
-
-def test_accept_once_books_a_finite_non_negative_number_anchored_to_the_engine(adj_paths: RunPaths):
-    r = execute(adj_paths, generated_at=GENERATED_AT)
-    p = r.proposals[0]
-    for bad in (-1.0, float("nan"), float("inf")):
-        with pytest.raises(ValueError):
-            record_decision(adj_paths, p.proposal_id, "accept_once", approver="Tom Moore", reason="x", booked=bad)
-    assert not adj_paths.overrides.exists()
-    # the dialog's default is the engine's proposed mark; accepting it books exactly that
-    out = record_decision(adj_paths, p.proposal_id, "accept_once", approver="Tom Moore", reason="as proposed",
-                          booked=r.run.by_company()[COMPANY].proposed_mark)
-    assert out["override"]["proposed"] == p.proposed_mark_at_proposal == 6.0 and out["override"]["booked"] == 6.0
-    r2 = execute(adj_paths, generated_at=GENERATED_AT)
-    assert r2.run.by_company()[COMPANY].booked_mark == 6.0
-
-
-def test_decision_api_refuses_a_negative_booked(adj_paths: RunPaths):
-    client = TestClient(create_app(adj_paths, static_dir=adj_paths.root / "no-static", provider="stub"))
-    pid = client.get("/api/proposals").json()[0]["proposal_id"]
-    res = client.post(f"/api/proposals/{pid}/decision", json={"decision": "accept_once", "booked": -2.5, "approver": "Tom", "reason": "typo"})
-    assert res.status_code == 400, res.text
-    assert not adj_paths.overrides.exists()
-    assert client.get(f"/api/companies/{COMPANY}").json()["booked_mark"] == 6.0
-
-
-def test_decision_api_carries_a_claude_briefing_through_accept_once(adj_paths: RunPaths, monkeypatch):
-    r = execute(adj_paths, adjudicate=False)
-    _, feed = read_workbook(adj_paths.workbook, r.config)
-    cp = _claude_proposer(monkeypatch, _GOOD_DRAFT)
-    p = adjudicate_run(r.run, feed, r.config, adj_paths, proposer=cp)[0]
-    client = TestClient(create_app(adj_paths, static_dir=adj_paths.root / "no-static", provider="stub"))
-    shown = client.get("/api/proposals").json()[0]
-    assert shown["briefing"]["what_it_means"].startswith("HC now holds") and shown["provenance"]["model"] == "claude-sonnet-4-5"
-    res = client.post(f"/api/proposals/{p.proposal_id}/decision", json={"decision": "accept_once", "booked": 6.0, "approver": "Tom", "reason": "ok"})
-    assert res.status_code == 200, res.text
-    after = load_proposal(proposal_path(adj_paths.proposals_dir, p.proposal_id), r.config)
-    assert after.status == "accepted_once" and after.briefing == p.briefing          # the briefing survives the decision
-    assert client.get(f"/api/companies/{COMPANY}").json()["booked_mark"] == 6.0
-
-
-# ================================================================ F. the engine's use of a reading
 
 def test_keyword_screen_and_reader_do_not_raise_the_same_aspect_twice(tmp_path: Path, cfg):
     pos = position(company="Alpha", ownership=0.05, latest_post_money=100.0, prior_mark=5.0)
@@ -485,12 +339,3 @@ def test_reader_call_leaves_headroom_for_a_long_reply(tmp_path: Path, monkeypatc
     assert seen["request"]["max_tokens"] >= 4000 and seen["timeout"] >= 60
 
 
-def test_proposer_call_leaves_headroom_for_a_briefing(monkeypatch):
-    seen: dict = {}
-    monkeypatch.setitem(sys.modules, "anthropic", _fake_anthropic("{}", seen))
-    cp = ClaudeProposer(model="m", api_key="k")
-    from hc_valuation.adjudication.proposer import ContextPacket
-    pk = ContextPacket(event={}, position=None, prior_result={}, catalogue=[], marking={}, principles=[], allowed_fields=[],
-                       allowed_operators=[], policy_version="v", catalogue_version="c", quarter_label="Q3 2026")
-    cp._call(pk)
-    assert seen["request"]["max_tokens"] >= 2500 and seen["timeout"] >= 60

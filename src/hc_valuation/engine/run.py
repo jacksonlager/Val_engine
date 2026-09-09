@@ -19,7 +19,7 @@ rule. Four consequences follow from "a refused row is not evidence of anything":
 * a listed position (Stage = Public) whose only rows were refused is still worth its close —
   M-041 runs on the carry side, and the refusal blocks on top of it;
 * the one exception is a row whose event type has no real handler (M-999): it is dispatched
-  so M-999 blocks and the adjudication proposal is raised.
+  so M-999 blocks: an event the policy does not know never books a number.
 
 A *Portfolio* row carrying a blocking issue (X-903 ownership out of range, X-904 unreconciled
 prior mark, X-906 duplicate, X-921 latest round after the measurement date, an uncoercible cell)
@@ -249,7 +249,7 @@ def _refused(e: Event, blocked: dict[int, list[ValidationIssue]], registry: Regi
 
     An unrecognised or ambiguous event type (X-909 / X-914 on the Event column) is *not* a
     reason to hold the row back: its handler is M-999, which blocks the position and raises
-    the adjudication proposal (E-09). Refusing it here would hide the new event from the
+    the block. Refusing it here would hide the new event from the
     people who have to decide what it means."""
     issues = blocked.get(e.row_index, [])
     if not issues:
@@ -641,7 +641,7 @@ def run_valuation(
         run_id=run_id, input_sha256=input_sha256, input_file=input_file,
         policy_version=config.policy_version, engine_version=ENGINE_VERSION,
         quarter_label=quarter, measurement_date=md, prior_close=config.quarter.prior_close,
-        generated_at=gen, adjudication_enabled=config.adjudication.enabled, market_data_source=market_data_source,
+        generated_at=gen, market_data_source=market_data_source,
         note_reader=note_reader, note_reader_report=dict(note_reader_report or {}),
     )
     return ValuationRun(manifest=manifest, companies=tuple(results), rollups=tuple(rollups),

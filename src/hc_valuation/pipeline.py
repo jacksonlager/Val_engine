@@ -1,7 +1,7 @@
 """The impure orchestration around the pure engine.
 
     load policy -> read workbook -> validate -> fetch market data -> load override ledger
-    -> run_valuation (pure) -> adjudicate novel cases (E-09, outside the engine)
+    -> run_valuation (pure) -> recommend one next step per position (outside the engine)
 
 Everything with I/O lives here or below; nothing in `engine/` imports this module.
 """
@@ -27,7 +27,6 @@ class RunPaths:
     policy: Path
     workbook: Path
     overrides: Path
-    proposals_dir: Path
     precedent: Path
     open_items_carry: Path   # prior quarter's open items, if a previous run exported them
     # Where released snapshots land (`data/published/` by default). Part of the *ledger* — a
@@ -48,7 +47,7 @@ class RunPaths:
     @classmethod
     def default(cls, root: Path | None = None, workbook: Path | None = None, policy: Path | None = None,
                 overrides: Path | None = None, ledger_dir: Path | None = None) -> "RunPaths":
-        """`ledger_dir` moves every decision record — overrides, proposals, precedent, published
+        """`ledger_dir` moves every decision record — overrides, precedent, published
         snapshots — under one folder; `overrides` alone moves just the E-01 file. Neither is set
         for the real book, which keeps `data/`. The market cache is not a ledger and never moves.
         `HC_LEDGER_DIR` / `HC_OVERRIDES` in the environment stand in for the arguments when they are
@@ -76,7 +75,6 @@ class RunPaths:
             policy=policy or default_policy_path(root),
             workbook=workbook,
             overrides=Path(overrides) if overrides is not None else ledger / "overrides.yaml",
-            proposals_dir=ledger / "proposals",
             precedent=ledger / "precedent.yaml",
             open_items_carry=carry,
             published_dir=ledger / "published",
@@ -153,7 +151,6 @@ def load_overrides(path: Path) -> OverrideLedger:
             reason=r.get("reason", ""), approver=r.get("approver", ""),
             created_at=r["created_at"] if isinstance(r["created_at"], date) else date.fromisoformat(str(r["created_at"])),
             rule_ids_addressed=tuple(r.get("rule_ids_addressed", []) or []),
-            source_proposal=r.get("source_proposal"),
             source_suggestion=r.get("source_suggestion"),
             evidence=dict(r["evidence"]) if isinstance(r.get("evidence"), dict) else None,   # absent on older ledgers
         ))
@@ -213,7 +210,6 @@ class PipelineResult:
     config: RuleConfig
     paths: RunPaths
     market: MarketData
-    proposals: list  # list[TreatmentProposal] from adjudication, may be empty
     market_report: dict = field(default_factory=dict)   # docs/market-feed.md §3, served at /api/market
     recommender: Any = None                              # the chooser that filled Flag.recommendation (recommend.py)
     snapshot: Any = None                                 # the PortfolioSnapshot the run started from (prior_screen reads it)
@@ -222,12 +218,11 @@ class PipelineResult:
 
 
 STAGES = ("Reading the workbook", "Checking the data", "Reading the notes on each row", "Fetching market data",
-          "Loading the decision ledger", "Valuing every position", "Drafting treatments for unrecognised events",
-          "Choosing each next step")
+          "Loading the decision ledger", "Valuing every position", "Choosing each next step")
 
 
 def execute(paths: RunPaths | None = None, *, provider: str | None = None, generated_at: datetime | None = None,
-            adjudicate: bool = True, refresh_market: bool = False, recommender: str | None = None,
+            refresh_market: bool = False, recommender: str | None = None,
             refresh_recommendations: bool = False, progress: Any = None, note_reader: str | None = None,
             refresh_notes: bool = False, reader: Any = None) -> PipelineResult:
     """`progress(stage_index, stage_name)` is called as each stage of STAGES begins, for a caller
@@ -270,16 +265,11 @@ def execute(paths: RunPaths | None = None, *, provider: str | None = None, gener
         market_data_source=source,
     )
 
-    proposals: list = []
-    if adjudicate and cfg.adjudication.enabled:
-        stage(6)
-        from .adjudication import adjudicate_run
-        proposals = adjudicate_run(run, feed, cfg, paths)
-    stage(7)
+    stage(6)
 
     # One recommendation per actionable flag — chosen among the engine's priced suggestions by
-    # the policy default or by Claude (recommend.py). Outside the engine, after it, like E-09.
-    result = PipelineResult(run=run, config=cfg, paths=paths, market=market, proposals=proposals, market_report=market_report,
+    # the policy default or by Claude (recommend.py). Outside the engine, and after it.
+    result = PipelineResult(run=run, config=cfg, paths=paths, market=market, market_report=market_report,
                             snapshot=snapshot, note_report=note_report)
     from .recommend import make_chooser, recommend_run
     chooser = make_chooser(cfg, paths.root, recommender, refresh=refresh_recommendations)

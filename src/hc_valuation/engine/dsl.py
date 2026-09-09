@@ -1,6 +1,6 @@
 """Restricted formula language for declarative rules.
 
-A promoted rule (E-09) expresses its mark as an expression over a fixed vocabulary of
+A rule declared in the policy file expresses its mark as an expression over a fixed vocabulary of
 fields, e.g. ``ownership_after * deal_value * close_probability``. Only names on the
 whitelist, numeric literals, the four arithmetic operators, unary minus, parentheses and
 ``min``/``max`` are accepted. Anything else is a parse error raised *before* the model's

@@ -144,7 +144,7 @@ class Event(BaseModel):
 
     @property
     def signature(self) -> str:
-        """Normalised identity for caching adjudication proposals (E-09)."""
+        """Normalised identity for an event: the same event in two runs hashes the same."""
         d = self.detail.lower()
         tags = []
         if "recap" in d:

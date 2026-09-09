@@ -2,7 +2,7 @@
 //   served  — the FastAPI app serves this bundle at '/' and exposes /api/*
 //   static  — the run is inlined as window.__HC_RUN__ (hc-valuation build); no API,
 //             so every write action is disabled with an explanation.
-import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, ProposalDecision, PublishRecord, ResetResult, Sources, TreatmentProposal, UploadJob, ValuationRun, WorkbookProfile, MarketStatus } from "../types";
+import type { MarkHistory, MarketReport, Rationale, Signals, OverrideRequest, PublishRecord, ResetResult, Sources, UploadJob, ValuationRun, WorkbookProfile, MarketStatus } from "../types";
 
 export type Mode = "served" | "static";
 
@@ -152,25 +152,8 @@ export async function currentRunStamp(): Promise<string | null> {
   }
 }
 
-export async function loadProposals(mode: Mode): Promise<TreatmentProposal[]> {
-  if (mode === "static") return window.__HC_PROPOSALS__ ?? [];
-  try {
-    const data = await getJson<TreatmentProposal[] | { proposals: TreatmentProposal[] }>("/api/proposals");
-    return Array.isArray(data) ? data : data.proposals ?? [];
-  } catch (e) {
-    // A 404 means the server predates E-09; treat as "none" rather than an error.
-    if (String(e).includes("404")) return [];
-    throw e;
-  }
-}
 
-export function proposalId(p: TreatmentProposal): string {
-  return p.proposal_id ?? p.id ?? p.event_signature;
-}
 
-export async function decideProposal(id: string, decision: ProposalDecision): Promise<unknown> {
-  return postJson(`/api/proposals/${encodeURIComponent(id)}/decision`, decision);
-}
 
 export async function postOverride(req: OverrideRequest): Promise<unknown> {
   return postJson("/api/overrides", req);
