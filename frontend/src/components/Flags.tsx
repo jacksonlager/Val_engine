@@ -1038,9 +1038,6 @@ export function DecisionBar({
             <button type="submit" className="btn decide-confirm" disabled={!ok}>
               Confirm
             </button>
-            <button type="button" className="btn btn-ghost text-[11px]" onClick={() => setPick({ kind: "proposed" })} title={`Record the proposal of $${musd(c.proposed_mark)}M as it stands`}>
-              Accept the proposed mark instead
-            </button>
           </form>
         )}
       </div>
@@ -1123,11 +1120,6 @@ export function ReadyOverrideBar({
             <button type="submit" className="btn decide-confirm" disabled={!ok}>
               Confirm
             </button>
-            {decided && (
-              <button type="button" className="btn btn-ghost text-[11px]" onClick={() => setPick({ kind: "proposed" })} title={`Record the proposal of $${musd(c.proposed_mark)}M as it stands`}>
-                Accept the proposed mark instead
-              </button>
-            )}
           </form>
         )}
       </div>

@@ -172,7 +172,11 @@ export default function App() {
         <div className="px-4 py-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 min-w-0">
             <span className="font-semibold text-[15px] tracking-tight">Quarterly portfolio valuation engine</span>
-            <span className="text-[13px] font-medium">{m.quarter_label}</span>
+            {/* Which file produced these numbers is the first thing to check on a re-run, but the
+                name is long enough to shove the views across the bar; it lives on the hover. */}
+            <span className="chip no-dot disp-NONE hint" title={`${m.input_file} · ${m.quarter_label}`}>
+              File
+            </span>
           </div>
           <nav className="flex flex-wrap gap-1 ml-2" aria-label="Views">
             {VIEWS.map((v) => (

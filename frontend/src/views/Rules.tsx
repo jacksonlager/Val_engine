@@ -1,31 +1,11 @@
-// The Rules tab: how a position gets its label, why every rule exists and why it carries its
-// severity (rules/rationale.yaml, tagged by whether the brief named it), and the exact reasons
-// behind every flagged company in this run — the page an auditor reads before the queue.
+// The Rules tab: how a position gets its status, drawn; three worked examples from this
+// quarter's book, each expandable; and the rule catalogue — why every rule exists, why it
+// carries its severity, and what in the workbook fires it (rules/rationale.yaml).
 import { useMemo, useState } from "react";
-import type { CompanyResult, Disposition, RuleRationale, ValuationRun } from "../types";
+import type { Disposition, RuleRationale, ValuationRun } from "../types";
 import { useRationale } from "../lib/rationale";
-import { musd } from "../lib/format";
-import { familyPhrase, joinPhrases } from "../lib/labels";
-import { DispChip, ReadinessChip, EscalatedChip, escalatedReviewFamilies } from "../components/ui";
-
-const READINESS_RANK: Record<string, number> = { Blocked: 0, "Needs Review": 1, Ready: 2 };
-
-/** Which of the six checks decided this position, in the reviewer's words. */
-export function whyDisposition(c: CompanyResult): string {
-  const addressed = new Set(c.override?.rule_ids_addressed ?? []);
-  const blocks = c.flags.filter((f) => f.severity === "BLOCK" && !addressed.has(f.rule_id));
-  const families = [...new Set(c.flags.filter((f) => f.severity === "REVIEW" && !addressed.has(f.rule_id)).map((f) => f.family))].sort();
-  const terminal = c.status_after !== "Active";
-  if (blocks.length) return `A blocking finding is open on this position (${blocks.map((f) => f.rule_id).join(", ")}).`;
-  if (terminal && families.length === 0 && !c.flags.some((f) => f.severity === "MONITOR"))
-    return "The company no longer exists, so nothing is left to check.";
-  if (families.length >= 2 && !c.override)
-    return `${families.length} unrelated concerns each need a review, so together they need a decision before approval: ${joinPhrases(families.map(familyPhrase))}.`;
-  if (families.length) return `One concern needs a review: ${familyPhrase(families[0])}.`;
-  if (c.override) return "A decision is on file, and it stays visible here.";
-  if (c.flags.some((f) => f.severity === "MONITOR")) return "Watch items only — nothing to decide.";
-  return "No rule raised anything on this position.";
-}
+import { DispChip } from "../components/ui";
+import { ARAVINE_SVG, DRAYVENN_SVG, GRYPHONEL_SVG, TREE_SVG } from "../lib/trees";
 
 export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
   return (
@@ -49,8 +29,7 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
         <li>
           <b>Severity.</b> {r.why_severity}
         </li>
-        {/* The assessment's own wording for the exception, quoted rather than badged: it says more
-            about the rule than a provenance tag did, and only the rules it actually names carry it. */}
+        {/* The assessment's own wording for the exception, quoted rather than badged. */}
         {r.source === "brief" && r.brief_text && (
           <li>
             <b>Named in the brief.</b> “{r.brief_text}”
@@ -67,19 +46,46 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
   );
 }
 
-const STEPS: { q: string; a: string; d: Disposition }[] = [
-  { q: "Any blocking flag no override has addressed?", a: "The engine has a number but will not book it until a named person decides.", d: "BLOCK" },
-  { q: "Terminal (exited, written off), with nothing left to review or watch?", a: "Nothing left to check on a company that no longer exists.", d: "CLEAR" },
-  { q: "Flags needing review from two or more different families?", a: "Two independent reasons to doubt one number compound to a reviewer decision (escalation).", d: "BLOCK" },
-  { q: "Any flag needing review?", a: "The number stands; a human confirms it.", d: "REVIEW" },
-  { q: "Any watch-only flag, or an override on file?", a: "Booked. Visible on the queue, nothing to decide.", d: "MONITOR" },
-  { q: "Otherwise", a: "Booked, no flags.", d: "CLEAR" },
+/** Three rows from this quarter's Activity tab through the same six questions, one ending at
+    each status. Every figure on them is the engine's: M-040 80.30 → 110.07, M-050 3.50 → 4.66,
+    M-010 6.90 → 13.88. Collapsed by default so the general tree above stays the subject. */
+const EXAMPLES: { n: number; company: string; outcome: string; d: Disposition; why: string; svg: string }[] = [
+  { n: 1, company: "Drayvenn", outcome: "Blocked", d: "BLOCK", why: "An IPO with no quarter-end close on file.", svg: DRAYVENN_SVG },
+  { n: 2, company: "Gryphonel", outcome: "Needs Review", d: "REVIEW", why: "A signed acquisition that has not closed.", svg: GRYPHONEL_SVG },
+  { n: 3, company: "Aravine", outcome: "Ready", d: "CLEAR", why: "A priced round led by a new investor.", svg: ARAVINE_SVG },
 ];
 
-export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany: (n: string) => void }) {
+function Example({ e }: { e: (typeof EXAMPLES)[number] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="card overflow-hidden">
+      <button
+        type="button"
+        className="w-full flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 text-left"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="text-muted text-[11px] mono w-3 shrink-0" aria-hidden>
+          {open ? "▾" : "▸"}
+        </span>
+        <span className="font-semibold text-[13px]">
+          Example {e.n}: {e.company}, {e.outcome}
+        </span>
+        <DispChip d={e.d} />
+        <span className="text-[11.5px] text-muted">{e.why}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3">
+          <div className="tree-fig" dangerouslySetInnerHTML={{ __html: e.svg }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function RulesView({ run }: { run: ValuationRun; gotoCompany: (n: string) => void }) {
   const rationale = useRationale();
   const [onlyFired, setOnlyFired] = useState(false);
-  const [q, setQ] = useState("");
 
   const counts = useMemo(() => {
     const m: Record<string, number> = {};
@@ -87,70 +93,39 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
     return m;
   }, [run]);
 
-  const flagged = useMemo(
-    () =>
-      run.companies
-        .filter((c) => c.disposition !== "CLEAR")
-        .filter((c) => !q || `${c.company} ${c.flags.map((f) => f.rule_id).join(" ")}`.toLowerCase().includes(q.toLowerCase()))
-        .slice()
-        .sort((a, b) => READINESS_RANK[a.readiness] - READINESS_RANK[b.readiness] || a.company.localeCompare(b.company)),
-    [run, q],
-  );
-
-  if (!rationale)
-    return (
-      <div className="card p-4 text-[12.5px] text-ink2">
-        <p className="m-0">The rule catalogue did not load, so this page cannot show what each rule is for. Every other page in this run is unaffected.</p>
-        <details className="mt-2">
-          <summary className="text-[11.5px] text-muted cursor-pointer select-none">Technical details</summary>
-          <p className="text-[11.5px] text-muted mt-1 mb-0 leading-snug">
-            Neither <span className="mono">/api/rationale</span> answered nor was <span className="mono">window.__HC_RATIONALE__</span> inlined into
-            this file. Re-run <span className="mono">hc-valuation run</span> or <span className="mono">hc-valuation build</span> from a tree that has{" "}
-            <span className="mono">rules/rationale.yaml</span>.
-          </p>
-        </details>
-      </div>
-    );
-
-  const groups = rationale.groups.map((g) => ({
+  const groups = (rationale?.groups ?? []).map((g) => ({
     ...g,
-    rules: rationale.rules.filter((r) => r.family === g.key && (!onlyFired || (counts[r.id] ?? 0) > 0)),
+    rules: (rationale?.rules ?? []).filter((r) => r.family === g.key && (!onlyFired || (counts[r.id] ?? 0) > 0)),
   }));
 
   return (
     <div className="space-y-4">
-      {/* ------------------------------------------------------------ the filter */}
+      {/* ------------------------------------------------------------ how a status is reached */}
       <section>
         <div className="flex items-baseline gap-3 mb-2">
-          <h2 className="text-[14px] font-semibold m-0">How a position gets its label</h2>
-          <span className="text-[11.5px] text-muted">Six checks, in order; the first one that matches decides.</span>
+          <h2 className="text-[14px] font-semibold m-0">How a position gets its status</h2>
+          <span className="text-[11.5px] text-muted">Six questions, in this order. Each leaf is a status on the queue.</span>
         </div>
-        <div className="card p-0 overflow-hidden">
-          <ol className="m-0 p-0 list-none">
-            {STEPS.map((s, i) => (
-              <li key={i} className="grid grid-cols-[28px_1fr_auto] items-baseline gap-3 px-3 py-2 border-b border-hairline last:border-b-0 text-[12.5px]">
-                <span className="mono text-[11px] text-muted">{String(i + 1).padStart(2, "0")}</span>
-                <span>
-                  <span className="font-medium">{s.q}</span> <span className="text-ink2">{s.a}</span>
-                </span>
-                <DispChip d={s.d} />
-              </li>
-            ))}
-          </ol>
+        <div className="tree-fig" dangerouslySetInnerHTML={{ __html: TREE_SVG }} />
+      </section>
+
+      {/* ------------------------------------------------------------ the same tree, filled in */}
+      <section>
+        <div className="flex items-baseline gap-3 mb-2">
+          <h2 className="text-[14px] font-semibold m-0">Three positions through the same tree</h2>
+          <span className="text-[11.5px] text-muted">Real rows from this quarter, one ending at each status. Open one to see its path.</span>
         </div>
-        <p className="text-[11.5px] text-muted mt-2 mb-0 leading-snug max-w-[92ch]">
-          A flag is a rule id, a severity and a <b>family</b>; the family is what step 3 counts. Two flags needing review from the same family (a
-          stale round and a stale-round screen) still only need a review; two from different families (a stale round and shrinking ARR) compound to
-          a block. A terminal position drops its carry-side screens — staleness, growth, runway, multiples mean nothing for a company that no longer
-          exists — but keeps every blocking flag and every event-driven flag. An override names the flags it resolves; those stop waiting, the rest
-          still count.
-        </p>
+        <div className="space-y-2">
+          {EXAMPLES.map((e) => (
+            <Example key={e.n} e={e} />
+          ))}
+        </div>
       </section>
 
       {/* ------------------------------------------------------------ the rules */}
       <section>
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          <h2 className="text-[14px] font-semibold m-0 mr-2">Why each rule exists, and why that severity</h2>
+          <h2 className="text-[14px] font-semibold m-0 mr-2">Flag glossary</h2>
           <label className="flex items-center gap-1.5 text-[12px] cursor-pointer">
             <input type="checkbox" checked={onlyFired} onChange={(e) => setOnlyFired(e.target.checked)} /> only rules that applied this quarter
           </label>
@@ -158,83 +133,38 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
             Severity test: <i>could a reviewer change the booked number?</i>
           </span>
         </div>
-        <div className="space-y-4">
-          {groups
-            .filter((g) => g.rules.length > 0)
-            .map((g) => (
-              <div key={g.key}>
-                <h3 className="text-[12.5px] font-semibold m-0">{g.title}</h3>
-                {/* What the family is asking about, so the heading is not the only thing
-                    orienting a reviewer who has never seen these ids before. */}
-                {g.description && <p className="text-[11.5px] text-muted m-0 mt-0.5 mb-1.5 leading-snug max-w-[80ch]">{g.description}</p>}
-                <div className="grid grid-cols-3 gap-2 max-[1240px]:grid-cols-2 max-[860px]:grid-cols-1">
-                  {g.rules.map((r) => (
-                    <RuleCard key={r.id} r={r} count={counts[r.id]} />
-                  ))}
+        {!rationale ? (
+          <div className="card p-4 text-[12.5px] text-ink2">
+            <p className="m-0">The rule catalogue did not load, so this page cannot show what each rule is for. Every other page in this run is unaffected.</p>
+            <details className="mt-2">
+              <summary className="text-[11.5px] text-muted cursor-pointer select-none">Technical details</summary>
+              <p className="text-[11.5px] text-muted mt-1 mb-0 leading-snug">
+                Neither <span className="mono">/api/rationale</span> answered nor was <span className="mono">window.__HC_RATIONALE__</span> inlined
+                into this file. Re-run <span className="mono">hc-valuation run</span> or <span className="mono">hc-valuation build</span> from a tree
+                that has <span className="mono">rules/rationale.yaml</span>.
+              </p>
+            </details>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {groups
+              .filter((g) => g.rules.length > 0)
+              .map((g) => (
+                <div key={g.key}>
+                  <h3 className="text-[12.5px] font-semibold m-0">{g.title}</h3>
+                  {/* What the family is asking about, so the heading is not the only thing
+                      orienting a reviewer who has never seen these ids before. */}
+                  {g.description && <p className="text-[11.5px] text-muted m-0 mt-0.5 mb-1.5 leading-snug max-w-[80ch]">{g.description}</p>}
+                  <div className="grid grid-cols-3 gap-2 max-[1240px]:grid-cols-2 max-[860px]:grid-cols-1">
+                    {g.rules.map((r) => (
+                      <RuleCard key={r.id} r={r} count={counts[r.id]} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------ the companies */}
-      <section>
-        <div className="flex flex-wrap items-center gap-2 mb-2">
-          <h2 className="text-[14px] font-semibold m-0 mr-2">Every flagged company, and exactly why</h2>
-          <input className="input w-[240px]" placeholder="Filter by company or rule id…" value={q} onChange={(e) => setQ(e.target.value)} />
-          <span className="text-[11px] text-muted ml-auto">
-            {flagged.length} of {run.companies.length} positions carry a flag · {run.companies.length - run.companies.filter((c) => c.disposition !== "CLEAR").length} are clear
-          </span>
-        </div>
-        <div className="card dtable-wrap">
-          <table className="dtable text-[12px]">
-            <thead>
-              <tr>
-                <th>Company</th>
-                <th>Review status · why it landed there</th>
-                <th>Findings · why each was raised</th>
-              </tr>
-            </thead>
-            <tbody>
-              {flagged.map((c) => {
-                const n = escalatedReviewFamilies(c);
-                return (
-                  <tr key={c.company} className="row" onClick={() => gotoCompany(c.company)} title="Open in Portfolio">
-                    <td className="align-top">
-                      <div className="font-medium">{c.company}</div>
-                      <div className="mono text-[10.5px] text-muted">
-                        {[...new Set(c.steps.map((s) => s.rule_id))].join(", ")} · {musd(c.prior_mark)} → {musd(c.proposed_mark)}
-                      </div>
-                    </td>
-                    <td className="align-top">
-                      <span className="inline-flex items-center gap-1">
-                        <ReadinessChip r={c.readiness} />
-                        <EscalatedChip n={n} short />
-                      </span>
-                      <div className="text-[11px] text-muted mt-0.5 whitespace-normal max-w-[260px]">{whyDisposition(c)}</div>
-                    </td>
-                    <td className="align-top whitespace-normal min-w-[420px]">
-                      {c.flags.map((f) => (
-                        <div key={f.rule_id} className="flex items-baseline gap-2 py-0.5">
-                          <span className={`chip disp-${f.severity} shrink-0`}>
-                            <span className="mono">{f.rule_id}</span>
-                          </span>
-                          <span className="text-ink2 leading-snug">{firstSentence(f.message)}</span>
-                        </div>
-                      ))}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+              ))}
+          </div>
+        )}
       </section>
     </div>
   );
-}
-
-function firstSentence(m: string): string {
-  const s = m.replace(/\*\*/g, "").trim().split(/(?<=[.!?])\s/)[0];
-  return s.length > 180 ? s.slice(0, 177).replace(/\s\S*$/, "") + "…" : s;
 }

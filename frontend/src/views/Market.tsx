@@ -144,48 +144,64 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
           </span>
         </p>
       )}
+      {/* Market movement and portfolio exposure: what moved, and how much of the book sits in it.
+          Every figure is read from the run's comps_move block, never typed in. */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Kpi
-          label="Positions screened against live multiples"
-          value={rep.reached_live ? pct(coverage, 0) : "None"}
-          tone={rep.reached_live && coverage >= 0.999 ? "ok" : rep.reached_live ? "warn" : "down"}
-          sub={
-            rep.reached_live
-              ? `${liveSectors} of ${rep.sectors.length} sectors on live data · ${names} public companies · priced as of ${asOf}`
-              : `Illustrative multiples only · ${rep.sectors.length} sectors · no live feed answered`
-          }
-        />
-        <Kpi
-          label="Sector multiples this quarter"
-          value={wavg === null ? "—" : pct(wavg, 1, true)}
+          label="Sector multiple movement"
+          value={wavg === null ? "—" : `${pct(wavg, 1, true)} this quarter`}
           tone={wavg === null ? undefined : wavg > 0 ? "up" : wavg < 0 ? "down" : undefined}
           sub={
-            wavg === null ? (
-              "No prior quarter on file"
-            ) : (
-              <>
-                {up} up · {down} down, weighted by positions
-                {top && bottom && top !== bottom && (
-                  <>
-                    {" "}· widest {top.sector} <span className={signClass(top.qoq_pct)}>{pct(top.qoq_pct, 1, true)}</span>, {bottom.sector}{" "}
-                    <span className={signClass(bottom.qoq_pct)}>{pct(bottom.qoq_pct, 1, true)}</span>
-                  </>
-                )}
-              </>
-            )
+            wavg === null
+              ? "No prior quarter on file to compare against"
+              : `Average change across ${moved.length} sectors, weighted by portfolio positions · ${up} up, ${down} down`
           }
         />
         <Kpi
-          label="Comparables priced"
-          value={names ? `${priced} of ${names}` : "—"}
-          tone={names && priced < names ? "warn" : nCaveats ? "warn" : "ok"}
+          label="Largest sector decline"
+          value={
+            bottom && (bottom.qoq_pct as number) < 0 ? (
+              <span className="inline-flex flex-wrap items-baseline gap-x-2">
+                <span className="text-[15px]">{bottom.sector}</span>
+                <span>{pct(bottom.qoq_pct, 1, true)}</span>
+              </span>
+            ) : (
+              "—"
+            )
+          }
+          tone={bottom && (bottom.qoq_pct as number) < 0 ? "down" : undefined}
           sub={
-            nCaveats
-              ? `${nCaveats} data ${nCaveats === 1 ? "caveat" : "caveats"} on this run · read them under Data notes`
-              : "No data caveats on this run"
+            bottom && (bottom.qoq_pct as number) < 0
+              ? `${bottom.positions} portfolio ${bottom.positions === 1 ? "position" : "positions"} in this sector`
+              : "No sector fell this quarter"
+          }
+        />
+        <Kpi
+          label="Largest sector increase"
+          value={
+            top && (top.qoq_pct as number) > 0 ? (
+              <span className="inline-flex flex-wrap items-baseline gap-x-2">
+                <span className="text-[15px]">{top.sector}</span>
+                <span>{pct(top.qoq_pct, 1, true)}</span>
+              </span>
+            ) : (
+              "—"
+            )
+          }
+          tone={top && (top.qoq_pct as number) > 0 ? "up" : undefined}
+          sub={
+            top && (top.qoq_pct as number) > 0
+              ? `${top.positions} portfolio ${top.positions === 1 ? "position" : "positions"} in this sector`
+              : "No sector rose this quarter"
           }
         />
       </div>
+
+      <p className="text-[11px] text-muted mt-2 mb-0 leading-snug">
+        {rep.reached_live
+          ? `${pct(coverage, 0)} of positions screened against live multiples · ${liveSectors} of ${rep.sectors.length} sectors on live data · ${priced} of ${names} comparables priced as of ${asOf}`
+          : `Illustrative multiples only · ${rep.sectors.length} sectors · no live feed answered`}
+      </p>
       {n > 0 && (
         <div className="text-[12px]">
           <button
