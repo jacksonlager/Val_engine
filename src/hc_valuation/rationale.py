@@ -14,7 +14,7 @@ import yaml
 
 SOURCES = ("brief", "policy")
 SEVERITIES = ("BLOCK", "REVIEW", "MONITOR")
-REQUIRED = ("id", "name", "family", "severity", "source", "reads", "why_flag", "why_severity")
+REQUIRED = ("id", "name", "family", "severity", "source", "reads", "trigger", "why_flag", "why_severity")
 
 
 def rationale_path(root: Path) -> Path:
@@ -45,6 +45,7 @@ def load_rationale(root: Path) -> dict[str, Any]:
         if r["id"] in seen:
             raise ValueError(f"rules/rationale.yaml: {r['id']} appears twice")
         seen.add(r["id"])
+        r["trigger"] = " ".join(str(r["trigger"]).split())
         r["why_flag"] = " ".join(str(r["why_flag"]).split())
         r["why_severity"] = " ".join(str(r["why_severity"]).split())
     return {"version": raw.get("version"), "groups": list(raw.get("groups") or []), "rules": rules}

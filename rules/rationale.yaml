@@ -20,27 +20,35 @@ version: 2026Q3-0.2
 groups:
   - key: treatment
     title: Treatment
+    description: What happened this quarter, and whether pricing it took a judgment call.
     brief_text: activity where the right treatment is not mechanical
   - key: related_party
     title: Related-party pricing
+    description: Who set the price, and whether that made it arm's-length.
     brief_text: null
   - key: notes
     title: Note language
+    description: What the row's free text says that its columns cannot hold.
     brief_text: null
   - key: staleness
     title: Staleness
+    description: How old the price the mark rests on has become.
     brief_text: stale rounds
   - key: growth
     title: Growth
+    description: Whether revenue has moved against the round that set the price.
     brief_text: shrinking ARR
   - key: liquidity
     title: Liquidity
+    description: How long the cash lasts, and what a raise before then would cost.
     brief_text: short runway
   - key: valuation
     title: Valuation
+    description: Whether the implied multiple still squares with the public comparables.
     brief_text: a mark that no longer squares with performance
   - key: data
     title: Ingest
+    description: Whether the workbook row could be read, and read correctly.
     brief_text: null
 
 rules:
@@ -52,6 +60,7 @@ rules:
     source: brief
     brief_text: activity where the right treatment is not mechanical
     reads: Event, Detail, Post-Money / Deal Value, HC Ownership After, Proceeds to HC
+    trigger: "Announced deal, IPO, or exit proceeds ≠ stake × deal value"
     why_flag: >-
       A signed-but-unclosed deal, an IPO, an exit with no cash on the row, or a secondary that
       does not reconcile: the base rule ("ownership × post-money") has no single answer, so the
@@ -68,6 +77,7 @@ rules:
     severity: [BLOCK]
     source: policy
     reads: Post-Money vs the prior Post-Money
+    trigger: "Priced round with post-money below the last round"
     why_flag: >-
       The new post-money is below the prior one. Down rounds almost always carry structure —
       liquidation preference, ratchets, pay-to-play — so "ownership × post-money" is the wrong
@@ -82,6 +92,7 @@ rules:
     severity: [MONITOR]
     source: policy
     reads: Ownership (FD %) before vs HC Ownership After, HC Investment
+    trigger: "Ownership after < 80% of ownership before, no HC cheque"
     why_flag: >-
       HC skipped its pro rata and ownership fell more than 20% in relative terms — a reserves
       question the partnership should see.
@@ -94,6 +105,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Proceeds to HC ÷ ownership sold, vs Latest Post-Money
+    trigger: "Proceeds ÷ stake sold differs >5% from post-money"
     why_flag: >-
       A secondary trade implies a price for the whole company; more than 5% away from the last
       round, the market is saying something about the mark.
@@ -107,6 +119,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Notes text — whole words, negation-aware, exempt per event type
+    trigger: "A screened term in the Notes cell, not negated, not exempt for that event"
     why_flag: >-
       The free-text Notes cell contains a term the columns cannot encode — escrow, holdback,
       earn-out, ratchet, preference, litigation, going concern. The engine never parses it into
@@ -120,6 +133,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Detail ("extension"), Post-Money equal to the prior
+    trigger: "Round with post-money equal to the last round"
     why_flag: >-
       Insiders re-upped at the old price. The mark is repriced to the new ownership, but the
       staleness clock is not reset — no new market test happened.
@@ -132,6 +146,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Convertible Note, HC Investment, Detail (cap)
+    trigger: "Convertible Note row with an HC investment"
     why_flag: >-
       A convertible note is not a priced round — a cap is a ceiling, not a price. HC's note is
       carried at cost on its own leg and the equity mark is untouched.
@@ -144,6 +159,7 @@ rules:
     severity: [MONITOR, REVIEW]
     source: policy
     reads: Event = Convertible Note, HC Investment empty
+    trigger: "Convertible Note row, no HC cheque; cap vs last round"
     why_flag: >-
       The company raised a note from others. Worth knowing; the cap says where the next round
       may price.
@@ -159,6 +175,7 @@ rules:
     severity: [MONITOR, REVIEW]
     source: policy
     reads: Event = Term Sheet, Post-Money / Deal Value vs Latest Post-Money
+    trigger: "Term Sheet row; indicated post ≤ 80% of last round"
     why_flag: >-
       Non-binding, so nothing is booked; the indicated value is recorded as an open item that
       ages in the register and escalates if it never closes.
@@ -172,6 +189,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Priced Equity Round or IPO with a note leg carried at cost, Ownership After, Post-Money
+    trigger: "Round or listing with a note leg carried in"
     why_flag: >-
       HC's convertible note converts into the round: the separate note leg disappears and the whole
       stake is marked at the round price, with the note's principal in invested capital exactly once.
@@ -187,6 +205,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Term Sheet Withdrawn, the open term sheet and its indicated value
+    trigger: "Term Sheet Withdrawn row"
     why_flag: >-
       A signed proposal fell through before closing. Nothing was booked from it, so the mark still
       rests on the last round, but an investor walking away is evidence a market participant would
@@ -200,6 +219,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Term Sheet Withdrawn or Operating Update, the row's Notes
+    trigger: "Operating Update or note stating cash, burn, runway"
     why_flag: >-
       The note reports cash, burn, runway or revenue in a sentence. The engine never reads a number
       out of prose, so the runway and growth screens still run on the Portfolio tab's columns, which
@@ -214,6 +234,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Debt Facility, Post-Money / Deal Value (facility size), HC Investment (HC's own loan)
+    trigger: "Debt Facility row"
     why_flag: >-
       Debt is not a price for the equity, so the mark does not move; but the facility ranks ahead of
       HC's shares, usually carries covenants and often warrants, and the drawn cash is not on the
@@ -228,6 +249,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Valuation Adjustment, Post-Money / Deal Value (the stated company value)
+    trigger: "Valuation Adjustment row with a stated value"
     why_flag: >-
       A write-down, impairment or write-up entered as an activity row is a judgment, not a
       transaction. The engine books transactions and observable inputs, so the proposal is the
@@ -241,6 +263,7 @@ rules:
     severity: [MONITOR, REVIEW]
     source: policy
     reads: Event = Lock-up Expiry, the position's listed status, the open lock-up item
+    trigger: "Lock-up Expiry row; listed or not"
     why_flag: >-
       On a listed position the shares become saleable and the lock-up item closes; the mark is the
       market close as before, since a Level 1 price carries no lock-up discount under this policy.
@@ -254,6 +277,7 @@ rules:
     severity: [MONITOR, REVIEW]
     source: policy
     reads: Event = Share Restructure, HC Ownership After vs the book's ownership
+    trigger: "Share Restructure row; stake moved or not"
     why_flag: >-
       A split, reverse split or reclassification changes share counts, not economics: the mark and
       the fully diluted stake are unchanged. A row that also moves the stake is either a
@@ -267,6 +291,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: the row's Detail and Notes as read by the note reader against the case catalogue; the terms the row's rule handled
+    trigger: "Reading kind not handled by the row’s rule"
     why_flag: >-
       The reader found the text describing something from the case catalogue — an escrow, a
       preference, a restated stake, a dispute — that the row's rule did not take account of and
@@ -281,6 +306,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: a column on the row and the words in the row's text that state a different value or fact for it
+    trigger: "Note figure ≠ column value on the same row"
     why_flag: >-
       The text states a figure or fact for one of the row's columns that differs from the cell —
       proceeds, ownership, a date. The engine booked the column. One of the two is wrong and the
@@ -295,6 +321,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: the reader's failure reason for the row
+    trigger: "No key, or the model failed on this row"
     why_flag: >-
       The note reader was on but could not read this row's text (a model or network failure, an
       unreadable reply). Only the keyword screen ran on it, so anything the note says beyond the
@@ -308,6 +335,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: the row's filled columns against the columns its event type's rule reads
+    trigger: "Filled column the event’s rule ignores"
     why_flag: >-
       The row carries a number in a column its rule never reads — proceeds on a term sheet, HC's
       cheque on a distribution, a stake on a dividend, a recovery estimate on a shutdown. The engine
@@ -321,6 +349,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event / Detail wording ("down round") against Post-Money vs the book's Latest Post-Money
+    trigger: "“Down round” text with post ≥ last round"
     why_flag: >-
       The row calls the round a down round while the stated post-money is at or above the last
       round. One of the two is wrong, and the mark rests on the figure.
@@ -333,6 +362,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Ownership Adjustment, HC Ownership After
+    trigger: "Ownership Adjustment row with a new stake"
     why_flag: >-
       Warrant exercise, option-pool expansion or a cap-table restatement changed HC's percentage
       with no money changing hands. Re-marked on the unchanged last-round basis.
@@ -345,6 +375,7 @@ rules:
     severity: [MONITOR, REVIEW]
     source: policy
     reads: Event = Distribution, Proceeds to HC
+    trigger: "Distribution row with proceeds, stake unchanged"
     why_flag: >-
       Cash came back with the stake unchanged (an escrow release, a dividend). Realized moves up.
     why_severity: >-
@@ -359,6 +390,7 @@ rules:
     severity: [BLOCK]
     source: policy
     reads: Event = Acquisition, Notes / Detail ("stock", "shares")
+    trigger: "Closed acquisition, no proceeds, “stock” in the text"
     why_flag: >-
       An acquisition closed for acquirer stock, not cash. The position stays active at
       ownership × deal value.
@@ -371,6 +403,7 @@ rules:
     severity: [BLOCK]
     source: policy
     reads: Quote feed at the measurement date
+    trigger: "Listed position, no quote at the measurement date"
     why_flag: >-
       A public position needs the measurement-date close and the quote feed had none.
     why_severity: >-
@@ -382,6 +415,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Deal Terminated
+    trigger: "Acquisition (Terminated) row"
     why_flag: >-
       The mark reverts to the last-round basis after a period carried at the deal price.
     why_severity: >-
@@ -393,6 +427,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = Note Repaid, Proceeds to HC
+    trigger: "Note Repaid row with proceeds"
     why_flag: >-
       Principal on a note HC held came back as cash; realized moves up and the note leg is closed.
     why_severity: >-
@@ -404,6 +439,7 @@ rules:
     severity: [BLOCK]
     source: policy
     reads: Event = Bankruptcy / Chapter 11
+    trigger: "Bankruptcy (Chapter 11) row"
     why_flag: >-
       Reorganisation. The mark is unchanged and the position is not terminal.
     why_severity: >-
@@ -415,6 +451,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Notes / Detail ("led by HC", "HC-led")
+    trigger: "Round text says “led by HC”"
     why_flag: >-
       The round that sets the new mark was led by Human Capital. A related-party price is not
       arm's-length.
@@ -427,6 +464,7 @@ rules:
     severity: [MONITOR, REVIEW]
     source: policy
     reads: Notes / Detail ("insider"), Post-Money vs the prior
+    trigger: "Round text says “insider”; post ≥ 2× prior"
     why_flag: >-
       Existing investors, not HC, priced the round. Weaker evidence than new money at the table.
     why_severity: >-
@@ -439,6 +477,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: HC Investment ÷ change in ownership, vs Post-Money
+    trigger: "HC investment ÷ stake bought vs post-money, >10% off"
     why_flag: >-
       HC's cheque divided by the stake it bought implies a different post-money than the row
       states, by more than 10% (only when HC bought at least a percentage point).
@@ -451,6 +490,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: HC Ownership After vs the book's ownership, HC Investment on a priced round
+    trigger: "Ownership after > before, no HC investment"
     why_flag: >-
       HC's stake went up in a round HC did not fund. Anti-dilution, a ratchet or a warrant
       exercise does that legitimately; a mis-typed ownership cell does it too, and the row cannot
@@ -465,6 +505,7 @@ rules:
     severity: [MONITOR]
     source: policy
     reads: Event = New Investment
+    trigger: "New Investment row"
     why_flag: >-
       First investment in the quarter, created from the activity tab.
     why_severity: >-
@@ -475,6 +516,7 @@ rules:
     severity: [MONITOR]
     source: policy
     reads: Proceeds ÷ ownership bought, vs Latest Post-Money
+    trigger: "Secondary Purchase row within 5% of post-money"
     why_flag: >-
       HC bought more and the implied price is within 5% of the last round.
     why_severity: >-
@@ -486,6 +528,7 @@ rules:
     severity: [MONITOR, REVIEW]
     source: policy
     reads: Post-Money ÷ the prior Post-Money, Notes ("led by", "new investor")
+    trigger: "Post-money ≥ 3× prior; no outside lead named"
     why_flag: >-
       A priced round re-priced the company 3× or more against the prior post-money.
     why_severity: >-
@@ -498,13 +541,14 @@ rules:
     severity: [BLOCK]
     source: policy
     reads: Event cell
+    trigger: "Event cell not in the catalogue (e.g. SPAC Merger)"
     why_flag: >-
       An event the rule file does not know. The position halts with its prior mark; it never
       falls through to "carry".
     why_severity: >-
       Because the difference between an engine that says "I don't know what a SPAC merger is" and
       one that reports an unchanged mark and looks confident doing it is the whole point. An
-      adjudication proposal is drafted beside it for a human to accept, reject or promote.
+      rule for the new event type is written into the policy file by a person before it can price.
 
   # ---------------------------------------------------------------- staleness
   - id: X-201
@@ -514,6 +558,7 @@ rules:
     source: brief
     brief_text: stale rounds
     reads: Latest Round date → age at the measurement date (extensions do not reset it)
+    trigger: "Latest round more than 24 months before quarter end"
     why_flag: >-
       Venture companies raise every 18–24 months; one cycle without a price means the mark is
       due a refresh.
@@ -528,6 +573,7 @@ rules:
     source: brief
     brief_text: stale rounds
     reads: Latest Round date → age at the measurement date
+    trigger: "Latest round more than 48 months before quarter end"
     why_flag: >-
       Two cycles without a price — the round probably predates the business it now describes.
     why_severity: >-
@@ -543,6 +589,7 @@ rules:
     source: brief
     brief_text: shrinking ARR
     reads: ARR Growth (YoY %)
+    trigger: "ARR growth column below 0%"
     why_flag: >-
       Year-on-year ARR growth below 0%. Any contraction in a growth company is worth noticing.
     why_severity: >-
@@ -555,6 +602,7 @@ rules:
     source: brief
     brief_text: shrinking ARR
     reads: ARR Growth (YoY %)
+    trigger: "ARR growth column below −15%"
     why_flag: >-
       Roughly one lost growth cohort — the growth assumptions behind the last round no longer hold.
     why_severity: >-
@@ -569,6 +617,7 @@ rules:
     source: brief
     brief_text: short runway
     reads: Cash ÷ Net Burn, aged by the reporting lag (metrics are a month behind the marks)
+    trigger: "Cash ÷ burn, aged one month, under 12"
     why_flag: >-
       One raise cycle of cash — the company must be in market this quarter.
     why_severity: >-
@@ -580,6 +629,7 @@ rules:
     source: brief
     brief_text: short runway
     reads: Cash ÷ Net Burn, aged one month
+    trigger: "Cash ÷ burn, aged one month, under 6"
     why_flag: >-
       The company must close a round before the next measurement date or fail.
     why_severity: >-
@@ -594,6 +644,7 @@ rules:
     source: brief
     brief_text: a mark that no longer squares with performance
     reads: Latest Post-Money ÷ ARR vs the sector comps
+    trigger: "Post-money ÷ ARR > 2× sector median"
     why_flag: >-
       Implied post-money ÷ ARR is more than 2× the live sector median (30× when no live comps
       are on file) — the mark is rich against public peers.
@@ -607,6 +658,7 @@ rules:
     source: brief
     brief_text: a mark that no longer squares with performance
     reads: Latest Post-Money ÷ ARR vs the sector comps
+    trigger: "Post-money ÷ ARR < 0.5× sector median"
     why_flag: >-
       Implied post-money ÷ ARR is below 0.5× the live sector median (3× absolute). Fires in the
       other direction too — a stale-low mark is also wrong.
@@ -619,6 +671,7 @@ rules:
     severity: [MONITOR]
     source: policy
     reads: ARR ($M)
+    trigger: "ARR column under $0.5M"
     why_flag: >-
       ARR under $0.5M — any multiple on that base is meaningless, so the company sits in its own
       bucket rather than being screened.
@@ -630,6 +683,7 @@ rules:
     severity: [MONITOR]
     source: policy
     reads: Prior Mark ÷ Invested, Latest Round date
+    trigger: "Mark ÷ invested > 5× and round > 24 months"
     why_flag: >-
       An unrealised multiple on cost above 5× resting on a round older than 24 months — where
       optimistic write-ups hide.
@@ -643,6 +697,7 @@ rules:
     source: brief
     brief_text: a mark that no longer squares with performance
     reads: Latest Round date plus the X-3xx / X-4xx screens
+    trigger: "Round > 24 months plus X-301/401/402/404"
     why_flag: >-
       An anchor older than 24 months and a live screen (high or low multiple, MOIC outlier, ARR
       contraction) arguing with it — exactly the brief's "performance has moved away from the
@@ -659,6 +714,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: the override ledger vs the current proposal
+    trigger: "Override on file, proposal moved since"
     why_flag: >-
       A committee override exists for this company and quarter but the proposal it was written
       against has since changed (a refreshed file, a policy change).
@@ -671,6 +727,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: the open-items register carried from prior quarters
+    trigger: "Carried open item past its policy age"
     why_flag: >-
       An item outlived its allowance: a deal pending more than two quarters, a term sheet older
       than one, a note unconverted after three, a lock-up past expiry.
@@ -685,6 +742,7 @@ rules:
     severity: [BLOCK]
     source: policy
     reads: every cell on both tabs (X-901 … X-922 name the specific issue)
+    trigger: "Any X-901 to X-925 blocking issue on the row"
     why_flag: >-
       An unknown company, a missing post-money, ownership outside 0–100%, a euro cell, a
       duplicate row, an event dated after the measurement date. The row is recorded and not applied; the prior
@@ -699,6 +757,7 @@ rules:
     severity: [BLOCK]
     source: policy
     reads: Event = New Investment on a company the Portfolio tab already carries with ownership or invested capital
+    trigger: "New Investment for a company already in the book"
     why_flag: >-
       A first cheque cannot be a second one. Applying the row would add HC's money again and re-mark a
       position the book already carries at the same round — a double count. Either the row is wrong
@@ -712,6 +771,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: First Investment, Latest Round
+    trigger: "First Investment date later than Latest Round"
     why_flag: >-
       The first cheque into a company cannot post-date its latest round. One of the two dates is
       a typo, and nothing in the row says which.
@@ -725,6 +785,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: an ingest correction that needs review, anchored to a row that was applied (X-904, X-905 inside grace, X-916)
+    trigger: "Unit, date or basis correction applied to a row"
     why_flag: >-
       Ingest read the cell the way a person would — 5.5 as 5.5%, a row dated a week before the
       window as a transaction missed at the last close, a prior mark that departs from the last
@@ -740,6 +801,7 @@ rules:
     severity: [REVIEW]
     source: policy
     reads: Event = New Investment for a company not on the Portfolio tab
+    trigger: "New Investment for a name not on the Portfolio tab"
     why_flag: >-
       The activity tab names a company the book does not have. The position is created at cost
       so the cheque is not lost.

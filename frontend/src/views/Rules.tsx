@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import type { CompanyResult, Disposition, RuleRationale, ValuationRun } from "../types";
 import { useRationale } from "../lib/rationale";
 import { musd } from "../lib/format";
-import { familyLabel, familyPhrase, joinPhrases } from "../lib/labels";
+import { familyPhrase, joinPhrases } from "../lib/labels";
 import { DispChip, ReadinessChip, EscalatedChip, escalatedReviewFamilies } from "../components/ui";
 
 const READINESS_RANK: Record<string, number> = { Blocked: 0, "Needs Review": 1, Ready: 2 };
@@ -29,7 +29,7 @@ export function whyDisposition(c: CompanyResult): string {
 
 export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
   return (
-    <div className="card p-3 flex flex-col gap-1.5">
+    <div className="card p-3 flex flex-col gap-1.5" title={`Reads ${r.reads}`}>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="mono font-medium text-[12.5px]">{r.id}</span>
         <span className="font-semibold text-[13px]">{r.name}</span>
@@ -42,15 +42,12 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
           </span>
         )}
       </div>
-      <div className="text-[10.5px] text-muted">
-        {familyLabel(r.family)} · reads {r.reads}
-      </div>
       <ul className="flag-points m-0">
         <li>
-          <b>Why it is a flag.</b> {r.why_flag}
+          <b>Flag.</b> {r.why_flag}
         </li>
         <li>
-          <b>Why this severity.</b> {r.why_severity}
+          <b>Severity.</b> {r.why_severity}
         </li>
         {/* The assessment's own wording for the exception, quoted rather than badged: it says more
             about the rule than a provenance tag did, and only the rules it actually names carry it. */}
@@ -60,6 +57,12 @@ export function RuleCard({ r, count }: { r: RuleRationale; count?: number }) {
           </li>
         )}
       </ul>
+      {/* The mechanical condition, last and quieter than the two judgments above it. */}
+      {r.trigger && (
+        <div className="text-[11.5px] text-muted leading-snug">
+          <b className="font-semibold">Trigger.</b> {r.trigger}
+        </div>
+      )}
     </div>
   );
 }
@@ -160,8 +163,11 @@ export function RulesView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
             .filter((g) => g.rules.length > 0)
             .map((g) => (
               <div key={g.key}>
-                <h3 className="text-[12.5px] font-semibold m-0 mb-1.5">{g.title}</h3>
-                <div className="grid grid-cols-2 gap-2 max-[1100px]:grid-cols-1">
+                <h3 className="text-[12.5px] font-semibold m-0">{g.title}</h3>
+                {/* What the family is asking about, so the heading is not the only thing
+                    orienting a reviewer who has never seen these ids before. */}
+                {g.description && <p className="text-[11.5px] text-muted m-0 mt-0.5 mb-1.5 leading-snug max-w-[80ch]">{g.description}</p>}
+                <div className="grid grid-cols-3 gap-2 max-[1240px]:grid-cols-2 max-[860px]:grid-cols-1">
                   {g.rules.map((r) => (
                     <RuleCard key={r.id} r={r} count={counts[r.id]} />
                   ))}

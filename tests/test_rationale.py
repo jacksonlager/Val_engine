@@ -85,7 +85,7 @@ def test_a_malformed_entry_is_refused(tmp_path):
     (tmp_path / "rules").mkdir()
     (tmp_path / "rules" / "rationale.yaml").write_text(
         "rules:\n  - id: X-999\n    name: n\n    family: f\n    severity: [REVIEW]\n    source: brief\n"
-        "    reads: r\n    why_flag: why\n    why_severity: REVIEW because\n", encoding="utf-8")
+        "    reads: r\n    trigger: t\n    why_flag: why\n    why_severity: REVIEW because\n", encoding="utf-8")
     with pytest.raises(ValueError, match="brief_text"):
         load_rationale(tmp_path)
 
