@@ -191,7 +191,7 @@ def market_status(result: PipelineResult | None) -> dict[str, Any]:
 def create_app(paths: RunPaths | None = None, provider: str | None = None, static_dir: Path | None = None,
                refresh_market: bool = False, recommender: str | None = None,
                provider_explicit: str | None = None, *, start_empty: bool = False, root: Path | None = None,
-               note_reader: str | None = None, auto_refresh_market: bool = True,
+               note_reader: str | None = None, auto_refresh_market: bool = False,
                ledger_dir_explicit: Path | None = None) -> FastAPI:
     """`provider` is what the first run reads (the CLI passes its resolved default; the library default is
     the fixture). `provider_explicit` is what the operator actually asked for, if anything: a workbook
@@ -249,8 +249,11 @@ def create_app(paths: RunPaths | None = None, provider: str | None = None, stati
     app.state.jobs = {}                 # upload jobs: id -> progress record (see post_upload)
     app.state.known_workbooks = [] if start_empty else [Path(paths.workbook)]   # every book this server has served
     if not start_empty:
-        # A forced refetch applies to the first run only; reruns read the cache. The dashboard also refetches
-        # once a day on its own when the cache was fetched before today, so the screen shows today's data.
+        # A forced refetch applies to the first run only; reruns read the cache. With `auto_refresh_market`
+        # the dashboard also refetches once a day on its own when the cache was fetched before today; off by
+        # default, because the committed feed is what the run, the tests and the documents describe, and a
+        # start that rewrites 54 price files under `data/` is a data change nobody asked for. The quarter-end
+        # refetch is a deliberate act (`--refresh-market`, the Refresh button, `hc-valuation market --refresh`).
         first_refresh = refresh_market or (auto_refresh_market and provider == "live" and market_cache_is_stale_today(paths.root, paths.policy))
         if first_refresh and not live_extra_installed():
             log.warning("the saved market feed is from an earlier day but the `live` extra is not installed "

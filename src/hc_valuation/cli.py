@@ -524,8 +524,8 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
                                                           "the open dashboard reloads itself"),
         provider: Optional[str] = ProviderOpt, refresh_market: bool = RefreshMarketOpt,
         recommender: Optional[str] = RecommenderOpt, note_reader: Optional[str] = NoteReaderOpt,
-        no_market_refresh: bool = typer.Option(False, "--no-market-refresh", help="Do not refetch the live feed on start even "
-                                                                                  "when the cache was fetched before today"),
+        market_refresh_daily: bool = typer.Option(False, "--market-refresh-daily", help="Refetch the live feed on start when the "
+                                                                                          "saved feed was fetched before today (off: the saved feed serves as is)"),
         reopen: bool = typer.Option(False, "--reopen", help="Open the most recently uploaded workbook instead of the Upload screen")) -> None:
     """Serve the dashboard and API and open a browser on the Upload screen; `--input <workbook>`
     or `--reopen` opens a file straight away. With --watch, a new workbook dropped in place (or an
@@ -548,14 +548,14 @@ def run(input_path: Optional[Path] = InputOpt, policy: Optional[Path] = PolicyOp
     if input_path is None:
         application = create_app(None, provider=provider, provider_explicit=provider, refresh_market=refresh_market,
                                  recommender=recommender, note_reader=note_reader, start_empty=True,
-                                 auto_refresh_market=not no_market_refresh,
+                                 auto_refresh_market=market_refresh_daily,
                                  ledger_dir_explicit=ledger_dir.resolve() if ledger_dir else None)
         typer.echo("no workbook loaded: upload one from the dashboard (or pass --input)")
     else:
         paths = _paths(input_path, policy, overrides, ledger_dir)
         application = create_app(paths, provider=_default_provider(paths, provider), provider_explicit=provider,
                                  refresh_market=refresh_market, recommender=recommender, note_reader=note_reader,
-                                 auto_refresh_market=not no_market_refresh,
+                                 auto_refresh_market=market_refresh_daily,
                                  ledger_dir_explicit=ledger_dir.resolve() if ledger_dir else None)
         typer.echo(_headline(application.state.result.run))
     url = f"http://{host}:{port}/"

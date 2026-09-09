@@ -123,11 +123,12 @@ option, records an ordinary override under a named approver.
 **Live market data, dated.** The comps are priced as of the day they are fetched, not as of the
 measurement date: the header and the Market tab say "Live data as of <date>", the day the feed was
 last fetched into `data/market_cache/<measurement date>/`, and a rerun on that cache prices them as of
-that same day so it is the same run every time. On start the dashboard
-refetches once a day on its own when that date is before today (`--no-market-refresh` to skip), and a
-**Refresh** button next to it refetches on demand and reruns the book (`POST /api/market/refresh`). A
-fetch that fails keeps the data on file and says so; the fixture and synthetic data have nothing to
-refresh, so the button does not appear for them.
+that same day so it is the same run every time — on this machine, on a clone, and in the documents,
+which quote the committed feed. A start never refetches on its own: `run --refresh-market` refetches
+once on start, `run --market-refresh-daily` refetches on start whenever the saved feed is from an
+earlier day, and the **Refresh** button on the Market tab refetches on demand and reruns the book
+(`POST /api/market/refresh`). A fetch that fails keeps the data on file and says so; the fixture and
+synthetic data have nothing to refresh, so the button does not appear for them.
 
 **The note reader.** The free text on an activity row is where the situations the columns cannot
 hold turn up. With `note_reader.provider: claude` in the policy (the default; `--note-reader off`
