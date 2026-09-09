@@ -173,10 +173,18 @@ export default function App() {
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 min-w-0">
             <span className="font-semibold text-[15px] tracking-tight">Quarterly portfolio valuation engine</span>
             {/* Which file produced these numbers is the first thing to check on a re-run, but the
-                name is long enough to shove the views across the bar; it lives on the hover. */}
-            <span className="chip no-dot disp-NONE hint" title={`${m.input_file} · ${m.quarter_label}`}>
-              File
-            </span>
+                name is long enough to shove the views across the bar; it opens on a click instead. */}
+            <details className="filechip">
+              <summary className="chip no-dot disp-NONE" title="The workbook this run read">
+                File
+              </summary>
+              <div className="filechip-panel card">
+                <div className="mono text-[12px] text-ink break-all">{m.input_file}</div>
+                <div className="text-[11px] text-muted mt-1">
+                  {m.quarter_label} · <span className="mono" title="SHA-256 of the workbook, byte for byte">{shortRef(m.input_sha256, 12)}</span>
+                </div>
+              </div>
+            </details>
           </div>
           <nav className="flex flex-wrap gap-1 ml-2" aria-label="Views">
             {VIEWS.map((v) => (

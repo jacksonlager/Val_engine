@@ -100,18 +100,11 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
   const askedLive = rep.provider === "live";
   // the requested source and the one that answered are worth a reviewer's attention only when they differ
   const mismatch = askedLive !== rep.reached_live;
-  const names = useMemo(() => new Set(rep.sectors.flatMap((s) => s.constituents.map((c) => c.ticker))).size, [rep]);
   const synthetic = rep.synthetic === true || rep.provider === "synthetic" || rep.source.startsWith("synthetic:");
   const caveats = useMemo(() => qualityCaveats(rep), [rep]);
   const nCaveats = caveats.filter((c) => !c.ok).length;
-  const asOf = shortDate(rep.priced_as_of ?? rep.as_of);
 
-  // 1. how much of the book is screened against observed multiples
-  const positions = rep.sectors.reduce((t, s) => t + s.positions, 0);
-  const livePositions = rep.sectors.filter((s) => s.live).reduce((t, s) => t + s.positions, 0);
-  const liveSectors = rep.sectors.filter((s) => s.live).length;
-  const coverage = positions ? livePositions / positions : 0;
-  // 2. what the multiples did this quarter, weighted by the positions that sit under each sector
+  // what the multiples did this quarter, weighted by the positions that sit under each sector
   const moved = rep.sectors.filter((s) => s.qoq_pct !== null && s.positions > 0);
   const wsum = moved.reduce((t, s) => t + s.positions, 0);
   const wavg = wsum ? moved.reduce((t, s) => t + (s.qoq_pct as number) * s.positions, 0) / wsum : null;
@@ -120,8 +113,6 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
   const byMove = [...moved].sort((x, y) => (y.qoq_pct as number) - (x.qoq_pct as number));
   const top = byMove[0];
   const bottom = byMove[byMove.length - 1];
-  // 3. whether the numbers rest on priced names
-  const priced = distinctPriced(rep).length;
 
   return (
     <div className="space-y-3">
@@ -197,11 +188,11 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
         />
       </div>
 
-      <p className="text-[11px] text-muted mt-2 mb-0 leading-snug">
-        {rep.reached_live
-          ? `${pct(coverage, 0)} of positions screened against live multiples · ${liveSectors} of ${rep.sectors.length} sectors on live data · ${priced} of ${names} comparables priced as of ${asOf}`
-          : `Illustrative multiples only · ${rep.sectors.length} sectors · no live feed answered`}
-      </p>
+      {!rep.reached_live && (
+        <p className="text-[11px] text-[var(--review-text)] mt-2 mb-0 leading-snug">
+          Illustrative multiples only · {rep.sectors.length} sectors · no live feed answered
+        </p>
+      )}
       {n > 0 && (
         <div className="text-[12px]">
           <button
@@ -976,8 +967,45 @@ function CalibrationCard({ run, rep, onGoto }: { run: ValuationRun; rep: MarketR
   );
 }
 
+function useMarket(mode: Mode, runId: string | undefined) {
+  const r = useAsync(() => loadMarket(mode), [mode, runId]);
+  return { ...r, errorStatus: r.errorStatus };
+}
+
+/** What went wrong and the one thing that fixes it, in the reader's words. The raw error stays
+    under Technical details. Nothing in the valuation depends on this page: it only shows where the
+    sector multiples came from. */
+function marketFailure(mode: Mode, status: number | undefined): { title: string; what: string; fix: string } {
+  const aside = " Nothing else in the valuation depends on this page.";
+  if (mode === "static")
+    return {
+      title: "This export has no market feed",
+      what: "The sector comparables were not included when this file was built, so the page cannot show where the multiples came from." + aside,
+      fix: "Rebuild the export with `hc-valuation build`, or open the served dashboard with `hc-valuation run`.",
+    };
+  if (status === 404)
+    return {
+      title: "No workbook is loaded yet",
+      what: "The server has no valuation run to report on — this happens right after a reset, or before the first upload finishes." + aside,
+      fix: "Upload the quarter's workbook from the Activity tab. This page fills in on its own when the run completes.",
+    };
+  if (status === 0)
+    return {
+      title: "The dashboard server is not answering",
+      what: "The page is open but nothing is listening behind it — the `hc-valuation run` process has stopped or was never started." + aside,
+      fix: "In a terminal, from the Val_engine folder: `hc-valuation run` — then reload this page.",
+    };
+  return {
+    title: "The server could not build the market feed",
+    what: "The dashboard is running but hit an error assembling the sector comparables." + aside,
+    fix: "Restart with `hc-valuation run`. If it happens again, rebuild the comps cache with `hc-valuation market --provider live --refresh` and reload.",
+  };
+}
+
 export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationRun; onGoto?: (name: string) => void }) {
-  const { data: rep, error, loading } = useAsync(() => loadMarket(mode), [mode]);
+  // Re-fetched whenever the run changes (an upload after a reset, a rerun after a decision), so a
+  // feed that was not there yet fills in on its own once it is; Retry covers everything else.
+  const { data: rep, error, errorStatus, loading, refetch } = useMarket(mode, run?.manifest.run_id);
   const [selected, setSelected] = useState<string | null>(null);
 
   // default to the sector with the most portfolio positions (the API's first row)
@@ -985,33 +1013,28 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
     if (rep && (selected === null || !rep.sectors.some((s) => s.sector === selected))) setSelected(rep.sectors[0]?.sector ?? null);
   }, [rep, selected]);
 
-  if (error)
+  if (loading && !rep) return <div className="p-8 text-muted text-[12px]">Loading the market feed…</div>;
+  if (error) {
+    const cause = marketFailure(mode, errorStatus);
     return (
       <div className="p-8 max-w-[640px] mx-auto">
-        <h1 className="font-semibold text-[16px] mb-2">Could not load the market feed</h1>
-        <p className="text-[12px] text-ink2 mb-4">
-          The sector comparables are not available in this copy of the dashboard, so this page cannot show where the market multiples came
-          from. Nothing else in the valuation depends on it. Ask whoever produced this dashboard to rebuild it with the market feed included.
+        <h1 className="font-semibold text-[16px] mb-2">{cause.title}</h1>
+        <p className="text-[12px] text-ink2 mb-2">{cause.what}</p>
+        <p className="text-[12px] text-ink mb-4">
+          <b>To fix it:</b> {cause.fix}
         </p>
+        {mode === "served" && (
+          <button type="button" className="btn mb-4" onClick={refetch}>
+            Retry
+          </button>
+        )}
         <details>
           <summary className="text-[11px] text-muted cursor-pointer select-none">Technical details</summary>
           <p className="text-ink2 mono text-[11px] mt-1.5 mb-2">{error}</p>
-          <p className="text-[11px] text-muted">
-            {mode === "static" ? (
-              <>
-                This export predates the market feed. Rebuild it with <span className="mono">hc-valuation build</span> on an engine that inlines{" "}
-                <span className="mono">window.__HC_MARKET__</span>, or serve the dashboard with <span className="mono">hc-valuation run</span>.
-              </>
-            ) : (
-              <>
-                The server did not answer <span className="mono">GET /api/market</span>. It may predate the market feed; restart it with{" "}
-                <span className="mono">hc-valuation run --provider live</span> (or <span className="mono">stub</span>) to expose the sector comps.
-              </>
-            )}
-          </p>
         </details>
       </div>
     );
+  }
   if (loading || !rep) return <div className="p-8 text-muted">Loading market feed…</div>;
 
   const sector = rep.sectors.find((s) => s.sector === selected) ?? rep.sectors[0];

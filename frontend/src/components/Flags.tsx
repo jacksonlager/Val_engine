@@ -350,10 +350,8 @@ function ConfirmModal({
   const s = choice.kind === "option" || choice.kind === "step" ? choice.s : null;
   const step = choice.kind === "step" ? choice.rec : null;
   const acts = orderedActionable(c);
-  // What this decision closes. The chooser proposes it; the reviewer signs it, and can untick.
-  const [settles, setSettles] = useState<string[]>(
-    step ? acts.filter((x) => step.covers.includes(x.rule_id)).map((x) => x.rule_id) : f ? [f.rule_id] : [],
-  );
+  // What this decision closes: every open finding on the position, named on the ledger record.
+  const [settles] = useState<string[]>(acts.length ? acts.map((x) => x.rule_id) : f ? [f.rule_id] : []);
   const rec = !step && s && f && f.recommendation && f.recommendation.key === s.key ? f.recommendation : null;
   // Reads inside the ledger sentence, so it is a phrase and not a label: "… (Suggested by
   // Claude (claude-sonnet-4-5); ledger reference X-106.)"
@@ -397,7 +395,6 @@ function ConfirmModal({
         {rec && <SourceChip rec={rec} />}
         {step && <StepSource rec={step} />}
         {choice.kind === "manual" && <span className="chip disp-REVIEW no-dot">Manual entry</span>}
-        {choice.kind === "price" && <span className="chip disp-CLEAR no-dot">Evidence attached</span>}
       </div>
       <ul className="flag-points mb-3">
         {points.map((r, i) => (
@@ -431,33 +428,6 @@ function ConfirmModal({
             and the ledger will say so.
           </span>
         </label>
-      )}
-      {acts.length > 1 && (
-        <div className="settles">
-          <div className="eyebrow-sm">What this decision settles</div>
-          {acts.map((x, i) => (
-            <label key={x.rule_id} className="settles-row">
-              <input
-                type="checkbox"
-                checked={settles.includes(x.rule_id)}
-                onChange={(e) =>
-                  setSettles((v) => (e.target.checked ? [...v, x.rule_id] : v.filter((r) => r !== x.rule_id)))
-                }
-              />
-              <span>
-                <b>{i + 1}.</b> {flagName(x, names)}
-                {step && step.covers.includes(x.rule_id) && x.rule_id !== step.rule_id && (
-                  <span className="text-muted"> — the step settles this too</span>
-                )}
-              </span>
-            </label>
-          ))}
-          <div className="text-[11px] text-muted mt-1">
-            {settles.length < acts.length
-              ? `${acts.length - settles.length} finding${acts.length - settles.length === 1 ? " stays" : "s stay"} open; the position remains under review.`
-              : "Every open finding on this position is closed by this decision."}
-          </div>
-        </div>
       )}
       <Field label="Approver">
         <input className="input w-full" value={approver} onChange={(e) => setApprover(e.target.value)} autoFocus />
@@ -779,7 +749,6 @@ export function PositionStep({
   const acts = orderedActionable(c);
   const rec = c.recommendation;
   const lead = rec ? acts.find((f) => f.rule_id === rec.rule_id) : acts[0];
-  const decided = lead ? decidedOn(c, lead) : null;
   if (!lead) return null;
   const chosen = (rec && lead.suggestions.find((s) => s.key === rec.key)) ?? lead.suggestions[0];
   if (!chosen) return null;
@@ -803,20 +772,6 @@ export function PositionStep({
     .filter((f): f is Flag => f !== undefined);
   const covered = coveredFlags.map((f) => flagName(f, names));
   const stillOpen = acts.length - covered.length;
-
-  if (decided) {
-    return (
-      <div className="decided">
-        <div className="flex items-center gap-2">
-          <span className="chip disp-CLEAR">Decision recorded</span>
-          <span className="text-[12.5px] font-semibold leading-snug">{decided.s?.label ?? decided.how ?? "Decision recorded."}</span>
-        </div>
-        <div className="text-[11.5px] text-muted mt-1">
-          Recorded $<span className="num text-ink2">{musd(decided.booked)}</span>M · {decided.approver} · {isoDate(decided.at)}
-        </div>
-      </div>
-    );
-  }
 
   const basis = price ? null : calcBasis(c, chosen);
   const sources = price ? [] : sourceRows(c, chosen);
@@ -984,7 +939,6 @@ export function DecisionBar({
   const acts = orderedActionable(c);
   const lead = (rec ? acts.find((x) => x.rule_id === rec.rule_id) : undefined) ?? f;
   const chosen = (rec && lead.suggestions.find((x) => x.key === rec.key)) ?? lead.suggestions[0];
-  const decided = decidedOn(c, lead);
   const price = needsClosingPrice(c, lead);
   const value = Number(text.replace(/,/g, ""));
   const ok = text.trim() !== "" && Number.isFinite(value) && value >= 0;
@@ -997,11 +951,7 @@ export function DecisionBar({
   return (
     <div className="decision-bar">
       <div className="decision-actions">
-        {decided ? (
-          <WriteButton disabledReason={writeDisabled} className="btn" onClick={() => setOverriding((v) => !v)}>
-            Change decision
-          </WriteButton>
-        ) : price ? (
+        {price ? (
           <WriteButton disabledReason={writeDisabled} className="btn btn-primary" onClick={() => setPricing(true)} title="Enter the quarter-end market cap or price and its source">
             Add closing price
           </WriteButton>
@@ -1015,16 +965,14 @@ export function DecisionBar({
             {ACCEPT_LABEL}
           </WriteButton>
         ) : null}
-        {!decided && (
-          <WriteButton
-            disabledReason={writeDisabled}
-            className={`btn btn-override${overriding ? " active" : ""}`}
-            onClick={() => setOverriding((v) => !v)}
-            title="Record a different number under your name; the reason is required and the ledger says the input was still missing"
-          >
-            Override
-          </WriteButton>
-        )}
+        <WriteButton
+          disabledReason={writeDisabled}
+          className={`btn btn-override${overriding ? " active" : ""}`}
+          onClick={() => setOverriding((v) => !v)}
+          title="Record a different number under your name; the reason is required and the ledger says the input was still missing"
+        >
+          Override
+        </WriteButton>
         {overriding && (
           <form
             className="override-entry"
@@ -1172,7 +1120,7 @@ export function FlagActionList({
   flags,
   writeDisabled,
   onChanged,
-  covered,
+  
 }: {
   c: CompanyResult;
   flags: Flag[];
@@ -1200,32 +1148,6 @@ export function FlagActionList({
             <div className="finding-body">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span className="text-[12.5px] font-semibold leading-snug">{flagName(f, names)}</span>
-                {addressedByDecision(c, f) ? (
-                  <span
-                    className="chip disp-CLEAR no-dot"
-                    style={{ fontSize: 10 }}
-                    title={`A decision on file names this rule${c.override?.approver ? `, recorded by ${c.override.approver}` : ""}. It is no longer waiting on anyone.`}
-                  >
-                    Decision recorded
-                  </span>
-                ) : (
-                  <>
-                    {f.severity === "BLOCK" && (
-                      <span className="chip disp-BLOCK no-dot" style={{ fontSize: 10 }} title="A decision is required before the quarter can be published">
-                        Decision required
-                      </span>
-                    )}
-                    {flags.length > 1 && covered?.includes(f.rule_id) && (
-                      <span
-                        className="chip disp-MONITOR no-dot"
-                        style={{ fontSize: 10 }}
-                        title="The suggested next step speaks to this finding. A suggestion is a proposal, not a resolution — nothing is settled until a decision is recorded, and a missing input has to arrive first."
-                      >
-                        {pendingLabel(f)}
-                      </span>
-                    )}
-                  </>
-                )}
               </div>
               <FlagPoints f={f} plain limit={3} className="mt-1" />
               {unverifiedNote(f) && <p className="finding-unverified m-0 mt-1">{unverifiedNote(f)}</p>}

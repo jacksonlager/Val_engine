@@ -253,14 +253,14 @@ export function WriteButton({
 }
 
 export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
-  const [state, set] = useState<{ data?: T; error?: string; loading: boolean }>({ loading: true });
+  const [state, set] = useState<{ data?: T; error?: string; errorStatus?: number; loading: boolean }>({ loading: true });
   const [tick, setTick] = useState(0);
   useEffect(() => {
     let alive = true;
     set((s) => ({ ...s, loading: true }));
     fn().then(
       (data) => alive && set({ data, loading: false }),
-      (e) => alive && set({ error: String(e?.message ?? e), loading: false }),
+      (e) => alive && set({ error: String(e?.message ?? e), errorStatus: typeof e?.status === "number" ? e.status : undefined, loading: false }),
     );
     return () => {
       alive = false;

@@ -74,7 +74,7 @@ export function FundsView({ run, gotoCompany }: { run: ValuationRun; gotoCompany
               <td className="r num">{musdTile(run.totals.realized_quarter)}</td>
               <td className="r num">{musdTile(run.totals.realized_cumulative)}</td>
               <td className="r num text-muted" colSpan={3}>
-                top-10 concentration {pct(run.totals.top10_concentration)}
+                top-10 concentration {pct(run.totals.top10_concentration)} of booked NAV
               </td>
               <td />
             </tr>

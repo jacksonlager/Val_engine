@@ -693,3 +693,11 @@ pre.json { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11p
 .st-hot { stroke: var(--ink); } .st-blk { stroke: var(--block); } .st-rev { stroke: var(--review); } .st-rdy { stroke: var(--clear); }
 .st-dash { stroke-dasharray: 5 4; }
 .fl-cur { fill: currentColor; }
+
+/* The workbook name in the header: a chip that opens, so a long filename never pushes the views. */
+.filechip { position: relative; }
+.filechip > summary { list-style: none; cursor: pointer; }
+.filechip > summary::-webkit-details-marker { display: none; }
+.filechip > summary::marker { content: ""; }
+.filechip[open] > summary { background: var(--ground); }
+.filechip-panel { position: absolute; left: 0; top: calc(100% + 4px); z-index: 40; padding: 8px 10px; min-width: 220px; max-width: 380px; box-shadow: 0 6px 20px rgb(0 0 0 / 12%); }

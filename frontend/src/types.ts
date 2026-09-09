@@ -40,6 +40,8 @@ export interface MarkStep {
   new_value: number;
   rationale: string;
   evidence: EventRef | null;
+  /** The arithmetic behind new_value, operands included; null on a step that carries the mark unchanged. */
+  formula?: string | null;
 }
 
 /** One way a reviewer could resolve a flag, with the mark it would book ($M). Accepting it

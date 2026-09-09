@@ -89,6 +89,12 @@ function StepRow({ s, last, company }: { s: MarkStep; last: boolean; company: st
         )}
       </div>
       <p className="text-ink2 mt-0.5 leading-snug whitespace-normal">{s.rationale}</p>
+      {/* The sum itself, operands and all — the line an auditor reads to see where the figure came from. */}
+      {s.formula && (
+        <p className="mono text-[11.5px] text-ink mt-1 mb-0 leading-snug whitespace-normal" title="How this step's figure was calculated">
+          = {s.formula}
+        </p>
+      )}
       <StepInputs s={s} company={company} />
     </li>
   );

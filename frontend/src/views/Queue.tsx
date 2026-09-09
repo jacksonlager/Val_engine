@@ -136,15 +136,24 @@ export function QueueView({
         {Math.abs(t.booked_nav - t.proposed_nav) > 1e-6 && (
           <Headline label="After recorded decisions" value={musdUnit(t.booked_nav)} sub="not approved until published" />
         )}
-        {/* what moved it — these three tie the two fair values together */}
-        <div className="flex flex-wrap gap-x-5 gap-y-3 items-start pl-6 border-l border-hair">
+        {/* what moved it. prior + new investment + valuation change − realized = the BOOKED figure
+            (valuation change is measured on booked marks, run.py), so once a decision is on the
+            ledger this group bridges to "After recorded decisions", not to the proposed tile. */}
+        <div className="flex flex-wrap gap-x-5 gap-y-3 items-start pl-6 border-l border-hair" title={
+          Math.abs(t.booked_nav - t.proposed_nav) > 1e-6
+            ? `Prior ${musdUnit(t.prior_nav)} + ${musdUnit(t.new_investment)} ${musdSigned(t.valuation_change)} − ${musdUnit(t.realized_quarter)} = ${musdUnit(t.booked_nav)} after recorded decisions`
+            : `Prior ${musdUnit(t.prior_nav)} + ${musdUnit(t.new_investment)} ${musdSigned(t.valuation_change)} − ${musdUnit(t.realized_quarter)} = ${musdUnit(t.proposed_nav)} proposed`
+        }>
           <Headline label="New investment" value={musdUnit(t.new_investment)} sub="cash deployed this quarter" />
           <div className="text-muted text-[20px] pt-4">+</div>
           <Headline
             label="Valuation change"
             value={musdSigned(t.valuation_change)}
             cls={signClass(t.valuation_change)}
-            sub={t.written_off > 0.05 ? `including ${musdUnit(t.written_off)} written off` : "the judgment half of the move"}
+            sub={
+              (t.written_off > 0.05 ? `including ${musdUnit(t.written_off)} written off` : "the judgment half of the move")
+              + (Math.abs(t.booked_nav - t.proposed_nav) > 1e-6 ? " · on booked marks" : "")
+            }
           />
           <div className="text-muted text-[20px] pt-4">−</div>
           <Headline label="Realized in quarter" value={musdUnit(t.realized_quarter)} sub="cash returned to the funds" />

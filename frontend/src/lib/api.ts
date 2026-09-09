@@ -19,9 +19,35 @@ export interface Loaded {
 export const STATIC_REASON =
   "Static report: this file was exported without an API. Run `hc-valuation run` to serve the dashboard and record decisions.";
 
+/** A failed GET, with enough on it for a page to say what to do: the HTTP status (0 when the
+    server could not be reached at all) and the server's own message when it sent one. */
+export class LoadError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function getJson<T>(url: string): Promise<T> {
-  const r = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!r.ok) throw new Error(`${url} → ${r.status} ${r.statusText}`);
+  let r: Response;
+  try {
+    r = await fetch(url, { headers: { Accept: "application/json" } });
+  } catch (e) {
+    throw new LoadError(`${url} → no response from the server (${String((e as Error)?.message ?? e)})`, 0);
+  }
+  if (!r.ok) {
+    let detail = `${r.status} ${r.statusText}`;
+    try {
+      const body = await r.json();
+      const d = body?.detail ?? body;
+      const msg = typeof d === "string" ? d : d?.message;
+      if (msg) detail = `${r.status}: ${msg}`;
+    } catch {
+      /* not JSON */
+    }
+    throw new LoadError(`${url} → ${detail}`, r.status);
+  }
   return (await r.json()) as T;
 }
 
