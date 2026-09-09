@@ -16,6 +16,7 @@ import {
   FlagNoteList,
   PositionStep,
   ReadyOverrideBar,
+  addressedByDecision,
   orderedActionable,
   plainPoint,
   rdClass,
@@ -152,7 +153,10 @@ export function PositionCard({
   const events = activitySteps(c);
   const acts = orderedActionable(c);
   const notes = c.flags.filter((f) => f.severity === "MONITOR");
-  const lead = acts[0];
+  // A finding the decision on record already answers is no longer a step: once the recommended
+  // mark is accepted the card carries the plain Override bar, like any other Ready position.
+  const undecided = acts.filter((f) => !addressedByDecision(c, f));
+  const lead = undecided[0];
   const headline = exceptionHeadline(c, acts, names);
   const [evidence, setEvidence] = useState(false);
 
@@ -224,13 +228,15 @@ export function PositionCard({
             </div>
             {/* the recommendation sits on its own quiet ground, and the verb that acts on it sits
                 directly beneath — one prominent button, in the same place on every card */}
-            <div className="resolve-col resolve-rec">
-              <div className="eyebrow-sm">Suggested next step</div>
-              <PositionStep c={c} writeDisabled={writeDisabled} onChanged={onChanged} apply={false} />
-              <div className="rec-act">
-                {lead && <DecisionBar c={c} f={lead} writeDisabled={writeDisabled} onChanged={onChanged} />}
+            {lead && (
+              <div className="resolve-col resolve-rec">
+                <div className="eyebrow-sm">Suggested next step</div>
+                <PositionStep c={c} writeDisabled={writeDisabled} onChanged={onChanged} apply={false} />
+                <div className="rec-act">
+                  <DecisionBar c={c} f={lead} writeDisabled={writeDisabled} onChanged={onChanged} />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

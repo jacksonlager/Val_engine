@@ -355,12 +355,8 @@ function ConfirmModal({
   const rec = !step && s && f && f.recommendation && f.recommendation.key === s.key ? f.recommendation : null;
   // Reads inside the ledger sentence, so it is a phrase and not a label: "… (Suggested by
   // Claude (claude-sonnet-4-5); ledger reference X-106.)"
-  const chooser = step ?? rec;
-  const who = chooser
-    ? chooser.source === "claude"
-      ? `Suggested by Claude${chooser.model ? ` (${chooser.model})` : ""}`
-      : "The policy default"
-    : "An option the engine offered";
+  // The ledger sentence names the reference only; who suggested the option is on the record's
+  // source_suggestion field, not in the reason a reader sees.
   // How the figure was arrived at travels onto the ledger with the decision, cap included.
   const basisText = s ? calcBasis(c, s) : null;
   const booked = choiceBooked(c, choice);
@@ -369,7 +365,7 @@ function ConfirmModal({
   // An engine option arrives with its reasoning; the proposal with the engine's; a typed number
   // with nothing — the person who chose it is the only one who knows why, and must say so.
   const [reason, setReason] = useState(
-    s ? `${[s.label, ...s.reasons, basisText ?? ""].map(fullStop).filter(Boolean).join(" ")} (${who}; ledger reference ${ref}.)`
+    s ? `${[s.label, ...s.reasons, basisText ?? ""].map(fullStop).filter(Boolean).join(" ")} (Ledger reference ${ref}.)`
       : choice.kind === "proposed" ? `Accepted the engine's proposed mark of $${musd(c.proposed_mark)}M on "${finding}" (ledger reference ${ref}); no adjustment.`
       : choice.kind === "price"
         ? `Quarter-end market cap of $${choice.evidence.market_cap_musd.toLocaleString(undefined, { maximumFractionDigits: 1 })}M at ${choice.evidence.as_of} from ${choice.evidence.source}` +
@@ -1078,7 +1074,7 @@ export function ReadyOverrideBar({
           onClick={() => setOverriding((v) => !v)}
           title="Record a different mark under your name; the reason is required"
         >
-          {decided ? "Change decision" : "Override"}
+          Override
         </WriteButton>
         {overriding && (
           <form
