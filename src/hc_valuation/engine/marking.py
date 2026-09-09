@@ -16,6 +16,7 @@ from ..config import RuleConfig
 from .inputs import Event, EventType, Position, Status
 from .models import MarketData, OpenItem, OpenItemKind, Severity
 from .registry import rule
+from .rerating import SAME_SET, sector_rerating
 from .state import Suggest, Working
 from .textscreen import any_term_in
 
@@ -1786,14 +1787,23 @@ def _m080_doc(w, e, cfg, market):  # pragma: no cover - post-roll step applied b
 def calibrate_stale(w: Working, cfg: RuleConfig, market: MarketData) -> None:
     """Writes an *alternative* mark; never touches equity_mark.
 
-    factor = sector multiple now / sector multiple in the round month, bounded ±bound_pct. With
-    `require_live_history` (the default) the sector's comps must be an observed public history
-    (source `live:*`); the vendor-shaped fixture trends too hard to move a mark and is never
-    used. The round month is read at the nearest month with a basket value inside
-    `round_month_tolerance`, and the month actually used is recorded on the step."""
+    factor = how the sector's public comps re-rated from the round month to the measurement
+    month, bounded ±bound_pct. The re-rating is measured name by name over the same names
+    (engine/rerating.py): each constituent priced at both ends contributes its own now ÷ then,
+    and the sector's factor is the median of those — never one basket median divided by another,
+    which with five-name baskets compares two different companies and moves whenever a name
+    enters the basket. Each end is a name's median over ±`anchor_window_months` so one
+    month-end print does not set the number. With `require_live_history` (the default) the
+    sector's comps must be an observed public history (source `live:*`); the vendor-shaped
+    fixture carries no names and never calibrates. When the round month itself has no values
+    the nearest month inside `round_month_tolerance` is used, and the month actually used is
+    recorded on the step."""
     c = cfg.marking.calibration
     # the same exposure test as the multiple screens and the sensitivity: Level 3, with an ARR above the floor
     if not c.enabled or w.terminal or w.listed or w.pos.arr is None or w.pos.arr < cfg.exceptions.multiple.min_arr:
+        return
+    # a signed deal or the buyer's shares price the position now; a comps ratio has nothing to calibrate
+    if any(i.kind in (OpenItemKind.PENDING_ACQUISITION, OpenItemKind.ACQUIRER_SHARES) for i in w.open_items):
         return
     md = cfg.quarter.measurement_date
     age = months_between(w.staleness_anchor, md)
@@ -1807,26 +1817,49 @@ def calibrate_stale(w: Working, cfg: RuleConfig, market: MarketData) -> None:
         return
     k_now = md.strftime("%Y-%m")
     k_round = w.staleness_anchor.strftime("%Y-%m")
-    k_then = _nearest_month(hist, k_round, c.round_month_tolerance)
-    if k_now not in hist or k_then is None or not hist[k_then]:
-        return
-    raw = hist[k_now] / hist[k_then]
+    rr = sector_rerating(market, w.pos.sector, k_round, k_now, window=c.anchor_window_months, min_names=c.min_same_set_names)
+    k_then = k_round
+    if rr is None:
+        k_then = _nearest_month(hist, k_round, c.round_month_tolerance)
+        if k_then is None or k_then == k_round:
+            return
+        rr = sector_rerating(market, w.pos.sector, k_then, k_now, window=c.anchor_window_months, min_names=c.min_same_set_names)
+        if rr is None:
+            return
+    raw = rr.factor
     factor = max(1 - c.bound_pct, min(1 + c.bound_pct, raw))
     bounded = abs(raw - factor) > 1e-9
     counts = market.comp_counts.get(w.pos.sector) or {}
-    w.alternative_marks["calibrated_to_comps"] = round(w.equity_mark * factor, 6)
-    w.step("M-080", V, {"comp_multiple_now": hist[k_now], "comp_multiple_at_round": hist[k_then], "round_month": k_round,
+    alt = round(w.equity_mark * factor, 6)
+    w.alternative_marks["calibrated_to_comps"] = alt
+    below_cost = w.invested > 0 and alt < w.invested
+    same_set = rr.method == SAME_SET
+    how = (f"median of {rr.n_names} names' own moves ({rr.formula()})" if same_set
+           else f"basket median {hist.get(k_then, 0):.2f}× → {hist.get(k_now, 0):.2f}× (no per-name history: {rr.method})")
+    priced = market.priced_as_of
+    w.step("M-080", V, {"comp_multiple_now": hist.get(k_now), "comp_multiple_at_round": hist.get(k_then), "round_month": k_round,
                         "comp_month_used": k_then, "factor_raw": round(raw, 4), "factor_bounded": round(factor, 4),
                         "bound_hit": bounded, "age_months": age, "sector": w.pos.sector, "comps_source": comp.source,
-                        "n_constituents_at_round": counts.get(k_then), "n_constituents_now": counts.get(k_now)},
+                        "n_constituents_at_round": counts.get(k_then), "n_constituents_now": counts.get(k_now),
+                        "method": rr.method, "window_months": rr.window, "n_names": rr.n_names,
+                        "names": [{"ticker": n.ticker, "then": n.then, "now": n.now, "ratio": n.ratio} for n in rr.names],
+                        "priced_as_of": priced.isoformat() if priced else None,
+                        "below_invested_cost": below_cost, "invested": round(w.invested, 6)},
            w.proposed_mark, w.proposed_mark,   # chain invariant compares proposed (equity + note leg), not equity alone
-           f"Comps calibration (alternative only): sector {w.pos.sector} multiple {hist[k_then]:.1f}× in {k_then} → "
-           f"{hist[k_now]:.1f}× now, {raw - 1:+.1%} over {age} months"
+           f"Comps calibration (alternative only): {w.pos.sector} comps re-rated ×{raw:.3f} ({raw - 1:+.1%}) from {k_then} to "
+           f"{k_now}, as the {how}; {age} months since the round"
+           + (f"; {k_now} priced on {priced.isoformat()}, not a month-end" if priced and priced.strftime("%Y-%m") == k_now and priced != _month_end(md) else "")
            + (f" — CAPPED at {factor - 1:+.0%} by the policy limit of ±{c.bound_pct:.0%} (uncapped it would be ${w.equity_mark * raw:.2f}M)" if bounded else "")
-           + f". Calibrated alternative ${w.equity_mark * factor:.2f}M recorded; base mark unchanged.",
-           formula=f"{hist[k_now]:.2f}× ÷ {hist[k_then]:.2f}× = {raw:.3f}"
-                   + (f" → cap: policy limit ±{c.bound_pct:.0%}, so {raw:.3f} becomes {factor:.2f} (uncapped ${w.equity_mark:.2f}M × {raw:.3f} = ${w.equity_mark * raw:.2f}M)" if bounded else " (within the ±{:.0%} policy limit, no cap)".format(c.bound_pct))
-                   + f" · ${w.equity_mark:.2f}M × {factor:.2f} = ${w.equity_mark * factor:.2f}M as an alternative; base mark unchanged")
+           + f". Calibrated alternative ${alt:.2f}M recorded; base mark unchanged"
+           + (f"; it sits below invested cost of ${w.invested:.2f}M" if below_cost else "") + ".",
+           formula=(rr.formula() if same_set else f"{hist.get(k_now, 0):.2f}× ÷ {hist.get(k_then, 0):.2f}× = {raw:.3f}")
+                   + (f" → cap: policy limit ±{c.bound_pct:.0%}, so {raw:.3f} becomes {factor:.4f} (uncapped ${w.equity_mark:.2f}M × {raw:.3f} = ${w.equity_mark * raw:.2f}M)" if bounded else " (within the ±{:.0%} policy limit, no cap)".format(c.bound_pct))
+                   + f" · ${w.equity_mark:.2f}M × {factor:.4f} = ${alt:.2f}M as an alternative; base mark unchanged")
+
+
+def _month_end(d: date) -> date:
+    import calendar
+    return d.replace(day=calendar.monthrange(d.year, d.month)[1])
 
 
 def _nearest_month(hist: dict[str, float], key: str, tolerance: int) -> str | None:

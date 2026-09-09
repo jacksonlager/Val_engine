@@ -22,7 +22,7 @@ export const READINESSES: string[] = ["Blocked", "Needs Review", "Ready"];
 // engine/inputs.py Status enum — values as they appear in the workbook.
 export type Status = "Active" | "Acquired" | "Shut Down" | string;
 
-export type OpenItemKind = "convertible_note" | "pending_acquisition" | "term_sheet" | "ipo_lockup";
+export type OpenItemKind = "convertible_note" | "pending_acquisition" | "term_sheet" | "ipo_lockup" | "acquirer_shares" | "unconfirmed_exit" | "debt";
 
 export interface EventRef {
   sheet: string;
@@ -184,6 +184,9 @@ export interface CompanyResult {
   staleness_anchor: string; // ISO date
   fv_level: number | null; // 1 | 2 | 3 | null for zero positions
   multiple_exposed: boolean; // Level 3 with ARR at or above the screening floor: the marks a multiple regime drives
+  /** the share of the equity leg a multiple regime drives: 1 for a round-priced mark, the break-branch weight
+      of a probability-weighted deal mark, 0 for a deal price or the buyer's shares (absent from older runs) */
+  multiple_exposed_share?: number;
 
   arr: number | null;
   arr_growth: number | null;
@@ -311,6 +314,11 @@ export interface SectorMove {
   positions: number;
   live: boolean;
   source: string;
+  n_prior?: number | null;
+  n_now?: number | null;
+  /** how qoq_pct was measured: the same-set median of each name's own move, or the ratio of two basket medians */
+  method?: string;
+  names?: [string, number, number, number][];   // (ticker, then, now, now ÷ then)
 }
 
 export interface CompsMove {
@@ -323,6 +331,8 @@ export interface CompsMove {
   nav_if_marked_with_comps: number;
   sectors: SectorMove[];
   all_live: boolean;
+  /** the price date behind now_month when it is not a month-end (a quarter still running) */
+  priced_as_of?: string | null;
 }
 
 export interface OverrideRequest {

@@ -531,6 +531,23 @@ class PublicCompsProvider:
         """How many constituents stood behind each month's basket value (empty for a fixture sector)."""
         return dict(self._live_counts.get(sector, {}))
 
+    def constituent_history(self, sector: str) -> dict[str, dict[str, float]]:
+        """Each priced name's own monthly EV/TTM revenue, for a live sector — what a re-rating is
+        measured on name by name (engine/rerating.py). Empty for a fixture sector."""
+        if sector not in self._live_history:
+            return {}
+        return {t: {m: v for m, v in self._constituents[t].monthly.items() if math.isfinite(v) and v > 0}
+                for t in self.baskets.sectors.get(sector, ()) if self._constituents[t].status == "ok"}
+
+    @property
+    def priced_as_of(self) -> date | None:
+        """The day the measurement month's prices were taken (the fetch date): a month not yet
+        ended is priced mid-month, and every comparison with a true month-end must say so."""
+        try:
+            return date.fromisoformat(str(self.fetched_at or "")[:10])
+        except ValueError:
+            return None
+
     def sector_multiples(self, as_of: date) -> dict[str, SectorComp]:
         out: dict[str, SectorComp] = {}
         for sector in self.sectors:

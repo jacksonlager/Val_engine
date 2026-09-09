@@ -355,18 +355,21 @@ function ConfirmModal({
   const rec = !step && s && f && f.recommendation && f.recommendation.key === s.key ? f.recommendation : null;
   // Reads inside the ledger sentence, so it is a phrase and not a label: "… (Suggested by
   // Claude (claude-sonnet-4-5); ledger reference X-106.)"
-  const who = rec
-    ? rec.source === "claude"
-      ? `Suggested by Claude${rec.model ? ` (${rec.model})` : ""}`
+  const chooser = step ?? rec;
+  const who = chooser
+    ? chooser.source === "claude"
+      ? `Suggested by Claude${chooser.model ? ` (${chooser.model})` : ""}`
       : "The policy default"
     : "An option the engine offered";
+  // How the figure was arrived at travels onto the ledger with the decision, cap included.
+  const basisText = s ? calcBasis(c, s) : null;
   const booked = choiceBooked(c, choice);
   const gap = f !== null && missingInput(c, f) && choice.kind !== "price";
   const [acknowledged, setAcknowledged] = useState(false);
   // An engine option arrives with its reasoning; the proposal with the engine's; a typed number
   // with nothing — the person who chose it is the only one who knows why, and must say so.
   const [reason, setReason] = useState(
-    s ? `${[s.label, ...s.reasons].map(fullStop).filter(Boolean).join(" ")} (${who}; ledger reference ${ref}.)`
+    s ? `${[s.label, ...s.reasons, basisText ?? ""].map(fullStop).filter(Boolean).join(" ")} (${who}; ledger reference ${ref}.)`
       : choice.kind === "proposed" ? `Accepted the engine's proposed mark of $${musd(c.proposed_mark)}M on "${finding}" (ledger reference ${ref}); no adjustment.`
       : choice.kind === "price"
         ? `Quarter-end market cap of $${choice.evidence.market_cap_musd.toLocaleString(undefined, { maximumFractionDigits: 1 })}M at ${choice.evidence.as_of} from ${choice.evidence.source}` +
@@ -428,6 +431,18 @@ function ConfirmModal({
             and the ledger will say so.
           </span>
         </label>
+      )}
+      {settles.length > 0 && f && (
+        <p className="text-[11.5px] text-ink2 leading-snug mt-0 mb-2">
+          Recorded against {settles.length === 1 ? "the finding" : `${settles.length} findings`}:{" "}
+          {settles
+            .map((id) => {
+              const g = c.flags.find((x) => x.rule_id === id);
+              return g ? flagName(g, names) : id;
+            })
+            .join(" · ")}
+          {settles.length > 1 && " — every open finding on this position is closed by this one decision."}
+        </p>
       )}
       <Field label="Approver">
         <input className="input w-full" value={approver} onChange={(e) => setApprover(e.target.value)} autoFocus />
@@ -633,12 +648,22 @@ function calcBasis(c: CompanyResult, s: Suggestion): string | null {
     const now = num_(i?.comp_multiple_now);
     const raw = num_(i?.factor_raw);
     const bounded = num_(i?.factor_bounded);
-    if (i === undefined || then === null || now === null || raw === null || bounded === null) return null;
+    if (i === undefined || raw === null || bounded === null) return null;
+    const n = typeof i.n_names === "number" ? i.n_names : null;
+    const how =
+      n !== null && n > 0
+        ? `the median of ${n} comparable names' own moves in ${String(i.sector ?? "the sector")}`
+        : then !== null && now !== null
+          ? `the ${String(i.sector ?? "sector")} basket median, ${then.toFixed(2)}× → ${now.toFixed(2)}×`
+          : `the ${String(i.sector ?? "sector")} comparables`;
     return (
-      `${String(i.sector ?? "Sector")} comparables moved ${then.toFixed(1)}× in ${monthLabel(String(i.comp_month_used))} to ` +
-      `${now.toFixed(1)}× at the measurement date, ${pct(raw - 1, 0, true)}` +
-      (i.bound_hit ? `, held to ${pct(bounded - 1, 0, true)} by the policy limit` : "") +
-      `. Applied to the $${musd(c.equity_mark)}M equity mark: $${musd(s.booked)}M.`
+      `Comparables re-rated ×${raw.toFixed(3)} (${pct(raw - 1, 1, true)}) from ${monthLabel(String(i.comp_month_used))} to the measurement ` +
+      `month, as ${how}` +
+      (i.bound_hit
+        ? `; policy holds the adjustment to ${pct(bounded - 1, 0, true)}, so ×${bounded.toFixed(4)} is used (uncapped: $${musd(c.equity_mark)}M × ${raw.toFixed(3)} = $${musd(c.equity_mark * raw)}M)`
+        : "") +
+      `. $${musd(c.equity_mark)}M equity mark × ${bounded.toFixed(4)} = $${musd(c.equity_mark * bounded)}M` +
+      (Math.abs(s.booked - c.equity_mark * bounded) > 0.005 ? ` + $${musd(s.booked - c.equity_mark * bounded)}M note leg at cost = $${musd(s.booked)}M.` : ".")
     );
   }
   if (alt === "structure_adjusted") {

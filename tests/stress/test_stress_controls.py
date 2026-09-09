@@ -650,7 +650,8 @@ def test_D3_malformed_reply_or_exception_falls_back_without_raising(run_real, tm
     # and through the run: every flag still carries one recommendation, the run is intact
     ch = _Fake(tmp_path / "run", RuntimeError("down"))
     out = recommend_run(run_real, ch, None)
-    assert out.manifest.recommender == f"claude:{ch.model}"
+    # the label says what chose: the model on the cards it answered, and how many fell back
+    assert out.manifest.recommender.startswith(f"claude:{ch.model}") and "policy default on" in out.manifest.recommender
     for c2 in out.companies:
         for g in c2.flags:
             if g.severity in ACTIONABLE and g.suggestions:

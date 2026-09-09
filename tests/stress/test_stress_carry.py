@@ -270,7 +270,7 @@ def test_same_multiple_on_a_25_month_round_is_x405_review(build):
     c = only(run)
     f = _assert_needs_review(c, "X-405", "X-201", "X-401")
     assert f.evidence["screens"] == ["X-401"] and f.evidence["months"] == 25.5
-    assert "50× revenue" in f.message
+    assert "50.0× revenue" in f.message
     keys = [s.key for s in f.suggestions]
     assert keys == ["as_proposed", "to_cost"], "calibrate is dropped when M-080 wrote no alternative"
     assert {s.key: s.booked for s in f.suggestions}["to_cost"] == pytest.approx(5.0)

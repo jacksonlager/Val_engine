@@ -66,12 +66,17 @@ def test_shock_on_the_real_book_holds_level_1_and_terminal_flat():
     run = r.run
     s = run.sensitivity
     exposed = [c for c in run.companies if c.multiple_exposed]
-    assert all(c.fv_level == 3 and (c.arr or 0) >= 0.5 for c in exposed) and len(exposed) == 87
-    # a deal-priced position (pending acquisition) is not driven by a multiple, and a note leg
-    # held at cost is not either: both stay out of the exposed base
+    assert all(c.fv_level == 3 and (c.arr or 0) >= 0.5 for c in exposed) and len(exposed) == 88
+    # a probability-weighted deal mark (M-050) rests on the round only where the deal breaks: that
+    # branch's weight in the mark is the share a multiple regime drives — Gryphonel 0.10 × $3.50M
+    # of the $4.6592M mark; a note leg held at cost stays out of the exposed base altogether
     by = run.by_company()
-    assert not by["Gryphonel"].multiple_exposed and any(i.kind.value == "pending_acquisition" for i in by["Gryphonel"].open_items)
-    exposed_of = lambda c: c.booked_mark - c.note_at_cost  # noqa: E731
+    g = by["Gryphonel"]
+    assert g.multiple_exposed and any(i.kind.value == "pending_acquisition" for i in g.open_items)
+    assert g.multiple_exposed_share == pytest.approx(0.10 * 3.5 / 4.6592, abs=1e-6)
+    exposed_of = lambda c: max(0.0, c.booked_mark - c.note_at_cost) * c.multiple_exposed_share  # noqa: E731
+    assert exposed_of(g) == pytest.approx(0.35, abs=1e-6)
+    assert all(c.multiple_exposed_share == 1.0 for c in exposed if c.company != "Gryphonel")
     assert s["multiple_exposed_nav"] == pytest.approx(sum(exposed_of(c) for c in exposed), abs=1e-6)
     assert s["multiple_exposed_nav"] < sum(c.booked_mark for c in exposed), "note legs at cost are excluded from the shock"
     assert not any(c.multiple_exposed for c in run.companies if c.listed or c.fv_level != 3)
@@ -173,7 +178,7 @@ def _moves_with_multiples(c) -> float:
     `frontend/src/views/Sensitivity.tsx::movesWithMultiples`. It must stay identical to
     `rollup.exposed_amount`, or the positions listed under a sector would not add up to the
     sector's own impact — the one thing a reviewer checks by eye."""
-    return (c.booked_mark - c.note_at_cost) if c.multiple_exposed else 0.0
+    return max(0.0, c.booked_mark - c.note_at_cost) * c.multiple_exposed_share if c.multiple_exposed else 0.0
 
 
 def test_positions_inside_a_sector_add_up_to_that_sectors_impact():
@@ -206,10 +211,12 @@ def test_a_position_held_flat_is_held_flat_for_a_reason_the_card_can_name():
     flat = [c for c in run.companies if _moves_with_multiples(c) == 0]
     assert flat, "the shipped book has positions a multiple regime does not drive"
     for c in flat:
+        kinds = {i.kind.value for i in c.open_items}
         named = (c.status_after.value != "Active"          # no longer held
                  or c.fv_level in (1, 2)                    # priced at market, or from an observable input
                  or (c.arr or 0) < run.sensitivity_meta["min_arr"]   # below the screening floor
-                 or not c.multiple_exposed)                 # priced by a transaction (a signed deal)
+                 or bool(kinds & {"pending_acquisition", "acquirer_shares"})   # a deal price, or the buyer's shares
+                 or c.booked_mark <= c.note_at_cost)        # booked at zero, or below its note leg
         assert named, f"{c.company} is held flat for a reason the drill-down cannot name"
     # the ones that do move never move more than their whole equity leg
     for c in run.companies:

@@ -5,6 +5,7 @@ from ..config import RuleConfig
 from .inputs import Status
 from .models import (Readiness, CompanyResult, CompsMove, Disposition, FundRollup, MarketData, PortfolioTotals,
                      SectorMove, SectorSensitivity)
+from .rerating import sector_rerating
 
 
 def _safe_div(a: float, b: float) -> float:
@@ -63,18 +64,46 @@ def portfolio_totals(results: list[CompanyResult]) -> PortfolioTotals:
     )
 
 
-def is_multiple_exposed(fv_level: int | None, arr: float | None, cfg: RuleConfig, *, deal_priced: bool = False) -> bool:
+def is_multiple_exposed(fv_level: int | None, arr: float | None, cfg: RuleConfig, *, share: float = 1.0) -> bool:
     """The one exposure test shared by the ±X% shock, `comps_move` and M-080: a Level 3 mark with
     an ARR at or above the screening floor whose price rests on a round. Level 1, pre-revenue and
     terminal positions are held flat under any multiple regime — and so is a mark that rests on a
-    signed deal price (M-050): a buyer's contract does not re-rate with software multiples."""
-    return fv_level == 3 and (arr or 0) >= cfg.exceptions.multiple.min_arr and not deal_priced
+    signed deal price or the buyer's shares (`share` 0, see `exposed_share`): a contract does not
+    re-rate with software multiples."""
+    return fv_level == 3 and (arr or 0) >= cfg.exceptions.multiple.min_arr and share > 0
+
+
+def exposed_share(steps, open_item_kinds) -> float:
+    """The share of the equity leg a multiple regime drives. 1.0 for a round-priced mark. A
+    probability-weighted deal mark (M-050) rests on the round only in the branch where the deal
+    breaks, so its share is that branch's weight in the mark: (1 − p) × standalone ÷ mark. A
+    mark at the full deal value, or a stake rolled into the buyer's shares (M-024), is a
+    contract price: 0. A non-binding offer holds the round mark, so the whole of it moves."""
+    from .models import OpenItemKind
+    if OpenItemKind.ACQUIRER_SHARES in open_item_kinds:
+        return 0.0
+    for st in reversed(list(steps)):
+        if st.rule_id != "M-050":
+            continue
+        i = st.inputs
+        t = i.get("treatment")
+        if t == "full_deal_value":
+            return 0.0
+        if t == "probability_weighted":
+            p = float(i.get("close_probability") or 0.0)
+            hold, mark = float(i.get("standalone_if_deal_breaks") or 0.0), float(i.get("probability_weighted") or 0.0)
+            return round((1 - p) * hold / mark, 6) if mark > 0 else 0.0
+        return 1.0    # hold_prior / non-binding: the round mark, unchanged
+    return 1.0
 
 
 def exposed_amount(c: CompanyResult) -> float:
-    """The part of a booked mark a multiple regime drives: the equity leg. A note leg carried at
-    cost (M-060) is a receivable, not a multiple of revenue."""
-    return c.booked_mark - c.note_at_cost if c.multiple_exposed else 0.0
+    """The part of a booked mark a multiple regime drives: the equity leg, times the share of it
+    that rests on a round. A note leg carried at cost (M-060) is a receivable, not a multiple of
+    revenue, and a mark booked below its note leg leaves no equity to move — never a negative."""
+    if not c.multiple_exposed:
+        return 0.0
+    return max(0.0, c.booked_mark - c.note_at_cost) * c.multiple_exposed_share
 
 
 def sensitivity(results: list[CompanyResult], cfg: RuleConfig) -> dict[str, float]:
@@ -124,10 +153,12 @@ def _shift_month(key: str, delta: int) -> str:
 
 
 def comps_move(results: list[CompanyResult], cfg: RuleConfig, market: MarketData) -> CompsMove | None:
-    """The observed sensitivity: each sector's basket multiple in the measurement month against
-    three months earlier, applied to that sector's multiple-exposed NAV (the same positions
-    the ±X% shock moves). Sectors whose history lacks either month are left out and reported
-    as uncovered. None when no sector has a history at all."""
+    """The observed sensitivity: how each sector's public comps re-rated from three months before
+    the measurement month to the measurement month, applied to that sector's multiple-exposed NAV
+    (the same positions the ±X% shock moves). The re-rating is the same-set median of each
+    name's own move (engine/rerating.py) when the history carries names, else the ratio of the
+    two basket medians, and each sector says which. Sectors whose history lacks either month are
+    left out and reported as uncovered. None when no sector has a history at all."""
     md = cfg.quarter.measurement_date
     now_key = md.strftime("%Y-%m")
     prior_key = _shift_month(now_key, -3)
@@ -136,21 +167,24 @@ def comps_move(results: list[CompanyResult], cfg: RuleConfig, market: MarketData
     by_sector: dict[str, list[CompanyResult]] = {}
     for c in exposed_all:
         by_sector.setdefault(c.sector, []).append(c)
+    min_names = cfg.marking.calibration.min_same_set_names
     moves: list[SectorMove] = []
     for sector in sorted(by_sector):
         hist = market.comp_history.get(sector) or {}
         now, prior = hist.get(now_key), hist.get(prior_key)
-        if not now or not prior:
+        rr = sector_rerating(market, sector, prior_key, now_key, window=0, min_names=min_names)
+        if not now or not prior or rr is None:
             continue
         comp = market.comps.get(sector)
         source = comp.source if comp is not None else "unknown"
         counts = market.comp_counts.get(sector) or {}
         exposed = sum(exposed_amount(c) for c in by_sector[sector])
-        q = now / prior - 1
+        q = rr.factor - 1
         moves.append(SectorMove(sector=sector, multiple_prior=round(prior, 2), multiple_now=round(now, 2), qoq_pct=round(q, 4),
                                 exposed_nav=round(exposed, 6), delta=round(exposed * q, 6), positions=len(by_sector[sector]),
                                 live=source.startswith("live:"), source=source,
-                                n_prior=counts.get(prior_key), n_now=counts.get(now_key)))
+                                n_prior=counts.get(prior_key), n_now=counts.get(now_key),
+                                method=rr.method, names=tuple((n.ticker, n.then, n.now, n.ratio) for n in rr.names)))
     if not moves:
         return None
     delta = sum(m.delta for m in moves)
@@ -158,4 +192,5 @@ def comps_move(results: list[CompanyResult], cfg: RuleConfig, market: MarketData
     return CompsMove(prior_month=prior_key, now_month=now_key, base_nav=round(base, 6),
                      exposed_nav=round(sum(exposed_amount(c) for c in exposed_all), 6), covered_nav=round(covered, 6),
                      delta=round(delta, 6), nav_if_marked_with_comps=round(base + delta, 6),
-                     sectors=tuple(sorted(moves, key=lambda m: -abs(m.delta))), all_live=all(m.live for m in moves))
+                     sectors=tuple(sorted(moves, key=lambda m: -abs(m.delta))), all_live=all(m.live for m in moves),
+                     priced_as_of=market.priced_as_of)

@@ -163,8 +163,9 @@ def actionable(c: CompanyResult) -> list[Flag]:
     first (there is no supported mark until it is supplied), then BLOCK before REVIEW, then as
     the engine raised them. MONITOR findings and findings with no priced option are not steps."""
     rank = {}
+    addressed = set(c.override.rule_ids_addressed) if c.override is not None else set()
     for i, f in enumerate(c.flags):
-        if f.severity is Severity.MONITOR or not f.suggestions:
+        if f.severity is Severity.MONITOR or not f.suggestions or f.rule_id in addressed:
             continue
         rank[f.rule_id] = (0 if missing_input(c, f) else 1 if f.severity is Severity.BLOCK else 2, i)
     return sorted((f for f in c.flags if f.rule_id in rank), key=lambda f: rank[f.rule_id])
@@ -287,6 +288,18 @@ def _fit_card(data: dict[str, Any], allowed: set[float] | None = None, chosen: S
     return label, reasons
 
 
+_RATIONALE_WITHHELD = ("The model's explanation quoted a figure the engine never produced, so it is withheld; "
+                       "the choice above stands on the candidate's own reasons.")
+
+
+def _fence_rationale(text: str, allowed: set[float]) -> str:
+    """The rationale is prose the reviewer reads under "Methodology"; it passes the same fence as
+    the label — every figure in it must be one the engine showed the model — or it is withheld."""
+    if not text:
+        return text
+    return text if figures_carried(text, allowed) else _RATIONALE_WITHHELD
+
+
 class ClaudeChooser:
     """Ask the model to choose among the engine's candidates; cache; validate; fall back."""
     name = "claude"
@@ -385,12 +398,13 @@ class ClaudeChooser:
         if data["choice"] not in keys:
             raise ValueError(f"choice {data['choice']!r} is not a candidate ({sorted(keys)})")
         chosen = next(s for s in f.suggestions if s.key == data["choice"])
-        label, reasons = _fit_card(data, _allowed_figures([f]), chosen)
+        allowed = _allowed_figures([f])
+        label, reasons = _fit_card(data, allowed, chosen)
         conf = float(data["confidence"])
         if not 0.0 <= conf <= 1.0:
             raise ValueError("confidence outside [0, 1]")
         return {"choice": data["choice"], "label": label, "reasons": reasons,
-                "rationale": str(data["rationale"]).strip()[:600], "confidence": round(conf, 3)}
+                "rationale": _fence_rationale(str(data["rationale"]).strip()[:600], allowed), "confidence": round(conf, 3)}
 
     @staticmethod
     def parse_position(text: str, c: CompanyResult) -> dict[str, Any]:
@@ -420,12 +434,13 @@ class ClaudeChooser:
         if rid not in covers:
             covers = [rid] + covers
         chosen = next(s for s in by_id[rid].suggestions if s.key == data["choice"])
-        label, reasons = _fit_card(data, _allowed_figures(list(by_id.values()), c), chosen)
+        allowed = _allowed_figures(list(by_id.values()), c)
+        label, reasons = _fit_card(data, allowed, chosen)
         conf = float(data["confidence"])
         if not 0.0 <= conf <= 1.0:
             raise ValueError("confidence outside [0, 1]")
         return {"rule_id": rid, "choice": data["choice"], "label": label, "reasons": reasons,
-                "covers": list(dict.fromkeys(covers)), "rationale": str(data["rationale"]).strip()[:700],
+                "covers": list(dict.fromkeys(covers)), "rationale": _fence_rationale(str(data["rationale"]).strip()[:700], allowed),
                 "confidence": round(conf, 3)}
 
     def _to_position(self, answer: dict[str, Any], c: CompanyResult) -> PositionRecommendation:
@@ -511,14 +526,22 @@ def make_chooser(cfg: RuleConfig, root: Path, provider: str | None = None, *, re
 
 
 def recommender_label(chooser: Chooser) -> str:
-    """What actually chose, not what was asked for. A ClaudeChooser that could not connect falls
-    back to the policy default on every card and says so there — so labelling the whole run
-    `claude:<model>` told the dashboard footer to claim a model chose when none was reached."""
+    """What actually chose, not what was asked for — read from the tallies after the run. A
+    ClaudeChooser that answered nothing (no key, no cached answer) is the policy default on every
+    card; one that answered some cards from its cache with no key says so; one that fell back on
+    some cards says how many."""
     if isinstance(chooser, ClaudeChooser):
-        if getattr(chooser, "available", True):
-            return f"claude:{chooser.model}"
-        why = getattr(chooser, "unavailable_reason", None) or "not connected"
-        return f"policy (Claude unavailable: {why})"
+        answered = getattr(chooser, "calls", 0) + getattr(chooser, "cache_hits", 0)
+        fell_back = len(getattr(chooser, "fallbacks", ()))
+        if answered == 0:
+            why = getattr(chooser, "unavailable_reason", None) or "not connected"
+            return f"policy (Claude unavailable: {why})" if not getattr(chooser, "available", True) else f"claude:{chooser.model}"
+        label = f"claude:{chooser.model}"
+        if not getattr(chooser, "available", True):
+            label += f" (cached answers only: {getattr(chooser, 'unavailable_reason', None) or 'not connected'})"
+        if fell_back:
+            label += f"; policy default on {fell_back} card{'s' if fell_back != 1 else ''}"
+        return label
     return "policy"
 
 
@@ -545,7 +568,31 @@ def recommend_run(run: ValuationRun, chooser: Chooser, signals: dict[str, Any] |
             changed = True
         c2 = c.model_copy(update={"flags": tuple(flags)}) if changed else c
         step = ch.choose_position(build_position_brief(c2, run, signals), c2)
-        return c2.model_copy(update={"recommendation": step}) if step is not None else c2
+        if step is None:
+            return c2
+        # The step is the one next action for the position, chosen across its findings; the
+        # finding it names must show the same choice, or the card and the exec view disagree.
+        # A model's answer outranks a policy fallback whichever level it came from: a step that
+        # fell back to policy while the finding has a model answer takes the finding's answer;
+        # otherwise the finding takes the step's.
+        lead = next((f for f in c2.flags if f.rule_id == step.rule_id), None)
+        lead_rec = lead.recommendation if lead is not None else None
+        if lead_rec is not None and lead_rec.key != step.key:
+            if step.source == "policy" and lead_rec.source == "claude":
+                step = PositionRecommendation(rule_id=step.rule_id, key=lead_rec.key, label=lead_rec.label, reasons=lead_rec.reasons,
+                                              booked=lead_rec.booked, covers=(step.rule_id,), source=lead_rec.source, model=lead_rec.model,
+                                              rationale=lead_rec.rationale, confidence=lead_rec.confidence,
+                                              note="The finding-level answer; the position-level step was not available.")
+            else:
+                chosen = next((s_ for s_ in lead.suggestions if s_.key == step.key), None)
+                if chosen is not None:
+                    c2 = c2.model_copy(update={"flags": tuple(
+                        f.model_copy(update={"recommendation": Recommendation(
+                            key=step.key, label=step.label, reasons=step.reasons, booked=chosen.booked, source=step.source,
+                            model=step.model, rationale=step.rationale, confidence=step.confidence,
+                            note="Chosen at the position level, weighing every open finding together.")})
+                        if f.rule_id == step.rule_id else f for f in c2.flags)})
+        return c2.model_copy(update={"recommendation": step})
 
     # Positions are independent, and a model call takes seconds: run them side by side. The policy
     # chooser is instant and stays sequential; the result order is the run's order either way.

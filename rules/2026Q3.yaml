@@ -34,6 +34,8 @@ marking:
     bound_pct: 0.35
     require_live_history: true       # only an observed public-comps history calibrates; the fixture never does
     round_month_tolerance: 3         # nearest month with a basket value within ±3 months of the round month
+    anchor_window_months: 1          # each end of the re-rating is a name's median over ±1 month, not one print
+    min_same_set_names: 3            # names priced at both ends before the same-set re-rating is used
 
 exceptions:
   staleness:

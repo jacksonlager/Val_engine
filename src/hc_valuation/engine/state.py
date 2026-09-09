@@ -6,7 +6,7 @@ as small, readable functions; it is frozen into a `CompanyResult` at the end of 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any
 
@@ -166,6 +166,21 @@ class Working:
                                evidence={k: (v if not isinstance(v, date) else v.isoformat()) for k, v in evidence.items()}))
         self._suggestions[len(self.flags) - 1] = tuple(suggestions)
 
+    def _calibrate_label(self, label: str) -> str:
+        """The calibrate option says what it books and how, with the cap on the label itself: a
+        reviewer choosing "$13.39M" must see that the comps said $10.10M and policy held it at −35%."""
+        st = next((x for x in self.steps if x.rule_id == "M-080"), None)
+        if st is None:
+            return label
+        i = st.inputs
+        f, raw = float(i["factor_bounded"]), float(i["factor_raw"])
+        alt = self.equity_mark * f
+        head = label.rstrip(".")
+        arith = f"${self.equity_mark:.2f}M × {f:.4f} = ${alt:.2f}M"
+        if i.get("bound_hit"):
+            return f"{head}: {arith} — comps moved ×{raw:.3f} ({raw - 1:+.0%}), capped by policy at {f - 1:+.0%}."
+        return f"{head}: {arith} ({f - 1:+.1%} since the round)."
+
     def resolved_flags(self, proposed: float, prior: float, invested: float, tol: float = 1e-6) -> list[Flag]:
         """The flags with every suggestion's `booked` filled in from the finished roll.
 
@@ -187,6 +202,8 @@ class Working:
                         continue
                     # alternatives are equity-basis marks; the position's note leg rides on top, as in the proposal
                     booked = self.alternative_marks[str(sg.value)] + self.note_at_cost
+                    if sg.value == "calibrated_to_comps":
+                        sg = replace(sg, label=self._calibrate_label(sg.label))
                 else:
                     booked = float(sg.value)  # type: ignore[arg-type]
                 booked = round(max(0.0, float(booked)), 6)

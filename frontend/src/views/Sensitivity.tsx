@@ -33,18 +33,27 @@ function groupSum<T>(rows: T[], key: (r: T) => string, val: (r: T) => number): {
     carried at cost is a receivable, not a multiple of revenue, so it is subtracted; a position the
     engine did not mark as exposed contributes nothing. Everything on this screen — the sector
     totals, the position rows and the portfolio sum — is this one function, so they cannot disagree. */
-const movesWithMultiples = (c: CompanyResult) => (c.multiple_exposed ? c.booked_mark - (c.note_at_cost ?? 0) : 0);
+const movesWithMultiples = (c: CompanyResult) =>
+  c.multiple_exposed ? Math.max(0, c.booked_mark - (c.note_at_cost ?? 0)) * (c.multiple_exposed_share ?? 1) : 0;
 
 /** Why a position does not move, in the reviewer's terms. Read from what the engine recorded, in
     the order the exposure test applies them. */
 function heldFlatReason(c: CompanyResult, minArr: number): string {
   if (c.status_after !== "Active") return "no longer held";
-  if (c.fv_level === 1) return "listed — carried at its market price";
-  if (c.fv_level === 2) return "priced from an observable input, not a multiple";
+  if (c.fv_level === 1) return c.provisional ? "listed — a stand-in price until the closing quote is on file" : "listed — carried at its market price";
   if (c.arr === null || c.arr === undefined) return "no revenue on file";
   if (c.arr < minArr) return `revenue below the ${musd(minArr, 1)}M screening floor`;
-  return "priced by a transaction, not a multiple";
+  const kinds = new Set((c.open_items ?? []).map((i) => i.kind));
+  if (kinds.has("acquirer_shares")) return "consideration is the buyer's shares, not a multiple";
+  if (kinds.has("pending_acquisition")) return "priced by a signed deal, not a multiple";
+  if (c.booked_mark <= 0) return "booked at zero";
+  if (c.booked_mark <= (c.note_at_cost ?? 0)) return "booked below its note leg — no equity to move";
+  return "held flat by the engine";
 }
+
+/** The two scopes the brief's question can mean: every sector's multiples, or the software sectors
+    the policy names. Both are the same arithmetic on a different set of positions. */
+type Scope = "all" | "software";
 
 /** Sector by sector. A firm rarely believes every sector re-rates by the same amount — AI multiples
     and fintech multiples move for different reasons — so each sector carries its own shock and the
@@ -229,14 +238,28 @@ function SectorShocks({ run, base, portfolioShock }: { run: ValuationRun; base: 
 export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (name: string) => void }) {
   const th = useChartTheme();
   const [shockPct, setShockPct] = useState(20);
+  const [scope, setScope] = useState<Scope>("all");
   const s = shockPct / 100;
   const base = run.sensitivity.base_nav ?? run.totals.booked_nav;
+  const software = useMemo(() => new Set(run.sensitivity_meta?.software_sectors ?? []), [run]);
+  const inScope = (c: CompanyResult) => scope === "all" || software.has(c.sector);
 
-  const exposed = useMemo(() => run.companies.filter((c) => movesWithMultiples(c) > 0), [run]);
+  const exposedAll = useMemo(() => run.companies.filter((c) => movesWithMultiples(c) > 0), [run]);
+  const exposed = useMemo(() => exposedAll.filter(inScope), [exposedAll, scope]); // eslint-disable-line react-hooks/exhaustive-deps
   const exposedNav = exposed.reduce((a, c) => a + movesWithMultiples(c), 0);
   const delta = exposedNav * s;
   const navAt = base + delta;
   const unexposed = run.companies.length - exposed.length;
+  // What is held flat and why, in $ — the reader should never have to infer the exclusions.
+  const listedHeld = run.companies.filter((c) => c.fv_level === 1 && c.status_after === "Active").reduce((a, c) => a + c.booked_mark, 0);
+  const dealHeld = run.companies
+    .filter((c) => c.status_after === "Active" && c.fv_level === 3 && (c.open_items ?? []).some((i) => i.kind === "pending_acquisition" || i.kind === "acquirer_shares"))
+    .reduce((a, c) => a + (c.booked_mark - movesWithMultiples(c)), 0);
+  const noteHeld = run.companies.reduce((a, c) => a + (c.multiple_exposed ? Math.min(c.note_at_cost ?? 0, c.booked_mark) : 0), 0);
+  const outOfScope = scope === "software" ? exposedAll.filter((c) => !software.has(c.sector)).reduce((a, c) => a + movesWithMultiples(c), 0) : 0;
+  const policyLo = scope === "software" ? run.sensitivity["nav_if_software_multiples_-20pct"] : run.sensitivity["nav_if_multiples_-20pct"];
+  const policyHi = scope === "software" ? run.sensitivity["nav_if_software_multiples_+20pct"] : run.sensitivity["nav_if_multiples_+20pct"];
+  const cm = run.comps_move;
 
   const curve = useMemo(() => {
     const pts = [];
@@ -257,10 +280,31 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
   return (
     <div className="space-y-4">
       <div className="card p-4">
-        <SectionTitle>Sensitivity · what the book looks like if multiples move</SectionTitle>
-        <p className="text-[13.5px] text-ink2 num mb-3 leading-snug">
-          Moves the {exposed.length} of {run.companies.length} positions priced on a revenue multiple, {musd(exposedNav, 1)} of{" "}
-          {musd(base, 1)} ({pct(exposedNav / base)}) of the book. The other {unexposed} hold flat. No mark changes.
+        <SectionTitle
+          right={
+            <div className="view-switch" role="tablist" aria-label="Which multiples move">
+              <button role="tab" aria-selected={scope === "all"} className={`btn ${scope === "all" ? "btn-primary" : "btn-ghost"}`} onClick={() => setScope("all")}>
+                All sectors
+              </button>
+              <button role="tab" aria-selected={scope === "software"} className={`btn ${scope === "software" ? "btn-primary" : "btn-ghost"}`} onClick={() => setScope("software")}>
+                Software sectors
+              </button>
+            </div>
+          }
+        >
+          Sensitivity · what the book looks like if multiples move
+        </SectionTitle>
+        <p className="text-[13.5px] text-ink2 num mb-1 leading-snug">
+          Moves the {exposed.length} of {run.companies.length} positions whose mark rests on a private round and would re-rate with{" "}
+          {scope === "software" ? "software" : "sector"} multiples (Level 3, revenue ≥ {musd(run.sensitivity_meta?.min_arr ?? 0.5, 1)}M):{" "}
+          {musd(exposedNav, 1)} of {musd(base, 1)} ({pct(exposedNav / base)}) of the booked book. The other {unexposed} hold flat. No mark changes.
+        </p>
+        <p className="text-[12px] text-muted num mb-3 leading-snug">
+          Held flat by construction: {musd(listedHeld, 1)} listed (marked to its exchange price, not a multiple)
+          {dealHeld > 0.005 && <>, {musd(dealHeld, 1)} priced by a signed deal</>}
+          {noteHeld > 0.005 && <>, {musd(noteHeld, 1)} of notes carried at cost</>}
+          {outOfScope > 0.005 && <>, {musd(outOfScope, 1)} in non-software sectors</>}. The model assumes each round-priced mark re-rates
+          one-for-one with its sector — a last-round price does not actually move until the next round, so this is the exposure, not a forecast.
         </p>
 
         <div className="sens-slider">
@@ -317,9 +361,9 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
             </div>
           </div>
           <div className="sens-tile">
-            <div className="k">Policy points · ±20%</div>
+            <div className="k">Policy points · ±20% · {scope === "software" ? "software" : "all sectors"}</div>
             <div className="v num">
-              {musd(run.sensitivity["nav_if_multiples_-20pct"], 1)} · {musd(run.sensitivity["nav_if_multiples_+20pct"], 1)}
+              {musd(policyLo, 1)} · {musd(policyHi, 1)}
             </div>
             <div className="d text-muted">The two ends of the slider, as the engine computed them</div>
           </div>
@@ -465,6 +509,76 @@ export function SensitivityView({ run, onGoto }: { run: ValuationRun; onGoto?: (
           </table>
         </div>
       </div>
+
+      {cm && cm.sectors.length > 0 && (
+        <div className="card p-4">
+          <SectionTitle
+            right={
+              <span className="num text-[12px]">
+                {musd(cm.base_nav, 1)} → <b>{musd(cm.nav_if_marked_with_comps, 1)}</b>{" "}
+                <span className={signClass(cm.delta)}>({signed(cm.delta, 1)})</span>
+              </span>
+            }
+          >
+            What the comps actually did this quarter · {cm.prior_month} → {cm.now_month}
+          </SectionTitle>
+          <p className="text-[12.5px] text-ink2 leading-snug mt-1 mb-2 num">
+            The observed counterpart of the slider: each sector's public comparables, name by name over the same names, from the month before the
+            quarter to the measurement month, applied to the marks that sector would move ({musd(cm.covered_nav, 1)} of {musd(cm.exposed_nav, 1)} covered
+            {cm.covered_nav < cm.exposed_nav - 0.005 && <> — {musd(cm.exposed_nav - cm.covered_nav, 1)} sits in sectors with no history for both months</>}).
+            {cm.priced_as_of && !cm.priced_as_of.endsWith("-30") && !cm.priced_as_of.endsWith("-31") && (
+              <> {cm.now_month} is priced as of {cm.priced_as_of}, not a month-end.</>
+            )}
+            {!cm.all_live && <> Some sectors read the illustrative history, not observed prices.</>}
+          </p>
+          <div className="overflow-x-auto -mx-4 px-4">
+            <table className="dtable text-[12px] w-full">
+              <thead>
+                <tr>
+                  <th>Sector</th>
+                  <th className="r">Basket median then → now</th>
+                  <th className="r">Same-set move</th>
+                  <th className="r">Moves with multiples</th>
+                  <th className="r">Impact</th>
+                  <th>Each name's own move</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cm.sectors.map((m) => (
+                  <tr key={m.sector}>
+                    <td>
+                      {m.sector} <span className="text-muted text-[11px]">· {m.positions}</span>
+                    </td>
+                    <td className="r num text-muted">
+                      {m.multiple_prior.toFixed(2)}× → {m.multiple_now.toFixed(2)}×
+                    </td>
+                    <td className={`r num ${signClass(m.qoq_pct)}`}>{pct(m.qoq_pct, 1, true)}</td>
+                    <td className="r num">{musd(m.exposed_nav, 1)}</td>
+                    <td className={`r num ${signClass(m.delta)}`}>{signed(m.delta, 1)}</td>
+                    <td className="num text-[11px] text-muted whitespace-nowrap">
+                      {(m.names ?? []).map(([t, then, now, r]) => `${t} ${then.toFixed(1)}→${now.toFixed(1)} ×${r.toFixed(2)}`).join(" · ")}
+                      {(m.names ?? []).length > 0 && <> ; median ×{(1 + m.qoq_pct).toFixed(3)}</>}
+                      {(m.names ?? []).length === 0 && (m.method || "basket-median ratio")}
+                    </td>
+                  </tr>
+                ))}
+                <tr className="font-semibold">
+                  <td>Portfolio</td>
+                  <td></td>
+                  <td className={`r num ${signClass(cm.delta)}`}>{cm.covered_nav ? pct(cm.delta / cm.covered_nav, 1, true) : "—"}</td>
+                  <td className="r num">{musd(cm.covered_nav, 1)}</td>
+                  <td className={`r num ${signClass(cm.delta)}`}>{signed(cm.delta, 1)}</td>
+                  <td className="text-muted text-[11px]">exposure-weighted: {signed(cm.delta, 1)} ÷ {musd(cm.covered_nav, 1)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[12px] text-muted mt-2 mb-0">
+            Alternative arithmetic only, like the slider: nothing here touches a proposed or booked mark. A basket median of five names is the
+            third-ranked name and can change identity between months; the same-set move is each name's own now ÷ then, then the median of those.
+          </p>
+        </div>
+      )}
 
       <SectorShocks run={run} base={base} portfolioShock={shockPct} />
     </div>

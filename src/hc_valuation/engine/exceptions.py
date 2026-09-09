@@ -126,23 +126,40 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
             comp = market.comps.get(p.sector)
             comp_txt = ""
             usable = comp is not None and (not x.multiple.require_live_comps or comp.source.startswith("live:"))
-            if x.multiple.mode == "relative_to_comps" and usable:
+            relative = x.multiple.mode == "relative_to_comps" and usable
+            n_names = (market.comp_counts.get(p.sector) or {}).get(md.strftime("%Y-%m"))
+            median = comp.ev_to_arr if comp is not None else None
+            if relative:
                 hi, lo = comp.ev_to_arr * x.multiple.high_x_comp, comp.ev_to_arr * x.multiple.low_x_comp
-                comp_txt = f" (bounds {lo:.1f}×–{hi:.1f}× around the {comp.ev_to_arr:.1f}× live sector median)"
+                comp_txt = (f" (bounds {x.multiple.low_x_comp:g}× and {x.multiple.high_x_comp:g}× the {comp.ev_to_arr:.1f}× live sector median"
+                            f"{f' of {n_names} public names' if n_names else ''} = {lo:.1f}×–{hi:.1f}×)")
             elif comp is not None:
                 comp_txt = f" (sector comp {comp.ev_to_arr:.1f}×)"
+            # What is being compared: the round's post-money over the company's ARR, against what the
+            # public market pays per dollar of trailing revenue. Different numerators (an equity
+            # value that includes the cash just raised, against enterprise value) and denominators
+            # (ARR against trailing twelve-month revenue), and no adjustment for growth — a screen.
+            what = (f"${w.latest_post:.1f}M post-money ÷ ${arr:.1f}M ARR = {mult:.1f}×, against the public EV ÷ trailing-revenue median"
+                    if relative else f"${w.latest_post:.1f}M post-money ÷ ${arr:.1f}M ARR = {mult:.1f}×")
+            basis = "live sector median" if relative else "absolute policy bound"
             if mult > hi:
                 w.flag("X-401", "valuation", Severity.MONITOR,
                        f"Carried at {mult:.0f}× revenue{comp_txt}" + (f", {_growth(g)}" if g is not None else "")
-                       + ". On this screen the mark looks generous — a rough cross-check, not a valuation.",
-                       implied_multiple=round(mult, 2), threshold=hi,
-                       basis=("live sector median" if (x.multiple.mode == "relative_to_comps" and usable) else "absolute policy bound"))
+                       + f". {what}: post-money is not enterprise value and ARR is not trailing revenue, so this is a rough "
+                       "cross-check, not a valuation — on it the mark looks generous.",
+                       implied_multiple=round(mult, 2), threshold=round(hi, 2), basis=basis,
+                       sector_median=(round(median, 2) if median is not None else None), median_names=n_names,
+                       bound_multiplier=(x.multiple.high_x_comp if relative else None),
+                       formula=f"{w.latest_post:.1f} ÷ {arr:.1f} = {mult:.2f}× vs {x.multiple.high_x_comp:g} × {median:.2f}× = {hi:.2f}×" if relative else f"{w.latest_post:.1f} ÷ {arr:.1f} = {mult:.2f}× vs {hi:.0f}×")
             elif mult < lo:
                 w.flag("X-402", "valuation", Severity.MONITOR,
                        f"Carried at {mult:.1f}× revenue{comp_txt}" + (f", {_growth(g)}" if g is not None else "")
-                       + ". On this screen the mark looks understated — undermarking is the same failure with the opposite sign.",
-                       implied_multiple=round(mult, 2), threshold=lo,
-                       basis=("live sector median" if (x.multiple.mode == "relative_to_comps" and usable) else "absolute policy bound"))
+                       + f". {what}: post-money is not enterprise value and ARR is not trailing revenue, so this is a rough "
+                       "cross-check, not a valuation — on it the mark looks understated, the same failure with the opposite sign.",
+                       implied_multiple=round(mult, 2), threshold=round(lo, 2), basis=basis,
+                       sector_median=(round(median, 2) if median is not None else None), median_names=n_names,
+                       bound_multiplier=(x.multiple.low_x_comp if relative else None),
+                       formula=f"{w.latest_post:.1f} ÷ {arr:.1f} = {mult:.2f}× vs {x.multiple.low_x_comp:g} × {median:.2f}× = {lo:.2f}×" if relative else f"{w.latest_post:.1f} ÷ {arr:.1f} = {mult:.2f}× vs {lo:.0f}×")
 
     # ---- X-404 MOIC outlier on a stale round
     inv = w.invested
@@ -170,29 +187,56 @@ def assess_carry_side(w: Working, cfg: RuleConfig, market: MarketData) -> None:
             # (X-302 / X-202 already put the position in REVIEW on their own; no double count. A signed
             # acquisition is the price test now — X-201 says so — so the round's age is context, not a
             # reason to reprice: the deal already did.)
-            mult_txt = f"{w.latest_post / p.arr:.0f}× revenue" if p.arr else "an unscreenable multiple"
+            mult_txt = f"{w.latest_post / p.arr:.1f}× revenue" if p.arr else "an unscreenable multiple"
+            # The screen's own arithmetic, so the reviewer sees the number and the line it crossed
+            screen_flag = next((f for f in w.flags if f.rule_id in ("X-401", "X-402")), None)
+            screen_txt = ""
+            if screen_flag is not None:
+                ev = screen_flag.evidence
+                screen_txt = f" — {ev.get('implied_multiple')}× against a {ev.get('threshold')}× {ev.get('basis')}"
+            # Which way the screen says the mark is off: above it (rich) or below it (understated).
+            # The comps calibration is offered only when it moves the mark the same way; a calibration
+            # that lifts a mark the screen just called generous is not a resolution of this finding.
+            screen_says_high = bool(ids & {"X-401", "X-404", "X-301"})
+            m080 = next((st for st in w.steps if st.rule_id == "M-080"), None)
+            cal_factor = float(m080.inputs["factor_bounded"]) if m080 is not None else None
+            cal_agrees = cal_factor is not None and ((cal_factor < 1) if screen_says_high else (cal_factor > 1))
+            cal_txt = ""
+            if cal_factor is not None and not cal_agrees:
+                cal_txt = (f" The comps calibration (M-080) would move the mark {'up' if cal_factor > 1 else 'down'} "
+                           f"(×{cal_factor:.4f}), against the screen, so it is not offered as a resolution here.")
+            suggestions = [
+                Suggest("as_proposed", "Affirm the last-round mark as proposed.",
+                        ("No transaction has repriced the company; the round is still the last real price.",
+                         "The screen is a cross-check, not a valuation."), "proposed")]
+            if cal_agrees:
+                suggestions.append(
+                    Suggest("calibrate", "Calibrate the mark to public comps.",
+                            ("Ties a stale Level 3 price to how comparable multiples have moved since the round, in the direction the screen points.",
+                             "Uses the M-080 calibration the engine already computed."), "alternative", value="calibrated_to_comps"))
+            suggestions.append(
+                Suggest("to_cost", "Mark down to invested cost pending a new price.",
+                        ("A defensible floor when the last price no longer describes the business.",
+                         "Reverses at the next priced round."), "cost"))
             w.flag("X-405", "valuation", Severity.REVIEW,
                    f"The price behind this mark is {age} months old, and the current numbers disagree with it: "
-                   f"{'; '.join(hits)} ({mult_txt}"
+                   f"{'; '.join(hits)} ({mult_txt}{screen_txt}"
                    + (f", {_growth(g)}" if g is not None else "") + "). Neither fact alone would move the "
                    "mark — an old price is not a wrong price, and a screen is not a valuation — but an old price "
-                   "that today's performance argues with is exactly the case a reviewer should reprice or affirm.",
+                   "that today's performance argues with is exactly the case a reviewer should reprice or affirm." + cal_txt,
                    points=(f"Price is **{age} months old** — and today's numbers **argue with it**.",
-                           f"Screen: **{'; '.join(hits)}** ({mult_txt}" + (f", {_growth(g)}" if g is not None else "") + ").",
+                           f"Screen: **{'; '.join(hits)}** ({mult_txt}{screen_txt}" + (f", {_growth(g)}" if g is not None else "") + ").",
                            "Two independent signals point the same way: **affirm or reprice**."),
-                   suggestions=(
-                       Suggest("as_proposed", "Affirm the last-round mark as proposed.",
-                               ("No transaction has repriced the company; the round is still the last real price.",
-                                "The screen is a cross-check, not a valuation."), "proposed"),
-                       Suggest("calibrate", "Calibrate the mark to public comps.",
-                               ("Ties a stale Level 3 price to how comparable multiples have moved since the round.",
-                                "Uses the M-080 calibration the engine already computed."), "alternative", value="calibrated_to_comps"),
-                       Suggest("to_cost", "Mark down to invested cost pending a new price.",
-                               ("A defensible floor when the last price no longer describes the business.",
-                                "Reverses at the next priced round."), "cost"),
-                   ),
+                   suggestions=tuple(suggestions),
                    action="Affirm or reprice: the last-round price is stale and the performance screen disagrees with it.",
-                   months=age, screens=[k for k in ("X-401", "X-402", "X-404", "X-301") if k in ids])
+                   months=age, screens=[k for k in ("X-401", "X-402", "X-404", "X-301") if k in ids],
+                   implied_multiple=(screen_flag.evidence.get("implied_multiple") if screen_flag else None),
+                   threshold=(screen_flag.evidence.get("threshold") if screen_flag else None),
+                   sector_median=(screen_flag.evidence.get("sector_median") if screen_flag else None),
+                   screen_direction=("above" if screen_says_high else "below"),
+                   calibration_factor=cal_factor,
+                   calibration_offered=cal_agrees,
+                   calibration_direction=(None if cal_factor is None else ("agrees with the screen" if cal_agrees else "against the screen")))
 
 
 # A lock-up is the expected consequence of a listing, and M-040 already carries it as an open

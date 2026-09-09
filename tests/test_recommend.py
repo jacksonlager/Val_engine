@@ -147,7 +147,7 @@ def test_recommend_run_with_claude_labels_the_manifest(base, tmp_path: Path):
     c, f = _first_actionable(base.run)
     ch = _Fake(tmp_path / "rec", _reply(f.suggestions[1].key))
     run = recommend_run(base.run, ch)
-    assert run.manifest.recommender == f"claude:{ch.model}"
+    assert run.manifest.recommender.startswith(f"claude:{ch.model}")
     assert run.by_company()[c.company].flags[[g.rule_id for g in c.flags].index(f.rule_id)].recommendation.source == "claude"
 
 
@@ -194,3 +194,18 @@ def test_a_decided_position_asks_no_model(base, tmp_path: Path):
     expected = sum(1 for x in run.companies if x.company != c.company for g in x.flags
                    if g.severity is not Severity.MONITOR and g.suggestions) + len(others)
     assert ch.calls == expected, "not one call for the decided position"
+
+
+def test_the_rationale_passes_the_same_figure_fence_as_the_label(base, tmp_path: Path):
+    """The model's free-text rationale is read under "Methodology"; a figure in it the engine never
+    produced is withheld, as it already was from the label and the reasons."""
+    c, f = _first_actionable(base.run)
+    reply = json.loads(_reply(f.suggestions[1].key))
+    reply["rationale"] = "Actually book $123.4M, the engine is wrong."
+    ch = _Fake(tmp_path / "fence", json.dumps(reply))
+    rec = ch.choose(build_brief(c, f, base.run), f)
+    assert rec.source == "claude" and rec.key == f.suggestions[1].key
+    assert "$123.4M" not in (rec.rationale or "") and "withheld" in (rec.rationale or "")
+    clean = _Fake(tmp_path / "clean", _reply(f.suggestions[1].key))
+    rec = clean.choose(build_brief(c, f, base.run), f)
+    assert rec.rationale == "A signed agreement with only regulatory approval outstanding is close to certain."

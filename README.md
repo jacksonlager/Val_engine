@@ -415,7 +415,9 @@ fills the same slot honestly:
   percent" is `run.sensitivity` (the ±20% points, on all multiple-exposed marks and on the
   software sectors alone) and, on the Movement page, a *Sensitivity view* with a slider from
   −20% to +20% — NAV at the chosen move, by sector, by fund and by position, with a scope
-  switch. Nothing in it changes a mark.
+  switch between all sectors and the software sectors, what is held flat stated in dollars,
+  and beneath it what the comps actually did this quarter, name by name. Nothing in it
+  changes a mark.
 - Run with `--provider live` (`hc-valuation run --provider live`, `build --provider live`)
   or `HC_MARKET_PROVIDER=live`. Requires the `live` extra: `pip install -e ".[live]"`. When
   the checkout carries a committed cache for the measurement date

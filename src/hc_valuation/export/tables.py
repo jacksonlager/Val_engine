@@ -201,18 +201,23 @@ def summary_rows(run: ValuationRun) -> list[tuple[str, Any, str]]:
 
 
 def _sensitivity_label(key: str) -> str:
-    """`nav_if_multiples_-20pct` -> "Sensitivity: NAV if software multiples move −20%"; anything
-    the pattern does not fit is shown as the key, never dropped."""
+    """`nav_if_multiples_-20pct` -> "Sensitivity: NAV if all sector multiples move −20%" and
+    `nav_if_software_multiples_+20pct` -> "... if software multiples move +20%": the two scopes
+    are different numbers and the label says which. Anything the pattern does not fit is shown
+    as the key, never dropped."""
     import re
-    m = re.match(r"^nav_if_multiples_([+-]?\d+)pct$", key)
+    m = re.match(r"^nav_if_(software_)?multiples_([+-]?\d+)pct$", key)
     if m:
-        sign = m.group(1)
+        scope = "software multiples" if m.group(1) else "all sector multiples"
+        sign = m.group(2)
         pretty = sign.replace("-", "−") if sign.startswith("-") else f"+{sign.lstrip('+')}"
-        return f"Sensitivity: NAV if software multiples move {pretty}%"
+        return f"Sensitivity: NAV if {scope} move {pretty}%"
     if key in ("exposed_nav", "nav_exposed", "multiple_exposed_nav"):
-        return "Sensitivity: NAV exposed to the multiple shock (Level 3, ARR ≥ floor)"
+        return "Sensitivity: NAV that moves with multiples, all sectors (Level 3, ARR ≥ floor, round-priced)"
+    if key == "software_exposed_nav":
+        return "Sensitivity: NAV that moves with multiples, software sectors only"
     if key in ("base_nav", "nav_base"):
-        return "Sensitivity: base NAV"
+        return "Sensitivity: base NAV (booked)"
     return f"Sensitivity {key}"
 
 

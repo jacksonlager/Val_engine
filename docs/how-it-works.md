@@ -52,7 +52,7 @@ Two things about the shape. The ledger feeds back into the calculation: a decisi
 | Term sheet | M-070 | non-binding: mark unchanged, disclosed as a pending item |
 | Nothing | M-000 | carry the prior mark |
 
-A position that was listed last quarter and has no event re-marks to its measurement-date market cap (M-041). A stale Level 3 position with a live comps history gets a **calibrated alternative** (M-080: the sector multiple's move since the round month, capped at ±35%) written beside the mark, never into it.
+A position that was listed last quarter and has no event re-marks to its measurement-date market cap (M-041). A stale Level 3 position with a live comps history gets a **calibrated alternative** (M-080: the median of each public comparable's own move since the round month, over the same names, capped at ±35%) written beside the mark, never into it.
 
 **AI:** none. Every number here is arithmetic on workbook cells and policy constants.
 
@@ -145,7 +145,7 @@ All three are real positions in the current run.
 
 *Fund II · AI/ML · Series B.* Prior mark $24.1M at 8.6%, last priced October 2023 at $279.8M post. No rows on the Activity tab.
 
-**Calculation.** M-000: carry $24.1M. Then M-080 runs, because the round is 35.7 months old and the AI/ML basket has a live history: the sector multiple has gone from 7.7× to 13.8× since the round month (+79%), capped by policy at +35%, so a **calibrated alternative of $32.54M** is recorded beside the mark. The mark itself does not move.
+**Calculation.** M-000: carry $24.1M. Then M-080 runs, because the round is 35.7 months old and the AI/ML basket has a live history: the five AI/ML comparables' own multiples moved ×0.45, ×3.34, ×0.58, ×4.50 and ×1.38 since the round month, a median of ×1.385 (+38.5%), capped by policy at +35%, so a **calibrated alternative of $24.10M × 1.35 = $32.53M** is recorded beside the mark. The mark itself does not move.
 
 **Checks.** X-201 MONITOR: the round is older than 24 months. X-304 REVIEW: **3.1 months of cash** — $5.6M on hand against $1.36M a month, aged one month for the reporting lag. The engine's summary: *the company must raise before the next close; the round that saves it may be priced below this mark.*
 

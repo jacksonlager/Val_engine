@@ -84,11 +84,17 @@ class CalibrationCfg(_Strict):
     bound_pct: float = 0.35
     require_live_history: bool = True   # calibrate only from an observed comps history (live:*), never the fixture
     round_month_tolerance: int = 3      # months either side of the round month the history may be read at
+    # each end of the re-rating is read as a name's median over ±this many months, so one month-end
+    # print in a thin stock does not set a private mark's alternative (0 = the single month)
+    anchor_window_months: int = 1
+    min_same_set_names: int = 3         # names priced at both ends before a same-set re-rating is trusted
 
     @model_validator(mode="after")
     def _sane(self) -> "CalibrationCfg":
-        if self.min_age_months < 0 or self.round_month_tolerance < 0:
+        if self.min_age_months < 0 or self.round_month_tolerance < 0 or self.anchor_window_months < 0:
             raise ValueError("marking.calibration months cannot be negative")
+        if self.min_same_set_names < 1:
+            raise ValueError("marking.calibration.min_same_set_names must be at least 1")
         if not 0.0 < self.bound_pct <= 1.0:
             raise ValueError("marking.calibration.bound_pct must be in (0, 1]")
         return self

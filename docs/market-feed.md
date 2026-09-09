@@ -27,8 +27,8 @@ Per constituent, per month-end: `EV = close × shares_outstanding − net_cash`,
 basis (§2.3). Per sector: the median across the basket, over the constituent-months whose
 multiple is positive (§2.4). The result is a real, dated EV/TTM-revenue multiple per
 portfolio sector with a monthly history — the same field PitchBook's
-`evToNtmRevenue.median` carries (NTM vs TTM is noted in the source label; it is a policy
-choice, not a code one).
+`evToNtmRevenue.median` carries, on a trailing rather than forward basis (a policy choice,
+not a code one; the engine's `SectorComp.ev_to_arr` field holds this EV ÷ TTM-revenue value).
 
 Three inputs are refused rather than used when they cannot be trusted, and each refusal is
 counted on the constituent and given a reason: a share count the filer stopped reporting
@@ -368,8 +368,10 @@ every test uses `tests/fixtures/market/` recordings or a temp cache.
 ### 2.8 Known limitations
 
 With the committed cache all 54 constituents price and 12 of 12 sectors are live (4 of 12
-before the three rules above), and the history runs 55 months, 2022-03 to 2026-09. Two
-things about that history should be read before it is relied on.
+before the three rules above), and the history runs to 96 months for the sectors whose names
+were all listed by 2018-10 (Enterprise SaaS, Cybersecurity, Healthcare, Robotics, Climate &
+Energy) and 55 months, 2022-03 to 2026-09, for AI/ML, whose younger names set the start.
+Two things about that history should be read before it is relied on.
 
 **The baskets are five names deep.** A median of five moves when one name does, and an
 early month may rest on as few as `min_constituents` (3). M-080 produces 42 indications
@@ -383,16 +385,19 @@ the X-401/X-402 screens, and marks and NAV are unchanged.
 
 **Some excluded months are input errors the filter is masking, not real states.** The
 negative-EV exclusion is a guard on the median, not a diagnosis. Of the 16 constituent-months
-it removes from the committed cache, 13 are C3.ai from June 2021 to June 2022, priced on
+it removes from the committed cache, 13 are C3.ai from June 2021 to June 2022 (and the other
+three are Datadog months where net cash exceeded a depressed market cap), priced on
 its dead 3.5M tag because the cache was fetched before the basic-and-diluted concept was
 read (above), and, before the convertible concepts were read (§2.4), one was Teladoc in April 2025,
 where the extract carried no debt after 2024 so "net cash" exceeded a $1.2B market cap by
 $7M. Neither was a company worth less than its cash. A refresh resolves the first; reading
 the convertible notes resolved the second, and the refreshed cache excludes no Teladoc month.
 
-**Retrieval preceded the valuation date.** `fetched_at` is 2026-09-07 and the measurement
-date is 2026-09-30, so the 2026-09 value is the last close on file at retrieval, 23 days
-early, not a quarter-end print; every earlier month is a true month end. A refresh after
+**Retrieval preceded the valuation date.** `fetched_at` is 2026-09-08 and the measurement
+date is 2026-09-30, so the 2026-09 value is the last close on file at retrieval, 22 days
+early, not a quarter-end print; every earlier month is a true month end. The engine carries
+that date as `MarketData.priced_as_of`; the M-080 step, `comps_move` and the Sensitivity view
+say "priced on 2026-09-08, not a month-end" wherever the measurement month is compared with one. A refresh after
 the measurement date (`market --provider live --refresh`) replaces it, and the manifest's
 `fetched_at` is what says which of the two a run used.
 

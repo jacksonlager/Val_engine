@@ -11,7 +11,7 @@ import {
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { CompanyResult, MarketConstituent, MarketReport, MarketSector, ValuationRun } from "../types";
 import { loadMarket, type Mode } from "../lib/api";
-import { isoDateTime, mmddyy, mult, musd, pct, shortDate, signClass } from "../lib/format";
+import { isoDateTime, mmddyy, mult, musd, pct, shortDate, signClass, signed } from "../lib/format";
 import { altLabel, humanize } from "../lib/labels";
 import { useChartTheme } from "../lib/theme";
 import { MarketStatusButton } from "../components/MarketStatus";
@@ -94,7 +94,7 @@ function Kpi({ label, value, tone, sub }: { label: string; value: React.ReactNod
 
 /** The top of the page: three numbers, then the notices that change how the page is read. Every
     sentence of provenance and every data caveat is kept, one click away under "Data notes". */
-function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
+function HeaderStrip({ rep, served, run }: { rep: MarketReport; served: boolean; run?: ValuationRun }) {
   const [showErrors, setShowErrors] = useState(false);
   const n = rep.errors.length;
   const askedLive = rep.provider === "live";
@@ -104,10 +104,16 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
   const caveats = useMemo(() => qualityCaveats(rep), [rep]);
   const nCaveats = caveats.filter((c) => !c.ok).length;
 
-  // what the multiples did this quarter, weighted by the positions that sit under each sector
-  const moved = rep.sectors.filter((s) => s.qoq_pct !== null && s.positions > 0);
-  const wsum = moved.reduce((t, s) => t + s.positions, 0);
-  const wavg = wsum ? moved.reduce((t, s) => t + (s.qoq_pct as number) * s.positions, 0) / wsum : null;
+  // What the multiples did this quarter. From the run's comps_move when there is one: each
+  // sector's same-set move, weighted by the marks it would actually drive (the exposed NAV), so the
+  // headline is the observed re-rating of the book. Without a run, the report's own sector moves
+  // weighted by how many positions sit in each sector.
+  const cm = run?.comps_move ?? null;
+  const moved = cm
+    ? cm.sectors.map((m) => ({ sector: m.sector, qoq_pct: m.qoq_pct as number | null, positions: m.positions, weight: m.exposed_nav }))
+    : rep.sectors.filter((s) => s.qoq_pct !== null && s.positions > 0).map((s) => ({ sector: s.sector, qoq_pct: s.qoq_pct, positions: s.positions, weight: s.positions }));
+  const wsum = moved.reduce((t, s) => t + s.weight, 0);
+  const wavg = wsum ? moved.reduce((t, s) => t + (s.qoq_pct as number) * s.weight, 0) / wsum : null;
   const up = moved.filter((s) => (s.qoq_pct as number) > 0).length;
   const down = moved.filter((s) => (s.qoq_pct as number) < 0).length;
   const byMove = [...moved].sort((x, y) => (y.qoq_pct as number) - (x.qoq_pct as number));
@@ -145,7 +151,9 @@ function HeaderStrip({ rep, served }: { rep: MarketReport; served: boolean }) {
           sub={
             wavg === null
               ? "No prior quarter on file to compare against"
-              : `Average change across ${moved.length} sectors, weighted by portfolio positions · ${up} up, ${down} down`
+              : cm
+                ? `${signed(cm.delta, 1)} ÷ ${musd(cm.covered_nav, 1)} that moves with multiples · ${moved.length} sectors, ${up} up, ${down} down`
+                : `Average change across ${moved.length} sectors, weighted by portfolio positions · ${up} up, ${down} down`
           }
         />
         <Kpi
@@ -1042,7 +1050,7 @@ export function MarketView({ mode, run, onGoto }: { mode: Mode; run?: ValuationR
 
   return (
     <div className="space-y-4">
-      <HeaderStrip rep={rep} served={mode === "served"} />
+      <HeaderStrip rep={rep} served={mode === "served"} run={run} />
 
       {rep.sectors.length === 0 ? (
         <div className="card p-6 text-center text-muted text-[12px]">No sectors in the market report.</div>

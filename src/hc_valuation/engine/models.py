@@ -56,6 +56,12 @@ class MarketData(_Frozen):
     comps: dict[str, SectorComp] = Field(default_factory=dict)
     comp_history: dict[str, dict[str, float]] = Field(default_factory=dict)  # sector -> {YYYY-MM: multiple}
     comp_counts: dict[str, dict[str, int]] = Field(default_factory=dict)     # sector -> {YYYY-MM: constituents priced}
+    # sector -> ticker -> {YYYY-MM: that name's own EV/TTM revenue}: what a re-rating is measured
+    # on, name by name over the same names (engine/rerating.py); empty for a fixture history
+    comp_constituents: dict[str, dict[str, dict[str, float]]] = Field(default_factory=dict)
+    # the day the measurement month's prices were taken: a month that has not ended is priced
+    # mid-month, and every comparison against a true month-end must say so
+    priced_as_of: date | None = None
     as_of: date | None = None
 
 
@@ -285,6 +291,10 @@ class CompanyResult(_Frozen):
     staleness_anchor: date        # date the staleness clock runs from
     fv_level: int | None = None   # 1 | 2 | 3 | None for zero positions
     multiple_exposed: bool = False  # Level 3 with ARR at or above the screening floor: the marks a multiple regime drives
+    # The share of the equity leg a multiple regime drives: 1.0 for a round-priced mark, the
+    # standalone leg's weight for a probability-weighted deal mark (only the branch where the deal
+    # breaks rests on the round), 0.0 when the mark is a deal price or the buyer's shares.
+    multiple_exposed_share: float = 0.0
 
     arr: float | None = None
     arr_growth: float | None = None
@@ -417,6 +427,10 @@ class SectorMove(_Frozen):
     source: str
     n_prior: int | None = None     # constituents behind each basket value (live only)
     n_now: int | None = None
+    # how qoq_pct was measured: the same-set median of each name's own move, or (fixture) the
+    # ratio of two basket medians — and the per-name detail so the number can be checked by eye
+    method: str = ""
+    names: tuple[tuple[str, float, float, float], ...] = ()   # (ticker, then, now, now ÷ then)
 
 
 class CompsMove(_Frozen):
@@ -432,6 +446,7 @@ class CompsMove(_Frozen):
     nav_if_marked_with_comps: float
     sectors: tuple[SectorMove, ...]
     all_live: bool                 # every covered sector read an observed history
+    priced_as_of: date | None = None   # the price date behind `now_month` when it is not a month-end
 
 
 class ValuationRun(_Frozen):

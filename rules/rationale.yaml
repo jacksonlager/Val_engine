@@ -643,11 +643,12 @@ rules:
     severity: [MONITOR]
     source: brief
     brief_text: a mark that no longer squares with performance
-    reads: Latest Post-Money ÷ ARR vs the sector comps
+    reads: Latest Post-Money ÷ ARR vs the public EV ÷ TTM-revenue median of the sector basket
     trigger: "Post-money ÷ ARR > 2× sector median"
     why_flag: >-
       Implied post-money ÷ ARR is more than 2× the live sector median (30× when no live comps
-      are on file) — the mark is rich against public peers.
+      are on file) — the mark is rich against public peers. Post-money is not enterprise value
+      and ARR is not trailing revenue, and growth is not adjusted for: a screen, not a valuation.
     why_severity: >-
       Because a multiple is a screen, not a valuation; on a fresh round the price is the price. It
       needs a review only when paired with a stale anchor (X-405).
@@ -657,7 +658,7 @@ rules:
     severity: [MONITOR]
     source: brief
     brief_text: a mark that no longer squares with performance
-    reads: Latest Post-Money ÷ ARR vs the sector comps
+    reads: Latest Post-Money ÷ ARR vs the public EV ÷ TTM-revenue median of the sector basket
     trigger: "Post-money ÷ ARR < 0.5× sector median"
     why_flag: >-
       Implied post-money ÷ ARR is below 0.5× the live sector median (3× absolute). Fires in the
@@ -705,7 +706,8 @@ rules:
     why_severity: >-
       Because each half alone is only a watch item; together they are the case the brief
       describes. Suppressed when X-202 or X-302 already put the position under review, so nothing
-      is counted twice.
+      is counted twice. The comps calibration is offered as a resolution only when it moves the
+      mark the way the screen points; a calibration against the screen is disclosed, not offered.
 
   # ---------------------------------------------------------------- ledger
   - id: E-01

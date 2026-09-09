@@ -47,7 +47,7 @@ from .models import (OpenItemKind,
 from .open_items import RESOLVES, carry_prior_items
 from .overrides import apply_override
 from .registry import BUILTIN, Registry
-from .rollup import comps_move, fund_rollups, is_multiple_exposed, portfolio_totals, sensitivity, sensitivity_by_sector
+from .rollup import comps_move, exposed_share, fund_rollups, is_multiple_exposed, portfolio_totals, sensitivity, sensitivity_by_sector
 from .state import Suggest, Working
 
 ENGINE_VERSION = "0.1.0"
@@ -555,8 +555,10 @@ def run_valuation(
                        row_index=rows[0], rows=rows, reason=reader_absent, reader_unavailable=True)
 
         carry_prior_items(w, list(prior_open_items), config, resolved)
-        assess_carry_side(w, config, market)
+        # The calibration runs before the carry-side screens so a screen that offers the
+        # calibrated figure can see which way it points (X-405 offers it only when it agrees).
         marking.calibrate_stale(w, config, market)
+        assess_carry_side(w, config, market)
 
         booked, override = apply_override(w, overrides, quarter, config.tolerances.prior_mark_reconciliation_musd)
         realized_cum = p.realized + w.realized_quarter
@@ -586,6 +588,7 @@ def run_valuation(
                                   realized_quarter=w.realized_quarter)
         aged_runway = (p.runway_months - config.metrics.reporting_lag_months) if p.runway_months is not None else None
         implied_mult = (w.latest_post / p.arr) if (p.arr and p.arr >= config.exceptions.multiple.min_arr and w.latest_post and not w.terminal) else None
+        share = exposed_share(w.steps, {i.kind for i in w.open_items})
 
         results.append(CompanyResult(
             company=p.company, fund=p.fund, sector=p.sector, stage=w.stage,
@@ -596,8 +599,8 @@ def run_valuation(
             invested_before=p.invested, invested_after=round(invested_after, 6),
             realized_quarter=round(w.realized_quarter, 6), realized_cumulative=round(realized_cum, 6),
             latest_post_money=w.latest_post, staleness_anchor=w.staleness_anchor, fv_level=w.fv_level,
-            multiple_exposed=is_multiple_exposed(w.fv_level, p.arr, config,
-                                                 deal_priced=any(i.kind == OpenItemKind.PENDING_ACQUISITION for i in w.open_items)),
+            multiple_exposed=is_multiple_exposed(w.fv_level, p.arr, config, share=share),
+            multiple_exposed_share=(share if is_multiple_exposed(w.fv_level, p.arr, config, share=share) else 0.0),
             arr=p.arr, arr_growth=p.arr_growth,
             first_investment=p.first_investment, latest_round=p.latest_round, gross_margin=p.gross_margin,
             net_burn=p.net_burn, cash=p.cash, headcount=p.headcount,
