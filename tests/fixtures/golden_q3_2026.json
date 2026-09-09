@@ -86,6 +86,7 @@
       "row_index": 10,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "10.8% \u00d7 $128.5M = $13.88M",
      "inputs": {
       "detail": "Series B",
       "hc_investment": 0.0,
@@ -236,6 +237,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 61.3,
       "ownership": 0.132,
@@ -306,6 +308,7 @@
       "row_index": 7,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "$18.20M carrying value \u2192 $0.00M; $28.20M realized \u00b7 entitlement 8.7% \u00d7 $324.0M deal = $28.19M",
      "inputs": {
       "deal_value": 324.0,
       "detail": "All-cash acquisition",
@@ -409,6 +412,7 @@
       "row_index": 2,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "5.5% \u00d7 $103.8M = $5.71M",
      "inputs": {
       "detail": "Series B",
       "hc_investment": 0.0,
@@ -524,6 +528,7 @@
       "row_index": 9,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "equity $1.80M unchanged; HC did not fund the note",
      "inputs": {
       "cap_vs_last_round": 0.4222222222222223,
       "detail": "$8.5M bridge note, $32.0M valuation cap",
@@ -597,6 +602,7 @@
       "row_index": 5,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "4.0% \u00d7 $1837.9M = $73.52M",
      "inputs": {
       "detail": "Series D",
       "hc_investment": 0.0,
@@ -779,6 +785,7 @@
       "row_index": 15,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "0.90 \u00d7 (3.6% \u00d7 $133M = $4.79M) + 0.10 \u00d7 $3.50M = $4.66M",
      "inputs": {
       "at_full_deal_value": 4.787999999999999,
       "close_probability": 0.9,
@@ -944,6 +951,7 @@
       "row_index": 17,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": null,
      "inputs": {
       "detail": "Series B term sheet at ~$50.0M post",
       "indicated_mark": 4.25,
@@ -1031,6 +1039,7 @@
       "row_index": 11,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "3.8% \u00d7 $764.2M = $29.04M",
      "inputs": {
       "detail": "Series D",
       "hc_investment": 0.0,
@@ -1120,6 +1129,7 @@
       "row_index": 3,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "11.1% \u00d7 $43.0M = $4.77M",
      "inputs": {
       "detail": "Series A",
       "hc_investment": 1.3,
@@ -1189,6 +1199,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "realized": 15.9,
       "status": "Acquired"
@@ -1253,6 +1264,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 4.3,
       "ownership": 0.099,
@@ -1325,6 +1337,7 @@
       "row_index": 8,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "remainder 1.7% \u00d7 $516.0M = $8.77M; $3.90M realized \u00b7 implied $3.90M \u00f7 0.8% = $487.5M post",
      "inputs": {
       "at_last_round": 8.772,
       "at_secondary_price": 8.772,
@@ -1419,6 +1432,7 @@
       "row_index": 4,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "6.8% \u00d7 $45.1M = $3.07M",
      "inputs": {
       "detail": "Series A",
       "hc_investment": 0.9,
@@ -1547,6 +1561,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 1157.1,
       "ownership": 0.012,
@@ -1717,6 +1732,7 @@
       "row_index": 6,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "7.9% \u00d7 $176.3M = $13.93M",
      "inputs": {
       "detail": "Series B extension (same terms)",
       "hc_investment": 1.1,
@@ -1800,6 +1816,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 61.1,
       "ownership": 0.121,
@@ -1865,6 +1882,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 23.9,
       "ownership": 0.12,
@@ -1930,6 +1948,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 75.5,
       "ownership": 0.118,
@@ -2137,6 +2156,7 @@
       "row_index": 14,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "8.0% \u00d7 $14.2M = $1.14M \u00b7 structure-adjusted alternative $1.14M \u00d7 (1 \u2212 25%) = $0.85M",
      "inputs": {
       "detail": "Series A (recap)",
       "hc_investment": 0.3,
@@ -2289,6 +2309,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 279.8,
       "ownership": 0.086,
@@ -2354,6 +2375,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 398.1,
       "ownership": 0.057,
@@ -2434,6 +2456,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 562.1,
       "ownership": 0.022,
@@ -2514,6 +2537,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 97.6,
       "ownership": 0.063,
@@ -2594,6 +2618,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 14.2,
       "ownership": 0.091,
@@ -2674,6 +2699,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 9.3,
       "ownership": 0.116,
@@ -2829,6 +2855,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 21.2,
       "ownership": 0.064,
@@ -2975,6 +3002,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 246.7,
       "ownership": 0.075,
@@ -3056,6 +3084,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 86.2,
       "ownership": 0.072,
@@ -3202,6 +3231,7 @@
       "row_index": 18,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "2.8% \u00d7 $3,931M = $110.07M",
      "inputs": {
       "ipo_market_cap": 3931.0,
       "lockup_discount_pct": 0.0,
@@ -3287,6 +3317,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 14.2,
       "ownership": 0.122,
@@ -3367,6 +3398,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 258.1,
       "ownership": 0.04,
@@ -3447,6 +3479,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 326.0,
       "ownership": 0.044,
@@ -3527,6 +3560,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 780.4,
       "ownership": 0.039,
@@ -3607,6 +3641,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 261.2,
       "ownership": 0.056,
@@ -3754,6 +3789,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 192.9,
       "ownership": 0.074,
@@ -3834,6 +3870,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 12.0,
       "ownership": 0.078,
@@ -3904,6 +3941,7 @@
       "row_index": 16,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "$11.40M written off \u2192 $0.00M; $0.40M realized",
      "inputs": {
       "detail": "Ceased operations",
       "prior_mark": 11.4,
@@ -3984,6 +4022,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 2012.1,
       "ownership": 0.015,
@@ -4064,6 +4103,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 9.8,
       "ownership": 0.079,
@@ -4259,6 +4299,7 @@
       "row_index": 13,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "6.3% \u00d7 $37.0M = $2.33M \u00b7 structure-adjusted alternative $2.33M \u00d7 (1 \u2212 25%) = $1.75M",
      "inputs": {
       "detail": "Series B (recap)",
       "hc_investment": 0.0,
@@ -4428,6 +4469,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 87.7,
       "ownership": 0.083,
@@ -4551,6 +4593,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 15.1,
       "ownership": 0.106,
@@ -4631,6 +4674,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 22.8,
       "ownership": 0.095,
@@ -4712,6 +4756,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 87.7,
       "ownership": 0.062,
@@ -4777,6 +4822,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 12.0,
       "ownership": 0.097,
@@ -4856,6 +4902,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 10.3,
       "ownership": 0.096,
@@ -4935,6 +4982,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 84.9,
       "ownership": 0.139,
@@ -5015,6 +5063,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 2055.3,
       "ownership": 0.01,
@@ -5170,6 +5219,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 7.7,
       "ownership": 0.084,
@@ -5250,6 +5300,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 30.2,
       "ownership": 0.123,
@@ -5315,6 +5366,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 251.6,
       "ownership": 0.042,
@@ -5488,6 +5540,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 1494.5,
       "ownership": 0.029,
@@ -5553,6 +5606,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 260.3,
       "ownership": 0.056,
@@ -5774,6 +5828,7 @@
       "row_index": 12,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "equity $6.10M + note at cost $0.50M = $6.60M",
      "inputs": {
       "cap_vs_last_round": 0.802168021680217,
       "detail": "$4.7M bridge note, $133.0M valuation cap",
@@ -5858,6 +5913,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 626.9,
       "ownership": 0.038,
@@ -6037,6 +6093,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 631.7,
       "ownership": 0.042,
@@ -6102,6 +6159,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 30.3,
       "ownership": 0.102,
@@ -6167,6 +6225,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "realized": 1.2,
       "status": "Acquired"
@@ -6246,6 +6305,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 24.7,
       "ownership": 0.12,
@@ -6311,6 +6371,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 79.0,
       "ownership": 0.071,
@@ -6376,6 +6437,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 63.6,
       "ownership": 0.069,
@@ -6441,6 +6503,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 15.3,
       "ownership": 0.072,
@@ -6603,6 +6666,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 122.5,
       "ownership": 0.054,
@@ -6727,6 +6791,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 820.2,
       "ownership": 0.026,
@@ -6860,6 +6925,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 119.9,
       "ownership": 0.061,
@@ -6925,6 +6991,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 54.3,
       "ownership": 0.12,
@@ -6990,6 +7057,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 66.1,
       "ownership": 0.135,
@@ -7070,6 +7138,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 298.3,
       "ownership": 0.041,
@@ -7217,6 +7286,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 18.1,
       "ownership": 0.094,
@@ -7282,6 +7352,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 13.9,
       "ownership": 0.087,
@@ -7375,6 +7446,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 17.9,
       "ownership": 0.083,
@@ -7440,6 +7512,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 1390.7,
       "ownership": 0.016,
@@ -7505,6 +7578,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 38.7,
       "ownership": 0.121,
@@ -7585,6 +7659,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 2282.4,
       "ownership": 0.025,
@@ -7664,6 +7739,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 21.3,
       "ownership": 0.119,
@@ -7758,6 +7834,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 91.0,
       "ownership": 0.037,
@@ -7851,6 +7928,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 12.5,
       "ownership": 0.103,
@@ -7931,6 +8009,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 415.9,
       "ownership": 0.021,
@@ -7996,6 +8075,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 25.5,
       "ownership": 0.101,
@@ -8061,6 +8141,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 677.3,
       "ownership": 0.041,
@@ -8126,6 +8207,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "realized": 0.0,
       "status": "Shut Down"
@@ -8205,6 +8287,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 285.1,
       "ownership": 0.038,
@@ -8270,6 +8353,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 10.1,
       "ownership": 0.063,
@@ -8335,6 +8419,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 86.9,
       "ownership": 0.07,
@@ -8405,6 +8490,7 @@
       "row_index": 19,
       "sheet": "Q3 2026 Activity"
      },
+     "formula": "$10.00M written off \u2192 $0.00M",
      "inputs": {
       "detail": "Ceased operations",
       "prior_mark": 10.0,
@@ -8544,6 +8630,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 8.2,
       "ownership": 0.08,
@@ -8668,6 +8755,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 842.1,
       "ownership": 0.058,
@@ -8733,6 +8821,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 653.6,
       "ownership": 0.057,
@@ -8871,6 +8960,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 5699.4,
       "ownership": 0.012,
@@ -8965,6 +9055,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 289.9,
       "ownership": 0.083,
@@ -9030,6 +9121,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 302.2,
       "ownership": 0.043,
@@ -9168,6 +9260,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 22.6,
       "ownership": 0.077,
@@ -9249,6 +9342,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 60.3,
       "ownership": 0.13,
@@ -9314,6 +9408,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 15.6,
       "ownership": 0.073,
@@ -9379,6 +9474,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 2170.9,
       "ownership": 0.013,
@@ -9503,6 +9599,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 17.4,
       "ownership": 0.121,
@@ -9568,6 +9665,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 22.1,
       "ownership": 0.103,
@@ -9649,6 +9747,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "latest_post_money": 54.6,
       "ownership": 0.135,
@@ -9714,6 +9813,7 @@
    "steps": [
     {
      "evidence": null,
+     "formula": null,
      "inputs": {
       "realized": 0.0,
       "status": "Shut Down"

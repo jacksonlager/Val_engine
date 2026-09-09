@@ -32,8 +32,8 @@ from ..engine.models import CompanyResult, ValuationRun
 from ..ingest.reader import read_workbook
 from ..ingest.schema import ACTIVITY_COLUMNS, PORTFOLIO_COLUMNS
 
-HEADER_FONT = Font(bold=True, color="FFFFFF")
-HEADER_FILL = PatternFill("solid", fgColor="000000")
+HEADER_FONT = Font(bold=True, color="FFFFFFFF")
+HEADER_FILL = PatternFill("solid", fgColor="FF000000")
 _QUARTER_RX = re.compile(r"^\s*Q([1-4])\s+(\d{4})\s*$")
 
 # Number formats copied from the source book so the emitted file looks like the input.
@@ -170,7 +170,8 @@ def _entered_from_activity(c: CompanyResult, run: ValuationRun) -> Position:
     )
 
 
-def _write_portfolio(wb: Workbook, run: ValuationRun, sources: dict[str, Position], tol: float) -> list[tuple[str, str]]:
+def _write_portfolio(wb: Workbook, run: ValuationRun, sources: dict[str, Position], tol: float,
+                     source_widths: dict[str, float] | None = None) -> list[tuple[str, str]]:
     ws = wb.active
     ws.title = "Portfolio"
     cols = list(PORTFOLIO_COLUMNS)
@@ -198,18 +199,57 @@ def _write_portfolio(wb: Workbook, run: ValuationRun, sources: dict[str, Positio
             if col in _FORMATS:
                 ws.cell(row=i, column=j).number_format = _FORMATS[col]
     for j, col in enumerate(cols, start=1):
-        ws.column_dimensions[ws.cell(row=1, column=j).column_letter].width = _WIDTHS.get(col, 13)
+        letter = ws.cell(row=1, column=j).column_letter
+        ws.column_dimensions[letter].width = (source_widths or {}).get(letter) or _WIDTHS.get(col, 13)
     _style_header(ws, len(cols), "B2")
     return notes
 
 
-def _write_activity(wb: Workbook, sheet_name: str) -> None:
+_ACTIVITY_FORMATS: dict[str, str] = {"Date": "mm/dd/yyyy", "Post-Money / Deal Value ($M)": r"\$#,##0.0",
+                                     "HC Investment ($M)": r"\$#,##0.0", "HC Ownership After (FD %)": "0.0%",
+                                     "Proceeds to HC ($M)": r"\$#,##0.0"}
+
+
+def _write_activity(wb: Workbook, sheet_name: str, source_widths: dict[str, float] | None = None,
+                    source_formats: dict[str, str] | None = None) -> None:
     ws = wb.create_sheet(sheet_name)
     cols = list(ACTIVITY_COLUMNS)
     ws.append(cols)
+    fallback = {"Detail": 30, "Notes": 60, "Company": 22, "Event": 21}
     for j, col in enumerate(cols, start=1):
-        ws.column_dimensions[ws.cell(row=1, column=j).column_letter].width = {"Detail": 30, "Notes": 60, "Company": 22, "Event": 21}.get(col, 13)
+        letter = ws.cell(row=1, column=j).column_letter
+        ws.column_dimensions[letter].width = (source_widths or {}).get(letter) or fallback.get(col, 13)
+    # The source tab's number formats go on the columns themselves, so whatever a reviewer types
+    # next quarter renders as a date or $M — and the tab stays genuinely empty (no phantom rows).
+    for j, col in enumerate(cols, start=1):
+        fmt = (source_formats or {}).get(col) or _ACTIVITY_FORMATS.get(col)
+        if fmt:
+            ws.column_dimensions[ws.cell(row=1, column=j).column_letter].number_format = fmt
     _style_header(ws, len(cols), "A2")
+
+
+def _source_layout(source: Path, cfg: RuleConfig) -> tuple[dict[str, float], dict[str, float], dict[str, str]]:
+    """What the source book looks like, so the emitted one looks the same: Portfolio column widths
+    by letter, activity-tab widths by letter, and the activity tab's data-row number formats by
+    column name (read off its first data row, or the header row's neighbours when it has none)."""
+    try:
+        src_wb = openpyxl.load_workbook(source, read_only=False)
+        pw = {k: d.width for k, d in src_wb[cfg.schema_.portfolio_sheet_name].column_dimensions.items() if d.width} \
+            if cfg.schema_.portfolio_sheet_name in src_wb.sheetnames else {}
+        name = next((n for n in src_wb.sheetnames if re.match(cfg.schema_.activity_sheet_pattern, n)), None)
+        aw: dict[str, float] = {}; af: dict[str, str] = {}
+        if name:
+            ws = src_wb[name]
+            aw = {k: d.width for k, d in ws.column_dimensions.items() if d.width}
+            if ws.max_row >= 2:
+                for j in range(1, ws.max_column + 1):
+                    h = ws.cell(row=1, column=j).value; f = ws.cell(row=2, column=j).number_format
+                    if h and f and f != "General":
+                        af[str(h)] = f
+        src_wb.close()
+        return pw, aw, af
+    except Exception:  # noqa: BLE001 — layout is cosmetic; never let it stop the roll-forward
+        return {}, {}, {}
 
 
 def _copy_field_definitions(wb: Workbook, source_path: Path, run: ValuationRun, next_label: str) -> None:
@@ -338,8 +378,9 @@ def write_next_quarter_workbook(run: ValuationRun, source_workbook_path: str | P
     tol = cfg.tolerances.prior_mark_reconciliation_musd
 
     wb = Workbook()
-    notes = _write_portfolio(wb, run, sources, tol)
-    _write_activity(wb, activity_name)
+    p_widths, a_widths, a_formats = _source_layout(source, cfg)
+    notes = _write_portfolio(wb, run, sources, tol, p_widths)
+    _write_activity(wb, activity_name, a_widths, a_formats)
     _copy_field_definitions(wb, source, run, next_label)
     _write_open_items(wb, run)
     anchors = _carried_anchors(run, sources)

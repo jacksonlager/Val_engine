@@ -40,7 +40,8 @@ def apply_override(w: Working, ledger: OverrideLedger, quarter: str, tolerance: 
                          "evidence": dict(rec.evidence) if rec.evidence else None},
            proposed, proposed,   # the chain records the decision; proposed_mark itself is not altered
            f"Reviewer override by {rec.approver} ({rec.created_at.isoformat()}): booked ${rec.booked:.2f}M against proposed "
-           f"${proposed:.2f}M ({route}{evidence_clause(rec.evidence)}). Reason: {rec.reason}")
+           f"${proposed:.2f}M ({route}{evidence_clause(rec.evidence)}). Reason: {rec.reason}",
+           formula=f"booked ${rec.booked:.2f}M by {rec.approver}; proposed ${proposed:.2f}M ({rec.booked - proposed:+.2f}M)")
     return rec.booked, rec
 
 

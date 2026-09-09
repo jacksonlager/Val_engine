@@ -61,7 +61,9 @@ def register_custom_rules(registry: Registry, cfg: RuleConfig) -> None:
                    {"formula": _spec.formula, **{k: vals[k] for k in dsl.fields_used(_tree)}, "approver": _spec.approver,
                     "effective_from": _spec.effective_from.isoformat()},
                    w.equity_mark, new_equity,
-                   f"Declarative rule {_spec.rule_id} (promoted precedent, approved by {_spec.approver}): {_spec.rationale}", e)
+                   f"Declarative rule {_spec.rule_id} (declared in the policy file, approved by {_spec.approver}): {_spec.rationale}", e,
+                   formula=f"{_spec.formula} = ${new_equity:.2f}M, with "
+                           + ", ".join(f"{k} = {vals[k]}" for k in dsl.fields_used(_tree)))
             sev = Severity(_spec.severity)
             w.flag(_spec.rule_id, "treatment", sev,
                    f"Marked by {_spec.rule_id}, a rule declared in the policy file and approved by {_spec.approver} "

@@ -136,3 +136,41 @@ def test_extension_date_survives_a_quiet_quarter(tmp_path: Path, cfg):
     out5 = write_next_quarter_workbook(run4, out, tmp_path / "next2" / "portfolio_Q1_2027.xlsx", cfg4)
     assert _rows(out5)["Alpha"]["Latest Round"].date() == date(2026, 8, 11)
     assert yaml.safe_load((out5.parent / "open_items_carry.yaml").read_text())["staleness_anchors"][0]["anchor"] == "2021-10-08"
+
+
+def test_escrow_on_a_closed_exit_survives_the_roll(tmp_path: Path, cfg):
+    """A closed acquisition that paid less than ownership × deal value opens an `unconfirmed_exit`
+    item for the gap (escrow, holdback, fees). The position is Acquired at 0; that is what dropped
+    the item on the next run, because `carry_prior_items` treated any closed position as having
+    resolved everything it carried. An exit whose cash has not all arrived is the one item that only
+    exists *because* the position closed: it carries, and E-07 puts it in front of a reviewer.
+    (The Q3 2026 → Q4 roll lost a $3.14M escrow question on an acquired company this way.)"""
+    pos = position(company="Alpha", latest_post_money=842.1, ownership=0.058, prior_mark=48.8, invested=14.0)
+    short = event(EventType.ACQ_CLOSED, detail="All-cash acquisition", value=30.0, proceeds=1.20,
+                  notes="Transaction closed. $0.54M held in escrow pending indemnity period.")
+    src = make_workbook(tmp_path, [pos], [short])
+    run, _ = run_workbook(src, cfg)
+    c = run.by_company()["Alpha"]
+    assert c.status_after.value == "Acquired" and c.proposed_mark == 0.0 and c.realized_quarter == pytest.approx(1.20)
+    assert [i.kind for i in c.open_items] == [OpenItemKind.UNCONFIRMED_EXIT], [i.kind for i in c.open_items]
+
+    out = write_next_quarter_workbook(run, src, tmp_path / "next" / "portfolio_Q4_2026.xlsx", cfg)
+    assert _rows(out)["Alpha"]["Status"] == "Acquired" and _rows(out)["Alpha"]["Prior Mark ($M)"] == 0.0
+    sidecar = yaml.safe_load((out.parent / "open_items_carry.yaml").read_text())
+    assert [i["kind"] for i in sidecar["open_items"]] == ["unconfirmed_exit"]
+
+    cfg4 = load_config(write_next_policy(_policy_copy(tmp_path)))
+    run4 = _next(tmp_path, out, cfg4, [])
+    c4 = run4.by_company()["Alpha"]
+    carried = [i for i in c4.open_items if i.kind == OpenItemKind.UNCONFIRMED_EXIT]
+    assert carried and carried[0].escalated and carried[0].age_quarters == 1, c4.open_items
+    assert "E-07" in {f.rule_id for f in c4.flags}
+    # ... while a term sheet on a position that then closed is resolved by the close, as before
+    ts_pos = position(company="Beta", latest_post_money=100.0, ownership=0.10, prior_mark=10.0, invested=4.0)
+    src2 = make_workbook(tmp_path, [ts_pos], [event(EventType.ACQ_CLOSED, company="Beta", value=50.0, proceeds=5.0,
+                                                   detail="All-cash acquisition", notes="Closed.")], name="beta.xlsx")
+    from hc_valuation.engine.models import OpenItem
+    stale_ts = OpenItem(company="Beta", kind=OpenItemKind.TERM_SHEET, opened=date(2026, 5, 1), opened_quarter="Q2 2026",
+                        expected_resolution=None, amount_musd=60.0, detail="term sheet", age_quarters=0, escalated=False)
+    run2, _ = run_workbook(src2, cfg, prior_open_items=[stale_ts])
+    assert not [i for i in run2.by_company()["Beta"].open_items if i.kind == OpenItemKind.TERM_SHEET]

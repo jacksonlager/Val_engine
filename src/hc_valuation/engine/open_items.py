@@ -24,14 +24,22 @@ def _threshold(kind: OpenItemKind, cfg: RuleConfig) -> int | None:
     }[kind]
 
 
+_SURVIVES_CLOSE = {OpenItemKind.UNCONFIRMED_EXIT, OpenItemKind.ACQUIRER_SHARES}
+
+
 def carry_prior_items(w: Working, prior: list[OpenItem], cfg: RuleConfig, resolved_kinds: set[OpenItemKind]) -> None:
     """Age items opened in earlier quarters; drop those the current quarter's events resolved;
     escalate those that have sat past policy."""
-    if w.terminal:
-        return  # everything resolves with the position
     md = cfg.quarter.measurement_date
     for item in prior:
         if item.company != w.pos.company or item.kind in resolved_kinds:
+            continue
+        # A closed position resolves the items that needed it open — a note, a term sheet, a
+        # pending deal. It does not resolve the two kinds that only exist *because* it closed: an
+        # exit whose cash has not all arrived, and a buyer's shares still unpriced. Those carry
+        # until the proceeds are recorded or a person writes them off (the Q3 → Q4 roll lost a
+        # $3.14M escrow question on an acquired company this way).
+        if w.terminal and item.kind not in _SURVIVES_CLOSE:
             continue
         if item.kind == OpenItemKind.IPO_LOCKUP and item.expected_resolution and item.expected_resolution <= md:
             continue  # expired quietly

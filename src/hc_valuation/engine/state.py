@@ -110,11 +110,12 @@ class Working:
         return EventRef(sheet=self.sheet_name, row_index=e.row_index, event_type=e.event_type, date=e.date)
 
     def step(self, rule_id: str, version: str, inputs: dict[str, Any], prior: float, new: float,
-             rationale: str, e: Event | None = None) -> None:
+             rationale: str, e: Event | None = None, formula: str | None = None) -> None:
         self.steps.append(MarkStep(
             rule_id=rule_id, rule_version=version, sequence=len(self.steps) + 1,
             inputs={k: (v if not isinstance(v, date) else v.isoformat()) for k, v in inputs.items()},
             prior_value=round(prior, 6), new_value=round(new, 6), rationale=rationale, evidence=self.ref(e),
+            formula=formula,
         ))
         if rule_id not in self.applied_rules:
             self.applied_rules.append(rule_id)

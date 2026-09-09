@@ -368,7 +368,9 @@ def priced_round(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
                f"{'Recap' if is_recap else 'Down round'} at ${post:.1f}M post vs ${prior_post:.1f}M prior. Priced mechanically at "
                f"{after:.1%} × ${post:.1f}M, which assumes every class shares the post-money pro rata. The allocation is "
                "unknown: the preference stack and pay-to-play the schema cannot see move HC's share down if HC's class is "
-               "junior to the new money and up if HC funded the senior class." + conv_txt, e)
+               "junior to the new money and up if HC funded the senior class." + conv_txt, e,
+               formula=f"{after:.1%} × ${post:.1f}M = ${new_equity:.2f}M · structure-adjusted alternative "
+                       f"${new_equity:.2f}M × (1 − {haircut:.0%}) = ${new_equity * (1 - haircut):.2f}M")
         w.handled(e, "recap", "recapitalization", "recapitalisation", "down round", "down-round", "pay-to-play", "cram", "cram-down", "washout")
         w.flag("X-102", "treatment", Severity.BLOCK,
                f"{'Recap' if is_recap else 'Down round'}: the round priced at ${post:.1f}M against ${prior_post:.1f}M last time. "
@@ -393,7 +395,8 @@ def priced_round(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
         w.step(rid, V, common, prior, new_equity,
                f"Same-terms extension at ${post:.1f}M post. Ownership {before:.1%} → {after:.1%} reprices the position "
                "mechanically, but no new price discovery occurred: the staleness clock is NOT reset "
-               f"(still runs from {w.staleness_anchor.isoformat()})." + conv_txt, e)
+               f"(still runs from {w.staleness_anchor.isoformat()})." + conv_txt, e,
+               formula=f"{after:.1%} × ${post:.1f}M = ${new_equity:.2f}M" + (f" + note at cost ${w.note_at_cost:.2f}M" if w.note_at_cost else ""))
         w.flag("X-106", "treatment", Severity.REVIEW,
                f"The extension raised money at the same ${post:.1f}M price, so ownership moved but nobody re-tested what the "
                f"company is worth. The last real price discovery was {months_between(w.staleness_anchor, cfg.quarter.measurement_date)} "
@@ -416,7 +419,8 @@ def priced_round(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> N
         w.step(rid, V, {**common, **({"implied_post_from_hc_cheque": round(implied_from_cheque, 6)} if implied_from_cheque else {})},
                prior, new_equity,
                f"Priced round at ${post:.1f}M post ({e.detail}). Mark = {after:.1%} × ${post:.1f}M. "
-               "An arm's-length transaction in the subject security is the strongest Level 3 input available." + conv_txt, e)
+               "An arm's-length transaction in the subject security is the strongest Level 3 input available." + conv_txt, e,
+               formula=f"{after:.1%} × ${post:.1f}M = ${new_equity:.2f}M" + (f" + note at cost ${w.note_at_cost:.2f}M" if w.note_at_cost else ""))
         w.staleness_anchor = e.date
         _primary_price_checks(w, e, cfg, post=post, prior_post=prior_post, delta_own=delta_own, implied=implied_from_cheque)
 
@@ -478,7 +482,9 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
                         "implied_from_deal_value": implied, "detail": e.detail},
            w.proposed_mark, 0.0,
            f"Acquisition closed at ${float(e.value or 0):.1f}M; ${proceeds:.1f}M received against a ${w.equity_mark:.1f}M carrying value. "
-           "Position realized; mark to zero.", e)
+           "Position realized; mark to zero.", e,
+           formula=f"${w.equity_mark:.2f}M carrying value → $0.00M; ${proceeds:.2f}M realized"
+                   + (f" · entitlement {w.ownership:.1%} × ${float(e.value):.1f}M deal = ${implied:.2f}M" if implied is not None else ""))
     if e.proceeds is None or float(e.proceeds) == 0.0:
         w.flag("X-101", "treatment", Severity.BLOCK,
                "The exit closed but no cash was recorded against it. Either the consideration is missing from the feed or it is "
@@ -569,7 +575,8 @@ def closed_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> No
         w.step("M-024", V, {"deal_value": deal, "ownership_retained": retained, "proceeds": proceeds, "rolled_value": round(rolled, 6)},
                0.0, rolled + 0.0,
                f"HC kept {retained:.1%} of the deal in the buyer's shares (${rolled:.2f}M at the ${deal:.1f}M deal value) alongside the "
-               f"${proceeds:.2f}M of cash. The rolled stake is a new holding, not an escrow: it stays on the book, priced at the deal.", e)
+               f"${proceeds:.2f}M of cash. The rolled stake is a new holding, not an escrow: it stays on the book, priced at the deal.", e,
+               formula=f"{retained:.1%} × ${deal:.1f}M = ${rolled:.2f}M rolled into the buyer; ${proceeds:.2f}M cash realized")
         w.flag("X-112", "treatment", Severity.BLOCK,
                f"HC rolled {retained:.1%} into the buyer: ${rolled:.2f}M of the consideration is shares in another company, priced here "
                "at the deal value, which is not a price for what HC now holds. If the buyer is listed this is Level 1; if private, a new "
@@ -614,7 +621,8 @@ def stock_exit(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> Non
            w.proposed_mark, new_equity + w.note_at_cost,
            f"Acquisition closed at ${deal:.1f}M with the consideration paid in the acquirer's shares, not cash ({e.detail}). "
            f"HC's {w.ownership:.1%} of the deal value, ${new_equity:.2f}M, is the value of the shares received: the position "
-           "is not realized — it has changed from one company's stock into another's.", e)
+           "is not realized — it has changed from one company's stock into another's.", e,
+           formula=f"{w.ownership:.1%} × ${deal:.1f}M = ${new_equity:.2f}M in the acquirer's shares")
     w.flag("X-112", "treatment", Severity.BLOCK,
            f"HC was paid in shares of the buyer rather than cash, so ${new_equity:.2f}M is the deal value of what it received, "
            "not a price for what it now holds. If the acquirer is listed the position is Level 1 from here and moves daily; "
@@ -651,7 +659,8 @@ def shutdown(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
     w.step("M-021", V, {"proceeds": proceeds, "prior_mark": w.equity_mark, "detail": e.detail},
            w.proposed_mark, 0.0,
            f"Company ceased operations. ${w.equity_mark:.1f}M written off"
-           + (f"; ${proceeds:.1f}M residual cash distributed." if proceeds else "; no recovery expected."), e)
+           + (f"; ${proceeds:.1f}M residual cash distributed." if proceeds else "; no recovery expected."), e,
+           formula=f"${w.equity_mark:.2f}M written off → $0.00M" + (f"; ${proceeds:.2f}M realized" if proceeds else ""))
     if proceeds > w.equity_mark + w.note_at_cost + 1e-9 and w.equity_mark + w.note_at_cost > 0:
         w.flag("X-101", "treatment", Severity.REVIEW,
                f"A shutdown that returns ${proceeds:.2f}M against a ${w.equity_mark + w.note_at_cost:.2f}M carrying value reads "
@@ -705,7 +714,9 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
                w.proposed_mark, 0.0,
                f"HC sold its entire {before:.1%} stake for ${proceeds:.1f}M"
                + (f" at ${implied_whole:.1f}M post ({ratio_change(implied_whole, w.latest_post):+.1%} vs the last round)" if implied_whole and w.latest_post else "")
-               + ". Position realized; mark to zero.", e)
+               + ". Position realized; mark to zero.", e,
+               formula=f"{before:.1%} sold for ${proceeds:.2f}M → $0.00M"
+                       + (f" · implied ${proceeds:.2f}M ÷ {sold:.1%} = ${proceeds / sold:.1f}M post" if sold > 1e-12 else ""))
         if implied_whole and w.latest_post and abs(ratio_change(implied_whole, w.latest_post)) > cfg.exceptions.secondary.spread_tolerance_pct:
             w.flag("X-104", "treatment", Severity.REVIEW,
                    f"The sale of the whole stake implies ${implied_whole:.1f}M for the company, {ratio_change(implied_whole, w.latest_post):+.1%} "
@@ -758,7 +769,10 @@ def secondary(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
            f"${w.latest_post:.1f}M last round" + (f", {spread:+.1%}" if spread is not None else "")
            + (f"; proceeds ÷ stake sold gives ${implied_from_ownership:.1f}M ({cross:+.1%}" + (", within tolerance" if abs(cross) <= cfg.exceptions.secondary.spread_tolerance_pct else ", a gap to confirm") + ")"
               if cross is not None else "")
-           + f". Remainder {after:.1%} marked at the {'last-round' if basis == 'last_round' else 'secondary'} price.", e)
+           + f". Remainder {after:.1%} marked at the {'last-round' if basis == 'last_round' else 'secondary'} price.", e,
+           formula=f"remainder {after:.1%} × ${(implied_post if (basis == 'secondary_price' and at_secondary is not None) else w.latest_post):.1f}M"
+                   f" = ${new_equity:.2f}M; ${proceeds:.2f}M realized"
+                   + (f" · implied ${proceeds:.2f}M ÷ {sold:.1%} = ${implied_from_ownership:.1f}M post" if implied_from_ownership else ""))
     if at_secondary is not None:
         w.alternative_marks["at_secondary_price" if basis == "last_round" else "at_last_round"] = (
             at_secondary if basis == "last_round" else at_last_round)
@@ -843,7 +857,8 @@ def ipo(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None:
               (" with no lock-up discount (ASU 2022-03: a contractual sale restriction is not a characteristic of the security)" if has_lockup
                else " with no lock-up: the shares are freely tradable" + (" (per the row)" if said_no_lockup else " (a direct listing)")))
            + ". Fair value hierarchy: Level 3 → Level 1."
-           + (f" HC's ${note_converted:.2f}M note leg converts on listing and is folded into the equity mark." if note_converted else ""), e)
+           + (f" HC's ${note_converted:.2f}M note leg converts on listing and is folded into the equity mark." if note_converted else ""), e,
+           formula=f"{after:.1%} × ${cap:,.0f}M" + (f" × (1 − {disc:.0%})" if disc else "") + f" = ${new_equity:.2f}M")
     md = cfg.quarter.measurement_date
     seeded = source.startswith("stub:") or abs(cap - float(e.value)) < 1e-9
     if seeded:
@@ -935,7 +950,11 @@ def announced(w: Working, e: Event, cfg: RuleConfig, market: MarketData) -> None
             f"Marked {TREATMENT_WORDS[treatment]}: "
             + (f"{p:.2f} × ${full:.2f}M (closes at {w.ownership:.1%} × ${deal:.0f}M) + {1 - p:.2f} × ${hold:.2f}M (breaks; standalone at the last round)"
                if treatment == "probability_weighted" else f"{w.ownership:.1%} × ${deal:.0f}M")
-            + f" = ${new_equity:.2f}M. Alternatives: full ${full:.2f}M, hold ${hold:.2f}M."), e)
+            + f" = ${new_equity:.2f}M. Alternatives: full ${full:.2f}M, hold ${hold:.2f}M."), e,
+           formula=(f"{p:.2f} × ({w.ownership:.1%} × ${deal:.0f}M = ${full:.2f}M) + {1 - p:.2f} × ${hold:.2f}M = ${weighted:.2f}M"
+                    if treatment == "probability_weighted" else
+                    f"{w.ownership:.1%} × ${deal:.0f}M = ${full:.2f}M" if treatment == "full_deal_value" else
+                    f"hold ${hold:.2f}M (non-binding: no probability applied)"))
     if non_binding:
         w.flag("X-101", "treatment", Severity.BLOCK,
                f"A buyer has put ${deal:.0f}M in writing, but the row says the offer is non-binding: no signed agreement, no "
@@ -986,7 +1005,9 @@ def convertible_note(w: Working, e: Event, cfg: RuleConfig, market: MarketData) 
                         "cap_vs_last_round": cap_vs_last, "new_money_basis": cfg.marking.convertible.new_money_basis, "detail": e.detail},
            w.proposed_mark, w.proposed_mark + inv,
            f"Bridge note ({e.detail}). A valuation cap is a ceiling on a future conversion price, not a price: equity mark unchanged at "
-           f"${w.equity_mark:.2f}M." + (f" HC's ${inv:.2f}M new money carried at cost as a separate note leg." if inv else " HC did not fund the note."), e)
+           f"${w.equity_mark:.2f}M." + (f" HC's ${inv:.2f}M new money carried at cost as a separate note leg." if inv else " HC did not fund the note."), e,
+           formula=(f"equity ${w.equity_mark:.2f}M + note at cost ${w.note_at_cost + inv:.2f}M = ${w.proposed_mark + inv:.2f}M" if inv
+                    else f"equity ${w.equity_mark:.2f}M unchanged; HC did not fund the note"))
     cap_txt = (f"cap ${cap:.1f}M" + (f", {cap_vs_last:+.0%} vs last round" if cap_vs_last is not None else "")) if cap else "no parsable valuation cap"
     if inv:
         w.flag("X-107", "treatment", Severity.REVIEW,
@@ -1320,7 +1341,8 @@ def ownership_adjustment(w: Working, e: Event, cfg: RuleConfig, market: MarketDa
            w.proposed_mark, new_equity + w.note_at_cost,
            f"Ownership {before:.1%} → {after:.1%} with no price event ({e.detail}). Mark = {after:.1%} × ${w.latest_post:.1f}M on the "
            "unchanged last-round basis" + (f"; ${inv:.2f}M paid (warrant strike) added to cost." if inv else ".")
-           + f" The staleness clock still runs from {w.staleness_anchor.isoformat()}.", e)
+           + f" The staleness clock still runs from {w.staleness_anchor.isoformat()}.", e,
+           formula=f"{after:.1%} × ${w.latest_post:.1f}M = ${new_equity:.2f}M" + (f" + note at cost ${w.note_at_cost:.2f}M" if w.note_at_cost else ""))
     w.flag("X-110", "treatment", Severity.REVIEW,
            f"Ownership moved from {before:.1%} to {after:.1%} with no price event. The mark follows the cap table mechanically, "
            "but a stake that changes without a round means someone restated the table, exercised something or expanded the "
@@ -1357,7 +1379,8 @@ def new_investment(w: Working, e: Event, cfg: RuleConfig, market: MarketData) ->
            w.proposed_mark, new_equity + w.note_at_cost,
            f"New investment ({e.detail}): ${inv:.2f}M for {after:.1%} at ${post:.1f}M post. Mark = {after:.1%} × ${post:.1f}M "
            "— entered at the price HC just paid, the freshest arm's-length evidence there is."
-           + (" The company was not in the Portfolio tab; the position was created from this row." if created else ""), e)
+           + (" The company was not in the Portfolio tab; the position was created from this row." if created else ""), e,
+           formula=f"{after:.1%} × ${post:.1f}M = ${new_equity:.2f}M")
     w.flag("X-120", "treatment", Severity.MONITOR,
            f"New position entered at cost: {after:.1%} of a ${post:.1f}M post-money for ${inv:.2f}M. Nothing to decide — "
            "the entry price is the mark.",
@@ -1632,7 +1655,8 @@ def listed_carry(w: Working, cfg: RuleConfig, market: MarketData) -> None:
                         "prior_market_cap": w.latest_post, "quote_as_of": quote.as_of},
            w.proposed_mark, new_equity + w.note_at_cost,
            f"Listed position, no event. Mark = {w.ownership:.1%} × ${cap:,.0f}M market cap at {md.isoformat()} ({price_source_words(quote.source)})"
-           + (f" vs ${w.latest_post:,.0f}M at the prior close" if w.latest_post else "") + ". Level 1.")
+           + (f" vs ${w.latest_post:,.0f}M at the prior close" if w.latest_post else "") + ". Level 1.",
+           formula=f"{w.ownership:.1%} × ${cap:,.0f}M = ${new_equity:.2f}M" + (f" + note at cost ${w.note_at_cost:.2f}M" if w.note_at_cost else ""))
     w.equity_mark = new_equity
     w.latest_post = cap
     w.staleness_anchor = md
@@ -1797,8 +1821,12 @@ def calibrate_stale(w: Working, cfg: RuleConfig, market: MarketData) -> None:
                         "n_constituents_at_round": counts.get(k_then), "n_constituents_now": counts.get(k_now)},
            w.proposed_mark, w.proposed_mark,   # chain invariant compares proposed (equity + note leg), not equity alone
            f"Comps calibration (alternative only): sector {w.pos.sector} multiple {hist[k_then]:.1f}× in {k_then} → "
-           f"{hist[k_now]:.1f}× now, {raw - 1:+.1%}" + (f" bounded to {factor - 1:+.0%}" if bounded else "")
-           + f" over {age} months. Calibrated alternative ${w.equity_mark * factor:.2f}M recorded; base mark unchanged.")
+           f"{hist[k_now]:.1f}× now, {raw - 1:+.1%} over {age} months"
+           + (f" — CAPPED at {factor - 1:+.0%} by the policy limit of ±{c.bound_pct:.0%} (uncapped it would be ${w.equity_mark * raw:.2f}M)" if bounded else "")
+           + f". Calibrated alternative ${w.equity_mark * factor:.2f}M recorded; base mark unchanged.",
+           formula=f"{hist[k_now]:.2f}× ÷ {hist[k_then]:.2f}× = {raw:.3f}"
+                   + (f" → cap: policy limit ±{c.bound_pct:.0%}, so {raw:.3f} becomes {factor:.2f} (uncapped ${w.equity_mark:.2f}M × {raw:.3f} = ${w.equity_mark * raw:.2f}M)" if bounded else " (within the ±{:.0%} policy limit, no cap)".format(c.bound_pct))
+                   + f" · ${w.equity_mark:.2f}M × {factor:.2f} = ${w.equity_mark * factor:.2f}M as an alternative; base mark unchanged")
 
 
 def _nearest_month(hist: dict[str, float], key: str, tolerance: int) -> str | None:

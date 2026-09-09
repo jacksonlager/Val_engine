@@ -98,16 +98,16 @@ def audit_table(run: ValuationRun, sources: dict[str, Any] | None = None) -> Tab
         from ..api.sources import input_cell_refs
         refs = input_cell_refs
     t = Table(name="Audit Trail",
-              headers=["Company", "Portfolio Row", "Seq", "Rule", "Version", "Prior ($M)", "New ($M)", "Rationale",
+              headers=["Company", "Portfolio Row", "Seq", "Rule", "Version", "Prior ($M)", "New ($M)", "Rationale", "Formula",
                        "Evidence Sheet", "Evidence Row", "Event Type", "Event Date", "Inputs (JSON)", "Input Cells"],
-              kinds=[TEXT, INT, INT, TEXT, TEXT, MUSD, MUSD, TEXT, TEXT, INT, TEXT, DATE, TEXT, TEXT])
+              kinds=[TEXT, INT, INT, TEXT, TEXT, MUSD, MUSD, TEXT, TEXT, TEXT, INT, TEXT, DATE, TEXT, TEXT])
     for c in run.companies:
         prow = ((sources or {}).get("companies", {}).get(c.company) or {}).get("portfolio_row")
         for s in c.steps:
             ev = s.evidence
             cells = refs(sources, c.company, s.inputs, ev.row_index if ev else None) if refs else {}
             t.rows.append([
-                c.company, prow, s.sequence, s.rule_id, s.rule_version, s.prior_value, s.new_value, s.rationale,
+                c.company, prow, s.sequence, s.rule_id, s.rule_version, s.prior_value, s.new_value, s.rationale, s.formula,
                 ev.sheet if ev else None, ev.row_index if ev else None, ev.event_type if ev else None,
                 ev.date.isoformat() if ev else None, compact_json(s.inputs),
                 "; ".join(f"{k}={v}" for k, v in cells.items()) or None,

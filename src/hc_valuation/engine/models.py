@@ -124,6 +124,10 @@ class MarkStep(_Frozen):
     new_value: float
     rationale: str
     evidence: EventRef | None = None
+    # The arithmetic behind new_value, written out with its operands ("7.9% × $176.3M = $13.93M").
+    # The rationale says which rule applied; this says where the figure came from. None on a step
+    # that carries a mark unchanged.
+    formula: str | None = None
 
 
 class Suggestion(_Frozen):
